@@ -1,13 +1,11 @@
-# Nautilus v6.0 - Enterprise Dive Shop Management System
+# Nautilus v1.0 - Enterprise Dive Shop Management System
 
 A comprehensive, enterprise-grade web application for managing all aspects of dive shop operations, including POS, CRM, inventory, rentals, courses, e-commerce, and more.
 
-**Built for:** Bill Nash (@wrnash1)  
-**Devin Run:** https://app.devin.ai/sessions/0a53533785e14a6f95aae83c5390ae8a
 
 ## 🌊 Overview
 
-Nautilus v6.0 is a full-featured dive shop management system designed to handle B2C and B2B operations with enterprise-grade functionality. The system supports the complete lifecycle of dive shop operations from point-of-sale transactions to customer relationship management, equipment rentals, training courses, and online e-commerce.
+Nautilus v1.0 is a full-featured dive shop management system designed to handle B2C and B2B operations with enterprise-grade functionality. The system supports the complete lifecycle of dive shop operations from point-of-sale transactions to customer relationship management, equipment rentals, training courses, and online e-commerce.
 
 ## 🏗️ Architecture
 
@@ -262,22 +260,8 @@ See [Deployment Guide](docs/DEPLOYMENT.md) for production deployment instruction
 - [API Documentation](docs/API.md) - RESTful API reference
 - [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment steps
 
-## 🤝 Support & Contribution
 
-This is a proprietary system developed for dive shop operations. For support or inquiries, contact Bill Nash.
 
-## 📄 License
 
-Copyright (c) 2025 Bill Nash. All rights reserved.
 
-This software is proprietary and confidential. See [LICENSE](LICENSE) file for details.
 
-## 🏆 Credits
-
-**Developed by:** Devin AI  
-**Project Owner:** Bill Nash (@wrnash1)  
-**Session:** https://app.devin.ai/sessions/0a53533785e14a6f95aae83c5390ae8a
-
----
-
-**Note:** This is a complete project skeleton covering all 5 phases of development. Individual modules contain placeholder implementations that should be completed during actual development phases.
