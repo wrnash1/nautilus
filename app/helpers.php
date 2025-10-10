@@ -61,3 +61,13 @@ function logActivity(string $action, string $module, ?int $entityId = null): voi
         );
     }
 }
+
+function hasPermission(string $permission): bool
+{
+    return \App\Core\Auth::hasPermission($permission);
+}
+
+function currentUser(): ?array
+{
+    return \App\Core\Auth::user();
+}

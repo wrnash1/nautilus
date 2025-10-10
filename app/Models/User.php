@@ -9,7 +9,10 @@ class User
     public static function find(int $id): ?array
     {
         return Database::fetchOne(
-            "SELECT * FROM users WHERE id = ? AND is_active = 1",
+            "SELECT u.*, r.display_name as role_name 
+             FROM users u
+             LEFT JOIN roles r ON u.role_id = r.id
+             WHERE u.id = ? AND u.is_active = 1",
             [$id]
         );
     }
@@ -17,7 +20,10 @@ class User
     public static function findByEmail(string $email): ?array
     {
         return Database::fetchOne(
-            "SELECT * FROM users WHERE email = ? AND is_active = 1",
+            "SELECT u.*, r.display_name as role_name 
+             FROM users u
+             LEFT JOIN roles r ON u.role_id = r.id
+             WHERE u.email = ? AND u.is_active = 1",
             [$email]
         );
     }
