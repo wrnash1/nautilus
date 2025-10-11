@@ -159,4 +159,42 @@ class Product
         $result = Database::fetchOne("SELECT COUNT(*) as count FROM products WHERE is_active = 1");
         return (int)($result['count'] ?? 0);
     }
+    
+    public static function delete(int $id): bool
+    {
+        Database::query(
+            "UPDATE products SET is_active = 0, updated_at = NOW() WHERE id = ?",
+            [$id]
+        );
+        
+        logActivity('delete', 'products', $id);
+        
+        return true;
+    }
+    
+    public static function getInventoryTransactions(int $productId, int $limit = 50): array
+    {
+        return Database::fetchAll(
+            "SELECT it.*, u.first_name, u.last_name 
+             FROM inventory_transactions it
+             LEFT JOIN users u ON it.user_id = u.id
+             WHERE it.product_id = ?
+             ORDER BY it.created_at DESC
+             LIMIT ?",
+            [$productId, $limit]
+        ) ?? [];
+    }
+    
+    public static function getInventoryReport(): array
+    {
+        return Database::fetchAll(
+            "SELECT p.id, p.sku, p.name, p.stock_quantity, p.low_stock_threshold,
+                    p.cost_price, p.retail_price, c.name as category_name,
+                    (p.stock_quantity * p.cost_price) as inventory_value
+             FROM products p
+             LEFT JOIN product_categories c ON p.category_id = c.id
+             WHERE p.track_inventory = 1 AND p.is_active = 1
+             ORDER BY p.name ASC"
+        ) ?? [];
+    }
 }

@@ -133,6 +133,18 @@
                 <i class="bi bi-tags"></i> Categories
             </a>
             <?php endif; ?>
+            
+            <?php if (hasPermission('products.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'vendors' ? 'active' : '' ?>" href="/vendors">
+                <i class="bi bi-building"></i> Vendors
+            </a>
+            <?php endif; ?>
+            
+            <?php if (hasPermission('products.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'reports' ? 'active' : '' ?>" href="/reports/inventory">
+                <i class="bi bi-clipboard-data"></i> Reports
+            </a>
+            <?php endif; ?>
         </nav>
     </div>
 

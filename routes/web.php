@@ -30,7 +30,33 @@ $router->post('/customers/{id}/addresses/{address_id}', 'CRM\CustomerController@
 $router->post('/customers/{id}/addresses/{address_id}/delete', 'CRM\CustomerController@deleteAddress', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 $router->get('/products', 'Inventory\ProductController@index', [AuthMiddleware::class]);
+$router->get('/products/create', 'Inventory\ProductController@create', [AuthMiddleware::class]);
+$router->post('/products', 'Inventory\ProductController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/products/search', 'Inventory\ProductController@search', [AuthMiddleware::class]);
 $router->get('/products/{id}', 'Inventory\ProductController@show', [AuthMiddleware::class]);
+$router->get('/products/{id}/edit', 'Inventory\ProductController@edit', [AuthMiddleware::class]);
+$router->post('/products/{id}', 'Inventory\ProductController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/products/{id}/delete', 'Inventory\ProductController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/products/{id}/adjust-stock', 'Inventory\ProductController@adjustStock', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+$router->get('/categories', 'Inventory\CategoryController@index', [AuthMiddleware::class]);
+$router->get('/categories/create', 'Inventory\CategoryController@create', [AuthMiddleware::class]);
+$router->post('/categories', 'Inventory\CategoryController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/categories/{id}/edit', 'Inventory\CategoryController@edit', [AuthMiddleware::class]);
+$router->post('/categories/{id}', 'Inventory\CategoryController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/categories/{id}/delete', 'Inventory\CategoryController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+$router->get('/vendors', 'Inventory\VendorController@index', [AuthMiddleware::class]);
+$router->get('/vendors/create', 'Inventory\VendorController@create', [AuthMiddleware::class]);
+$router->post('/vendors', 'Inventory\VendorController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/vendors/{id}', 'Inventory\VendorController@show', [AuthMiddleware::class]);
+$router->get('/vendors/{id}/edit', 'Inventory\VendorController@edit', [AuthMiddleware::class]);
+$router->post('/vendors/{id}', 'Inventory\VendorController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/vendors/{id}/delete', 'Inventory\VendorController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+$router->get('/reports/low-stock', 'Inventory\ReportController@lowStock', [AuthMiddleware::class]);
+$router->get('/reports/inventory', 'Inventory\ReportController@inventory', [AuthMiddleware::class]);
+$router->get('/reports/inventory/export', 'Inventory\ReportController@exportInventoryCsv', [AuthMiddleware::class]);
 
 $router->get('/rentals', 'Rentals\RentalController@index', [AuthMiddleware::class]);
 
