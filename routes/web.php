@@ -12,7 +12,9 @@ $router->post('/login', 'Auth\AuthController@login');
 $router->post('/logout', 'Auth\AuthController@logout', [AuthMiddleware::class]);
 
 $router->get('/pos', 'POS\TransactionController@index', [AuthMiddleware::class]);
-$router->post('/pos/transaction', 'POS\TransactionController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/pos/search', 'POS\TransactionController@searchProducts', [AuthMiddleware::class]);
+$router->post('/pos/checkout', 'POS\TransactionController@checkout', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/pos/receipt/{id}', 'POS\TransactionController@receipt', [AuthMiddleware::class]);
 
 $router->get('/customers', 'CRM\CustomerController@index', [AuthMiddleware::class]);
 $router->get('/customers/{id}', 'CRM\CustomerController@show', [AuthMiddleware::class]);

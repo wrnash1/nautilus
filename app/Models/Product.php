@@ -6,10 +6,26 @@ use App\Core\Database;
 
 class Product
 {
+    public static function all(int $limit = 50, int $offset = 0): array
+    {
+        return Database::fetchAll(
+            "SELECT p.*, c.name as category_name 
+             FROM products p
+             LEFT JOIN product_categories c ON p.category_id = c.id
+             WHERE p.is_active = 1
+             ORDER BY p.name ASC
+             LIMIT ? OFFSET ?",
+            [$limit, $offset]
+        ) ?? [];
+    }
+    
     public static function find(int $id): ?array
     {
         return Database::fetchOne(
-            "SELECT * FROM products WHERE id = ? AND is_active = 1",
+            "SELECT p.*, c.name as category_name 
+             FROM products p
+             LEFT JOIN product_categories c ON p.category_id = c.id
+             WHERE p.id = ? AND p.is_active = 1",
             [$id]
         );
     }
@@ -17,18 +33,130 @@ class Product
     public static function findBySku(string $sku): ?array
     {
         return Database::fetchOne(
-            "SELECT * FROM products WHERE sku = ? AND is_active = 1",
+            "SELECT p.*, c.name as category_name 
+             FROM products p
+             LEFT JOIN product_categories c ON p.category_id = c.id
+             WHERE p.sku = ? AND p.is_active = 1",
             [$sku]
         );
+    }
+    
+    public static function search(string $query, int $limit = 20): array
+    {
+        $searchTerm = "%{$query}%";
+        return Database::fetchAll(
+            "SELECT p.*, c.name as category_name 
+             FROM products p
+             LEFT JOIN product_categories c ON p.category_id = c.id
+             WHERE p.is_active = 1 
+             AND (p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ?)
+             ORDER BY p.name ASC
+             LIMIT ?",
+            [$searchTerm, $searchTerm, $searchTerm, $limit]
+        ) ?? [];
     }
     
     public static function getLowStock(): array
     {
         return Database::fetchAll(
-            "SELECT * FROM products 
-             WHERE track_inventory = 1 
-             AND stock_quantity <= low_stock_threshold 
-             AND is_active = 1"
+            "SELECT p.*, c.name as category_name 
+             FROM products p
+             LEFT JOIN product_categories c ON p.category_id = c.id
+             WHERE p.track_inventory = 1 
+             AND p.stock_quantity <= p.low_stock_threshold 
+             AND p.is_active = 1
+             ORDER BY p.stock_quantity ASC"
+        ) ?? [];
+    }
+    
+    public static function create(array $data): int
+    {
+        Database::query(
+            "INSERT INTO products (
+                category_id, name, slug, sku, description, 
+                retail_price, cost_price, track_inventory, 
+                stock_quantity, low_stock_threshold, is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                $data['category_id'] ?? null,
+                $data['name'],
+                $data['slug'],
+                $data['sku'],
+                $data['description'] ?? null,
+                $data['retail_price'],
+                $data['cost_price'] ?? 0,
+                $data['track_inventory'] ?? 1,
+                $data['stock_quantity'] ?? 0,
+                $data['low_stock_threshold'] ?? 5,
+                $data['is_active'] ?? 1
+            ]
         );
+        
+        return (int)Database::lastInsertId();
+    }
+    
+    public static function update(int $id, array $data): bool
+    {
+        Database::query(
+            "UPDATE products SET 
+                category_id = ?, name = ?, slug = ?, sku = ?,
+                description = ?, retail_price = ?, cost_price = ?,
+                track_inventory = ?, stock_quantity = ?, 
+                low_stock_threshold = ?, is_active = ?,
+                updated_at = NOW()
+             WHERE id = ?",
+            [
+                $data['category_id'] ?? null,
+                $data['name'],
+                $data['slug'],
+                $data['sku'],
+                $data['description'] ?? null,
+                $data['retail_price'],
+                $data['cost_price'] ?? 0,
+                $data['track_inventory'] ?? 1,
+                $data['stock_quantity'] ?? 0,
+                $data['low_stock_threshold'] ?? 5,
+                $data['is_active'] ?? 1,
+                $id
+            ]
+        );
+        
+        return true;
+    }
+    
+    public static function adjustStock(int $productId, int $quantity, string $type, $reference = null): bool
+    {
+        $product = self::find($productId);
+        $quantityBefore = (int)$product['stock_quantity'];
+        $quantityAfter = $quantityBefore + $quantity;
+        
+        Database::query(
+            "UPDATE products SET stock_quantity = stock_quantity + ?, updated_at = NOW() WHERE id = ?",
+            [$quantity, $productId]
+        );
+        
+        Database::query(
+            "INSERT INTO inventory_transactions (
+                product_id, transaction_type, quantity_change, quantity_before, 
+                quantity_after, reference_type, reference_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [
+                $productId,
+                $type,
+                $quantity,
+                $quantityBefore,
+                $quantityAfter,
+                $reference ? 'transaction' : null,
+                $reference
+            ]
+        );
+        
+        return true;
+    }
+    
+    public static function count(): int
+    {
+        $result = Database::fetchOne("SELECT COUNT(*) as count FROM products WHERE is_active = 1");
+        return (int)($result['count'] ?? 0);
     }
 }
