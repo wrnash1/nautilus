@@ -58,6 +58,18 @@ $router->get('/reports/low-stock', 'Inventory\ReportController@lowStock', [AuthM
 $router->get('/reports/inventory', 'Inventory\ReportController@inventory', [AuthMiddleware::class]);
 $router->get('/reports/inventory/export', 'Inventory\ReportController@exportInventoryCsv', [AuthMiddleware::class]);
 
+$router->get('/reports/sales', 'Reports\SalesReportController@index', [AuthMiddleware::class]);
+$router->get('/reports/sales/export', 'Reports\SalesReportController@exportCsv', [AuthMiddleware::class]);
+
+$router->get('/reports/customers', 'Reports\CustomerReportController@index', [AuthMiddleware::class]);
+$router->get('/reports/customers/export', 'Reports\CustomerReportController@exportCsv', [AuthMiddleware::class]);
+
+$router->get('/reports/products', 'Reports\ProductReportController@index', [AuthMiddleware::class]);
+$router->get('/reports/products/export', 'Reports\ProductReportController@exportCsv', [AuthMiddleware::class]);
+
+$router->get('/reports/payments', 'Reports\PaymentReportController@index', [AuthMiddleware::class]);
+$router->get('/reports/payments/export', 'Reports\PaymentReportController@exportCsv', [AuthMiddleware::class]);
+
 $router->get('/rentals', 'Rentals\RentalController@index', [AuthMiddleware::class]);
 
 $router->get('/courses', 'Courses\CourseController@index', [AuthMiddleware::class]);

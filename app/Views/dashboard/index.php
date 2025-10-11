@@ -23,6 +23,7 @@ ob_start();
                     <div>
                         <p class="text-muted mb-1 small">Today's Sales</p>
                         <h3 class="mb-0"><?= formatCurrency($metrics['today_sales'] ?? 0) ?></h3>
+                        <a href="/reports/sales?period=today" class="small text-primary">View Details →</a>
                     </div>
                     <div class="text-primary">
                         <i class="bi bi-currency-dollar" style="font-size: 2rem;"></i>
@@ -39,6 +40,7 @@ ob_start();
                     <div>
                         <p class="text-muted mb-1 small">Total Customers</p>
                         <h3 class="mb-0"><?= number_format($metrics['total_customers'] ?? 0) ?></h3>
+                        <a href="/reports/customers" class="small text-success">View Details →</a>
                     </div>
                     <div class="text-success">
                         <i class="bi bi-people" style="font-size: 2rem;"></i>
@@ -55,6 +57,7 @@ ob_start();
                     <div>
                         <p class="text-muted mb-1 small">Low Stock Items</p>
                         <h3 class="mb-0"><?= number_format($metrics['low_stock_count'] ?? 0) ?></h3>
+                        <a href="/reports/low-stock" class="small text-warning">View Details →</a>
                     </div>
                     <div class="text-warning">
                         <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
@@ -71,6 +74,7 @@ ob_start();
                     <div>
                         <p class="text-muted mb-1 small">Products</p>
                         <h3 class="mb-0"><?= number_format($metrics['total_products'] ?? 0) ?></h3>
+                        <a href="/reports/products" class="small text-info">View Details →</a>
                     </div>
                     <div class="text-info">
                         <i class="bi bi-box-seam" style="font-size: 2rem;"></i>

@@ -140,10 +140,20 @@
             </a>
             <?php endif; ?>
             
-            <?php if (hasPermission('products.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'reports' ? 'active' : '' ?>" href="/reports/inventory">
-                <i class="bi bi-clipboard-data"></i> Reports
-            </a>
+            <?php if (hasPermission('dashboard.view')): ?>
+            <div class="nav-item">
+                <a class="nav-link <?= $activeMenu === 'reports' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#reportsMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-clipboard-data"></i> Reports <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="reportsMenu">
+                    <a class="nav-link ps-5" href="/reports/sales">Sales Report</a>
+                    <a class="nav-link ps-5" href="/reports/customers">Customer Report</a>
+                    <a class="nav-link ps-5" href="/reports/products">Product Report</a>
+                    <a class="nav-link ps-5" href="/reports/payments">Payment Report</a>
+                    <a class="nav-link ps-5" href="/reports/inventory">Inventory Report</a>
+                    <a class="nav-link ps-5" href="/reports/low-stock">Low Stock Alert</a>
+                </div>
+            </div>
             <?php endif; ?>
         </nav>
     </div>
