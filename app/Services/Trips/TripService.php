@@ -27,7 +27,7 @@ class TripService
     public function getTripById(int $id): ?array
     {
         $sql = "SELECT * FROM trips WHERE id = ?";
-        return Database::fetch($sql, [$id]);
+        return Database::fetchOne($sql, [$id]);
     }
     
     public function createTrip(array $data): int
@@ -107,7 +107,7 @@ class TripService
                 LEFT JOIN trips t ON ts.trip_id = t.id
                 WHERE ts.id = ?";
         
-        return Database::fetch($sql, [$id]);
+        return Database::fetchOne($sql, [$id]);
     }
     
     public function createSchedule(array $data): int
@@ -167,7 +167,7 @@ class TripService
                 LEFT JOIN trips t ON ts.trip_id = t.id
                 WHERE tb.id = ?";
         
-        return Database::fetch($sql, [$id]);
+        return Database::fetchOne($sql, [$id]);
     }
     
     public function createBooking(array $data): int

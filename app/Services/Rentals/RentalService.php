@@ -44,7 +44,7 @@ class RentalService
                 LEFT JOIN rental_categories rc ON re.category_id = rc.id
                 WHERE re.id = ?";
         
-        return Database::fetch($sql, [$id]);
+        return Database::fetchOne($sql, [$id]);
     }
     
     public function createEquipment(array $data): int
@@ -147,7 +147,7 @@ class RentalService
                 LEFT JOIN customers c ON rr.customer_id = c.id
                 WHERE rr.id = ?";
         
-        return Database::fetch($sql, [$id]);
+        return Database::fetchOne($sql, [$id]);
     }
     
     public function getReservationItems(int $reservationId): array
@@ -250,7 +250,7 @@ class RentalService
             $checkoutId
         ]);
         
-        $checkout = Database::fetch("SELECT reservation_id FROM rental_checkouts WHERE id = ?", [$checkoutId]);
+        $checkout = Database::fetchOne("SELECT reservation_id FROM rental_checkouts WHERE id = ?", [$checkoutId]);
         if ($checkout) {
             $this->updateReservationStatus($checkout['reservation_id'], 'completed');
             

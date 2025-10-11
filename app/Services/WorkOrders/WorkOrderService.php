@@ -41,7 +41,7 @@ class WorkOrderService
                 LEFT JOIN customers c ON wo.customer_id = c.id
                 WHERE wo.id = ?";
         
-        return Database::fetch($sql, [$id]);
+        return Database::fetchOne($sql, [$id]);
     }
     
     public function createWorkOrder(array $data): int

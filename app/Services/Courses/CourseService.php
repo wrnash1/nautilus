@@ -27,7 +27,7 @@ class CourseService
     public function getCourseById(int $id): ?array
     {
         $sql = "SELECT * FROM courses WHERE id = ?";
-        return Database::fetch($sql, [$id]);
+        return Database::fetchOne($sql, [$id]);
     }
     
     public function createCourse(array $data): int
@@ -111,7 +111,7 @@ class CourseService
                 LEFT JOIN users u ON cs.instructor_id = u.id
                 WHERE cs.id = ?";
         
-        return Database::fetch($sql, [$id]);
+        return Database::fetchOne($sql, [$id]);
     }
     
     public function createSchedule(array $data): int
@@ -198,7 +198,7 @@ class CourseService
                 LEFT JOIN courses co ON cs.course_id = co.id
                 WHERE ce.id = ?";
         
-        return Database::fetch($sql, [$id]);
+        return Database::fetchOne($sql, [$id]);
     }
     
     public function enrollStudent(int $scheduleId, int $customerId): int
