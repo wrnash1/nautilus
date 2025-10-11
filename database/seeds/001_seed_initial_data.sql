@@ -84,25 +84,25 @@ INSERT INTO rental_categories (name, description) VALUES
 ('Weights', 'Weight belts and systems'),
 ('Accessories', 'Dive computers, gauges, and accessories');
 
-INSERT INTO rental_equipment (category_id, equipment_code, name, size, daily_rate, weekly_rate, status, `condition`, created_by) VALUES
-(1, 'BCD-001', 'Cressi Start BCD', 'Medium', 25.00, 125.00, 'available', 'good', 1),
-(1, 'BCD-002', 'Scubapro Hydros Pro BCD', 'Large', 30.00, 150.00, 'available', 'excellent', 1),
-(2, 'REG-001', 'Cressi MC9 Regulator', NULL, 30.00, 150.00, 'available', 'excellent', 1),
-(2, 'REG-002', 'Scubapro MK25 Regulator', NULL, 35.00, 175.00, 'available', 'good', 1),
-(3, 'SUIT-001', '5mm Full Wetsuit', 'Large', 15.00, 75.00, 'available', 'good', 1),
-(3, 'SUIT-002', '3mm Shorty Wetsuit', 'Medium', 12.00, 60.00, 'available', 'fair', 1),
-(4, 'TANK-001', 'Aluminum 80cf Tank', NULL, 10.00, 50.00, 'available', 'good', 1),
-(4, 'TANK-002', 'Steel 100cf Tank', NULL, 12.00, 60.00, 'available', 'excellent', 1);
+INSERT INTO rental_equipment (category_id, equipment_code, name, size, daily_rate, weekly_rate, status, `condition`) VALUES
+(1, 'BCD-001', 'Cressi Start BCD', 'Medium', 25.00, 125.00, 'available', 'good'),
+(1, 'BCD-002', 'Scubapro Hydros Pro BCD', 'Large', 30.00, 150.00, 'available', 'excellent'),
+(2, 'REG-001', 'Cressi MC9 Regulator', NULL, 30.00, 150.00, 'available', 'excellent'),
+(2, 'REG-002', 'Scubapro MK25 Regulator', NULL, 35.00, 175.00, 'available', 'good'),
+(3, 'SUIT-001', '5mm Full Wetsuit', 'Large', 15.00, 75.00, 'available', 'good'),
+(3, 'SUIT-002', '3mm Shorty Wetsuit', 'Medium', 12.00, 60.00, 'available', 'fair'),
+(4, 'TANK-001', 'Aluminum 80cf Tank', NULL, 10.00, 50.00, 'available', 'good'),
+(4, 'TANK-002', 'Steel 100cf Tank', NULL, 12.00, 60.00, 'available', 'excellent');
 
-INSERT INTO courses (course_code, name, description, duration_days, max_students, price, created_by) VALUES
-('OW', 'Open Water Diver', 'PADI Open Water certification course for beginners', 3, 6, 499.00, 1),
-('AOW', 'Advanced Open Water', 'PADI Advanced Open Water course', 2, 6, 399.00, 1),
-('RESCUE', 'Rescue Diver', 'PADI Rescue Diver course with emergency management', 3, 6, 449.00, 1);
+INSERT INTO courses (course_code, name, description, duration_days, max_students, price) VALUES
+('OW', 'Open Water Diver', 'PADI Open Water certification course for beginners', 3, 6, 499.00),
+('AOW', 'Advanced Open Water', 'PADI Advanced Open Water course', 2, 6, 399.00),
+('RESCUE', 'Rescue Diver', 'PADI Rescue Diver course with emergency management', 3, 6, 449.00);
 
-INSERT INTO trips (trip_code, name, destination, description, duration_days, max_participants, price, created_by) VALUES
-('REEF-01', 'Local Reef Dive', 'Key Largo Reef', 'Explore vibrant coral reefs and marine life', 1, 20, 149.00, 1),
-('WRECK-01', 'Wreck Diving Adventure', 'USS Spiegel Grove', 'Dive the famous USS Spiegel Grove wreck', 1, 12, 199.00, 1),
-('BAH-01', 'Bahamas Dive Trip', 'Nassau, Bahamas', '7-day diving expedition in crystal clear waters', 7, 16, 2499.00, 1);
+INSERT INTO trips (trip_code, name, destination, description, duration_days, max_participants, price) VALUES
+('REEF-01', 'Local Reef Dive', 'Key Largo Reef', 'Explore vibrant coral reefs and marine life', 1, 20, 149.00),
+('WRECK-01', 'Wreck Diving Adventure', 'USS Spiegel Grove', 'Dive the famous USS Spiegel Grove wreck', 1, 12, 199.00),
+('BAH-01', 'Bahamas Dive Trip', 'Nassau, Bahamas', '7-day diving expedition in crystal clear waters', 7, 16, 2499.00);
 
 
 INSERT INTO product_categories (name, slug, description, is_active, created_at) VALUES
