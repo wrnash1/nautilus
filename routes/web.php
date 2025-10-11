@@ -17,8 +17,17 @@ $router->post('/pos/checkout', 'POS\TransactionController@checkout', [AuthMiddle
 $router->get('/pos/receipt/{id}', 'POS\TransactionController@receipt', [AuthMiddleware::class]);
 
 $router->get('/customers', 'CRM\CustomerController@index', [AuthMiddleware::class]);
-$router->get('/customers/{id}', 'CRM\CustomerController@show', [AuthMiddleware::class]);
+$router->get('/customers/create', 'CRM\CustomerController@create', [AuthMiddleware::class]);
 $router->post('/customers', 'CRM\CustomerController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/customers/search', 'CRM\CustomerController@search', [AuthMiddleware::class]);
+$router->get('/customers/export', 'CRM\CustomerController@exportCsv', [AuthMiddleware::class]);
+$router->get('/customers/{id}', 'CRM\CustomerController@show', [AuthMiddleware::class]);
+$router->get('/customers/{id}/edit', 'CRM\CustomerController@edit', [AuthMiddleware::class]);
+$router->post('/customers/{id}', 'CRM\CustomerController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/customers/{id}/delete', 'CRM\CustomerController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/customers/{id}/addresses', 'CRM\CustomerController@createAddress', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/customers/{id}/addresses/{address_id}', 'CRM\CustomerController@updateAddress', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/customers/{id}/addresses/{address_id}/delete', 'CRM\CustomerController@deleteAddress', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 $router->get('/products', 'Inventory\ProductController@index', [AuthMiddleware::class]);
 $router->get('/products/{id}', 'Inventory\ProductController@show', [AuthMiddleware::class]);

@@ -3,6 +3,7 @@
 namespace App\Controllers\CRM;
 
 use App\Services\CRM\CustomerService;
+use App\Models\Customer;
 
 class CustomerController
 {
@@ -15,41 +16,298 @@ class CustomerController
     
     public function index()
     {
+        if (!hasPermission('customers.view')) {
+            $_SESSION['flash_error'] = 'Access denied';
+            redirect('/');
+        }
         
+        $page = (int)($_GET['page'] ?? 1);
+        $limit = 20;
+        $offset = ($page - 1) * $limit;
+        $search = sanitizeInput($_GET['search'] ?? '');
+        
+        if (!empty($search)) {
+            $customers = Customer::search($search, $limit);
+            $total = count($customers);
+        } else {
+            $customers = Customer::all($limit, $offset);
+            $total = Customer::count();
+        }
+        
+        $totalPages = ceil($total / $limit);
+        
+        require __DIR__ . '/../../Views/customers/index.php';
     }
     
     public function create()
     {
+        if (!hasPermission('customers.create')) {
+            $_SESSION['flash_error'] = 'Access denied';
+            redirect('/customers');
+        }
         
+        require __DIR__ . '/../../Views/customers/create.php';
     }
     
     public function store()
     {
+        if (!hasPermission('customers.create')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
         
+        try {
+            $data = [
+                'customer_type' => sanitizeInput($_POST['customer_type'] ?? 'B2C'),
+                'first_name' => sanitizeInput($_POST['first_name'] ?? ''),
+                'last_name' => sanitizeInput($_POST['last_name'] ?? ''),
+                'email' => sanitizeInput($_POST['email'] ?? ''),
+                'phone' => sanitizeInput($_POST['phone'] ?? ''),
+                'mobile' => sanitizeInput($_POST['mobile'] ?? ''),
+                'company_name' => sanitizeInput($_POST['company_name'] ?? ''),
+                'birth_date' => sanitizeInput($_POST['birth_date'] ?? ''),
+                'emergency_contact_name' => sanitizeInput($_POST['emergency_contact_name'] ?? ''),
+                'emergency_contact_phone' => sanitizeInput($_POST['emergency_contact_phone'] ?? ''),
+                'tax_exempt' => isset($_POST['tax_exempt']) ? 1 : 0,
+                'tax_exempt_number' => sanitizeInput($_POST['tax_exempt_number'] ?? ''),
+                'credit_limit' => (float)($_POST['credit_limit'] ?? 0),
+                'credit_terms' => sanitizeInput($_POST['credit_terms'] ?? ''),
+                'address_line1' => sanitizeInput($_POST['address_line1'] ?? ''),
+                'address_line2' => sanitizeInput($_POST['address_line2'] ?? ''),
+                'city' => sanitizeInput($_POST['city'] ?? ''),
+                'state' => sanitizeInput($_POST['state'] ?? ''),
+                'postal_code' => sanitizeInput($_POST['postal_code'] ?? ''),
+                'country' => sanitizeInput($_POST['country'] ?? 'US'),
+                'notes' => sanitizeInput($_POST['notes'] ?? '')
+            ];
+            
+            $customerId = $this->customerService->createCustomer($data);
+            
+            $_SESSION['flash_success'] = 'Customer created successfully';
+            redirect("/customers/{$customerId}");
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+            redirect('/customers/create');
+        }
     }
     
     public function show(int $id)
     {
+        if (!hasPermission('customers.view')) {
+            $_SESSION['flash_error'] = 'Access denied';
+            redirect('/');
+        }
         
+        $data = $this->customerService->getCustomer360($id);
+        
+        if (empty($data)) {
+            $_SESSION['flash_error'] = 'Customer not found';
+            redirect('/customers');
+        }
+        
+        extract($data);
+        
+        require __DIR__ . '/../../Views/customers/show.php';
     }
     
     public function edit(int $id)
     {
+        if (!hasPermission('customers.edit')) {
+            $_SESSION['flash_error'] = 'Access denied';
+            redirect('/customers');
+        }
         
+        $customer = Customer::find($id);
+        $address = Customer::getDefaultAddress($id);
+        
+        if (!$customer) {
+            $_SESSION['flash_error'] = 'Customer not found';
+            redirect('/customers');
+        }
+        
+        require __DIR__ . '/../../Views/customers/edit.php';
     }
     
     public function update(int $id)
     {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
         
+        try {
+            $data = [
+                'customer_type' => sanitizeInput($_POST['customer_type'] ?? 'B2C'),
+                'first_name' => sanitizeInput($_POST['first_name'] ?? ''),
+                'last_name' => sanitizeInput($_POST['last_name'] ?? ''),
+                'email' => sanitizeInput($_POST['email'] ?? ''),
+                'phone' => sanitizeInput($_POST['phone'] ?? ''),
+                'mobile' => sanitizeInput($_POST['mobile'] ?? ''),
+                'company_name' => sanitizeInput($_POST['company_name'] ?? ''),
+                'birth_date' => sanitizeInput($_POST['birth_date'] ?? ''),
+                'emergency_contact_name' => sanitizeInput($_POST['emergency_contact_name'] ?? ''),
+                'emergency_contact_phone' => sanitizeInput($_POST['emergency_contact_phone'] ?? ''),
+                'tax_exempt' => isset($_POST['tax_exempt']) ? 1 : 0,
+                'tax_exempt_number' => sanitizeInput($_POST['tax_exempt_number'] ?? ''),
+                'credit_limit' => (float)($_POST['credit_limit'] ?? 0),
+                'credit_terms' => sanitizeInput($_POST['credit_terms'] ?? ''),
+                'address_line1' => sanitizeInput($_POST['address_line1'] ?? ''),
+                'address_line2' => sanitizeInput($_POST['address_line2'] ?? ''),
+                'city' => sanitizeInput($_POST['city'] ?? ''),
+                'state' => sanitizeInput($_POST['state'] ?? ''),
+                'postal_code' => sanitizeInput($_POST['postal_code'] ?? ''),
+                'country' => sanitizeInput($_POST['country'] ?? 'US'),
+                'notes' => sanitizeInput($_POST['notes'] ?? '')
+            ];
+            
+            $this->customerService->updateCustomer($id, $data);
+            
+            $_SESSION['flash_success'] = 'Customer updated successfully';
+            redirect("/customers/{$id}");
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+            redirect("/customers/{$id}/edit");
+        }
     }
     
     public function delete(int $id)
     {
+        if (!hasPermission('customers.delete')) {
+            $_SESSION['flash_error'] = 'Access denied';
+            redirect('/customers');
+        }
         
+        Customer::delete($id);
+        
+        $_SESSION['flash_success'] = 'Customer deleted successfully';
+        redirect('/customers');
     }
     
     public function search()
     {
+        if (!hasPermission('customers.view')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
         
+        $query = sanitizeInput($_GET['q'] ?? '');
+        
+        if (empty($query)) {
+            jsonResponse([]);
+        }
+        
+        $customers = $this->customerService->search($query);
+        jsonResponse($customers);
+    }
+    
+    public function exportCsv()
+    {
+        if (!hasPermission('customers.export')) {
+            $_SESSION['flash_error'] = 'Access denied';
+            redirect('/customers');
+        }
+        
+        $customers = Customer::all(10000, 0);
+        
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="customers-' . date('Y-m-d') . '.csv"');
+        
+        $output = fopen('php://output', 'w');
+        
+        fputcsv($output, [
+            'ID', 'Type', 'First Name', 'Last Name', 'Email', 'Phone', 
+            'Company', 'Credit Limit', 'Created At'
+        ]);
+        
+        foreach ($customers as $customer) {
+            fputcsv($output, [
+                $customer['id'],
+                $customer['customer_type'],
+                $customer['first_name'],
+                $customer['last_name'],
+                $customer['email'],
+                $customer['phone'],
+                $customer['company_name'] ?? '',
+                $customer['credit_limit'] ?? 0,
+                $customer['created_at']
+            ]);
+        }
+        
+        fclose($output);
+        exit;
+    }
+    
+    public function createAddress(int $id)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+        
+        try {
+            $data = [
+                'address_type' => sanitizeInput($_POST['address_type'] ?? 'billing'),
+                'address_line1' => sanitizeInput($_POST['address_line1'] ?? ''),
+                'address_line2' => sanitizeInput($_POST['address_line2'] ?? ''),
+                'city' => sanitizeInput($_POST['city'] ?? ''),
+                'state' => sanitizeInput($_POST['state'] ?? ''),
+                'postal_code' => sanitizeInput($_POST['postal_code'] ?? ''),
+                'country' => sanitizeInput($_POST['country'] ?? 'US'),
+                'is_default' => isset($_POST['is_default']) ? 1 : 0
+            ];
+            
+            if (empty($data['address_line1'])) {
+                throw new \Exception('Address line 1 is required');
+            }
+            
+            Customer::createAddress($id, $data);
+            
+            $_SESSION['flash_success'] = 'Address added successfully';
+            redirect("/customers/{$id}");
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+            redirect("/customers/{$id}");
+        }
+    }
+    
+    public function updateAddress(int $id, int $address_id)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+        
+        try {
+            $data = [
+                'address_type' => sanitizeInput($_POST['address_type'] ?? 'billing'),
+                'address_line1' => sanitizeInput($_POST['address_line1'] ?? ''),
+                'address_line2' => sanitizeInput($_POST['address_line2'] ?? ''),
+                'city' => sanitizeInput($_POST['city'] ?? ''),
+                'state' => sanitizeInput($_POST['state'] ?? ''),
+                'postal_code' => sanitizeInput($_POST['postal_code'] ?? ''),
+                'country' => sanitizeInput($_POST['country'] ?? 'US'),
+                'is_default' => isset($_POST['is_default']) ? 1 : 0
+            ];
+            
+            if (empty($data['address_line1'])) {
+                throw new \Exception('Address line 1 is required');
+            }
+            
+            Customer::updateAddress($address_id, $data);
+            
+            $_SESSION['flash_success'] = 'Address updated successfully';
+            redirect("/customers/{$id}");
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+            redirect("/customers/{$id}");
+        }
+    }
+    
+    public function deleteAddress(int $id, int $address_id)
+    {
+        if (!hasPermission('customers.edit')) {
+            $_SESSION['flash_error'] = 'Access denied';
+            redirect("/customers/{$id}");
+        }
+        
+        Customer::deleteAddress($address_id);
+        
+        $_SESSION['flash_success'] = 'Address deleted successfully';
+        redirect("/customers/{$id}");
     }
 }
