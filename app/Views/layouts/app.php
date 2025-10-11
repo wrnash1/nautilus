@@ -155,6 +155,50 @@
                 </div>
             </div>
             <?php endif; ?>
+            
+            <?php if (hasPermission('rentals.view')): ?>
+            <div class="nav-item">
+                <a class="nav-link <?= $activeMenu === 'rentals' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#rentalsMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-briefcase"></i> Rentals <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="rentalsMenu">
+                    <a class="nav-link ps-5" href="/rentals">Equipment</a>
+                    <a class="nav-link ps-5" href="/rentals/reservations">Reservations</a>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <?php if (hasPermission('courses.view')): ?>
+            <div class="nav-item">
+                <a class="nav-link <?= $activeMenu === 'courses' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#coursesMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-mortarboard"></i> Courses <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="coursesMenu">
+                    <a class="nav-link ps-5" href="/courses">Course Catalog</a>
+                    <a class="nav-link ps-5" href="/courses/schedules">Schedules</a>
+                    <a class="nav-link ps-5" href="/courses/enrollments">Enrollments</a>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <?php if (hasPermission('trips.view')): ?>
+            <div class="nav-item">
+                <a class="nav-link <?= $activeMenu === 'trips' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#tripsMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-airplane"></i> Trips <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="tripsMenu">
+                    <a class="nav-link ps-5" href="/trips">Trip Catalog</a>
+                    <a class="nav-link ps-5" href="/trips/schedules">Schedules</a>
+                    <a class="nav-link ps-5" href="/trips/bookings">Bookings</a>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <?php if (hasPermission('workorders.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'workorders' ? 'active' : '' ?>" href="/workorders">
+                <i class="bi bi-tools"></i> Work Orders
+            </a>
+            <?php endif; ?>
         </nav>
     </div>
 

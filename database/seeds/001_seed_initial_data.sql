@@ -34,7 +34,27 @@ INSERT INTO permissions (name, display_name, module, description) VALUES
 ('users.view', 'View Users', 'users', 'View users'),
 ('users.create', 'Create User', 'users', 'Create users'),
 ('users.edit', 'Edit User', 'users', 'Edit users'),
-('users.delete', 'Delete User', 'users', 'Delete users');
+('users.delete', 'Delete User', 'users', 'Delete users'),
+
+('rentals.view', 'View Rentals', 'rentals', 'View rental equipment and reservations'),
+('rentals.create', 'Create Rental', 'rentals', 'Create reservations'),
+('rentals.edit', 'Edit Rental', 'rentals', 'Edit equipment and reservations'),
+('rentals.delete', 'Delete Rental', 'rentals', 'Delete equipment'),
+
+('courses.view', 'View Courses', 'courses', 'View courses and schedules'),
+('courses.create', 'Create Course', 'courses', 'Create courses and enrollments'),
+('courses.edit', 'Edit Course', 'courses', 'Edit courses and schedules'),
+('courses.delete', 'Delete Course', 'courses', 'Delete courses'),
+
+('trips.view', 'View Trips', 'trips', 'View trips and bookings'),
+('trips.create', 'Create Trip', 'trips', 'Create trips and bookings'),
+('trips.edit', 'Edit Trip', 'trips', 'Edit trips and schedules'),
+('trips.delete', 'Delete Trip', 'trips', 'Delete trips'),
+
+('workorders.view', 'View Work Orders', 'workorders', 'View work orders'),
+('workorders.create', 'Create Work Order', 'workorders', 'Create work orders'),
+('workorders.edit', 'Edit Work Order', 'workorders', 'Edit work orders'),
+('workorders.delete', 'Delete Work Order', 'workorders', 'Delete work orders');
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT 1, id FROM permissions;
@@ -52,6 +72,37 @@ INSERT INTO users (role_id, first_name, last_name, email, password_hash, is_acti
 (1, 'Admin', 'User', 'admin@nautilus.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
 (2, 'Manager', 'Smith', 'manager@nautilus.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
 (3, 'Cashier', 'Jones', 'cashier@nautilus.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW());
+
+
+INSERT INTO rental_categories (name, description) VALUES
+('BCDs', 'Buoyancy Control Devices'),
+('Regulators', 'Regulators and octopus'),
+('Wetsuits', 'Wetsuits and thermal protection'),
+('Tanks', 'Scuba tanks and cylinders'),
+('Fins', 'Diving fins'),
+('Masks', 'Masks and snorkels'),
+('Weights', 'Weight belts and systems'),
+('Accessories', 'Dive computers, gauges, and accessories');
+
+INSERT INTO rental_equipment (category_id, equipment_code, name, size, daily_rate, weekly_rate, status, `condition`, created_by) VALUES
+(1, 'BCD-001', 'Cressi Start BCD', 'Medium', 25.00, 125.00, 'available', 'good', 1),
+(1, 'BCD-002', 'Scubapro Hydros Pro BCD', 'Large', 30.00, 150.00, 'available', 'excellent', 1),
+(2, 'REG-001', 'Cressi MC9 Regulator', NULL, 30.00, 150.00, 'available', 'excellent', 1),
+(2, 'REG-002', 'Scubapro MK25 Regulator', NULL, 35.00, 175.00, 'available', 'good', 1),
+(3, 'SUIT-001', '5mm Full Wetsuit', 'Large', 15.00, 75.00, 'available', 'good', 1),
+(3, 'SUIT-002', '3mm Shorty Wetsuit', 'Medium', 12.00, 60.00, 'available', 'fair', 1),
+(4, 'TANK-001', 'Aluminum 80cf Tank', NULL, 10.00, 50.00, 'available', 'good', 1),
+(4, 'TANK-002', 'Steel 100cf Tank', NULL, 12.00, 60.00, 'available', 'excellent', 1);
+
+INSERT INTO courses (course_code, name, description, duration_days, max_students, price, created_by) VALUES
+('OW', 'Open Water Diver', 'PADI Open Water certification course for beginners', 3, 6, 499.00, 1),
+('AOW', 'Advanced Open Water', 'PADI Advanced Open Water course', 2, 6, 399.00, 1),
+('RESCUE', 'Rescue Diver', 'PADI Rescue Diver course with emergency management', 3, 6, 449.00, 1);
+
+INSERT INTO trips (trip_code, name, destination, description, duration_days, max_participants, price, created_by) VALUES
+('REEF-01', 'Local Reef Dive', 'Key Largo Reef', 'Explore vibrant coral reefs and marine life', 1, 20, 149.00, 1),
+('WRECK-01', 'Wreck Diving Adventure', 'USS Spiegel Grove', 'Dive the famous USS Spiegel Grove wreck', 1, 12, 199.00, 1),
+('BAH-01', 'Bahamas Dive Trip', 'Nassau, Bahamas', '7-day diving expedition in crystal clear waters', 7, 16, 2499.00, 1);
 
 
 INSERT INTO product_categories (name, slug, description, is_active, created_at) VALUES
