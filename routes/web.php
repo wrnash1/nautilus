@@ -128,7 +128,17 @@ $router->post('/workorders/{id}/status', 'WorkOrders\WorkOrderController@updateS
 $router->post('/workorders/{id}/delete', 'WorkOrders\WorkOrderController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/workorders/{id}/notes', 'WorkOrders\WorkOrderController@addNote', [AuthMiddleware::class, CsrfMiddleware::class]);
 
+$router->get('/shop', 'Shop\ShopController@index');
+$router->get('/shop/product/{id}', 'Shop\ShopController@productDetail');
+$router->post('/shop/cart/add', 'Shop\ShopController@addToCart', [CsrfMiddleware::class]);
+$router->get('/shop/cart', 'Shop\ShopController@cart');
+$router->post('/shop/cart/update', 'Shop\ShopController@updateCart', [CsrfMiddleware::class]);
+$router->get('/shop/checkout', 'Shop\ShopController@checkout');
+$router->post('/shop/checkout', 'Shop\ShopController@processCheckout', [CsrfMiddleware::class]);
+
 $router->get('/orders', 'Ecommerce\OrderController@index', [AuthMiddleware::class]);
 $router->get('/orders/{id}', 'Ecommerce\OrderController@show', [AuthMiddleware::class]);
+$router->post('/orders/{id}/status', 'Ecommerce\OrderController@updateStatus', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/orders/{id}/ship', 'Ecommerce\OrderController@ship', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 return $router;

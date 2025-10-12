@@ -199,6 +199,16 @@
                 <i class="bi bi-tools"></i> Work Orders
             </a>
             <?php endif; ?>
+            
+            <?php if (hasPermission('orders.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'orders' ? 'active' : '' ?>" href="/orders">
+                <i class="bi bi-box-seam"></i> Orders
+            </a>
+            <?php endif; ?>
+            
+            <a class="nav-link" href="/shop" target="_blank">
+                <i class="bi bi-shop"></i> Online Store
+            </a>
         </nav>
     </div>
 

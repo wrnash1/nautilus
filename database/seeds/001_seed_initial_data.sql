@@ -54,17 +54,26 @@ INSERT INTO permissions (name, display_name, module, description) VALUES
 ('workorders.view', 'View Work Orders', 'workorders', 'View work orders'),
 ('workorders.create', 'Create Work Order', 'workorders', 'Create work orders'),
 ('workorders.edit', 'Edit Work Order', 'workorders', 'Edit work orders'),
-('workorders.delete', 'Delete Work Order', 'workorders', 'Delete work orders');
+('workorders.delete', 'Delete Work Order', 'workorders', 'Delete work orders'),
+
+('orders.view', 'View Orders', 'orders', 'View orders'),
+('orders.create', 'Create Order', 'orders', 'Create orders'),
+('orders.edit', 'Edit Order', 'orders', 'Edit order details'),
+('orders.ship', 'Ship Order', 'orders', 'Process shipments'),
+('orders.cancel', 'Cancel Order', 'orders', 'Cancel orders'),
+
+('shop.browse', 'Browse Shop', 'shop', 'Browse products in online store'),
+('shop.checkout', 'Checkout', 'shop', 'Complete checkout and place orders');
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT 1, id FROM permissions;
 
 INSERT INTO role_permissions (role_id, permission_id)
-SELECT 2, id FROM permissions WHERE module != 'users';
+SELECT 2, id FROM permissions WHERE module != 'users' AND name != 'orders.cancel';
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT 3, id FROM permissions 
-WHERE name IN ('pos.view', 'pos.create', 'customers.view', 'dashboard.view');
+WHERE name IN ('pos.view', 'pos.create', 'customers.view', 'dashboard.view', 'orders.view', 'shop.browse', 'shop.checkout');
 
 
 
@@ -160,3 +169,15 @@ INSERT INTO customer_addresses (customer_id, address_type, address_line1, city, 
 (3, 'billing', '789 Coral Way', 'Key West', 'FL', '33040', 'US', 1),
 (6, 'billing', '321 Harbor Street', 'Fort Lauderdale', 'FL', '33301', 'US', 1),
 (7, 'billing', '654 Marina Drive', 'Honolulu', 'HI', '96815', 'US', 1);
+
+INSERT INTO orders (order_number, customer_id, order_type, subtotal, shipping, tax, total, status, payment_status, shipping_address_line1, shipping_city, shipping_state, shipping_postal_code, shipping_country, created_at) VALUES
+('ORD-20251010-ABC123', 1, 'online', 299.97, 10.00, 21.70, 331.67, 'delivered', 'paid', '123 Ocean Drive', 'Miami', 'FL', '33139', 'US', DATE_SUB(NOW(), INTERVAL 5 DAY)),
+('ORD-20251009-DEF456', 2, 'online', 149.99, 10.00, 11.20, 171.19, 'shipped', 'paid', '456 Beach Blvd', 'San Diego', 'CA', '92101', 'US', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+('ORD-20251011-GHI789', 3, 'online', 449.97, 0.00, 31.50, 481.47, 'processing', 'paid', '789 Coral Way', 'Key West', 'FL', '33040', 'US', DATE_SUB(NOW(), INTERVAL 1 DAY));
+
+INSERT INTO order_items (order_id, product_id, product_name, sku, quantity, unit_price, total) VALUES
+(1, 1, 'Cressi Big Eyes Evolution', 'MASK-001', 2, 89.99, 179.98),
+(1, 4, 'Mares Avanti Quattro Plus', 'FIN-001', 1, 119.99, 119.99),
+(2, 2, 'Scubapro Crystal Vu', 'MASK-002', 1, 119.99, 119.99),
+(3, 11, 'Cressi Start BCD', 'BCD-001', 1, 349.99, 349.99),
+(3, 1, 'Cressi Big Eyes Evolution', 'MASK-001', 1, 89.99, 89.99);
