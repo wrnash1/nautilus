@@ -36,6 +36,13 @@ ob_start();
                 <h5 class="mb-0">Product Information</h5>
             </div>
             <div class="card-body">
+                <?php if (!empty($product['image_url'])): ?>
+                <div class="row mb-3">
+                    <div class="col-12 text-center">
+                        <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['image_alt'] ?? $product['name']) ?>" class="img-fluid rounded" style="max-height: 400px; object-fit: cover;">
+                    </div>
+                </div>
+                <?php endif; ?>
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>SKU:</strong><br>

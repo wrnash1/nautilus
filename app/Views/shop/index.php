@@ -39,6 +39,11 @@
             <?php foreach ($products as $product): ?>
             <div class="col">
                 <div class="card h-100">
+                    <?php 
+                    $imageUrl = $product['image_url'] ?? 'https://placehold.co/400x300/6c757d/ffffff?text=No+Image';
+                    $imageAlt = $product['image_alt'] ?? htmlspecialchars($product['name']);
+                    ?>
+                    <img src="<?= htmlspecialchars($imageUrl) ?>" class="card-img-top" alt="<?= htmlspecialchars($imageAlt) ?>" style="height: 250px; object-fit: cover;">
                     <div class="card-body">
                         <h5 class="card-title"><?= htmlspecialchars($product['name']) ?></h5>
                         <p class="text-muted small"><?= htmlspecialchars($product['sku']) ?></p>

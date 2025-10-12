@@ -34,12 +34,11 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body text-center p-5">
-                        <i class="bi bi-image" style="font-size: 200px; color: #ccc;"></i>
-                        <p class="text-muted mt-3">Product Image</p>
-                    </div>
-                </div>
+                <?php 
+                $imageUrl = $product['image_url'] ?? 'https://placehold.co/600x450/6c757d/ffffff?text=No+Image';
+                $imageAlt = $product['image_alt'] ?? htmlspecialchars($product['name']);
+                ?>
+                <img src="<?= htmlspecialchars($imageUrl) ?>" class="img-fluid rounded" alt="<?= htmlspecialchars($imageAlt) ?>">
             </div>
             
             <div class="col-md-6">

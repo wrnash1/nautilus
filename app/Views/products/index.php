@@ -42,6 +42,7 @@ ob_start();
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <th style="width: 80px;">Image</th>
                         <th>SKU</th>
                         <th>Name</th>
                         <th>Category</th>
@@ -55,6 +56,12 @@ ob_start();
                 <tbody>
                     <?php foreach ($products as $product): ?>
                     <tr>
+                        <td>
+                            <?php 
+                            $imageUrl = $product['image_url'] ?? 'https://placehold.co/60x60/6c757d/ffffff?text=No+Image';
+                            ?>
+                            <img src="<?= htmlspecialchars($imageUrl) ?>" alt="<?= htmlspecialchars($product['name']) ?>" style="width: 60px; height: 60px; object-fit: cover;" class="rounded">
+                        </td>
                         <td><code><?= htmlspecialchars($product['sku']) ?></code></td>
                         <td>
                             <a href="/products/<?= $product['id'] ?>">

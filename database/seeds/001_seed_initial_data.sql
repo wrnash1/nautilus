@@ -170,6 +170,24 @@ INSERT INTO customer_addresses (customer_id, address_type, address_line1, city, 
 (6, 'billing', '321 Harbor Street', 'Fort Lauderdale', 'FL', '33301', 'US', 1),
 (7, 'billing', '654 Marina Drive', 'Honolulu', 'HI', '96815', 'US', 1);
 
+INSERT INTO product_images (product_id, file_path, file_name, alt_text, is_primary, sort_order) VALUES
+(1, 'https://placehold.co/400x300/0d6efd/ffffff?text=Diving+Mask', 'mask-001.jpg', 'Cressi Big Eyes Evolution Diving Mask', 1, 1),
+(2, 'https://placehold.co/400x300/0d6efd/ffffff?text=Diving+Mask', 'mask-002.jpg', 'Scubapro Crystal Vu Mask', 1, 1),
+(3, 'https://placehold.co/400x300/0d6efd/ffffff?text=Diving+Mask', 'mask-003.jpg', 'Atomic Venom Frameless Mask', 1, 1),
+(4, 'https://placehold.co/400x300/198754/ffffff?text=Diving+Fins', 'fin-001.jpg', 'Mares Avanti Quattro Plus Fins', 1, 1),
+(5, 'https://placehold.co/400x300/198754/ffffff?text=Diving+Fins', 'fin-002.jpg', 'Scubapro Jet Fins', 1, 1),
+(6, 'https://placehold.co/400x300/198754/ffffff?text=Diving+Fins', 'fin-003.jpg', 'Hollis F1 Bat Fins', 1, 1),
+(7, 'https://placehold.co/400x300/fd7e14/ffffff?text=Wetsuit', 'suit-001.jpg', '3mm Shorty Wetsuit', 1, 1),
+(8, 'https://placehold.co/400x300/fd7e14/ffffff?text=Wetsuit', 'suit-002.jpg', '5mm Full Wetsuit', 1, 1),
+(9, 'https://placehold.co/400x300/fd7e14/ffffff?text=Wetsuit', 'suit-003.jpg', '7mm Semi-Dry Suit', 1, 1),
+(10, 'https://placehold.co/400x300/dc3545/ffffff?text=BCD', 'bcd-001.jpg', 'Cressi Start BCD', 1, 1),
+(11, 'https://placehold.co/400x300/dc3545/ffffff?text=BCD', 'bcd-002.jpg', 'Scubapro Hydros Pro BCD', 1, 1),
+(12, 'https://placehold.co/400x300/6f42c1/ffffff?text=Regulator', 'reg-001.jpg', 'Cressi MC9 Regulator', 1, 1),
+(13, 'https://placehold.co/400x300/6f42c1/ffffff?text=Regulator', 'reg-002.jpg', 'Scubapro MK25 EVO Regulator', 1, 1),
+(14, 'https://placehold.co/400x300/0dcaf0/ffffff?text=Dive+Computer', 'acc-001.jpg', 'Suunto Zoop Dive Computer', 1, 1),
+(15, 'https://placehold.co/400x300/0dcaf0/ffffff?text=Safety+Buoy', 'acc-002.jpg', 'SMB Surface Marker Buoy', 1, 1),
+(16, 'https://placehold.co/400x300/ffc107/ffffff?text=Training', 'train-001.jpg', 'Open Water Certification Course', 1, 1);
+
 INSERT INTO orders (order_number, customer_id, order_type, subtotal, shipping, tax, total, status, payment_status, shipping_address_line1, shipping_city, shipping_state, shipping_postal_code, shipping_country, created_at) VALUES
 ('ORD-20251010-ABC123', 1, 'online', 299.97, 10.00, 21.70, 331.67, 'delivered', 'paid', '123 Ocean Drive', 'Miami', 'FL', '33139', 'US', DATE_SUB(NOW(), INTERVAL 5 DAY)),
 ('ORD-20251009-DEF456', 2, 'online', 149.99, 10.00, 11.20, 171.19, 'shipped', 'paid', '456 Beach Blvd', 'San Diego', 'CA', '92101', 'US', DATE_SUB(NOW(), INTERVAL 3 DAY)),

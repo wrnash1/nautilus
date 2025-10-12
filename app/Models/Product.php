@@ -9,9 +9,11 @@ class Product
     public static function all(int $limit = 50, int $offset = 0): array
     {
         return Database::fetchAll(
-            "SELECT p.*, c.name as category_name 
+            "SELECT p.*, c.name as category_name,
+             pi.file_path as image_url, pi.alt_text as image_alt
              FROM products p
              LEFT JOIN product_categories c ON p.category_id = c.id
+             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
              WHERE p.is_active = 1
              ORDER BY p.name ASC
              LIMIT ? OFFSET ?",
@@ -22,9 +24,11 @@ class Product
     public static function find(int $id): ?array
     {
         return Database::fetchOne(
-            "SELECT p.*, c.name as category_name 
+            "SELECT p.*, c.name as category_name,
+             pi.file_path as image_url, pi.alt_text as image_alt
              FROM products p
              LEFT JOIN product_categories c ON p.category_id = c.id
+             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
              WHERE p.id = ? AND p.is_active = 1",
             [$id]
         );
@@ -45,9 +49,11 @@ class Product
     {
         $searchTerm = "%{$query}%";
         return Database::fetchAll(
-            "SELECT p.*, c.name as category_name 
+            "SELECT p.*, c.name as category_name,
+             pi.file_path as image_url, pi.alt_text as image_alt
              FROM products p
              LEFT JOIN product_categories c ON p.category_id = c.id
+             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
              WHERE p.is_active = 1 
              AND (p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ?)
              ORDER BY p.name ASC
