@@ -102,11 +102,21 @@ $router->get('/courses/enrollments/{id}', 'Courses\CourseController@showEnrollme
 $router->get('/trips', 'Trips\TripController@index', [AuthMiddleware::class]);
 $router->get('/trips/create', 'Trips\TripController@create', [AuthMiddleware::class]);
 $router->post('/trips', 'Trips\TripController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
-$router->get('/trips/{id}', 'Trips\TripController@show', [AuthMiddleware::class]);
 
 $router->get('/trips/schedules', 'Trips\TripController@schedules', [AuthMiddleware::class]);
+$router->get('/trips/schedules/create', 'Trips\TripController@createSchedule', [AuthMiddleware::class]);
+$router->post('/trips/schedules', 'Trips\TripController@storeSchedule', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/trips/schedules/{id}', 'Trips\TripController@showSchedule', [AuthMiddleware::class]);
+
 $router->get('/trips/bookings', 'Trips\TripController@bookings', [AuthMiddleware::class]);
+$router->get('/trips/bookings/create', 'Trips\TripController@createBooking', [AuthMiddleware::class]);
+$router->post('/trips/bookings', 'Trips\TripController@storeBooking', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/trips/bookings/{id}', 'Trips\TripController@showBooking', [AuthMiddleware::class]);
+
+$router->get('/trips/{id}', 'Trips\TripController@show', [AuthMiddleware::class]);
+$router->get('/trips/{id}/edit', 'Trips\TripController@edit', [AuthMiddleware::class]);
+$router->post('/trips/{id}', 'Trips\TripController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/trips/{id}/delete', 'Trips\TripController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 $router->get('/workorders', 'WorkOrders\WorkOrderController@index', [AuthMiddleware::class]);
 $router->get('/workorders/create', 'WorkOrders\WorkOrderController@create', [AuthMiddleware::class]);

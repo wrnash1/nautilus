@@ -148,6 +148,11 @@ class TripService
             $params[] = $filters['status'];
         }
         
+        if (!empty($filters['schedule_id'])) {
+            $sql .= " AND tb.schedule_id = ?";
+            $params[] = $filters['schedule_id'];
+        }
+        
         $sql .= " ORDER BY tb.created_at DESC";
         
         return Database::fetchAll($sql, $params);
