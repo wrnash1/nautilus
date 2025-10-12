@@ -136,6 +136,22 @@ $router->post('/shop/cart/update', 'Shop\ShopController@updateCart', [CsrfMiddle
 $router->get('/shop/checkout', 'Shop\ShopController@checkout');
 $router->post('/shop/checkout', 'Shop\ShopController@processCheckout', [CsrfMiddleware::class]);
 
+$router->get('/account/register', 'Customer\CustomerAuthController@showRegister');
+$router->post('/account/register', 'Customer\CustomerAuthController@register', [CsrfMiddleware::class]);
+$router->get('/account/login', 'Customer\CustomerAuthController@showLogin');
+$router->post('/account/login', 'Customer\CustomerAuthController@login', [CsrfMiddleware::class]);
+$router->post('/account/logout', 'Customer\CustomerAuthController@logout', [CsrfMiddleware::class]);
+
+$router->get('/account', 'Customer\AccountController@dashboard', [\App\Middleware\CustomerAuthMiddleware::class]);
+$router->get('/account/orders', 'Customer\AccountController@orders', [\App\Middleware\CustomerAuthMiddleware::class]);
+$router->get('/account/orders/{id}', 'Customer\AccountController@orderDetail', [\App\Middleware\CustomerAuthMiddleware::class]);
+$router->get('/account/profile', 'Customer\AccountController@profile', [\App\Middleware\CustomerAuthMiddleware::class]);
+$router->post('/account/profile', 'Customer\AccountController@updateProfile', [\App\Middleware\CustomerAuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/account/addresses', 'Customer\AccountController@addresses', [\App\Middleware\CustomerAuthMiddleware::class]);
+$router->post('/account/addresses', 'Customer\AccountController@createAddress', [\App\Middleware\CustomerAuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/account/addresses/{id}', 'Customer\AccountController@updateAddress', [\App\Middleware\CustomerAuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/account/addresses/{id}/delete', 'Customer\AccountController@deleteAddress', [\App\Middleware\CustomerAuthMiddleware::class, CsrfMiddleware::class]);
+
 $router->get('/orders', 'Ecommerce\OrderController@index', [AuthMiddleware::class]);
 $router->get('/orders/{id}', 'Ecommerce\OrderController@show', [AuthMiddleware::class]);
 $router->post('/orders/{id}/status', 'Ecommerce\OrderController@updateStatus', [AuthMiddleware::class, CsrfMiddleware::class]);

@@ -13,6 +13,39 @@
             <a class="navbar-brand" href="/shop">
                 <i class="bi bi-water"></i> Nautilus Dive Shop
             </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <?php if (\App\Core\CustomerAuth::check()): ?>
+                        <?php $customer = \App\Core\CustomerAuth::customer(); ?>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> <?= htmlspecialchars($customer['first_name']) ?>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/account">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="/account/orders">My Orders</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="/account/logout" class="px-3">
+                                        <input type="hidden" name="csrf_token" value="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/account/login">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/account/register">Register</a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            </div>
         </div>
     </nav>
 
@@ -24,6 +57,33 @@
                 <form method="POST" action="/shop/checkout">
                     <input type="hidden" name="csrf_token" value="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
                     <input type="hidden" name="customer_id" value="1">
+                    
+                    <?php 
+                    $loggedInCustomer = null;
+                    if (\App\Core\CustomerAuth::check()) {
+                        $loggedInCustomer = \App\Core\CustomerAuth::customer();
+                    }
+                    ?>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-person"></i> Contact Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="<?= htmlspecialchars($loggedInCustomer['email'] ?? '') ?>" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone"
+                                           value="<?= htmlspecialchars($loggedInCustomer['phone'] ?? '') ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="card mb-4">
                         <div class="card-header">

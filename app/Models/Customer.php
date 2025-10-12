@@ -25,6 +25,14 @@ class Customer
         );
     }
     
+    public static function findByEmail(string $email): ?array
+    {
+        return Database::fetchOne(
+            "SELECT * FROM customers WHERE email = ? AND is_active = 1",
+            [$email]
+        );
+    }
+    
     public static function search(string $query, int $limit = 20): array
     {
         $searchTerm = "%{$query}%";
@@ -45,8 +53,9 @@ class Customer
             "INSERT INTO customers (
                 customer_type, first_name, last_name, email, phone, mobile,
                 company_name, birth_date, emergency_contact_name, emergency_contact_phone,
-                tax_exempt, tax_exempt_number, credit_limit, credit_terms, notes, is_active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                tax_exempt, tax_exempt_number, credit_limit, credit_terms, notes, 
+                password, is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 $data['customer_type'] ?? 'B2C',
                 $data['first_name'],
@@ -63,6 +72,7 @@ class Customer
                 $data['credit_limit'] ?? 0.00,
                 $data['credit_terms'] ?? null,
                 $data['notes'] ?? null,
+                $data['password'] ?? null,
                 $data['is_active'] ?? 1
             ]
         );
@@ -96,34 +106,41 @@ class Customer
     
     public static function update(int $id, array $data): bool
     {
-        Database::query(
-            "UPDATE customers SET 
+        $sql = "UPDATE customers SET 
                 customer_type = ?, first_name = ?, last_name = ?, email = ?,
                 phone = ?, mobile = ?, company_name = ?, birth_date = ?,
                 emergency_contact_name = ?, emergency_contact_phone = ?,
                 tax_exempt = ?, tax_exempt_number = ?, credit_limit = ?,
-                credit_terms = ?, notes = ?, is_active = ?, updated_at = NOW()
-             WHERE id = ?",
-            [
-                $data['customer_type'] ?? 'B2C',
-                $data['first_name'],
-                $data['last_name'],
-                $data['email'] ?? null,
-                $data['phone'] ?? null,
-                $data['mobile'] ?? null,
-                $data['company_name'] ?? null,
-                $data['birth_date'] ?? null,
-                $data['emergency_contact_name'] ?? null,
-                $data['emergency_contact_phone'] ?? null,
-                isset($data['tax_exempt']) ? (int)$data['tax_exempt'] : 0,
-                $data['tax_exempt_number'] ?? null,
-                $data['credit_limit'] ?? 0.00,
-                $data['credit_terms'] ?? null,
-                $data['notes'] ?? null,
-                $data['is_active'] ?? 1,
-                $id
-            ]
-        );
+                credit_terms = ?, notes = ?, is_active = ?";
+        
+        $params = [
+            $data['customer_type'] ?? 'B2C',
+            $data['first_name'],
+            $data['last_name'],
+            $data['email'] ?? null,
+            $data['phone'] ?? null,
+            $data['mobile'] ?? null,
+            $data['company_name'] ?? null,
+            $data['birth_date'] ?? null,
+            $data['emergency_contact_name'] ?? null,
+            $data['emergency_contact_phone'] ?? null,
+            isset($data['tax_exempt']) ? (int)$data['tax_exempt'] : 0,
+            $data['tax_exempt_number'] ?? null,
+            $data['credit_limit'] ?? 0.00,
+            $data['credit_terms'] ?? null,
+            $data['notes'] ?? null,
+            $data['is_active'] ?? 1
+        ];
+        
+        if (isset($data['password']) && !empty($data['password'])) {
+            $sql .= ", password = ?";
+            $params[] = $data['password'];
+        }
+        
+        $sql .= ", updated_at = NOW() WHERE id = ?";
+        $params[] = $id;
+        
+        Database::query($sql, $params);
         
         if (!empty($data['address_line1'])) {
             $existingAddress = Database::fetchOne(

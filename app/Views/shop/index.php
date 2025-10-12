@@ -13,13 +13,46 @@
             <a class="navbar-brand" href="/shop">
                 <i class="bi bi-water"></i> Nautilus Dive Shop
             </a>
-            <div class="d-flex">
-                <a href="/shop/cart" class="btn btn-outline-light">
-                    <i class="bi bi-cart"></i> Cart 
-                    <?php if ($cartTotals['item_count'] > 0): ?>
-                        <span class="badge bg-danger"><?= $cartTotals['item_count'] ?></span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <?php if (\App\Core\CustomerAuth::check()): ?>
+                        <?php $customer = \App\Core\CustomerAuth::customer(); ?>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> <?= htmlspecialchars($customer['first_name']) ?>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/account">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="/account/orders">My Orders</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="/account/logout" class="px-3">
+                                        <input type="hidden" name="csrf_token" value="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/account/login">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/account/register">Register</a>
+                        </li>
                     <?php endif; ?>
-                </a>
+                    <li class="nav-item">
+                        <a href="/shop/cart" class="nav-link">
+                            <i class="bi bi-cart"></i> Cart 
+                            <?php if ($cartTotals['item_count'] > 0): ?>
+                                <span class="badge bg-danger"><?= $cartTotals['item_count'] ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>

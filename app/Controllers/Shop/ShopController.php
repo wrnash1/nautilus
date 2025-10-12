@@ -93,6 +93,11 @@ class ShopController
             exit;
         }
         
+        $customer = null;
+        if (\App\Core\CustomerAuth::check()) {
+            $customer = \App\Core\CustomerAuth::customer();
+        }
+        
         $pageTitle = 'Checkout';
         require_once __DIR__ . '/../../Views/shop/checkout.php';
     }
@@ -102,8 +107,14 @@ class ShopController
         $cart = $this->cartService->getCart();
         $cartTotals = $this->cartService->getCartTotal();
         
+        $customerId = 1;
+        if (\App\Core\CustomerAuth::check()) {
+            $customer = \App\Core\CustomerAuth::customer();
+            $customerId = $customer['id'];
+        }
+        
         $orderData = [
-            'customer_id' => $_POST['customer_id'] ?? 1,
+            'customer_id' => $customerId,
             'order_type' => 'online',
             'subtotal' => $cartTotals['subtotal'],
             'shipping' => $cartTotals['shipping'],
@@ -138,7 +149,12 @@ class ShopController
         $this->cartService->clearCart();
         
         $_SESSION['flash_success'] = 'Order placed successfully!';
-        header('Location: /orders/' . $orderId);
+        
+        if (\App\Core\CustomerAuth::check()) {
+            header('Location: /account/orders/' . $orderId);
+        } else {
+            header('Location: /orders/' . $orderId);
+        }
         exit;
     }
 }
