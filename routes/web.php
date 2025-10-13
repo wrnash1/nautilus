@@ -87,38 +87,33 @@ $router->post('/rentals/reservations/{id}/checkin', 'Rentals\RentalController@ch
 
 $router->get('/courses', 'Courses\CourseController@index', [AuthMiddleware::class]);
 $router->get('/courses/create', 'Courses\CourseController@create', [AuthMiddleware::class]);
+$router->get('/courses/schedules', 'Courses\CourseController@schedules', [AuthMiddleware::class]);
+$router->get('/courses/schedules/create', 'Courses\CourseController@createSchedule', [AuthMiddleware::class]);
+$router->post('/courses/schedules', 'Courses\CourseController@storeSchedule', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/courses/schedules/{id}', 'Courses\CourseController@showSchedule', [AuthMiddleware::class]);
+$router->get('/courses/enrollments', 'Courses\CourseController@enrollments', [AuthMiddleware::class]);
+$router->get('/courses/enrollments/{id}', 'Courses\CourseController@showEnrollment', [AuthMiddleware::class]);
+$router->post('/courses/enrollments/{id}/attendance', 'Courses\CourseController@markAttendance', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/courses/enrollments/{id}/grade', 'Courses\CourseController@updateGrade', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/courses', 'Courses\CourseController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/courses/{id}', 'Courses\CourseController@show', [AuthMiddleware::class]);
 $router->get('/courses/{id}/edit', 'Courses\CourseController@edit', [AuthMiddleware::class]);
 $router->post('/courses/{id}', 'Courses\CourseController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/courses/{id}/delete', 'Courses\CourseController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
 
-$router->get('/courses/schedules', 'Courses\CourseController@schedules', [AuthMiddleware::class]);
-$router->get('/courses/schedules/create', 'Courses\CourseController@createSchedule', [AuthMiddleware::class]);
-$router->post('/courses/schedules', 'Courses\CourseController@storeSchedule', [AuthMiddleware::class, CsrfMiddleware::class]);
-$router->get('/courses/schedules/{id}', 'Courses\CourseController@showSchedule', [AuthMiddleware::class]);
-
-$router->get('/courses/enrollments', 'Courses\CourseController@enrollments', [AuthMiddleware::class]);
-$router->get('/courses/enrollments/{id}', 'Courses\CourseController@showEnrollment', [AuthMiddleware::class]);
-$router->post('/courses/enrollments/{id}/attendance', 'Courses\CourseController@markAttendance', [AuthMiddleware::class, CsrfMiddleware::class]);
-$router->post('/courses/enrollments/{id}/grade', 'Courses\CourseController@updateGrade', [AuthMiddleware::class, CsrfMiddleware::class]);
-
 $router->get('/trips', 'Trips\TripController@index', [AuthMiddleware::class]);
 $router->get('/trips/create', 'Trips\TripController@create', [AuthMiddleware::class]);
-$router->post('/trips', 'Trips\TripController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
-
 $router->get('/trips/schedules', 'Trips\TripController@schedules', [AuthMiddleware::class]);
 $router->get('/trips/schedules/create', 'Trips\TripController@createSchedule', [AuthMiddleware::class]);
 $router->post('/trips/schedules', 'Trips\TripController@storeSchedule', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/trips/schedules/{id}', 'Trips\TripController@showSchedule', [AuthMiddleware::class]);
-
 $router->get('/trips/bookings', 'Trips\TripController@bookings', [AuthMiddleware::class]);
 $router->get('/trips/bookings/create', 'Trips\TripController@createBooking', [AuthMiddleware::class]);
 $router->post('/trips/bookings', 'Trips\TripController@storeBooking', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/trips/bookings/{id}', 'Trips\TripController@showBooking', [AuthMiddleware::class]);
 $router->post('/trips/bookings/{id}/confirm', 'Trips\TripController@confirmBooking', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/trips/bookings/{id}/cancel', 'Trips\TripController@cancelBooking', [AuthMiddleware::class, CsrfMiddleware::class]);
-
+$router->post('/trips', 'Trips\TripController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/trips/{id}', 'Trips\TripController@show', [AuthMiddleware::class]);
 $router->get('/trips/{id}/edit', 'Trips\TripController@edit', [AuthMiddleware::class]);
 $router->post('/trips/{id}', 'Trips\TripController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
