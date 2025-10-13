@@ -111,7 +111,7 @@ class AccountController
     {
         $customer = CustomerAuth::customer();
         
-        Database::execute(
+        Database::query(
             "INSERT INTO customer_addresses (customer_id, address_type, address_line1, address_line2, city, state, postal_code, country, is_default) 
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
@@ -132,13 +132,13 @@ class AccountController
         exit;
     }
     
-    public function updateAddress(int $addressId)
+    public function updateAddress(int $id)
     {
         $customer = CustomerAuth::customer();
         
         $address = Database::fetchOne(
             "SELECT * FROM customer_addresses WHERE id = ? AND customer_id = ?",
-            [$addressId, $customer['id']]
+            [$id, $customer['id']]
         );
         
         if (!$address) {
@@ -147,7 +147,7 @@ class AccountController
             exit;
         }
         
-        Database::execute(
+        Database::query(
             "UPDATE customer_addresses SET address_type = ?, address_line1 = ?, address_line2 = ?, 
              city = ?, state = ?, postal_code = ?, country = ?, is_default = ? 
              WHERE id = ?",
@@ -160,7 +160,7 @@ class AccountController
                 sanitizeInput($_POST['postal_code'] ?? ''),
                 sanitizeInput($_POST['country'] ?? 'US'),
                 isset($_POST['is_default']) ? 1 : 0,
-                $addressId
+                $id
             ]
         );
         
@@ -169,13 +169,13 @@ class AccountController
         exit;
     }
     
-    public function deleteAddress(int $addressId)
+    public function deleteAddress(int $id)
     {
         $customer = CustomerAuth::customer();
         
-        Database::execute(
+        Database::query(
             "DELETE FROM customer_addresses WHERE id = ? AND customer_id = ?",
-            [$addressId, $customer['id']]
+            [$id, $customer['id']]
         );
         
         $_SESSION['flash_success'] = 'Address deleted successfully!';

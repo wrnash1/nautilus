@@ -32,7 +32,19 @@ ob_start();
             </div>
             <div class="col-md-6">
                 <h6>Shipping Information</h6>
-                <p><?= nl2br(htmlspecialchars($order['shipping_address'])) ?></p>
+                <?php if (!empty($order['shipping_address_line1'])): ?>
+                    <p>
+                        <?= htmlspecialchars($order['shipping_address_line1']) ?><br>
+                        <?php if (!empty($order['shipping_address_line2'])): ?>
+                            <?= htmlspecialchars($order['shipping_address_line2']) ?><br>
+                        <?php endif; ?>
+                        <?= htmlspecialchars($order['shipping_city']) ?>, 
+                        <?= htmlspecialchars($order['shipping_state']) ?> 
+                        <?= htmlspecialchars($order['shipping_postal_code']) ?>
+                    </p>
+                <?php else: ?>
+                    <p class="text-muted">No shipping address provided</p>
+                <?php endif; ?>
                 <?php if (!empty($order['tracking_number'])): ?>
                     <p><strong>Tracking Number:</strong> <?= htmlspecialchars($order['tracking_number']) ?></p>
                     <p><strong>Carrier:</strong> <?= htmlspecialchars($order['shipping_carrier'] ?? 'N/A') ?></p>
