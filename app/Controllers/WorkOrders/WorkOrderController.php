@@ -16,8 +16,7 @@ class WorkOrderController
     public function index()
     {
         if (!hasPermission('workorders.view')) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         $filters = [
@@ -41,8 +40,7 @@ class WorkOrderController
     public function create()
     {
         if (!hasPermission('workorders.create')) {
-            header('Location: /workorders');
-            exit;
+            redirect('/workorders');
         }
         
         $pageTitle = 'Create Work Order';
@@ -59,30 +57,26 @@ class WorkOrderController
     public function store()
     {
         if (!hasPermission('workorders.create')) {
-            header('Location: /workorders');
-            exit;
+            redirect('/workorders');
         }
         
         $id = $this->workOrderService->createWorkOrder($_POST);
         
         $_SESSION['flash_success'] = 'Work order created successfully!';
-        header('Location: /workorders/' . $id);
-        exit;
+        redirect('/workorders/' . $id);
     }
     
     public function show(int $id)
     {
         if (!hasPermission('workorders.view')) {
-            header('Location: /workorders');
-            exit;
+            redirect('/workorders');
         }
         
         $workOrder = $this->workOrderService->getWorkOrderById($id);
         
         if (!$workOrder) {
             $_SESSION['flash_error'] = 'Work order not found';
-            header('Location: /workorders');
-            exit;
+            redirect('/workorders');
         }
         
         $notes = $this->workOrderService->getWorkOrderNotes($id);
@@ -102,16 +96,14 @@ class WorkOrderController
     public function edit(int $id)
     {
         if (!hasPermission('workorders.edit')) {
-            header('Location: /workorders');
-            exit;
+            redirect('/workorders');
         }
         
         $workOrder = $this->workOrderService->getWorkOrderById($id);
         
         if (!$workOrder) {
             $_SESSION['flash_error'] = 'Work order not found';
-            header('Location: /workorders');
-            exit;
+            redirect('/workorders');
         }
         
         $pageTitle = 'Edit Work Order';
@@ -128,64 +120,55 @@ class WorkOrderController
     public function update(int $id)
     {
         if (!hasPermission('workorders.edit')) {
-            header('Location: /workorders');
-            exit;
+            redirect('/workorders');
         }
         
         $this->workOrderService->updateWorkOrder($id, $_POST);
         
         $_SESSION['flash_success'] = 'Work order updated successfully!';
-        header('Location: /workorders/' . $id);
-        exit;
+        redirect('/workorders/' . $id);
     }
     
     public function updateStatus(int $id)
     {
         if (!hasPermission('workorders.edit')) {
-            header('Location: /workorders');
-            exit;
+            redirect('/workorders');
         }
         
         $this->workOrderService->updateStatus($id, $_POST['status']);
         
         $_SESSION['flash_success'] = 'Status updated successfully!';
-        header('Location: /workorders/' . $id);
-        exit;
+        redirect('/workorders/' . $id);
     }
     
     public function delete(int $id)
     {
         if (!hasPermission('workorders.delete')) {
-            header('Location: /workorders');
-            exit;
+            redirect('/workorders');
         }
         
         $this->workOrderService->deleteWorkOrder($id);
         
         $_SESSION['flash_success'] = 'Work order deleted successfully!';
-        header('Location: /workorders');
-        exit;
+        redirect('/workorders');
     }
     
     public function addNote(int $id)
     {
         if (!hasPermission('workorders.edit')) {
-            header('Location: /workorders');
-            exit;
+            redirect('/workorders');
         }
         
         $this->workOrderService->addNote($id, $_POST);
         
         $_SESSION['flash_success'] = 'Note added successfully!';
-        header('Location: /workorders/' . $id);
-        exit;
+        redirect('/workorders/' . $id);
     }
     
     public function assign(int $id)
     {
         if (!hasPermission('workorders.edit')) {
-            header('Location: /workorders/' . $id);
-            exit;
+            redirect('/workorders/' . $id);
         }
         
         $assignedTo = $_POST['assigned_to'] ?? null;
@@ -195,7 +178,6 @@ class WorkOrderController
             $_SESSION['flash_success'] = 'Work order assigned successfully!';
         }
         
-        header('Location: /workorders/' . $id);
-        exit;
+        redirect('/workorders/' . $id);
     }
 }

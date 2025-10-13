@@ -9,8 +9,7 @@ class AuthController
     public function showLogin()
     {
         if (Auth::check()) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         require __DIR__ . '/../../Views/auth/login.php';
@@ -23,25 +22,21 @@ class AuthController
         
         if (empty($email) || empty($password)) {
             $_SESSION['flash_error'] = 'Please enter email and password';
-            header('Location: /login');
-            exit;
+            redirect('/login');
         }
         
         if (Auth::attempt($email, $password)) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         $_SESSION['flash_error'] = 'Invalid email or password';
-        header('Location: /login');
-        exit;
+        redirect('/login');
     }
     
     public function logout()
     {
         Auth::logout();
-        header('Location: /login');
-        exit;
+        redirect('/login');
     }
     
     public function verify2FA()

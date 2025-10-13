@@ -16,8 +16,7 @@ class CourseController
     public function index()
     {
         if (!hasPermission('courses.view')) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         $filters = [
@@ -40,8 +39,7 @@ class CourseController
     public function create()
     {
         if (!hasPermission('courses.create')) {
-            header('Location: /courses');
-            exit;
+            redirect('/courses');
         }
         
         $pageTitle = 'Create Course';
@@ -58,30 +56,26 @@ class CourseController
     public function store()
     {
         if (!hasPermission('courses.create')) {
-            header('Location: /courses');
-            exit;
+            redirect('/courses');
         }
         
         $id = $this->courseService->createCourse($_POST);
         
         $_SESSION['flash_success'] = 'Course created successfully!';
-        header('Location: /courses/' . $id);
-        exit;
+        redirect('/courses/' . $id);
     }
     
     public function show(int $id)
     {
         if (!hasPermission('courses.view')) {
-            header('Location: /courses');
-            exit;
+            redirect('/courses');
         }
         
         $course = $this->courseService->getCourseById($id);
         
         if (!$course) {
             $_SESSION['flash_error'] = 'Course not found';
-            header('Location: /courses');
-            exit;
+            redirect('/courses');
         }
         
         $schedules = $this->courseService->getScheduleList(['course_id' => $id]);
@@ -100,16 +94,14 @@ class CourseController
     public function edit(int $id)
     {
         if (!hasPermission('courses.edit')) {
-            header('Location: /courses');
-            exit;
+            redirect('/courses');
         }
         
         $course = $this->courseService->getCourseById($id);
         
         if (!$course) {
             $_SESSION['flash_error'] = 'Course not found';
-            header('Location: /courses');
-            exit;
+            redirect('/courses');
         }
         
         $pageTitle = 'Edit Course';
@@ -126,36 +118,31 @@ class CourseController
     public function update(int $id)
     {
         if (!hasPermission('courses.edit')) {
-            header('Location: /courses');
-            exit;
+            redirect('/courses');
         }
         
         $this->courseService->updateCourse($id, $_POST);
         
         $_SESSION['flash_success'] = 'Course updated successfully!';
-        header('Location: /courses/' . $id);
-        exit;
+        redirect('/courses/' . $id);
     }
     
     public function delete(int $id)
     {
         if (!hasPermission('courses.delete')) {
-            header('Location: /courses');
-            exit;
+            redirect('/courses');
         }
         
         $this->courseService->deleteCourse($id);
         
         $_SESSION['flash_success'] = 'Course deleted successfully!';
-        header('Location: /courses');
-        exit;
+        redirect('/courses');
     }
     
     public function schedules()
     {
         if (!hasPermission('courses.view')) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         $filters = [
@@ -179,8 +166,7 @@ class CourseController
     public function createSchedule()
     {
         if (!hasPermission('courses.create')) {
-            header('Location: /courses/schedules');
-            exit;
+            redirect('/courses/schedules');
         }
         
         $courses = $this->courseService->getCourseList([]);
@@ -199,30 +185,26 @@ class CourseController
     public function storeSchedule()
     {
         if (!hasPermission('courses.create')) {
-            header('Location: /courses/schedules');
-            exit;
+            redirect('/courses/schedules');
         }
         
         $id = $this->courseService->createSchedule($_POST);
         
         $_SESSION['flash_success'] = 'Schedule created successfully!';
-        header('Location: /courses/schedules/' . $id);
-        exit;
+        redirect('/courses/schedules/' . $id);
     }
     
     public function showSchedule(int $id)
     {
         if (!hasPermission('courses.view')) {
-            header('Location: /courses/schedules');
-            exit;
+            redirect('/courses/schedules');
         }
         
         $schedule = $this->courseService->getScheduleById($id);
         
         if (!$schedule) {
             $_SESSION['flash_error'] = 'Schedule not found';
-            header('Location: /courses/schedules');
-            exit;
+            redirect('/courses/schedules');
         }
         
         $enrollments = $this->courseService->getScheduleEnrollments($id);
@@ -241,8 +223,7 @@ class CourseController
     public function enrollments()
     {
         if (!hasPermission('courses.view')) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         $filters = [
@@ -265,16 +246,14 @@ class CourseController
     public function showEnrollment(int $id)
     {
         if (!hasPermission('courses.view')) {
-            header('Location: /courses/enrollments');
-            exit;
+            redirect('/courses/enrollments');
         }
         
         $enrollment = $this->courseService->getEnrollmentById($id);
         
         if (!$enrollment) {
             $_SESSION['flash_error'] = 'Enrollment not found';
-            header('Location: /courses/enrollments');
-            exit;
+            redirect('/courses/enrollments');
         }
         
         $attendance = $this->courseService->getEnrollmentAttendance($id);
@@ -293,28 +272,24 @@ class CourseController
     public function markAttendance(int $id)
     {
         if (!hasPermission('courses.edit')) {
-            header('Location: /courses/enrollments/' . $id);
-            exit;
+            redirect('/courses/enrollments/' . $id);
         }
         
         $this->courseService->markAttendance($id, $_POST);
         
         $_SESSION['flash_success'] = 'Attendance marked successfully!';
-        header('Location: /courses/enrollments/' . $id);
-        exit;
+        redirect('/courses/enrollments/' . $id);
     }
     
     public function updateGrade(int $id)
     {
         if (!hasPermission('courses.edit')) {
-            header('Location: /courses/enrollments/' . $id);
-            exit;
+            redirect('/courses/enrollments/' . $id);
         }
         
         $this->courseService->updateGrade($id, $_POST['grade'], $_POST['cert_number'] ?? null);
         
         $_SESSION['flash_success'] = 'Grade updated successfully!';
-        header('Location: /courses/enrollments/' . $id);
-        exit;
+        redirect('/courses/enrollments/' . $id);
     }
 }

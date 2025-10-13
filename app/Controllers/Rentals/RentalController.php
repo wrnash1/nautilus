@@ -19,8 +19,7 @@ class RentalController
     public function index()
     {
         if (!hasPermission('rentals.view')) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         $filters = [
@@ -46,8 +45,7 @@ class RentalController
     public function createEquipment()
     {
         if (!hasPermission('rentals.create')) {
-            header('Location: /rentals');
-            exit;
+            redirect('/rentals');
         }
         
         $categories = $this->rentalService->getAllCategories();
@@ -66,30 +64,26 @@ class RentalController
     public function storeEquipment()
     {
         if (!hasPermission('rentals.create')) {
-            header('Location: /rentals');
-            exit;
+            redirect('/rentals');
         }
         
         $id = $this->rentalService->createEquipment($_POST);
         
         $_SESSION['flash_success'] = 'Equipment added successfully!';
-        header('Location: /rentals/equipment/' . $id);
-        exit;
+        redirect('/rentals/equipment/' . $id);
     }
     
     public function showEquipment(int $id)
     {
         if (!hasPermission('rentals.view')) {
-            header('Location: /rentals');
-            exit;
+            redirect('/rentals');
         }
         
         $equipment = $this->rentalService->getEquipmentById($id);
         
         if (!$equipment) {
             $_SESSION['flash_error'] = 'Equipment not found';
-            header('Location: /rentals');
-            exit;
+            redirect('/rentals');
         }
         
         $pageTitle = $equipment['name'];
@@ -106,16 +100,14 @@ class RentalController
     public function editEquipment(int $id)
     {
         if (!hasPermission('rentals.edit')) {
-            header('Location: /rentals');
-            exit;
+            redirect('/rentals');
         }
         
         $equipment = $this->rentalService->getEquipmentById($id);
         
         if (!$equipment) {
             $_SESSION['flash_error'] = 'Equipment not found';
-            header('Location: /rentals');
-            exit;
+            redirect('/rentals');
         }
         
         $categories = $this->rentalService->getAllCategories();
@@ -134,36 +126,31 @@ class RentalController
     public function updateEquipment(int $id)
     {
         if (!hasPermission('rentals.edit')) {
-            header('Location: /rentals');
-            exit;
+            redirect('/rentals');
         }
         
         $this->rentalService->updateEquipment($id, $_POST);
         
         $_SESSION['flash_success'] = 'Equipment updated successfully!';
-        header('Location: /rentals/equipment/' . $id);
-        exit;
+        redirect('/rentals/equipment/' . $id);
     }
     
     public function deleteEquipment(int $id)
     {
         if (!hasPermission('rentals.delete')) {
-            header('Location: /rentals');
-            exit;
+            redirect('/rentals');
         }
         
         $this->rentalService->deleteEquipment($id);
         
         $_SESSION['flash_success'] = 'Equipment deleted successfully!';
-        header('Location: /rentals');
-        exit;
+        redirect('/rentals');
     }
     
     public function reservations()
     {
         if (!hasPermission('rentals.view')) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         $filters = [
@@ -186,8 +173,7 @@ class RentalController
     public function createReservation()
     {
         if (!hasPermission('rentals.create')) {
-            header('Location: /rentals/reservations');
-            exit;
+            redirect('/rentals/reservations');
         }
         
         $categories = $this->rentalService->getAllCategories();
@@ -206,16 +192,14 @@ class RentalController
     public function showReservation(int $id)
     {
         if (!hasPermission('rentals.view')) {
-            header('Location: /rentals/reservations');
-            exit;
+            redirect('/rentals/reservations');
         }
         
         $reservation = $this->rentalService->getReservationById($id);
         
         if (!$reservation) {
             $_SESSION['flash_error'] = 'Reservation not found';
-            header('Location: /rentals/reservations');
-            exit;
+            redirect('/rentals/reservations');
         }
         
         $items = $this->rentalService->getReservationItems($id);
@@ -261,22 +245,19 @@ class RentalController
     public function checkout(int $id)
     {
         if (!hasPermission('rentals.edit')) {
-            header('Location: /rentals/reservations/' . $id);
-            exit;
+            redirect('/rentals/reservations/' . $id);
         }
         
         $this->rentalService->checkoutEquipment($id);
         
         $_SESSION['flash_success'] = 'Equipment checked out successfully!';
-        header('Location: /rentals/reservations/' . $id);
-        exit;
+        redirect('/rentals/reservations/' . $id);
     }
     
     public function checkin(int $id)
     {
         if (!hasPermission('rentals.edit')) {
-            header('Location: /rentals/reservations/' . $id);
-            exit;
+            redirect('/rentals/reservations/' . $id);
         }
         
         $checkoutId = $_POST['checkout_id'];
@@ -288,7 +269,6 @@ class RentalController
         $this->rentalService->checkinEquipment($checkoutId, $condition);
         
         $_SESSION['flash_success'] = 'Equipment checked in successfully!';
-        header('Location: /rentals/reservations/' . $id);
-        exit;
+        redirect('/rentals/reservations/' . $id);
     }
 }

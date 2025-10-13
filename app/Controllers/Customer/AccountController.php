@@ -43,8 +43,7 @@ class AccountController
         
         if (!$order) {
             $_SESSION['flash_error'] = 'Order not found';
-            header('Location: /account/orders');
-            exit;
+            redirect('/account/orders');
         }
         
         $orderItems = Database::fetchAll(
@@ -72,15 +71,13 @@ class AccountController
         
         if (empty($firstName) || empty($lastName) || empty($email)) {
             $_SESSION['flash_error'] = 'Please fill in all required fields';
-            header('Location: /account/profile');
-            exit;
+            redirect('/account/profile');
         }
         
         $existingCustomer = Customer::findByEmail($email);
         if ($existingCustomer && $existingCustomer['id'] != $customer['id']) {
             $_SESSION['flash_error'] = 'Email already in use';
-            header('Location: /account/profile');
-            exit;
+            redirect('/account/profile');
         }
         
         Customer::update($customer['id'], [
@@ -91,8 +88,7 @@ class AccountController
         ]);
         
         $_SESSION['flash_success'] = 'Profile updated successfully!';
-        header('Location: /account/profile');
-        exit;
+        redirect('/account/profile');
     }
     
     public function addresses()
@@ -128,8 +124,7 @@ class AccountController
         );
         
         $_SESSION['flash_success'] = 'Address added successfully!';
-        header('Location: /account/addresses');
-        exit;
+        redirect('/account/addresses');
     }
     
     public function updateAddress(int $id)
@@ -143,8 +138,7 @@ class AccountController
         
         if (!$address) {
             $_SESSION['flash_error'] = 'Address not found';
-            header('Location: /account/addresses');
-            exit;
+            redirect('/account/addresses');
         }
         
         Database::query(
@@ -165,8 +159,7 @@ class AccountController
         );
         
         $_SESSION['flash_success'] = 'Address updated successfully!';
-        header('Location: /account/addresses');
-        exit;
+        redirect('/account/addresses');
     }
     
     public function deleteAddress(int $id)
@@ -179,7 +172,6 @@ class AccountController
         );
         
         $_SESSION['flash_success'] = 'Address deleted successfully!';
-        header('Location: /account/addresses');
-        exit;
+        redirect('/account/addresses');
     }
 }

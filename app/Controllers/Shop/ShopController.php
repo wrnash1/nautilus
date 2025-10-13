@@ -32,8 +32,7 @@ class ShopController
         $cartTotals = $this->cartService->getCartTotal();
         
         if (!$product) {
-            header('Location: /shop');
-            exit;
+            redirect('/shop');
         }
         
         $pageTitle = $product['name'];
@@ -59,8 +58,7 @@ class ShopController
             $_SESSION['flash_success'] = 'Product added to cart!';
         }
         
-        header('Location: /shop/cart');
-        exit;
+        redirect('/shop/cart');
     }
     
     public function cart()
@@ -79,8 +77,7 @@ class ShopController
         }
         
         $_SESSION['flash_success'] = 'Cart updated!';
-        header('Location: /shop/cart');
-        exit;
+        redirect('/shop/cart');
     }
     
     public function checkout()
@@ -89,8 +86,7 @@ class ShopController
         $cartTotals = $this->cartService->getCartTotal();
         
         if (empty($cart)) {
-            header('Location: /shop/cart');
-            exit;
+            redirect('/shop/cart');
         }
         
         $customer = null;
@@ -151,10 +147,9 @@ class ShopController
         $_SESSION['flash_success'] = 'Order placed successfully!';
         
         if (\App\Core\CustomerAuth::check()) {
-            header('Location: /account/orders/' . $orderId);
+            redirect('/account/orders/' . $orderId);
         } else {
-            header('Location: /orders/' . $orderId);
+            redirect('/orders/' . $orderId);
         }
-        exit;
     }
 }

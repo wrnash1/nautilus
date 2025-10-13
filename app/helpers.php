@@ -13,6 +13,13 @@ function dd($var): void
 
 function redirect(string $path): void
 {
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+    $basePath = str_replace('/index.php', '', $scriptName);
+    
+    if ($basePath && strpos($path, $basePath) !== 0) {
+        $path = $basePath . $path;
+    }
+    
     header("Location: {$path}");
     exit;
 }

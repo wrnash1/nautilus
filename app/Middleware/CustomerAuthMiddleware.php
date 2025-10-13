@@ -11,8 +11,7 @@ class CustomerAuthMiddleware
         if (!CustomerAuth::check()) {
             $_SESSION['flash_error'] = 'Please login to access your account';
             $_SESSION['intended_url'] = $_SERVER['REQUEST_URI'];
-            header('Location: /account/login');
-            exit;
+            redirect('/account/login');
         }
     }
 }

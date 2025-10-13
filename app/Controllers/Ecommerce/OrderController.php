@@ -16,8 +16,7 @@ class OrderController
     public function index()
     {
         if (!hasPermission('orders.view')) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         $filters = [
@@ -42,8 +41,7 @@ class OrderController
         $orderItems = $this->orderService->getOrderItems($id);
         
         if (!$order) {
-            header('Location: /orders');
-            exit;
+            redirect('/orders');
         }
         
         $activeMenu = 'orders';
@@ -54,23 +52,20 @@ class OrderController
     public function updateStatus(int $id)
     {
         if (!hasPermission('orders.edit')) {
-            header('Location: /orders/' . $id);
-            exit;
+            redirect('/orders/' . $id);
         }
         
         $status = $_POST['status'];
         $this->orderService->updateOrderStatus($id, $status);
         
         $_SESSION['flash_success'] = 'Order status updated!';
-        header('Location: /orders/' . $id);
-        exit;
+        redirect('/orders/' . $id);
     }
     
     public function ship(int $id)
     {
         if (!hasPermission('orders.ship')) {
-            header('Location: /orders/' . $id);
-            exit;
+            redirect('/orders/' . $id);
         }
         
         $shipmentData = [
@@ -84,7 +79,6 @@ class OrderController
         $this->orderService->processShipment($id, $shipmentData);
         
         $_SESSION['flash_success'] = 'Order shipped successfully!';
-        header('Location: /orders/' . $id);
-        exit;
+        redirect('/orders/' . $id);
     }
 }

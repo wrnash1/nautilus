@@ -16,8 +16,7 @@ class TripController
     public function index()
     {
         if (!hasPermission('trips.view')) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         $filters = [
@@ -40,8 +39,7 @@ class TripController
     public function create()
     {
         if (!hasPermission('trips.create')) {
-            header('Location: /trips');
-            exit;
+            redirect('/trips');
         }
         
         $pageTitle = 'Create Trip';
@@ -58,30 +56,26 @@ class TripController
     public function store()
     {
         if (!hasPermission('trips.create')) {
-            header('Location: /trips');
-            exit;
+            redirect('/trips');
         }
         
         $id = $this->tripService->createTrip($_POST);
         
         $_SESSION['flash_success'] = 'Trip created successfully!';
-        header('Location: /trips/' . $id);
-        exit;
+        redirect('/trips/' . $id);
     }
     
     public function show(int $id)
     {
         if (!hasPermission('trips.view')) {
-            header('Location: /trips');
-            exit;
+            redirect('/trips');
         }
         
         $trip = $this->tripService->getTripById($id);
         
         if (!$trip) {
             $_SESSION['flash_error'] = 'Trip not found';
-            header('Location: /trips');
-            exit;
+            redirect('/trips');
         }
         
         $schedules = $this->tripService->getScheduleList(['trip_id' => $id]);
@@ -100,16 +94,14 @@ class TripController
     public function edit(int $id)
     {
         if (!hasPermission('trips.edit')) {
-            header('Location: /trips');
-            exit;
+            redirect('/trips');
         }
         
         $trip = $this->tripService->getTripById($id);
         
         if (!$trip) {
             $_SESSION['flash_error'] = 'Trip not found';
-            header('Location: /trips');
-            exit;
+            redirect('/trips');
         }
         
         $pageTitle = 'Edit Trip';
@@ -126,36 +118,31 @@ class TripController
     public function update(int $id)
     {
         if (!hasPermission('trips.edit')) {
-            header('Location: /trips');
-            exit;
+            redirect('/trips');
         }
         
         $this->tripService->updateTrip($id, $_POST);
         
         $_SESSION['flash_success'] = 'Trip updated successfully!';
-        header('Location: /trips/' . $id);
-        exit;
+        redirect('/trips/' . $id);
     }
     
     public function delete(int $id)
     {
         if (!hasPermission('trips.delete')) {
-            header('Location: /trips');
-            exit;
+            redirect('/trips');
         }
         
         $this->tripService->deleteTrip($id);
         
         $_SESSION['flash_success'] = 'Trip deleted successfully!';
-        header('Location: /trips');
-        exit;
+        redirect('/trips');
     }
     
     public function schedules()
     {
         if (!hasPermission('trips.view')) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         $filters = [
@@ -178,8 +165,7 @@ class TripController
     public function createSchedule()
     {
         if (!hasPermission('trips.create')) {
-            header('Location: /trips/schedules');
-            exit;
+            redirect('/trips/schedules');
         }
         
         $trips = $this->tripService->getTripList([]);
@@ -198,30 +184,26 @@ class TripController
     public function storeSchedule()
     {
         if (!hasPermission('trips.create')) {
-            header('Location: /trips/schedules');
-            exit;
+            redirect('/trips/schedules');
         }
         
         $id = $this->tripService->createSchedule($_POST);
         
         $_SESSION['flash_success'] = 'Trip schedule created successfully!';
-        header('Location: /trips/schedules/' . $id);
-        exit;
+        redirect('/trips/schedules/' . $id);
     }
     
     public function showSchedule(int $id)
     {
         if (!hasPermission('trips.view')) {
-            header('Location: /trips/schedules');
-            exit;
+            redirect('/trips/schedules');
         }
         
         $schedule = $this->tripService->getScheduleById($id);
         
         if (!$schedule) {
             $_SESSION['flash_error'] = 'Schedule not found';
-            header('Location: /trips/schedules');
-            exit;
+            redirect('/trips/schedules');
         }
         
         $bookings = $this->tripService->getBookingList(['schedule_id' => $id]);
@@ -240,8 +222,7 @@ class TripController
     public function bookings()
     {
         if (!hasPermission('trips.view')) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
         
         $filters = [
@@ -264,8 +245,7 @@ class TripController
     public function createBooking()
     {
         if (!hasPermission('trips.create')) {
-            header('Location: /trips/bookings');
-            exit;
+            redirect('/trips/bookings');
         }
         
         $schedules = $this->tripService->getScheduleList(['status' => 'scheduled']);
@@ -284,30 +264,26 @@ class TripController
     public function storeBooking()
     {
         if (!hasPermission('trips.create')) {
-            header('Location: /trips/bookings');
-            exit;
+            redirect('/trips/bookings');
         }
         
         $id = $this->tripService->createBooking($_POST);
         
         $_SESSION['flash_success'] = 'Trip booking created successfully!';
-        header('Location: /trips/bookings/' . $id);
-        exit;
+        redirect('/trips/bookings/' . $id);
     }
     
     public function showBooking(int $id)
     {
         if (!hasPermission('trips.view')) {
-            header('Location: /trips/bookings');
-            exit;
+            redirect('/trips/bookings');
         }
         
         $booking = $this->tripService->getBookingById($id);
         
         if (!$booking) {
             $_SESSION['flash_error'] = 'Booking not found';
-            header('Location: /trips/bookings');
-            exit;
+            redirect('/trips/bookings');
         }
         
         $pageTitle = 'Booking ' . $booking['booking_number'];
@@ -324,15 +300,13 @@ class TripController
     public function confirmBooking(int $id)
     {
         if (!hasPermission('trips.edit')) {
-            header('Location: /trips/bookings/' . $id);
-            exit;
+            redirect('/trips/bookings/' . $id);
         }
         
         $this->tripService->updateBookingStatus($id, 'confirmed');
         
         $_SESSION['flash_success'] = 'Booking confirmed successfully!';
-        header('Location: /trips/bookings/' . $id);
-        exit;
+        redirect('/trips/bookings/' . $id);
     }
     
     public function cancelBooking(int $id)
@@ -352,7 +326,6 @@ class TripController
         $this->tripService->updateBookingStatus($id, 'cancelled');
         
         $_SESSION['flash_success'] = 'Booking cancelled successfully!';
-        header('Location: /trips/bookings/' . $id);
-        exit;
+        redirect('/trips/bookings/' . $id);
     }
 }
