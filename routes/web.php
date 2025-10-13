@@ -82,6 +82,8 @@ $router->get('/rentals/reservations', 'Rentals\RentalController@reservations', [
 $router->get('/rentals/reservations/create', 'Rentals\RentalController@createReservation', [AuthMiddleware::class]);
 $router->get('/rentals/reservations/{id}', 'Rentals\RentalController@showReservation', [AuthMiddleware::class]);
 $router->get('/rentals/available-equipment', 'Rentals\RentalController@searchAvailableEquipment', [AuthMiddleware::class]);
+$router->post('/rentals/reservations/{id}/checkout', 'Rentals\RentalController@checkout', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/rentals/reservations/{id}/checkin', 'Rentals\RentalController@checkin', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 $router->get('/courses', 'Courses\CourseController@index', [AuthMiddleware::class]);
 $router->get('/courses/create', 'Courses\CourseController@create', [AuthMiddleware::class]);
@@ -98,6 +100,8 @@ $router->get('/courses/schedules/{id}', 'Courses\CourseController@showSchedule',
 
 $router->get('/courses/enrollments', 'Courses\CourseController@enrollments', [AuthMiddleware::class]);
 $router->get('/courses/enrollments/{id}', 'Courses\CourseController@showEnrollment', [AuthMiddleware::class]);
+$router->post('/courses/enrollments/{id}/attendance', 'Courses\CourseController@markAttendance', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/courses/enrollments/{id}/grade', 'Courses\CourseController@updateGrade', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 $router->get('/trips', 'Trips\TripController@index', [AuthMiddleware::class]);
 $router->get('/trips/create', 'Trips\TripController@create', [AuthMiddleware::class]);
@@ -112,6 +116,8 @@ $router->get('/trips/bookings', 'Trips\TripController@bookings', [AuthMiddleware
 $router->get('/trips/bookings/create', 'Trips\TripController@createBooking', [AuthMiddleware::class]);
 $router->post('/trips/bookings', 'Trips\TripController@storeBooking', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/trips/bookings/{id}', 'Trips\TripController@showBooking', [AuthMiddleware::class]);
+$router->post('/trips/bookings/{id}/confirm', 'Trips\TripController@confirmBooking', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/trips/bookings/{id}/cancel', 'Trips\TripController@cancelBooking', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 $router->get('/trips/{id}', 'Trips\TripController@show', [AuthMiddleware::class]);
 $router->get('/trips/{id}/edit', 'Trips\TripController@edit', [AuthMiddleware::class]);
@@ -125,6 +131,7 @@ $router->get('/workorders/{id}', 'WorkOrders\WorkOrderController@show', [AuthMid
 $router->get('/workorders/{id}/edit', 'WorkOrders\WorkOrderController@edit', [AuthMiddleware::class]);
 $router->post('/workorders/{id}', 'WorkOrders\WorkOrderController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/workorders/{id}/status', 'WorkOrders\WorkOrderController@updateStatus', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/workorders/{id}/assign', 'WorkOrders\WorkOrderController@assign', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/workorders/{id}/delete', 'WorkOrders\WorkOrderController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/workorders/{id}/notes', 'WorkOrders\WorkOrderController@addNote', [AuthMiddleware::class, CsrfMiddleware::class]);
 

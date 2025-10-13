@@ -130,4 +130,22 @@ class WorkOrderService
         
         return Database::lastInsertId();
     }
+    
+    public function assignWorkOrder(int $id, int $assignedTo): bool
+    {
+        Database::execute(
+            "UPDATE work_orders SET assigned_to = ?, updated_at = NOW() WHERE id = ?",
+            [$assignedTo, $id]
+        );
+        return true;
+    }
+    
+    public function getAvailableStaff(): array
+    {
+        return Database::fetchAll(
+            "SELECT id, CONCAT(first_name, ' ', last_name) as name 
+             FROM users WHERE role IN ('admin', 'manager') AND is_active = 1 
+             ORDER BY first_name, last_name"
+        ) ?? [];
+    }
 }

@@ -277,6 +277,8 @@ class CourseController
             exit;
         }
         
+        $attendance = $this->courseService->getEnrollmentAttendance($id);
+        
         $pageTitle = 'Enrollment Details';
         $activeMenu = 'courses';
         $user = $_SESSION['user'] ?? [];
@@ -286,5 +288,33 @@ class CourseController
         $content = ob_get_clean();
         
         require __DIR__ . '/../../Views/layouts/app.php';
+    }
+    
+    public function markAttendance(int $id)
+    {
+        if (!hasPermission('courses.edit')) {
+            header('Location: /courses/enrollments/' . $id);
+            exit;
+        }
+        
+        $this->courseService->markAttendance($id, $_POST);
+        
+        $_SESSION['flash_success'] = 'Attendance marked successfully!';
+        header('Location: /courses/enrollments/' . $id);
+        exit;
+    }
+    
+    public function updateGrade(int $id)
+    {
+        if (!hasPermission('courses.edit')) {
+            header('Location: /courses/enrollments/' . $id);
+            exit;
+        }
+        
+        $this->courseService->updateGrade($id, $_POST['grade'], $_POST['cert_number'] ?? null);
+        
+        $_SESSION['flash_success'] = 'Grade updated successfully!';
+        header('Location: /courses/enrollments/' . $id);
+        exit;
     }
 }

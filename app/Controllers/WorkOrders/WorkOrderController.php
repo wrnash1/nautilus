@@ -86,6 +86,7 @@ class WorkOrderController
         }
         
         $notes = $this->workOrderService->getWorkOrderNotes($id);
+        $staff = $this->workOrderService->getAvailableStaff();
         
         $pageTitle = 'Work Order ' . $workOrder['work_order_number'];
         $activeMenu = 'workorders';
@@ -176,6 +177,24 @@ class WorkOrderController
         $this->workOrderService->addNote($id, $_POST);
         
         $_SESSION['flash_success'] = 'Note added successfully!';
+        header('Location: /workorders/' . $id);
+        exit;
+    }
+    
+    public function assign(int $id)
+    {
+        if (!hasPermission('workorders.edit')) {
+            header('Location: /workorders/' . $id);
+            exit;
+        }
+        
+        $assignedTo = $_POST['assigned_to'] ?? null;
+        
+        if ($assignedTo) {
+            $this->workOrderService->assignWorkOrder($id, $assignedTo);
+            $_SESSION['flash_success'] = 'Work order assigned successfully!';
+        }
+        
         header('Location: /workorders/' . $id);
         exit;
     }

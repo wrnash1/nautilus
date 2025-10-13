@@ -131,5 +131,56 @@
                 </div>
             </div>
         </div>
+        
+        <?php if (hasPermission('rentals.edit')): ?>
+            <?php if ($reservation['status'] === 'confirmed'): ?>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Checkout Equipment</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/rentals/reservations/<?= $reservation['id'] ?>/checkout">
+                        <input type="hidden" name="csrf_token" value="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
+                        <p class="text-muted mb-3">Mark equipment as checked out and rented.</p>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-right"></i> Check Out Equipment
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <?php elseif ($reservation['status'] === 'active'): ?>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Check In Equipment</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/rentals/reservations/<?= $reservation['id'] ?>/checkin">
+                        <input type="hidden" name="csrf_token" value="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
+                        <input type="hidden" name="checkout_id" value="<?= $reservation['checkout_id'] ?? '' ?>">
+                        
+                        <div class="mb-3">
+                            <label for="condition" class="form-label">Equipment Condition</label>
+                            <select class="form-select" id="condition" name="condition" required>
+                                <option value="excellent">Excellent</option>
+                                <option value="good" selected>Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                                <option value="damaged">Damaged</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-box-arrow-in-left"></i> Check In Equipment
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <?php endif; ?>
+        <?php endif; ?>
     </div>
 </div>

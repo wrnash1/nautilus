@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop, 'devin/**' ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test_password
+          MYSQL_DATABASE: nautilus_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, dom, filter, gd, json
+        coverage: none
+    
+    - name: Validate composer.json
+      run: composer validate --strict
+    
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+    
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+    
+    - name: Setup test environment
+      run: |
+        cp .env.example .env
+        sed -i 's/DB_HOST=localhost/DB_HOST=127.0.0.1/g' .env
+        sed -i 's/DB_DATABASE=nautilus/DB_DATABASE=nautilus_test/g' .env
+        sed -i 's/DB_USERNAME=root/DB_USERNAME=root/g' .env
+        sed -i 's/DB_PASSWORD=/DB_PASSWORD=test_password/g' .env
+    
+    - name: Run database migrations
+      run: |
+        for file in database/migrations/*.sql; do
+          mysql -h127.0.0.1 -uroot -ptest_password nautilus_test < "$file"
+        done
+    
+    - name: PHP Syntax Check
+      run: find app -name "*.php" -print0 | xargs -0 -n1 php -l
+    
+    - name: Check code style (optional)
+      run: |
+        if [ -f vendor/bin/phpcs ]; then
+          vendor/bin/phpcs app --standard=PSR12 || true
+        fi
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+    
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+    
+    - name: Security audit
+      run: composer audit || true

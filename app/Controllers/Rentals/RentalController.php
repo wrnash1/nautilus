@@ -220,6 +220,15 @@ class RentalController
         
         $items = $this->rentalService->getReservationItems($id);
         
+        $checkout = \App\Core\Database::fetchOne(
+            "SELECT * FROM rental_checkouts WHERE reservation_id = ? ORDER BY id DESC LIMIT 1",
+            [$id]
+        );
+        
+        if ($checkout) {
+            $reservation['checkout_id'] = $checkout['id'];
+        }
+        
         $pageTitle = 'Reservation ' . $reservation['reservation_number'];
         $activeMenu = 'rentals';
         $user = $_SESSION['user'] ?? [];
@@ -246,6 +255,40 @@ class RentalController
         
         header('Content-Type: application/json');
         echo json_encode($equipment);
+        exit;
+    }
+    
+    public function checkout(int $id)
+    {
+        if (!hasPermission('rentals.edit')) {
+            header('Location: /rentals/reservations/' . $id);
+            exit;
+        }
+        
+        $this->rentalService->checkoutEquipment($id);
+        
+        $_SESSION['flash_success'] = 'Equipment checked out successfully!';
+        header('Location: /rentals/reservations/' . $id);
+        exit;
+    }
+    
+    public function checkin(int $id)
+    {
+        if (!hasPermission('rentals.edit')) {
+            header('Location: /rentals/reservations/' . $id);
+            exit;
+        }
+        
+        $checkoutId = $_POST['checkout_id'];
+        $condition = [
+            'condition' => $_POST['condition'] ?? 'good',
+            'notes' => $_POST['notes'] ?? null
+        ];
+        
+        $this->rentalService->checkinEquipment($checkoutId, $condition);
+        
+        $_SESSION['flash_success'] = 'Equipment checked in successfully!';
+        header('Location: /rentals/reservations/' . $id);
         exit;
     }
 }

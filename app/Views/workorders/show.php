@@ -118,7 +118,22 @@
                 <h5 class="mb-0">Actions</h5>
             </div>
             <div class="card-body">
-                <?php if (hasPermission('workorders.edit') && $workOrder['status'] !== 'completed'): ?>
+                <?php if (hasPermission('workorders.edit')): ?>
+                <form method="POST" action="/workorders/<?= $workOrder['id'] ?>/assign" class="mb-3">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                    <label class="form-label">Assign To</label>
+                    <select name="assigned_to" class="form-select mb-2">
+                        <option value="">Unassigned</option>
+                        <?php foreach ($staff as $member): ?>
+                        <option value="<?= $member['id'] ?>" <?= ($workOrder['assigned_to'] == $member['id']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($member['name']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="submit" class="btn btn-info w-100 mb-3">Assign</button>
+                </form>
+                
+                <?php if ($workOrder['status'] !== 'completed'): ?>
                 <form method="POST" action="/workorders/<?= $workOrder['id'] ?>/status" class="mb-3">
                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                     <select name="status" class="form-select mb-2">
@@ -129,6 +144,7 @@
                     </select>
                     <button type="submit" class="btn btn-primary w-100">Update Status</button>
                 </form>
+                <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>

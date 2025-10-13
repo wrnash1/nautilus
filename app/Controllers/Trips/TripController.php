@@ -320,4 +320,39 @@ class TripController
         
         require __DIR__ . '/../../Views/layouts/app.php';
     }
+    
+    public function confirmBooking(int $id)
+    {
+        if (!hasPermission('trips.edit')) {
+            header('Location: /trips/bookings/' . $id);
+            exit;
+        }
+        
+        $this->tripService->updateBookingStatus($id, 'confirmed');
+        
+        $_SESSION['flash_success'] = 'Booking confirmed successfully!';
+        header('Location: /trips/bookings/' . $id);
+        exit;
+    }
+    
+    public function cancelBooking(int $id)
+    {
+        if (!hasPermission('trips.edit')) {
+            header('Location: /trips/bookings/' . $id);
+            exit;
+        }
+        
+        $booking = $this->tripService->getBookingById($id);
+        
+        \App\Core\Database::execute(
+            "UPDATE trip_schedules SET current_bookings = current_bookings - ? WHERE id = ?",
+            [$booking['number_of_participants'], $booking['schedule_id']]
+        );
+        
+        $this->tripService->updateBookingStatus($id, 'cancelled');
+        
+        $_SESSION['flash_success'] = 'Booking cancelled successfully!';
+        header('Location: /trips/bookings/' . $id);
+        exit;
+    }
 }

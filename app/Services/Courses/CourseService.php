@@ -252,4 +252,48 @@ class CourseService
     {
         return $this->getEnrollmentList(['schedule_id' => $scheduleId]);
     }
+    
+    public function getEnrollmentAttendance(int $enrollmentId): array
+    {
+        return Database::fetchAll(
+            "SELECT * FROM course_attendance WHERE enrollment_id = ? ORDER BY session_date ASC",
+            [$enrollmentId]
+        ) ?? [];
+    }
+    
+    public function markAttendance(int $enrollmentId, array $data): bool
+    {
+        $existing = Database::fetchOne(
+            "SELECT id FROM course_attendance WHERE enrollment_id = ? AND session_date = ?",
+            [$enrollmentId, $data['session_date']]
+        );
+        
+        $attended = isset($data['attended']) ? 1 : 0;
+        
+        if ($existing) {
+            Database::execute(
+                "UPDATE course_attendance SET attended = ?, performance_notes = ? WHERE id = ?",
+                [$attended, $data['notes'] ?? null, $existing['id']]
+            );
+        } else {
+            Database::execute(
+                "INSERT INTO course_attendance (enrollment_id, session_date, session_type, attended, performance_notes)
+                 VALUES (?, ?, ?, ?, ?)",
+                [$enrollmentId, $data['session_date'], $data['session_type'], $attended, $data['notes'] ?? null]
+            );
+        }
+        
+        return true;
+    }
+    
+    public function updateGrade(int $enrollmentId, string $grade, string $certNumber = null): bool
+    {
+        Database::execute(
+            "UPDATE course_enrollments SET final_grade = ?, certification_number = ?, 
+             completion_date = NOW(), status = 'completed', updated_at = NOW()
+             WHERE id = ?",
+            [$grade, $certNumber, $enrollmentId]
+        );
+        return true;
+    }
 }

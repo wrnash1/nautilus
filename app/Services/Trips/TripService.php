@@ -177,6 +177,11 @@ class TripService
     
     public function createBooking(array $data): int
     {
+        $capacity = $this->checkCapacity($data['schedule_id']);
+        if (!$capacity['available']) {
+            throw new \Exception('Trip is fully booked');
+        }
+        
         $bookingNumber = 'TRIP-' . date('Ymd') . '-' . rand(1000, 9999);
         
         $sql = "INSERT INTO trip_bookings 
@@ -194,12 +199,41 @@ class TripService
             $_SESSION['user_id'] ?? 1
         ]);
         
-        return Database::lastInsertId();
+        $bookingId = Database::lastInsertId();
+        
+        Database::execute(
+            "UPDATE trip_schedules SET current_bookings = current_bookings + ? WHERE id = ?",
+            [$data['number_of_participants'] ?? 1, $data['schedule_id']]
+        );
+        
+        return $bookingId;
     }
     
     public function updateBookingStatus(int $id, string $status): bool
     {
         $sql = "UPDATE trip_bookings SET status = ?, updated_by = ? WHERE id = ?";
         return Database::execute($sql, [$status, $_SESSION['user_id'] ?? 1, $id]);
+    }
+    
+    public function checkCapacity(int $scheduleId): array
+    {
+        $schedule = Database::fetchOne(
+            "SELECT max_participants, current_bookings FROM trip_schedules WHERE id = ?",
+            [$scheduleId]
+        );
+        
+        if (!$schedule) {
+            return ['available' => false, 'remaining' => 0, 'message' => 'Schedule not found'];
+        }
+        
+        $remaining = $schedule['max_participants'] - ($schedule['current_bookings'] ?? 0);
+        
+        return [
+            'available' => $remaining > 0,
+            'remaining' => $remaining,
+            'max' => $schedule['max_participants'],
+            'current' => $schedule['current_bookings'] ?? 0,
+            'message' => $remaining > 0 ? "$remaining spots remaining" : "Trip is fully booked"
+        ];
     }
 }
