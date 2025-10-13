@@ -41,6 +41,17 @@ class Router
     {
         $uri = parse_url($uri, PHP_URL_PATH);
         
+        $scriptName = $_SERVER['SCRIPT_NAME'];
+        $basePath = str_replace('/index.php', '', $scriptName);
+        
+        if ($basePath && strpos($uri, $basePath) === 0) {
+            $uri = substr($uri, strlen($basePath));
+        }
+        
+        if (empty($uri)) {
+            $uri = '/';
+        }
+        
         foreach ($this->routes as $route) {
             if ($route['method'] === $method && $this->matchPath($route['path'], $uri, $params)) {
                 $this->executeMiddleware($route['middleware']);
