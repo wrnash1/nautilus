@@ -22,10 +22,14 @@ class OrderController
         
         $filters = [
             'status' => $_GET['status'] ?? null,
-            'payment_status' => $_GET['payment_status'] ?? null
+            'payment_status' => $_GET['payment_status'] ?? null,
+            'search' => $_GET['search'] ?? null,
+            'date_from' => $_GET['date_from'] ?? null,
+            'date_to' => $_GET['date_to'] ?? null
         ];
         
         $orders = $this->orderService->getOrderList($filters);
+        $stats = $this->orderService->getOrderStats();
         
         $activeMenu = 'orders';
         $pageTitle = 'Orders';

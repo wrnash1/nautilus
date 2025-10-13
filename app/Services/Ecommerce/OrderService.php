@@ -27,9 +27,71 @@ class OrderService
             $params[] = $filters['payment_status'];
         }
         
+        if (!empty($filters['search'])) {
+            $sql .= " AND (o.order_number LIKE ? OR c.first_name LIKE ? OR c.last_name LIKE ? OR c.email LIKE ?)";
+            $searchTerm = "%{$filters['search']}%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+        }
+        
+        if (!empty($filters['date_from'])) {
+            $sql .= " AND DATE(o.created_at) >= ?";
+            $params[] = $filters['date_from'];
+        }
+        
+        if (!empty($filters['date_to'])) {
+            $sql .= " AND DATE(o.created_at) <= ?";
+            $params[] = $filters['date_to'];
+        }
+        
         $sql .= " ORDER BY o.created_at DESC LIMIT 100";
         
         return Database::fetchAll($sql, $params) ?? [];
+    }
+    
+    public function getOrderStats(): array
+    {
+        $today = date('Y-m-d');
+        $thisMonth = date('Y-m');
+        
+        $todayOrders = Database::fetchOne(
+            "SELECT COUNT(*) as count, COALESCE(SUM(total), 0) as total 
+             FROM orders WHERE DATE(created_at) = ?",
+            [$today]
+        );
+        
+        $monthOrders = Database::fetchOne(
+            "SELECT COUNT(*) as count, COALESCE(SUM(total), 0) as total 
+             FROM orders WHERE DATE_FORMAT(created_at, '%Y-%m') = ?",
+            [$thisMonth]
+        );
+        
+        $pendingCount = Database::fetchOne(
+            "SELECT COUNT(*) as count FROM orders WHERE status = 'pending'",
+            []
+        );
+        
+        $processingCount = Database::fetchOne(
+            "SELECT COUNT(*) as count FROM orders WHERE status = 'processing'",
+            []
+        );
+        
+        $shippedCount = Database::fetchOne(
+            "SELECT COUNT(*) as count FROM orders WHERE status = 'shipped'",
+            []
+        );
+        
+        return [
+            'today_count' => (int)($todayOrders['count'] ?? 0),
+            'today_total' => (float)($todayOrders['total'] ?? 0),
+            'month_count' => (int)($monthOrders['count'] ?? 0),
+            'month_total' => (float)($monthOrders['total'] ?? 0),
+            'pending_count' => (int)($pendingCount['count'] ?? 0),
+            'processing_count' => (int)($processingCount['count'] ?? 0),
+            'shipped_count' => (int)($shippedCount['count'] ?? 0)
+        ];
     }
     
     public function getOrderById(int $id): ?array
