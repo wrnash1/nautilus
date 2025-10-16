@@ -11,6 +11,18 @@ function dd($var): void
     die();
 }
 
+function url(string $path): string
+{
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+    $basePath = str_replace('/index.php', '', $scriptName);
+    
+    if ($basePath && strpos($path, $basePath) !== 0) {
+        $path = $basePath . $path;
+    }
+    
+    return $path;
+}
+
 function redirect(string $path): void
 {
     $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';

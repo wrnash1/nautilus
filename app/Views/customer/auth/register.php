@@ -10,7 +10,7 @@ ob_start();
                 <h4 class="mb-0">Create Account</h4>
             </div>
             <div class="card-body">
-                <form method="POST" action="/account/register">
+                <form method="POST" action="<?= url('/account/register') ?>">
                     <input type="hidden" name="csrf_token" value="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
                     
                     <div class="row">

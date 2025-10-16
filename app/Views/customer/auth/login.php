@@ -10,7 +10,7 @@ ob_start();
                 <h4 class="mb-0">Customer Login</h4>
             </div>
             <div class="card-body">
-                <form method="POST" action="/account/login">
+                <form method="POST" action="<?= url('/account/login') ?>">
                     <input type="hidden" name="csrf_token" value="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
                     
                     <div class="mb-3">

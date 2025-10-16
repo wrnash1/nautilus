@@ -67,7 +67,7 @@
                 <?php unset($_SESSION['flash_success']); ?>
                 <?php endif; ?>
                 
-                <form method="POST" action="/login">
+                <form method="POST" action="<?= url('/login') ?>">
                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                     
                     <div class="mb-3">
