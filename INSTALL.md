@@ -38,7 +38,7 @@ cd /var/www
 
 # Clone repository
 sudo git clone https://github.com/wrnash1/nautilus-v6.git
-cd nautilus-v6
+cd nautilus
 
 # Checkout the correct branch
 sudo git checkout devin/1760111706-nautilus-v6-complete-skeleton
@@ -47,10 +47,10 @@ sudo git checkout devin/1760111706-nautilus-v6-complete-skeleton
 sudo composer install --no-dev --optimize-autoloader
 
 # Set permissions
-sudo chown -R www-data:www-data /var/www/nautilus-v6
-sudo chmod -R 755 /var/www/nautilus-v6
-sudo chmod -R 775 /var/www/nautilus-v6/storage
-sudo chmod -R 775 /var/www/nautilus-v6/public/uploads
+sudo chown -R www-data:www-data /var/www/nautilus
+sudo chmod -R 755 /var/www/nautilus
+sudo chmod -R 775 /var/www/nautilus/storage
+sudo chmod -R 775 /var/www/nautilus/public/uploads
 ```
 
 ## Step 3: Configure Database
@@ -116,9 +116,9 @@ Add this configuration:
 ```apache
 <VirtualHost *:80>
     ServerName yourdomain.com
-    DocumentRoot /var/www/nautilus-v6/public
+    DocumentRoot /var/www/nautilus/public
 
-    <Directory /var/www/nautilus-v6/public>
+    <Directory /var/www/nautilus/public>
         AllowOverride All
         Require all granted
     </Directory>
@@ -154,13 +154,13 @@ sudo crontab -e
 
 # Add these lines for automated maintenance:
 # Daily backup at 2 AM
-0 2 * * * cd /var/www/nautilus-v6 && php scripts/backup.php >> /var/log/nautilus-backup.log 2>&1
+0 2 * * * cd /var/www/nautilus && php scripts/backup.php >> /var/log/nautilus-backup.log 2>&1
 
 # Hourly session cleanup
-0 * * * * cd /var/www/nautilus-v6 && php scripts/cleanup-sessions.php >> /var/log/nautilus-sessions.log 2>&1
+0 * * * * cd /var/www/nautilus && php scripts/cleanup-sessions.php >> /var/log/nautilus-sessions.log 2>&1
 
 # Weekly log rotation
-0 0 * * 0 cd /var/www/nautilus-v6 && php scripts/rotate-logs.php >> /var/log/nautilus-logs.log 2>&1
+0 0 * * 0 cd /var/www/nautilus && php scripts/rotate-logs.php >> /var/log/nautilus-logs.log 2>&1
 ```
 
 ## Step 9: Test Installation
@@ -189,7 +189,7 @@ Visit `https://yourdomain.com` in your browser.
 
 **Problem:** White screen or 500 error
 - **Solution:** Check Apache error logs: `sudo tail -f /var/log/apache2/nautilus-error.log`
-- Verify file permissions: `sudo chown -R www-data:www-data /var/www/nautilus-v6`
+- Verify file permissions: `sudo chown -R www-data:www-data /var/www/nautilus`
 
 **Problem:** Database connection failed
 - **Solution:** Verify `.env` database credentials
@@ -202,7 +202,7 @@ Visit `https://yourdomain.com` in your browser.
 ## Getting Updates
 
 ```bash
-cd /var/www/nautilus-v6
+cd /var/www/nautilus
 sudo git pull origin devin/1760111706-nautilus-v6-complete-skeleton
 sudo composer install --no-dev --optimize-autoloader
 sudo php scripts/migrate.php  # Run new migrations

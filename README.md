@@ -51,7 +51,7 @@ Nautilus v1.0 is a full-featured dive shop management system designed to handle 
 ## 📁 Directory Structure
 
 ```
-nautilus-v6/
+nautilus/
 ├── app/
 │   ├── Controllers/          # HTTP request handlers
 │   │   ├── Admin/           # Admin dashboard
@@ -137,7 +137,7 @@ The system includes 13 comprehensive database migrations covering:
 ```bash
 # Clone the repository
 git clone https://github.com/wrnash1/nautilus-v6.git
-cd nautilus-v6
+cd nautilus
 
 # Install dependencies
 composer install
@@ -163,9 +163,9 @@ chmod -R 755 storage public/uploads
 ```apache
 <VirtualHost *:80>
     ServerName nautilus.local
-    DocumentRoot /path/to/nautilus-v6/public
+    DocumentRoot /path/to/nautilus/public
     
-    <Directory /path/to/nautilus-v6/public>
+    <Directory /path/to/nautilus/public>
         AllowOverride All
         Require all granted
     </Directory>
@@ -259,9 +259,3 @@ See [Deployment Guide](docs/DEPLOYMENT.md) for production deployment instruction
 
 - [API Documentation](docs/API.md) - RESTful API reference
 - [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment steps
-
-
-
-
-
-
