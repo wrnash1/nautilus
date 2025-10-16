@@ -159,4 +159,76 @@ $router->get('/orders/{id}', 'Ecommerce\OrderController@show', [AuthMiddleware::
 $router->post('/orders/{id}/status', 'Ecommerce\OrderController@updateStatus', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/orders/{id}/ship', 'Ecommerce\OrderController@ship', [AuthMiddleware::class, CsrfMiddleware::class]);
 
+$router->get('/marketing/loyalty', 'Marketing\LoyaltyController@index', [AuthMiddleware::class]);
+$router->get('/marketing/loyalty/create', 'Marketing\LoyaltyController@create', [AuthMiddleware::class]);
+$router->post('/marketing/loyalty', 'Marketing\LoyaltyController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/marketing/loyalty/{id}', 'Marketing\LoyaltyController@show', [AuthMiddleware::class]);
+$router->get('/marketing/loyalty/{id}/edit', 'Marketing\LoyaltyController@edit', [AuthMiddleware::class]);
+$router->post('/marketing/loyalty/{id}', 'Marketing\LoyaltyController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/marketing/loyalty/{id}/delete', 'Marketing\LoyaltyController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/marketing/loyalty/adjust-points', 'Marketing\LoyaltyController@adjustPoints', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+$router->get('/marketing/coupons', 'Marketing\CouponController@index', [AuthMiddleware::class]);
+$router->get('/marketing/coupons/create', 'Marketing\CouponController@create', [AuthMiddleware::class]);
+$router->post('/marketing/coupons', 'Marketing\CouponController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/marketing/coupons/{id}', 'Marketing\CouponController@show', [AuthMiddleware::class]);
+$router->get('/marketing/coupons/{id}/edit', 'Marketing\CouponController@edit', [AuthMiddleware::class]);
+$router->post('/marketing/coupons/{id}', 'Marketing\CouponController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/marketing/coupons/{id}/delete', 'Marketing\CouponController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/marketing/coupons/validate', 'Marketing\CouponController@validate', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+$router->get('/marketing/campaigns', 'Marketing\CampaignController@index', [AuthMiddleware::class]);
+$router->get('/marketing/campaigns/create', 'Marketing\CampaignController@create', [AuthMiddleware::class]);
+$router->post('/marketing/campaigns', 'Marketing\CampaignController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/marketing/campaigns/{id}', 'Marketing\CampaignController@show', [AuthMiddleware::class]);
+$router->get('/marketing/campaigns/{id}/edit', 'Marketing\CampaignController@edit', [AuthMiddleware::class]);
+$router->post('/marketing/campaigns/{id}', 'Marketing\CampaignController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/marketing/campaigns/{id}/delete', 'Marketing\CampaignController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/marketing/campaigns/{id}/send', 'Marketing\CampaignController@send', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/marketing/templates', 'Marketing\CampaignController@templates', [AuthMiddleware::class]);
+
+$router->get('/marketing/referrals', 'Marketing\ReferralController@index', [AuthMiddleware::class]);
+$router->get('/marketing/referrals/history', 'Marketing\ReferralController@history', [AuthMiddleware::class]);
+$router->get('/marketing/referrals/settings', 'Marketing\ReferralController@settings', [AuthMiddleware::class]);
+$router->post('/marketing/referrals/settings', 'Marketing\ReferralController@updateSettings', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/marketing/referrals/process', 'Marketing\ReferralController@process', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+$router->get('/cms/pages', 'CMS\PageController@index', [AuthMiddleware::class]);
+$router->get('/cms/pages/create', 'CMS\PageController@create', [AuthMiddleware::class]);
+$router->post('/cms/pages', 'CMS\PageController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/cms/pages/{id}', 'CMS\PageController@show', [AuthMiddleware::class]);
+$router->get('/cms/pages/{id}/edit', 'CMS\PageController@edit', [AuthMiddleware::class]);
+$router->post('/cms/pages/{id}', 'CMS\PageController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/cms/pages/{id}/delete', 'CMS\PageController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/cms/pages/{id}/publish', 'CMS\PageController@publish', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+$router->get('/cms/blog', 'CMS\BlogController@index', [AuthMiddleware::class]);
+$router->get('/cms/blog/create', 'CMS\BlogController@create', [AuthMiddleware::class]);
+$router->post('/cms/blog', 'CMS\BlogController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/cms/blog/{id}', 'CMS\BlogController@show', [AuthMiddleware::class]);
+$router->get('/cms/blog/{id}/edit', 'CMS\BlogController@edit', [AuthMiddleware::class]);
+$router->post('/cms/blog/{id}', 'CMS\BlogController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/cms/blog/{id}/delete', 'CMS\BlogController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/cms/blog/{id}/publish', 'CMS\BlogController@publish', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/cms/blog/categories', 'CMS\BlogController@categories', [AuthMiddleware::class]);
+$router->get('/cms/blog/tags', 'CMS\BlogController@tags', [AuthMiddleware::class]);
+
+$router->get('/staff', 'Staff\StaffController@index', [AuthMiddleware::class]);
+$router->get('/staff/{id}', 'Staff\StaffController@show', [AuthMiddleware::class]);
+$router->get('/staff/{id}/performance', 'Staff\StaffController@performance', [AuthMiddleware::class]);
+
+$router->get('/staff/schedules', 'Staff\ScheduleController@index', [AuthMiddleware::class]);
+$router->get('/staff/schedules/create', 'Staff\ScheduleController@create', [AuthMiddleware::class]);
+$router->post('/staff/schedules', 'Staff\ScheduleController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/staff/schedules/{id}/delete', 'Staff\ScheduleController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+$router->get('/staff/timeclock', 'Staff\TimeClockController@index', [AuthMiddleware::class]);
+$router->post('/staff/timeclock/clockin', 'Staff\TimeClockController@clockIn', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/staff/timeclock/clockout', 'Staff\TimeClockController@clockOut', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/staff/timeclock/reports', 'Staff\TimeClockController@reports', [AuthMiddleware::class]);
+
+$router->get('/staff/commissions', 'Staff\CommissionController@index', [AuthMiddleware::class]);
+$router->get('/staff/commissions/staff/{id}', 'Staff\CommissionController@staff', [AuthMiddleware::class]);
+$router->get('/staff/commissions/reports', 'Staff\CommissionController@reports', [AuthMiddleware::class]);
+
 return $router;
