@@ -1,4 +1,4 @@
-# Nautilus v6.0 - Quick Installation Guide
+# Nautilus v1.0 - Quick Installation Guide
 
 Simple step-by-step guide to install Nautilus v6.0 in production.
 

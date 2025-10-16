@@ -10,7 +10,7 @@ NC='\033[0m'
 echo -e "${GREEN}"
 echo "╔════════════════════════════════════════════════════════════╗"
 echo "║                                                            ║"
-echo "║          Nautilus v6.0 - Automated Installer               ║"
+echo "║          Nautilus v1.0 - Automated Installer               ║"
 echo "║     Enterprise Dive Shop Management System                 ║"
 echo "║                                                            ║"
 echo "╚════════════════════════════════════════════════════════════╝"
@@ -71,7 +71,7 @@ fi
 
 echo -e "${GREEN}Detected OS: $OS${NC}"
 echo ""
-echo -e "${YELLOW}This script will install Nautilus v6.0 with the following components:${NC}"
+echo -e "${YELLOW}This script will install Nautilus v1.0 with the following components:${NC}"
 echo "  - $WEB_SERVER Web Server"
 echo "  - PHP 8.2+ (or latest available)"
 echo "  - MySQL/MariaDB 8.0+"
