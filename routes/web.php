@@ -85,6 +85,19 @@ $router->get('/rentals/available-equipment', 'Rentals\RentalController@searchAva
 $router->post('/rentals/reservations/{id}/checkout', 'Rentals\RentalController@checkout', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/rentals/reservations/{id}/checkin', 'Rentals\RentalController@checkin', [AuthMiddleware::class, CsrfMiddleware::class]);
 
+// Air Fills
+$router->get('/air-fills', 'AirFills\AirFillController@index', [AuthMiddleware::class]);
+$router->get('/air-fills/create', 'AirFills\AirFillController@create', [AuthMiddleware::class]);
+$router->post('/air-fills', 'AirFills\AirFillController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/air-fills/quick-fill', 'AirFills\AirFillController@quickFill', [AuthMiddleware::class]);
+$router->post('/air-fills/quick-fill', 'AirFills\AirFillController@processQuickFill', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/air-fills/export', 'AirFills\AirFillController@export', [AuthMiddleware::class]);
+$router->get('/air-fills/pricing', 'AirFills\AirFillController@getPricing', [AuthMiddleware::class]);
+$router->get('/air-fills/{id}', 'AirFills\AirFillController@show', [AuthMiddleware::class]);
+$router->get('/air-fills/{id}/edit', 'AirFills\AirFillController@edit', [AuthMiddleware::class]);
+$router->post('/air-fills/{id}', 'AirFills\AirFillController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/air-fills/{id}/delete', 'AirFills\AirFillController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+
 $router->get('/courses', 'Courses\CourseController@index', [AuthMiddleware::class]);
 $router->get('/courses/create', 'Courses\CourseController@create', [AuthMiddleware::class]);
 $router->get('/courses/schedules', 'Courses\CourseController@schedules', [AuthMiddleware::class]);
@@ -230,5 +243,45 @@ $router->get('/staff/timeclock/reports', 'Staff\TimeClockController@reports', [A
 $router->get('/staff/commissions', 'Staff\CommissionController@index', [AuthMiddleware::class]);
 $router->get('/staff/commissions/staff/{id}', 'Staff\CommissionController@staff', [AuthMiddleware::class]);
 $router->get('/staff/commissions/reports', 'Staff\CommissionController@reports', [AuthMiddleware::class]);
+
+// Admin Settings
+$router->get('/admin/settings', 'Admin\SettingsController@index', [AuthMiddleware::class]);
+$router->get('/admin/settings/general', 'Admin\SettingsController@general', [AuthMiddleware::class]);
+$router->get('/admin/settings/tax', 'Admin\SettingsController@tax', [AuthMiddleware::class]);
+$router->get('/admin/settings/email', 'Admin\SettingsController@email', [AuthMiddleware::class]);
+$router->get('/admin/settings/payment', 'Admin\SettingsController@payment', [AuthMiddleware::class]);
+$router->get('/admin/settings/rental', 'Admin\SettingsController@rental', [AuthMiddleware::class]);
+$router->get('/admin/settings/air-fills', 'Admin\SettingsController@airFills', [AuthMiddleware::class]);
+$router->get('/admin/settings/integrations', 'Admin\SettingsController@integrations', [AuthMiddleware::class]);
+$router->post('/admin/settings/update', 'Admin\SettingsController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/settings/tax/rates', 'Admin\SettingsController@storeTaxRate', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/settings/tax/rates/{id}', 'Admin\SettingsController@updateTaxRate', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/settings/tax/rates/{id}/delete', 'Admin\SettingsController@deleteTaxRate', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Admin User Management
+$router->get('/admin/users', 'Admin\UserController@index', [AuthMiddleware::class]);
+$router->get('/admin/users/create', 'Admin\UserController@create', [AuthMiddleware::class]);
+$router->post('/admin/users', 'Admin\UserController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/admin/users/{id}', 'Admin\UserController@show', [AuthMiddleware::class]);
+$router->get('/admin/users/{id}/edit', 'Admin\UserController@edit', [AuthMiddleware::class]);
+$router->post('/admin/users/{id}', 'Admin\UserController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/users/{id}/delete', 'Admin\UserController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/users/{id}/reset-password', 'Admin\UserController@resetPassword', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/users/{id}/toggle-status', 'Admin\UserController@toggleStatus', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Admin Role Management
+$router->get('/admin/roles', 'Admin\RoleController@index', [AuthMiddleware::class]);
+$router->get('/admin/roles/create', 'Admin\RoleController@create', [AuthMiddleware::class]);
+$router->post('/admin/roles', 'Admin\RoleController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/admin/roles/{id}/edit', 'Admin\RoleController@edit', [AuthMiddleware::class]);
+$router->post('/admin/roles/{id}', 'Admin\RoleController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/roles/{id}/delete', 'Admin\RoleController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Wave Apps Integration
+$router->get('/integrations/wave', 'Integrations\WaveController@index', [AuthMiddleware::class]);
+$router->get('/integrations/wave/test-connection', 'Integrations\WaveController@testConnection', [AuthMiddleware::class]);
+$router->post('/integrations/wave/bulk-sync', 'Integrations\WaveController@bulkSync', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/integrations/wave/export-csv', 'Integrations\WaveController@exportCSV', [AuthMiddleware::class]);
+$router->post('/integrations/wave/sync/{id}', 'Integrations\WaveController@syncTransaction', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 return $router;

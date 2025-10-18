@@ -167,7 +167,13 @@
                 </div>
             </div>
             <?php endif; ?>
-            
+
+            <?php if (hasPermission('air_fills.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'air-fills' ? 'active' : '' ?>" href="/air-fills">
+                <i class="bi bi-wind"></i> Air Fills
+            </a>
+            <?php endif; ?>
+
             <?php if (hasPermission('courses.view')): ?>
             <div class="nav-item">
                 <a class="nav-link <?= $activeMenu === 'courses' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#coursesMenu" role="button" aria-expanded="false">
@@ -205,10 +211,24 @@
                 <i class="bi bi-box-seam"></i> Orders
             </a>
             <?php endif; ?>
-            
+
             <a class="nav-link" href="/shop" target="_blank">
                 <i class="bi bi-shop"></i> Online Store
             </a>
+
+            <hr class="my-2">
+
+            <?php if (hasPermission('admin.settings')): ?>
+            <a class="nav-link <?= $activeMenu === 'settings' ? 'active' : '' ?>" href="/admin/settings">
+                <i class="bi bi-gear"></i> Settings
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('admin.users')): ?>
+            <a class="nav-link <?= $activeMenu === 'users' ? 'active' : '' ?>" href="/admin/users">
+                <i class="bi bi-people-fill"></i> User Management
+            </a>
+            <?php endif; ?>
         </nav>
     </div>
 
