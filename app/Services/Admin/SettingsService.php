@@ -3,9 +3,27 @@
 namespace App\Services\Admin;
 
 use App\Core\Database;
+use App\Core\Encryption;
 
 class SettingsService
 {
+    /**
+     * List of setting keys that should be encrypted in the database
+     */
+    private const ENCRYPTED_SETTINGS = [
+        'stripe_secret_key',
+        'stripe_webhook_secret',
+        'square_access_token',
+        'btcpay_api_key',
+        'twilio_auth_token',
+        'smtp_password',
+        'padi_api_secret',
+        'padi_api_key',
+        'ssi_api_key',
+        'ups_password',
+        'fedex_secret_key',
+        'wave_access_token'
+    ];
     /**
      * Get all setting categories
      */
@@ -79,7 +97,14 @@ class SettingsService
                     $value = json_decode($value, true) ?? [];
                     break;
                 case 'encrypted':
-                    // Decrypt if needed
+                    // Decrypt sensitive values
+                    try {
+                        $value = !empty($value) ? Encryption::decrypt($value) : '';
+                    } catch (\Exception $e) {
+                        // Log decryption error but don't expose it
+                        error_log("Decryption failed for setting: {$row['setting_key']} - " . $e->getMessage());
+                        $value = '';
+                    }
                     break;
             }
 
@@ -115,6 +140,13 @@ class SettingsService
                 return (int)$value;
             case 'json':
                 return json_decode($value, true) ?? [];
+            case 'encrypted':
+                try {
+                    return !empty($value) ? Encryption::decrypt($value) : '';
+                } catch (\Exception $e) {
+                    error_log("Decryption failed for setting: {$key} - " . $e->getMessage());
+                    return '';
+                }
             default:
                 return $value;
         }
@@ -127,7 +159,18 @@ class SettingsService
     {
         // Determine type
         $type = 'string';
-        if (is_bool($value)) {
+
+        // Check if this setting should be encrypted
+        if (in_array($key, self::ENCRYPTED_SETTINGS)) {
+            $type = 'encrypted';
+            // Encrypt the value before storing
+            try {
+                $value = !empty($value) ? Encryption::encrypt($value) : '';
+            } catch (\Exception $e) {
+                error_log("Encryption failed for setting: {$key} - " . $e->getMessage());
+                return false;
+            }
+        } elseif (is_bool($value)) {
             $type = 'boolean';
             $value = $value ? '1' : '0';
         } elseif (is_int($value)) {
@@ -143,9 +186,10 @@ class SettingsService
             [$category, $key]
         );
 
+        $result = false;
         if ($exists) {
             // Update
-            return Database::execute(
+            $result = Database::execute(
                 "UPDATE settings
                  SET setting_value = ?, setting_type = ?, updated_at = NOW(), updated_by = ?
                  WHERE category = ? AND setting_key = ?",
@@ -153,12 +197,19 @@ class SettingsService
             );
         } else {
             // Insert
-            return Database::execute(
+            $result = Database::execute(
                 "INSERT INTO settings (category, setting_key, setting_value, setting_type, created_at, updated_at, updated_by)
                  VALUES (?, ?, ?, ?, NOW(), NOW(), ?)",
                 [$category, $key, $value, $type, currentUser()['id']]
             );
         }
+
+        // Log the update for audit trail
+        if ($result) {
+            $this->logSettingAccess('update', $category, $key);
+        }
+
+        return $result;
     }
 
     /**
@@ -286,5 +337,58 @@ class SettingsService
         }
 
         return $count;
+    }
+
+    /**
+     * Get a masked version of a setting value (for display purposes)
+     * Shows only last 4 characters for sensitive values
+     */
+    public function getMaskedSetting(string $category, string $key): string
+    {
+        $value = $this->getSetting($category, $key, '');
+
+        if (empty($value)) {
+            return '';
+        }
+
+        // Only mask encrypted settings
+        if (in_array($key, self::ENCRYPTED_SETTINGS)) {
+            return Encryption::mask($value, 4);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Check if a setting key should be encrypted
+     */
+    public function isEncryptedSetting(string $key): bool
+    {
+        return in_array($key, self::ENCRYPTED_SETTINGS);
+    }
+
+    /**
+     * Log setting access/modification for audit trail
+     */
+    private function logSettingAccess(string $action, string $category, string $key): void
+    {
+        // Only log access to sensitive (encrypted) settings
+        if (!in_array($key, self::ENCRYPTED_SETTINGS)) {
+            return;
+        }
+
+        $userId = currentUser()['id'] ?? null;
+        $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        try {
+            Database::execute(
+                "INSERT INTO settings_audit (setting_key, action, user_id, ip_address, created_at)
+                 VALUES (?, ?, ?, ?, NOW())",
+                ["{$category}.{$key}", $action, $userId, $ipAddress]
+            );
+        } catch (\Exception $e) {
+            // Log error but don't fail the operation
+            error_log("Failed to log setting access: " . $e->getMessage());
+        }
     }
 }
