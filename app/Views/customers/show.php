@@ -13,14 +13,58 @@ ob_start();
             <li class="breadcrumb-item active"><?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?></li>
         </ol>
     </nav>
-    <div class="d-flex justify-content-between align-items-center">
-        <h2>
-            <i class="bi bi-person-circle"></i>
-            <?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?>
-            <span class="badge bg-<?= $customer['customer_type'] === 'B2B' ? 'primary' : 'secondary' ?> ms-2">
-                <?= $customer['customer_type'] ?>
-            </span>
-        </h2>
+    <div class="d-flex justify-content-between align-items-start">
+        <div class="d-flex align-items-start">
+            <!-- Customer Photo -->
+            <div class="me-3">
+                <?php if (!empty($customer['photo_path'])): ?>
+                    <img src="<?= htmlspecialchars($customer['photo_path']) ?>"
+                         alt="<?= htmlspecialchars($customer['first_name']) ?>"
+                         class="rounded-circle border border-3 border-primary"
+                         style="width: 100px; height: 100px; object-fit: cover;">
+                <?php else: ?>
+                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white"
+                         style="width: 100px; height: 100px; font-size: 2.5rem;">
+                        <?= strtoupper(substr($customer['first_name'], 0, 1) . substr($customer['last_name'], 0, 1)) ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Customer Info -->
+            <div>
+                <h2 class="mb-2">
+                    <?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?>
+                    <span class="badge bg-<?= $customer['customer_type'] === 'B2B' ? 'primary' : 'secondary' ?> ms-2">
+                        <?= $customer['customer_type'] ?>
+                    </span>
+                </h2>
+
+                <!-- Highest Certification Badge -->
+                <?php if (!empty($highestCert)): ?>
+                <div class="mb-2">
+                    <span class="badge" style="background-color: <?= htmlspecialchars($highestCert['primary_color'] ?? '#0066CC') ?>; font-size: 0.9rem; padding: 0.5rem 0.75rem;">
+                        <?php if (!empty($highestCert['logo_path'])): ?>
+                            <img src="<?= htmlspecialchars($highestCert['logo_path']) ?>"
+                                 alt="<?= htmlspecialchars($highestCert['agency_name']) ?>"
+                                 style="height: 16px; vertical-align: middle; margin-right: 5px;">
+                        <?php endif; ?>
+                        <?= htmlspecialchars($highestCert['certification_name']) ?>
+                        <?php if ($highestCert['verification_status'] === 'verified'): ?>
+                            <i class="bi bi-patch-check-fill ms-1"></i>
+                        <?php endif; ?>
+                    </span>
+                </div>
+                <?php endif; ?>
+
+                <p class="text-muted mb-1">
+                    <i class="bi bi-envelope"></i> <?= htmlspecialchars($customer['email'] ?? 'No email') ?>
+                    <?php if (!empty($customer['phone'])): ?>
+                        | <i class="bi bi-telephone"></i> <?= htmlspecialchars($customer['phone']) ?>
+                    <?php endif; ?>
+                </p>
+            </div>
+        </div>
+
         <div>
             <?php if (hasPermission('customers.edit')): ?>
             <a href="/customers/<?= $customer['id'] ?>/edit" class="btn btn-primary">
@@ -252,21 +296,175 @@ ob_start();
     
     <div class="tab-pane fade" id="certifications" role="tabpanel">
         <?php if (empty($certifications)): ?>
-        <p class="text-muted text-center py-4">No certifications found.</p>
+        <div class="text-center py-5">
+            <i class="bi bi-award" style="font-size: 3rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No certifications found.</p>
+            <?php if (hasPermission('customers.edit')): ?>
+            <button class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> Add Certification
+            </button>
+            <?php endif; ?>
+        </div>
         <?php else: ?>
         <div class="row">
             <?php foreach ($certifications as $cert): ?>
-            <div class="col-md-4 mb-3">
-                <div class="card">
+            <div class="col-lg-4 col-md-6 mb-3">
+                <div class="card h-100 shadow-sm cert-card"
+                     style="border-left: 4px solid <?= htmlspecialchars($cert['primary_color'] ?? '#0066CC') ?>;">
                     <div class="card-body">
-                        <h6><?= htmlspecialchars($cert['certification_level'] ?? 'Certification') ?></h6>
-                        <p class="mb-1"><small class="text-muted"><?= htmlspecialchars($cert['agency_name'] ?? 'Unknown Agency') ?></small></p>
-                        <p class="mb-1"><small>Number: <?= htmlspecialchars($cert['certification_number'] ?? '-') ?></small></p>
-                        <p class="mb-0"><small>Date: <?= !empty($cert['issue_date']) ? date('M d, Y', strtotime($cert['issue_date'])) : 'N/A' ?></small></p>
+                        <!-- Agency Logo and Badge -->
+                        <div class="d-flex align-items-start justify-content-between mb-3">
+                            <div>
+                                <?php if (!empty($cert['logo_path'])): ?>
+                                    <img src="<?= htmlspecialchars($cert['logo_path']) ?>"
+                                         alt="<?= htmlspecialchars($cert['agency_abbreviation']) ?>"
+                                         style="height: 40px; max-width: 120px; object-fit: contain;">
+                                <?php else: ?>
+                                    <span class="badge" style="background-color: <?= htmlspecialchars($cert['primary_color'] ?? '#0066CC') ?>; font-size: 0.9rem;">
+                                        <?= htmlspecialchars($cert['agency_abbreviation'] ?? 'N/A') ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                            <div>
+                                <?php
+                                $statusColors = [
+                                    'verified' => 'success',
+                                    'pending' => 'warning',
+                                    'expired' => 'danger',
+                                    'invalid' => 'secondary'
+                                ];
+                                $statusColor = $statusColors[$cert['verification_status']] ?? 'secondary';
+                                $statusIcons = [
+                                    'verified' => 'patch-check-fill',
+                                    'pending' => 'hourglass-split',
+                                    'expired' => 'exclamation-triangle-fill',
+                                    'invalid' => 'x-circle-fill'
+                                ];
+                                $statusIcon = $statusIcons[$cert['verification_status']] ?? 'question-circle';
+                                ?>
+                                <span class="badge bg-<?= $statusColor ?>">
+                                    <i class="bi bi-<?= $statusIcon ?>"></i>
+                                    <?= ucfirst($cert['verification_status'] ?? 'Unknown') ?>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Certification Name -->
+                        <h5 class="card-title mb-2">
+                            <?= htmlspecialchars($cert['certification_name'] ?? 'Certification') ?>
+                        </h5>
+
+                        <!-- Level Badge -->
+                        <?php if (!empty($cert['certification_level'])): ?>
+                        <div class="mb-2">
+                            <span class="badge bg-light text-dark border">
+                                Level <?= $cert['certification_level'] ?>
+                                <?php if (!empty($cert['certification_code'])): ?>
+                                    | <?= htmlspecialchars($cert['certification_code']) ?>
+                                <?php endif; ?>
+                            </span>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- Details -->
+                        <div class="mt-3">
+                            <?php if (!empty($cert['certification_number'])): ?>
+                            <p class="mb-1 small">
+                                <strong><i class="bi bi-hash"></i> Cert #:</strong>
+                                <span class="text-monospace"><?= htmlspecialchars($cert['certification_number']) ?></span>
+                            </p>
+                            <?php endif; ?>
+
+                            <?php if (!empty($cert['issue_date'])): ?>
+                            <p class="mb-1 small">
+                                <strong><i class="bi bi-calendar-check"></i> Issued:</strong>
+                                <?= date('M d, Y', strtotime($cert['issue_date'])) ?>
+                            </p>
+                            <?php endif; ?>
+
+                            <?php if (!empty($cert['expiry_date'])): ?>
+                            <p class="mb-1 small">
+                                <strong><i class="bi bi-calendar-x"></i> Expires:</strong>
+                                <?php
+                                $expiryDate = strtotime($cert['expiry_date']);
+                                $today = time();
+                                $daysUntilExpiry = floor(($expiryDate - $today) / 86400);
+                                $expiryClass = $daysUntilExpiry < 0 ? 'text-danger' : ($daysUntilExpiry < 90 ? 'text-warning' : 'text-success');
+                                ?>
+                                <span class="<?= $expiryClass ?>">
+                                    <?= date('M d, Y', $expiryDate) ?>
+                                    <?php if ($daysUntilExpiry < 0): ?>
+                                        (Expired)
+                                    <?php elseif ($daysUntilExpiry < 90): ?>
+                                        (<?= $daysUntilExpiry ?> days left)
+                                    <?php endif; ?>
+                                </span>
+                            </p>
+                            <?php endif; ?>
+
+                            <?php if (!empty($cert['instructor_name'])): ?>
+                            <p class="mb-1 small">
+                                <strong><i class="bi bi-person"></i> Instructor:</strong>
+                                <?= htmlspecialchars($cert['instructor_name']) ?>
+                            </p>
+                            <?php endif; ?>
+
+                            <?php if (!empty($cert['verified_at']) && $cert['verification_status'] === 'verified'): ?>
+                            <p class="mb-0 small text-success">
+                                <i class="bi bi-shield-check"></i>
+                                Verified <?= date('M d, Y', strtotime($cert['verified_at'])) ?>
+                            </p>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- C-Card Images -->
+                        <?php if (!empty($cert['c_card_front_path']) || !empty($cert['c_card_back_path'])): ?>
+                        <div class="mt-3 pt-3 border-top">
+                            <p class="small text-muted mb-2"><i class="bi bi-card-image"></i> C-Card Images:</p>
+                            <div class="d-flex gap-2">
+                                <?php if (!empty($cert['c_card_front_path'])): ?>
+                                <a href="<?= htmlspecialchars($cert['c_card_front_path']) ?>" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye"></i> Front
+                                </a>
+                                <?php endif; ?>
+                                <?php if (!empty($cert['c_card_back_path'])): ?>
+                                <a href="<?= htmlspecialchars($cert['c_card_back_path']) ?>" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye"></i> Back
+                                </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
             <?php endforeach; ?>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="mt-4 p-3 bg-light rounded">
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <h4 class="mb-0"><?= count($certifications) ?></h4>
+                    <small class="text-muted">Total Certifications</small>
+                </div>
+                <div class="col-md-3">
+                    <h4 class="mb-0">
+                        <?= count(array_filter($certifications, fn($c) => $c['verification_status'] === 'verified')) ?>
+                    </h4>
+                    <small class="text-muted">Verified</small>
+                </div>
+                <div class="col-md-3">
+                    <h4 class="mb-0">
+                        <?= !empty($highestCert) ? $highestCert['certification_level'] : 0 ?>
+                    </h4>
+                    <small class="text-muted">Highest Level</small>
+                </div>
+                <div class="col-md-3">
+                    <h4 class="mb-0"><?= count(array_unique(array_column($certifications, 'agency_id'))) ?></h4>
+                    <small class="text-muted">Agencies</small>
+                </div>
+            </div>
         </div>
         <?php endif; ?>
     </div>

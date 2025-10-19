@@ -6,6 +6,14 @@ use App\Middleware\CsrfMiddleware;
 
 $router = new Router();
 
+// Installation Routes (no middleware - accessible before installation)
+$router->get('/install', 'Install\InstallController@index');
+$router->get('/install/configure', 'Install\InstallController@configure');
+$router->post('/install/test-database', 'Install\InstallController@testDatabase');
+$router->post('/install/process', 'Install\InstallController@install');
+$router->get('/install/progress', 'Install\InstallController@progress');
+$router->get('/install/complete', 'Install\InstallController@complete');
+
 $router->get('/', 'Admin\DashboardController@index', [AuthMiddleware::class]);
 $router->get('/login', 'Auth\AuthController@showLogin');
 $router->post('/login', 'Auth\AuthController@login');
@@ -283,5 +291,13 @@ $router->get('/integrations/wave/test-connection', 'Integrations\WaveController@
 $router->post('/integrations/wave/bulk-sync', 'Integrations\WaveController@bulkSync', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/integrations/wave/export-csv', 'Integrations\WaveController@exportCSV', [AuthMiddleware::class]);
 $router->post('/integrations/wave/sync/{id}', 'Integrations\WaveController@syncTransaction', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// QuickBooks Integration
+$router->get('/integrations/quickbooks', 'Integrations\QuickBooksController@index', [AuthMiddleware::class]);
+$router->post('/integrations/quickbooks/config', 'Integrations\QuickBooksController@saveConfig', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/integrations/quickbooks/export', 'Integrations\QuickBooksController@exportPage', [AuthMiddleware::class]);
+$router->post('/integrations/quickbooks/download', 'Integrations\QuickBooksController@download', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/integrations/quickbooks/preview', 'Integrations\QuickBooksController@preview', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/integrations/quickbooks/delete/{id}', 'Integrations\QuickBooksController@deleteExport', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 return $router;

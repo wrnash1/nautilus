@@ -3,6 +3,9 @@ $pageTitle = 'Point of Sale';
 $activeMenu = 'pos';
 $user = currentUser();
 
+// Add mobile-responsive CSS
+$additionalCss = '<link rel="stylesheet" href="/assets/css/mobile-pos.css">';
+
 ob_start();
 ?>
 
@@ -14,8 +17,8 @@ ob_start();
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-8">
+<div class="row pos-container">
+    <div class="col-md-8 pos-products-section">
         <div class="card mb-3">
             <div class="card-header bg-white">
                 <h5 class="card-title mb-0">
@@ -69,11 +72,12 @@ ob_start();
         </div>
     </div>
     
-    <div class="col-md-4">
+    <div class="col-md-4 pos-cart-section">
         <div class="card mb-3">
             <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-cart3"></i> Cart
+                    <span id="cartCount" class="badge bg-light text-dark ms-2">0</span>
                 </h5>
             </div>
             <div class="card-body">
@@ -135,7 +139,7 @@ ob_start();
                     <button id="clearCartBtn" class="btn btn-outline-danger" disabled>
                         <i class="bi bi-trash"></i> Clear Cart
                     </button>
-                    <button id="checkoutBtn" class="btn btn-success btn-lg" disabled>
+                    <button id="checkoutBtn" class="btn btn-success btn-lg btn-checkout" disabled>
                         <i class="bi bi-check-circle"></i> Complete Sale
                     </button>
                 </div>
@@ -144,14 +148,61 @@ ob_start();
     </div>
 </div>
 
+<!-- Mobile Floating Action Button -->
+<div class="fab-cart d-md-none" id="fabCart">
+    <i class="bi bi-cart3"></i>
+    <span class="cart-badge" id="fabCartBadge" style="display: none;">0</span>
+</div>
+
+<!-- Loading Spinner Overlay -->
+<div class="spinner-overlay" id="spinnerOverlay">
+    <div class="spinner"></div>
+</div>
+
 <?php
 $content = ob_get_clean();
 
 $additionalJs = '<script>
 let cart = [];
 const TAX_RATE = 0.08;
+let isMobile = window.innerWidth <= 767;
+
+// Update isMobile on resize
+$(window).on("resize", function() {
+    isMobile = window.innerWidth <= 767;
+});
 
 $(document).ready(function() {
+    // Mobile FAB cart toggle
+    $("#fabCart").on("click", function() {
+        const $cartSection = $(".pos-cart-section");
+
+        if ($cartSection.hasClass("show-cart")) {
+            $cartSection.removeClass("show-cart");
+        } else {
+            $cartSection.addClass("show-cart");
+            // Scroll to cart on mobile
+            $("html, body").animate({
+                scrollTop: $cartSection.offset().top - 20
+            }, 300);
+        }
+    });
+
+    // Close mobile cart when clicking outside
+    $(document).on("click", function(e) {
+        if (isMobile && !$(e.target).closest(".pos-cart-section, #fabCart").length) {
+            $(".pos-cart-section").removeClass("show-cart");
+        }
+    });
+
+    // Touch-friendly product card interactions
+    $(".product-card").on("touchstart", function() {
+        $(this).addClass("touching");
+    }).on("touchend touchcancel", function() {
+        $(this).removeClass("touching");
+    });
+
+    // Improved search with mobile keyboard handling
     $("#productSearch").on("input", debounce(function() {
         const query = $(this).val();
         
@@ -188,9 +239,9 @@ $(document).ready(function() {
         const productName = $source.data("product-name");
         const productPrice = parseFloat($source.data("product-price"));
         const productSku = $source.data("product-sku");
-        
+
         const existingItem = cart.find(item => item.product_id === productId);
-        
+
         if (existingItem) {
             existingItem.quantity++;
         } else {
@@ -202,10 +253,20 @@ $(document).ready(function() {
                 quantity: 1
             });
         }
-        
+
         updateCart();
         $("#searchResults").html("");
         $("#productSearch").val("");
+
+        // Mobile: Show brief feedback and scroll to cart
+        if (isMobile) {
+            const $button = $(this);
+            const originalHtml = $button.html();
+            $button.html("<i class=\"bi bi-check-circle-fill\"></i> Added!");
+            setTimeout(() => {
+                $button.html(originalHtml);
+            }, 1000);
+        }
     });
     
     $(document).on("click", ".remove-item", function() {
@@ -238,22 +299,25 @@ $(document).ready(function() {
     $("#checkoutBtn").on("click", function() {
         const customerId = $("#customerSelect").val();
         const paymentMethod = $("input[name=\"paymentMethod\"]:checked").val();
-        
+
         if (!customerId) {
             alert("Please select a customer");
             return;
         }
-        
+
         if (cart.length === 0) {
             alert("Cart is empty");
             return;
         }
-        
+
         const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const total = Math.round((subtotal * (1 + TAX_RATE)) * 100) / 100;
-        
+
         $(this).prop("disabled", true).html("<span class=\"spinner-border spinner-border-sm\"></span> Processing...");
-        
+
+        // Show loading spinner overlay
+        $("#spinnerOverlay").addClass("active");
+
         $.ajax({
             url: "/pos/checkout",
             method: "POST",
@@ -268,11 +332,13 @@ $(document).ready(function() {
                 if (response.success) {
                     window.location.href = response.redirect;
                 } else {
+                    $("#spinnerOverlay").removeClass("active");
                     alert("Error: " + (response.error || "Unknown error"));
                     $("#checkoutBtn").prop("disabled", false).html("<i class=\"bi bi-check-circle\"></i> Complete Sale");
                 }
             },
             error: function(xhr) {
+                $("#spinnerOverlay").removeClass("active");
                 const response = xhr.responseJSON || {};
                 alert("Error: " + (response.error || xhr.responseText || "Payment processing failed"));
                 $("#checkoutBtn").prop("disabled", false).html("<i class=\"bi bi-check-circle\"></i> Complete Sale");
@@ -282,44 +348,61 @@ $(document).ready(function() {
 });
 
 function updateCart() {
+    const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+    // Update cart count badge
+    $("#cartCount").text(itemCount);
+
+    // Update FAB badge on mobile
+    if (itemCount > 0) {
+        $("#fabCartBadge").text(itemCount).show();
+    } else {
+        $("#fabCartBadge").hide();
+    }
+
     if (cart.length === 0) {
         $("#cartItems").html("<p class=\"text-muted text-center\">Cart is empty</p>");
         $("#clearCartBtn, #checkoutBtn").prop("disabled", true);
         $("#cartSubtotal, #cartTax, #cartTotal").text("$0.00");
         return;
     }
-    
+
     let html = "";
     cart.forEach(function(item, index) {
-        html += `<div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
-            <div class="flex-grow-1">
-                <div><strong>${item.name}</strong></div>
-                <small class="text-muted">SKU: ${item.sku}</small><br>
-                <small>${formatCurrency(item.price)} each</small>
-            </div>
-            <div class="d-flex align-items-center">
-                <div class="btn-group btn-group-sm me-2">
-                    <button class="btn btn-outline-secondary qty-minus" data-index="${index}">-</button>
-                    <button class="btn btn-outline-secondary disabled">${item.quantity}</button>
-                    <button class="btn btn-outline-secondary qty-plus" data-index="${index}">+</button>
+        html += `<div class="cart-item">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="flex-grow-1">
+                    <div class="cart-item-name">${item.name}</div>
+                    <small class="text-muted">SKU: ${item.sku}</small><br>
+                    <small class="cart-item-price">${formatCurrency(item.price)} each</small>
                 </div>
                 <button class="btn btn-sm btn-danger remove-item" data-index="${index}">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>
+            <div class="cart-quantity-control">
+                <button class="btn btn-sm btn-outline-secondary qty-minus" data-index="${index}">
+                    <i class="bi bi-dash"></i>
+                </button>
+                <input type="number" class="form-control form-control-sm" value="${item.quantity}" readonly>
+                <button class="btn btn-sm btn-outline-secondary qty-plus" data-index="${index}">
+                    <i class="bi bi-plus"></i>
+                </button>
+                <span class="ms-2 fw-bold">${formatCurrency(item.price * item.quantity)}</span>
+            </div>
         </div>`;
     });
-    
+
     $("#cartItems").html(html);
-    
+
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const tax = Math.round((subtotal * TAX_RATE) * 100) / 100;
     const total = Math.round((subtotal + tax) * 100) / 100;
-    
+
     $("#cartSubtotal").text(formatCurrency(subtotal));
     $("#cartTax").text(formatCurrency(tax));
     $("#cartTotal").text(formatCurrency(total));
-    
+
     $("#clearCartBtn, #checkoutBtn").prop("disabled", false);
 }
 

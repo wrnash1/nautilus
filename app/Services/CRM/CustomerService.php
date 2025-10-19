@@ -3,6 +3,7 @@
 namespace App\Services\CRM;
 
 use App\Models\Customer;
+use App\Core\Database;
 
 class CustomerService
 {
@@ -28,20 +29,44 @@ class CustomerService
     public function getCustomer360(int $id): array
     {
         $customer = Customer::find($id);
-        
+
         if (!$customer) {
             return [];
         }
-        
+
         $addresses = Customer::getAllAddresses($id);
         $transactions = Customer::getTransactionHistory($id);
         $certifications = Customer::getCertifications($id);
-        
+
+        // Get highest certification with agency info
+        $highestCert = null;
+        if (!empty($certifications)) {
+            $highestCert = Database::fetchOne("
+                SELECT
+                    cc.*,
+                    c.name as certification_name,
+                    c.level as certification_level,
+                    c.code as certification_code,
+                    ca.name as agency_name,
+                    ca.abbreviation as agency_abbreviation,
+                    ca.logo_path,
+                    ca.primary_color
+                FROM customer_certifications cc
+                JOIN certifications c ON cc.certification_id = c.id
+                JOIN certification_agencies ca ON c.agency_id = ca.id
+                WHERE cc.customer_id = ?
+                AND cc.verification_status IN ('verified', 'pending')
+                ORDER BY c.level DESC, cc.issue_date DESC
+                LIMIT 1
+            ", [$id]);
+        }
+
         return [
             'customer' => $customer,
             'addresses' => $addresses,
             'transactions' => $transactions,
-            'certifications' => $certifications
+            'certifications' => $certifications,
+            'highestCert' => $highestCert
         ];
     }
     

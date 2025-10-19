@@ -15,6 +15,7 @@ composer.lock
 !/storage/sessions/.gitkeep
 /storage/backups/*
 !/storage/backups/.gitkeep
+/storage/install_progress.json
 
 # Uploads
 /public/uploads/*

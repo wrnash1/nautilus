@@ -222,12 +222,20 @@ class Customer
     public static function getCertifications(int $id): array
     {
         return Database::fetchAll(
-            "SELECT cc.*, c.name as certification_level, ca.name as agency_name
+            "SELECT cc.*,
+                    c.name as certification_name,
+                    c.level as certification_level,
+                    c.code as certification_code,
+                    ca.id as agency_id,
+                    ca.name as agency_name,
+                    ca.abbreviation as agency_abbreviation,
+                    ca.logo_path,
+                    ca.primary_color
              FROM customer_certifications cc
              LEFT JOIN certifications c ON cc.certification_id = c.id
              LEFT JOIN certification_agencies ca ON c.agency_id = ca.id
              WHERE cc.customer_id = ?
-             ORDER BY cc.issue_date DESC",
+             ORDER BY c.level DESC, cc.issue_date DESC",
             [$id]
         ) ?? [];
     }
