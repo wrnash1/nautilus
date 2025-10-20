@@ -420,7 +420,7 @@ class DashboardController
     {
         return Database::fetchAll(
             "SELECT p.name, p.sku, SUM(ti.quantity) as total_sold,
-                    SUM(ti.subtotal) as revenue
+                    SUM(ti.total) as revenue
              FROM transaction_items ti
              JOIN products p ON ti.product_id = p.id
              JOIN transactions t ON ti.transaction_id = t.id
