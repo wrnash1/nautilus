@@ -3,10 +3,20 @@
 namespace App\Services\Reminders;
 
 use App\Core\Database;
+use App\Services\Communication\EmailService;
+use App\Services\Communication\SMSService;
 use PDO;
 
 class ServiceReminderService
 {
+    private EmailService $emailService;
+    private SMSService $smsService;
+
+    public function __construct()
+    {
+        $this->emailService = new EmailService();
+        $this->smsService = new SMSService();
+    }
     /**
      * Schedule service reminder for customer
      */
@@ -160,15 +170,8 @@ class ServiceReminderService
      */
     private function sendEmail(string $to, string $subject, string $body): bool
     {
-        // Use PHPMailer or configured mail service
-        // For now, placeholder implementation
-        // TODO: Integrate with actual email service
-
-        $headers = "From: " . ($_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@nautilus.com') . "\r\n";
-        $headers .= "MIME-Version: 1.0\r\n";
-        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-
-        return mail($to, $subject, $body, $headers);
+        $result = $this->emailService->send($to, $subject, $body, true);
+        return $result['success'];
     }
 
     /**
@@ -176,11 +179,8 @@ class ServiceReminderService
      */
     private function sendSMS(string $phone, string $message): bool
     {
-        // Use Twilio or configured SMS service
-        // For now, placeholder implementation
-        // TODO: Integrate with Twilio service
-
-        return true; // Placeholder
+        $result = $this->smsService->send($phone, $message);
+        return $result['success'];
     }
 
     /**

@@ -213,7 +213,10 @@
                 <?= htmlspecialchars($companyName) ?>
             </span>
             <div class="d-flex align-items-center">
-                <span class="me-3">
+                <!-- Language Switcher -->
+                <?php require BASE_PATH . '/app/Views/components/language_switcher.php'; ?>
+
+                <span class="me-3 ms-3">
                     <i class="bi bi-person-circle"></i>
                     <?= htmlspecialchars($user['first_name'] ?? 'User') ?>
                     <small class="text-muted">(<?= htmlspecialchars($user['role_name'] ?? 'Unknown') ?>)</small>
