@@ -1,10 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <?php
+    // Get company branding settings for title and favicon
+    use App\Services\Admin\SettingsService;
+    $settingsService = new SettingsService();
+    $brandingSettings = $settingsService->getSettingsByCategory('general');
+    $companyName = $brandingSettings['business_name'] ?? 'Nautilus Dive Shop';
+    $favicon = $brandingSettings['company_favicon_path'] ?? '';
+    ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
-    <title><?= $pageTitle ?? 'Nautilus' ?> - Nautilus Dive Shop</title>
+    <title><?= $pageTitle ?? 'Dashboard' ?> - <?= htmlspecialchars($companyName) ?></title>
+
+    <?php if ($favicon): ?>
+    <link rel="icon" type="image/x-icon" href="<?= htmlspecialchars($favicon) ?>">
+    <?php endif; ?>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -88,7 +100,14 @@
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
             <span class="navbar-brand mb-0 h1">
-                <i class="bi bi-water"></i> Nautilus Dive Shop
+                <?php if (!empty($brandingSettings['company_logo_small_path'])): ?>
+                    <img src="<?= htmlspecialchars($brandingSettings['company_logo_small_path']) ?>"
+                         alt="<?= htmlspecialchars($companyName) ?>"
+                         style="height: 32px; width: auto; margin-right: 0.5rem; vertical-align: middle;">
+                <?php else: ?>
+                    <i class="bi bi-water" style="color: <?= htmlspecialchars($brandingSettings['brand_primary_color'] ?? '#0066CC') ?>"></i>
+                <?php endif; ?>
+                <?= htmlspecialchars($companyName) ?>
             </span>
             <div class="d-flex align-items-center">
                 <span class="me-3">

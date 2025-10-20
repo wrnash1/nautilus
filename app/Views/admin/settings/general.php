@@ -21,6 +21,116 @@ ob_start();
 
 <div class="row">
     <div class="col-lg-8">
+        <!-- Company Branding & Logo -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-image"></i> Company Branding & Logo
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/admin/settings/upload-logo" enctype="multipart/form-data" id="logoUploadForm">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="company_logo" class="form-label">
+                                Company Logo <span class="text-muted">(Main)</span>
+                            </label>
+
+                            <?php if (!empty($settings['company_logo_path'])): ?>
+                                <div class="mb-2 p-3 bg-light border rounded text-center">
+                                    <img src="<?= htmlspecialchars($settings['company_logo_path']) ?>"
+                                         alt="Company Logo"
+                                         style="max-width: 200px; max-height: 100px;"
+                                         class="img-fluid">
+                                    <div class="mt-2">
+                                        <small class="text-muted">Current logo</small>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <input type="file" name="company_logo" id="company_logo"
+                                   class="form-control" accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/webp">
+                            <small class="text-muted d-block mt-1">
+                                Used on invoices, receipts, and emails<br>
+                                Recommended: 400x100px, max 5MB<br>
+                                Formats: JPG, PNG, SVG, WebP
+                            </small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="company_logo_small" class="form-label">
+                                Logo Icon <span class="text-muted">(Small)</span>
+                            </label>
+
+                            <?php if (!empty($settings['company_logo_small_path'])): ?>
+                                <div class="mb-2 p-3 bg-light border rounded text-center">
+                                    <img src="<?= htmlspecialchars($settings['company_logo_small_path']) ?>"
+                                         alt="Logo Icon"
+                                         style="max-width: 60px; max-height: 60px;"
+                                         class="img-fluid">
+                                    <div class="mt-2">
+                                        <small class="text-muted">Current icon</small>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <input type="file" name="company_logo_small" id="company_logo_small"
+                                   class="form-control" accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/webp">
+                            <small class="text-muted d-block mt-1">
+                                Used in navigation bar<br>
+                                Recommended: 100x100px (square)<br>
+                                Formats: JPG, PNG, SVG, WebP
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="company_tagline" class="form-label">Company Tagline</label>
+                        <input type="text" name="company_tagline" id="company_tagline"
+                               class="form-control"
+                               value="<?= htmlspecialchars($settings['company_tagline'] ?? '') ?>"
+                               placeholder="e.g., Dive Into Adventure">
+                        <small class="text-muted">Optional slogan displayed with logo</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="brand_primary_color" class="form-label">Primary Brand Color</label>
+                            <div class="input-group">
+                                <input type="color" name="brand_primary_color" id="brand_primary_color"
+                                       class="form-control form-control-color"
+                                       value="<?= htmlspecialchars($settings['brand_primary_color'] ?? '#0066CC') ?>">
+                                <input type="text" class="form-control"
+                                       value="<?= htmlspecialchars($settings['brand_primary_color'] ?? '#0066CC') ?>"
+                                       readonly>
+                            </div>
+                            <small class="text-muted">Main color used in templates</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="brand_secondary_color" class="form-label">Secondary Brand Color</label>
+                            <div class="input-group">
+                                <input type="color" name="brand_secondary_color" id="brand_secondary_color"
+                                       class="form-control form-control-color"
+                                       value="<?= htmlspecialchars($settings['brand_secondary_color'] ?? '#00A8E8') ?>">
+                                <input type="text" class="form-control"
+                                       value="<?= htmlspecialchars($settings['brand_secondary_color'] ?? '#00A8E8') ?>"
+                                       readonly>
+                            </div>
+                            <small class="text-muted">Accent color for highlights</small>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload"></i> Upload Logo & Save Branding
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Business Information -->
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Business Information</h5>

@@ -3,6 +3,11 @@ $pageTitle = 'Receipt';
 $activeMenu = 'pos';
 $user = currentUser();
 
+// Get company branding settings
+use App\Services\Admin\SettingsService;
+$settingsService = new SettingsService();
+$brandingSettings = $settingsService->getSettingsByCategory('general');
+
 ob_start();
 ?>
 
@@ -29,10 +34,48 @@ ob_start();
         <div class="card" id="receipt">
             <div class="card-body p-4">
                 <div class="text-center mb-4">
-                    <h2><i class="bi bi-water text-primary"></i> Nautilus Dive Shop</h2>
-                    <p class="mb-0">123 Ocean Drive, Miami, FL 33139</p>
-                    <p class="mb-0">Phone: (305) 555-0100</p>
-                    <p>Email: info@nautilusdive.com</p>
+                    <?php if (!empty($brandingSettings['company_logo_path'])): ?>
+                        <img src="<?= htmlspecialchars($brandingSettings['company_logo_path']) ?>"
+                             alt="<?= htmlspecialchars($brandingSettings['business_name'] ?? 'Company Logo') ?>"
+                             style="max-width: <?= intval($brandingSettings['invoice_logo_width'] ?? 200) ?>px; height: auto; margin-bottom: 1rem;">
+                    <?php else: ?>
+                        <h2>
+                            <i class="bi bi-water" style="color: <?= htmlspecialchars($brandingSettings['brand_primary_color'] ?? '#0066CC') ?>"></i>
+                            <?= htmlspecialchars($brandingSettings['business_name'] ?? 'Nautilus Dive Shop') ?>
+                        </h2>
+                    <?php endif; ?>
+
+                    <?php if (!empty($brandingSettings['company_tagline'])): ?>
+                        <p class="text-muted fst-italic mb-2"><?= htmlspecialchars($brandingSettings['company_tagline']) ?></p>
+                    <?php endif; ?>
+
+                    <?php
+                    $address = trim($brandingSettings['business_address'] ?? '');
+                    $city = trim($brandingSettings['business_city'] ?? '');
+                    $state = trim($brandingSettings['business_state'] ?? '');
+                    $zip = trim($brandingSettings['business_zip'] ?? '');
+                    ?>
+
+                    <?php if ($address): ?>
+                        <p class="mb-0"><?= htmlspecialchars($address) ?></p>
+                    <?php endif; ?>
+
+                    <?php if ($city || $state || $zip): ?>
+                        <p class="mb-0">
+                            <?= htmlspecialchars($city) ?>
+                            <?= $city && ($state || $zip) ? ', ' : '' ?>
+                            <?= htmlspecialchars($state) ?>
+                            <?= $zip ? ' ' . htmlspecialchars($zip) : '' ?>
+                        </p>
+                    <?php endif; ?>
+
+                    <?php if (!empty($brandingSettings['business_phone'])): ?>
+                        <p class="mb-0">Phone: <?= htmlspecialchars($brandingSettings['business_phone']) ?></p>
+                    <?php endif; ?>
+
+                    <?php if (!empty($brandingSettings['business_email'])): ?>
+                        <p>Email: <?= htmlspecialchars($brandingSettings['business_email']) ?></p>
+                    <?php endif; ?>
                 </div>
                 
                 <hr>

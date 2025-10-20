@@ -4,14 +4,17 @@ namespace App\Controllers\Admin;
 
 use App\Core\Database;
 use App\Services\Admin\SettingsService;
+use App\Services\FileUploadService;
 
 class SettingsController
 {
     private SettingsService $service;
+    private FileUploadService $uploadService;
 
     public function __construct()
     {
         $this->service = new SettingsService();
+        $this->uploadService = new FileUploadService();
     }
 
     /**
@@ -67,6 +70,88 @@ class SettingsController
         $settings = $this->service->getSettingsByCategory('general');
 
         require __DIR__ . '/../../Views/admin/settings/general.php';
+    }
+
+    /**
+     * Upload company logo and branding
+     */
+    public function uploadLogo()
+    {
+        try {
+            $updated = false;
+
+            // Handle main company logo upload
+            if (isset($_FILES['company_logo']) && $_FILES['company_logo']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $result = $this->uploadService->upload($_FILES['company_logo'], 'logo', 'company_logo');
+
+                if ($result['success']) {
+                    // Delete old logo if exists
+                    $oldLogo = $this->service->getSetting('general', 'company_logo_path');
+                    if ($oldLogo && $oldLogo !== $result['path']) {
+                        $this->uploadService->delete($oldLogo);
+                    }
+
+                    $this->service->updateSetting('general', 'company_logo_path', $result['path']);
+                    $updated = true;
+                } else {
+                    setFlashMessage('error', 'Logo upload failed: ' . $result['error']);
+                    header('Location: /admin/settings/general');
+                    exit;
+                }
+            }
+
+            // Handle small logo/icon upload
+            if (isset($_FILES['company_logo_small']) && $_FILES['company_logo_small']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $result = $this->uploadService->upload($_FILES['company_logo_small'], 'logo', 'company_logo_small');
+
+                if ($result['success']) {
+                    // Delete old logo if exists
+                    $oldLogo = $this->service->getSetting('general', 'company_logo_small_path');
+                    if ($oldLogo && $oldLogo !== $result['path']) {
+                        $this->uploadService->delete($oldLogo);
+                    }
+
+                    $this->service->updateSetting('general', 'company_logo_small_path', $result['path']);
+                    $updated = true;
+                } else {
+                    setFlashMessage('error', 'Icon upload failed: ' . $result['error']);
+                    header('Location: /admin/settings/general');
+                    exit;
+                }
+            }
+
+            // Update branding settings (tagline, colors)
+            if (isset($_POST['company_tagline'])) {
+                $this->service->updateSetting('general', 'company_tagline', $_POST['company_tagline']);
+                $updated = true;
+            }
+
+            if (isset($_POST['brand_primary_color'])) {
+                $this->service->updateSetting('general', 'brand_primary_color', $_POST['brand_primary_color']);
+                $updated = true;
+            }
+
+            if (isset($_POST['brand_secondary_color'])) {
+                $this->service->updateSetting('general', 'brand_secondary_color', $_POST['brand_secondary_color']);
+                $updated = true;
+            }
+
+            // Mark logo setup as completed
+            if ($updated) {
+                $this->service->updateSetting('general', 'logo_setup_completed', true);
+                setFlashMessage('success', 'Company branding updated successfully!');
+            } else {
+                setFlashMessage('info', 'No changes were made.');
+            }
+
+            header('Location: /admin/settings/general');
+            exit;
+
+        } catch (\Exception $e) {
+            setFlashMessage('error', 'Failed to update branding: ' . $e->getMessage());
+            header('Location: /admin/settings/general');
+            exit;
+        }
     }
 
     /**
