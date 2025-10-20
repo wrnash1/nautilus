@@ -24,13 +24,19 @@ class ScheduleController
             return;
         }
 
-        $schedules = $this->scheduleService->getAllSchedules();
-        $pageTitle = 'Staff Schedules';
+        // Get all staff members for the dropdown
+        $staff = \App\Core\Database::fetchAll(
+            "SELECT u.id, u.first_name, u.last_name, r.name as role_name
+             FROM users u
+             LEFT JOIN roles r ON u.role_id = r.id
+             WHERE r.name != 'customer' AND u.is_active = 1
+             ORDER BY u.first_name, u.last_name"
+        );
 
-        ob_start();
+        $schedules = $this->scheduleService->getAllSchedules();
+        $user = currentUser();
+
         require __DIR__ . '/../../Views/staff/schedules/index.php';
-        $content = ob_get_clean();
-        require __DIR__ . '/../../Views/layouts/app.php';
     }
 
     /**

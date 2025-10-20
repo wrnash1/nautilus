@@ -3,425 +3,369 @@ $pageTitle = 'Point of Sale';
 $activeMenu = 'pos';
 $user = currentUser();
 
-// Add mobile-responsive CSS
-$additionalCss = '<link rel="stylesheet" href="/assets/css/mobile-pos.css">';
+// Add modern POS CSS
+$additionalCss = '
+<link rel="stylesheet" href="/assets/css/mobile-pos.css">
+<link rel="stylesheet" href="/assets/css/professional-pos.css">
+';
 
 ob_start();
 ?>
 
-<div class="row mb-3">
-    <div class="col-12">
-        <h1 class="h3 mb-0">
-            <i class="bi bi-cart-check"></i> Point of Sale
-        </h1>
-    </div>
-</div>
-
-<div class="row pos-container">
-    <div class="col-md-8 pos-products-section">
-        <div class="card mb-3">
-            <div class="card-header bg-white">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-search"></i> Product Search
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" id="productSearch" class="form-control" placeholder="Search products by name or SKU...">
-                </div>
-                <div id="searchResults" class="mt-2"></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="card-header bg-white">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-grid"></i> Products
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3" id="productGrid">
-                    <?php foreach ($products as $product): ?>
-                    <div class="col-md-4 col-sm-6">
-                        <div class="card h-100 product-card" data-product-id="<?= $product['id'] ?>" data-product-name="<?= htmlspecialchars($product['name']) ?>" data-product-price="<?= $product['retail_price'] ?>" data-product-sku="<?= htmlspecialchars($product['sku']) ?>">
-                            <div class="card-body">
-                                <h6 class="card-title"><?= htmlspecialchars($product['name']) ?></h6>
-                                <p class="card-text small text-muted mb-1">SKU: <?= htmlspecialchars($product['sku']) ?></p>
-                                <p class="card-text">
-                                    <strong class="text-primary"><?= formatCurrency($product['retail_price']) ?></strong>
-                                </p>
-                                <?php if ($product['track_inventory']): ?>
-                                <p class="card-text small">
-                                    <span class="badge <?= $product['stock_quantity'] <= $product['low_stock_threshold'] ? 'bg-warning' : 'bg-success' ?>">
-                                        Stock: <?= $product['stock_quantity'] ?>
-                                    </span>
-                                </p>
-                                <?php endif; ?>
-                            </div>
-                            <div class="card-footer bg-white">
-                                <button class="btn btn-sm btn-primary w-100 add-to-cart">
-                                    <i class="bi bi-cart-plus"></i> Add to Cart
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4 pos-cart-section">
-        <div class="card mb-3">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-cart3"></i> Cart
-                    <span id="cartCount" class="badge bg-light text-dark ms-2">0</span>
-                </h5>
-            </div>
-            <div class="card-body">
-                <div id="cartItems" class="mb-3">
-                    <p class="text-muted text-center">Cart is empty</p>
-                </div>
-                
-                <hr>
-                
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Subtotal:</span>
-                    <span id="cartSubtotal">$0.00</span>
-                </div>
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Tax (8%):</span>
-                    <span id="cartTax">$0.00</span>
-                </div>
-                <div class="d-flex justify-content-between mb-3">
-                    <strong>Total:</strong>
-                    <strong id="cartTotal">$0.00</strong>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="customerSelect" class="form-label">Customer *</label>
-                    <select id="customerSelect" class="form-select" required>
-                        <option value="">Select Customer...</option>
+<!-- Customer Selection Bar (Fixed at Top) -->
+<div class="pos-customer-bar">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <label class="customer-label">
+                    <i class="bi bi-person-circle"></i> Customer
+                </label>
+                <div class="customer-select-wrapper">
+                    <select id="customerSelect" class="form-select customer-select">
+                        <option value="">Walk-In Customer</option>
                         <?php foreach ($customers as $customer): ?>
-                        <option value="<?= $customer['id'] ?>">
+                        <option value="<?= $customer['id'] ?>"
+                                data-email="<?= htmlspecialchars($customer['email'] ?? '') ?>"
+                                data-phone="<?= htmlspecialchars($customer['phone'] ?? '') ?>">
                             <?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?>
                             <?php if ($customer['company_name']): ?>
-                            (<?= htmlspecialchars($customer['company_name']) ?>)
+                            - <?= htmlspecialchars($customer['company_name']) ?>
                             <?php endif; ?>
                         </option>
                         <?php endforeach; ?>
                     </select>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Payment Method *</label>
-                    <div class="btn-group w-100" role="group">
-                        <input type="radio" class="btn-check" name="paymentMethod" id="paymentCash" value="cash" checked>
-                        <label class="btn btn-outline-success" for="paymentCash">
-                            <i class="bi bi-cash"></i> Cash
-                        </label>
-                        
-                        <input type="radio" class="btn-check" name="paymentMethod" id="paymentCard" value="card">
-                        <label class="btn btn-outline-primary" for="paymentCard">
-                            <i class="bi bi-credit-card"></i> Card
-                        </label>
-                        
-                        <input type="radio" class="btn-check" name="paymentMethod" id="paymentCheck" value="check">
-                        <label class="btn btn-outline-info" for="paymentCheck">
-                            <i class="bi bi-receipt"></i> Check
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="d-grid gap-2">
-                    <button id="clearCartBtn" class="btn btn-outline-danger" disabled>
-                        <i class="bi bi-trash"></i> Clear Cart
+                    <button type="button" class="btn btn-success btn-add-customer" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                        <i class="bi bi-person-plus-fill"></i> New Customer
                     </button>
-                    <button id="checkoutBtn" class="btn btn-success btn-lg btn-checkout" disabled>
-                        <i class="bi bi-check-circle"></i> Complete Sale
-                    </button>
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="customer-info" id="customerInfo" style="display: none;">
+                    <span class="customer-detail">
+                        <i class="bi bi-envelope"></i> <span id="customerEmail">-</span>
+                    </span>
+                    <span class="customer-detail ms-3">
+                        <i class="bi bi-telephone"></i> <span id="customerPhone">-</span>
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Mobile Floating Action Button -->
-<div class="fab-cart d-md-none" id="fabCart">
-    <i class="bi bi-cart3"></i>
-    <span class="cart-badge" id="fabCartBadge" style="display: none;">0</span>
+<!-- Main POS Container -->
+<div class="pos-professional-layout">
+    <!-- Left Side: Products/Items -->
+    <div class="pos-products-panel">
+        <!-- Category Tabs -->
+        <div class="category-tabs">
+            <button class="category-tab active" data-category="all">
+                <i class="bi bi-grid-fill"></i> All Items
+            </button>
+            <button class="category-tab" data-category="gear">
+                <i class="bi bi-backpack-fill"></i> Gear
+            </button>
+            <button class="category-tab" data-category="courses">
+                <i class="bi bi-mortarboard-fill"></i> Courses
+            </button>
+            <button class="category-tab" data-category="fills">
+                <i class="bi bi-wind"></i> Air Fills
+            </button>
+            <button class="category-tab" data-category="rentals">
+                <i class="bi bi-briefcase-fill"></i> Rentals
+            </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="product-search-bar">
+            <div class="search-input-group">
+                <i class="bi bi-search"></i>
+                <input type="text" id="productSearch" class="search-input" placeholder="Search products, courses, or scan barcode..." autocomplete="off">
+                <button class="btn-clear-search" id="clearSearch" style="display: none;">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+            </div>
+            <div id="searchResults" class="search-dropdown"></div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid-pro" id="productGrid">
+            <?php foreach ($products as $product): ?>
+            <div class="product-tile"
+                 data-product-id="<?= $product['id'] ?>"
+                 data-product-name="<?= htmlspecialchars($product['name']) ?>"
+                 data-product-price="<?= $product['retail_price'] ?>"
+                 data-product-sku="<?= htmlspecialchars($product['sku']) ?>"
+                 data-category="gear">
+                <div class="product-tile-image">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="product-tile-info">
+                    <div class="product-tile-name"><?= htmlspecialchars($product['name']) ?></div>
+                    <div class="product-tile-price"><?= formatCurrency($product['retail_price']) ?></div>
+                </div>
+                <?php if ($product['track_inventory'] && $product['stock_quantity'] <= $product['low_stock_threshold']): ?>
+                <div class="low-stock-indicator">
+                    <i class="bi bi-exclamation-triangle-fill"></i> <?= $product['stock_quantity'] ?>
+                </div>
+                <?php endif; ?>
+            </div>
+            <?php endforeach; ?>
+
+            <!-- Course Tiles -->
+            <div class="product-tile" data-category="courses" data-product-id="course_1" data-product-name="Open Water Diver" data-product-price="399.00" data-product-sku="COURSE-OW">
+                <div class="product-tile-image course-item">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <div class="product-tile-info">
+                    <div class="product-tile-name">Open Water Diver</div>
+                    <div class="product-tile-price">$399.00</div>
+                </div>
+                <div class="course-badge">Course</div>
+            </div>
+
+            <!-- Air Fill Tiles -->
+            <div class="product-tile" data-category="fills" data-product-id="fill_air" data-product-name="Air Fill" data-product-price="8.00" data-product-sku="FILL-AIR">
+                <div class="product-tile-image fill-item">
+                    <i class="bi bi-wind"></i>
+                </div>
+                <div class="product-tile-info">
+                    <div class="product-tile-name">Air Fill</div>
+                    <div class="product-tile-price">$8.00</div>
+                </div>
+            </div>
+
+            <div class="product-tile" data-category="fills" data-product-id="fill_nitrox" data-product-name="Nitrox Fill" data-product-price="12.00" data-product-sku="FILL-NITROX">
+                <div class="product-tile-image fill-item">
+                    <i class="bi bi-wind"></i>
+                </div>
+                <div class="product-tile-info">
+                    <div class="product-tile-name">Nitrox Fill</div>
+                    <div class="product-tile-price">$12.00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Cart/Checkout -->
+    <div class="pos-cart-panel">
+        <div class="cart-header">
+            <h3><i class="bi bi-cart3"></i> Current Sale</h3>
+            <span class="cart-item-count" id="cartItemCount">0 items</span>
+        </div>
+
+        <div class="cart-items-list" id="cartItemsList">
+            <div class="empty-cart-message">
+                <i class="bi bi-cart-x"></i>
+                <p>No items in cart</p>
+                <small>Add products to begin checkout</small>
+            </div>
+        </div>
+
+        <!-- Cart Totals -->
+        <div class="cart-totals">
+            <div class="total-row subtotal-row">
+                <span>Subtotal:</span>
+                <span id="cartSubtotal">$0.00</span>
+            </div>
+            <div class="total-row tax-row">
+                <span>Tax (8%):</span>
+                <span id="cartTax">$0.00</span>
+            </div>
+            <div class="total-row grand-total-row">
+                <span>Total:</span>
+                <span class="grand-total-amount" id="cartTotal">$0.00</span>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="payment-methods-section">
+            <label class="payment-label">Payment Method</label>
+            <div class="payment-buttons">
+                <input type="radio" class="btn-check" name="paymentMethod" id="paymentCash" value="cash" checked>
+                <label class="payment-method-btn" for="paymentCash">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>Cash</span>
+                </label>
+
+                <input type="radio" class="btn-check" name="paymentMethod" id="paymentCard" value="card">
+                <label class="payment-method-btn" for="paymentCard">
+                    <i class="bi bi-credit-card-fill"></i>
+                    <span>Card</span>
+                </label>
+
+                <input type="radio" class="btn-check" name="paymentMethod" id="paymentCheck" value="check">
+                <label class="payment-method-btn" for="paymentCheck">
+                    <i class="bi bi-receipt"></i>
+                    <span>Check</span>
+                </label>
+
+                <input type="radio" class="btn-check" name="paymentMethod" id="paymentBitcoin" value="bitcoin">
+                <label class="payment-method-btn" for="paymentBitcoin">
+                    <i class="bi bi-currency-bitcoin"></i>
+                    <span>Bitcoin</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="checkout-actions">
+            <button id="clearCartBtn" class="btn-action btn-clear-cart" disabled>
+                <i class="bi bi-trash3-fill"></i> Clear
+            </button>
+            <button id="checkoutBtn" class="btn-action btn-checkout-primary" disabled>
+                <i class="bi bi-check-circle-fill"></i> Complete Sale
+            </button>
+        </div>
+    </div>
 </div>
 
-<!-- Loading Spinner Overlay -->
-<div class="spinner-overlay" id="spinnerOverlay">
-    <div class="spinner"></div>
+<!-- Add Customer Modal -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus-fill"></i> Add New Customer
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addCustomerForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="firstName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="lastName" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="companyName" class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="companyName">
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="newsletterOptIn">
+                        <label class="form-check-label" for="newsletterOptIn">
+                            <strong>Subscribe to Newsletter</strong>
+                            <br><small class="text-muted">Receive updates, promotions, and dive news</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Customer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Course Add-ons Modal -->
+<div class="modal fade" id="courseAddonsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-mortarboard-fill"></i> <span id="courseTitle">Course Options</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">Select add-ons and materials for this course:</p>
+
+                <div class="addon-section mb-4">
+                    <h6><i class="bi bi-book-fill"></i> Course Materials</h6>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input course-addon" id="addonManual" data-price="45.00" data-name="Student Manual">
+                        <label class="form-check-label" for="addonManual">
+                            Student Manual - <strong>$45.00</strong>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input course-addon" id="addonElearning" data-price="195.00" data-name="eLearning Access">
+                        <label class="form-check-label" for="addonElearning">
+                            eLearning Access - <strong>$195.00</strong>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input course-addon" id="addonLogbook" data-price="25.00" data-name="Logbook">
+                        <label class="form-check-label" for="addonLogbook">
+                            Logbook - <strong>$25.00</strong>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="addon-section mb-4">
+                    <h6><i class="bi bi-patch-check-fill"></i> Certification</h6>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input course-addon" id="addonCert" data-price="35.00" data-name="Certification Card" checked>
+                        <label class="form-check-label" for="addonCert">
+                            Certification Card - <strong>$35.00</strong>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input course-addon" id="addonEcard" data-price="0.00" data-name="eCard (Digital)">
+                        <label class="form-check-label" for="addonEcard">
+                            eCard (Digital) - <strong>Free</strong>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="addon-section">
+                    <h6><i class="bi bi-gear-fill"></i> Equipment</h6>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input course-addon" id="addonMask" data-price="75.00" data-name="Mask & Snorkel Set">
+                        <label class="form-check-label" for="addonMask">
+                            Mask & Snorkel Set - <strong>$75.00</strong>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input course-addon" id="addonFins" data-price="95.00" data-name="Fins">
+                        <label class="form-check-label" for="addonFins">
+                            Fins - <strong>$95.00</strong>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-3">
+                    <strong>Course Total with Add-ons:</strong> <span id="courseAddonTotal" class="float-end">$0.00</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addCourseToCart">
+                    <i class="bi bi-cart-plus-fill"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;"></div>
+        <p class="mt-3">Processing Payment...</p>
+    </div>
 </div>
 
 <?php
 $content = ob_get_clean();
 
-$additionalJs = '<script>
-let cart = [];
-const TAX_RATE = 0.08;
-let isMobile = window.innerWidth <= 767;
-
-// Update isMobile on resize
-$(window).on("resize", function() {
-    isMobile = window.innerWidth <= 767;
-});
-
-$(document).ready(function() {
-    // Mobile FAB cart toggle
-    $("#fabCart").on("click", function() {
-        const $cartSection = $(".pos-cart-section");
-
-        if ($cartSection.hasClass("show-cart")) {
-            $cartSection.removeClass("show-cart");
-        } else {
-            $cartSection.addClass("show-cart");
-            // Scroll to cart on mobile
-            $("html, body").animate({
-                scrollTop: $cartSection.offset().top - 20
-            }, 300);
-        }
-    });
-
-    // Close mobile cart when clicking outside
-    $(document).on("click", function(e) {
-        if (isMobile && !$(e.target).closest(".pos-cart-section, #fabCart").length) {
-            $(".pos-cart-section").removeClass("show-cart");
-        }
-    });
-
-    // Touch-friendly product card interactions
-    $(".product-card").on("touchstart", function() {
-        $(this).addClass("touching");
-    }).on("touchend touchcancel", function() {
-        $(this).removeClass("touching");
-    });
-
-    // Improved search with mobile keyboard handling
-    $("#productSearch").on("input", debounce(function() {
-        const query = $(this).val();
-        
-        if (query.length < 2) {
-            $("#searchResults").html("");
-            return;
-        }
-        
-        $.get("/pos/search", { q: query }, function(products) {
-            if (products.length === 0) {
-                $("#searchResults").html("<p class=\"text-muted small\">No products found</p>");
-                return;
-            }
-            
-            let html = "<div class=\"list-group\">";
-            products.forEach(function(product) {
-                html += `<button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center add-to-cart-search" data-product-id="${product.id}" data-product-name="${product.name}" data-product-price="${product.retail_price}" data-product-sku="${product.sku}">
-                    <div>
-                        <strong>${product.name}</strong><br>
-                        <small class="text-muted">SKU: ${product.sku}</small>
-                    </div>
-                    <span class="badge bg-primary">${formatCurrency(product.retail_price)}</span>
-                </button>`;
-            });
-            html += "</div>";
-            
-            $("#searchResults").html(html);
-        });
-    }, 300));
-    
-    $(document).on("click", ".add-to-cart, .add-to-cart-search", function() {
-        const $source = $(this).hasClass("add-to-cart") ? $(this).closest(".product-card") : $(this);
-        const productId = $source.data("product-id");
-        const productName = $source.data("product-name");
-        const productPrice = parseFloat($source.data("product-price"));
-        const productSku = $source.data("product-sku");
-
-        const existingItem = cart.find(item => item.product_id === productId);
-
-        if (existingItem) {
-            existingItem.quantity++;
-        } else {
-            cart.push({
-                product_id: productId,
-                name: productName,
-                price: productPrice,
-                sku: productSku,
-                quantity: 1
-            });
-        }
-
-        updateCart();
-        $("#searchResults").html("");
-        $("#productSearch").val("");
-
-        // Mobile: Show brief feedback and scroll to cart
-        if (isMobile) {
-            const $button = $(this);
-            const originalHtml = $button.html();
-            $button.html("<i class=\"bi bi-check-circle-fill\"></i> Added!");
-            setTimeout(() => {
-                $button.html(originalHtml);
-            }, 1000);
-        }
-    });
-    
-    $(document).on("click", ".remove-item", function() {
-        const index = $(this).data("index");
-        cart.splice(index, 1);
-        updateCart();
-    });
-    
-    $(document).on("click", ".qty-minus", function() {
-        const index = $(this).data("index");
-        if (cart[index].quantity > 1) {
-            cart[index].quantity--;
-            updateCart();
-        }
-    });
-    
-    $(document).on("click", ".qty-plus", function() {
-        const index = $(this).data("index");
-        cart[index].quantity++;
-        updateCart();
-    });
-    
-    $("#clearCartBtn").on("click", function() {
-        if (confirm("Clear all items from cart?")) {
-            cart = [];
-            updateCart();
-        }
-    });
-    
-    $("#checkoutBtn").on("click", function() {
-        const customerId = $("#customerSelect").val();
-        const paymentMethod = $("input[name=\"paymentMethod\"]:checked").val();
-
-        if (!customerId) {
-            alert("Please select a customer");
-            return;
-        }
-
-        if (cart.length === 0) {
-            alert("Cart is empty");
-            return;
-        }
-
-        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const total = Math.round((subtotal * (1 + TAX_RATE)) * 100) / 100;
-
-        $(this).prop("disabled", true).html("<span class=\"spinner-border spinner-border-sm\"></span> Processing...");
-
-        // Show loading spinner overlay
-        $("#spinnerOverlay").addClass("active");
-
-        $.ajax({
-            url: "/pos/checkout",
-            method: "POST",
-            data: {
-                customer_id: customerId,
-                items: JSON.stringify(cart),
-                payment_method: paymentMethod,
-                amount_paid: total,
-                csrf_token: csrfToken
-            },
-            success: function(response) {
-                if (response.success) {
-                    window.location.href = response.redirect;
-                } else {
-                    $("#spinnerOverlay").removeClass("active");
-                    alert("Error: " + (response.error || "Unknown error"));
-                    $("#checkoutBtn").prop("disabled", false).html("<i class=\"bi bi-check-circle\"></i> Complete Sale");
-                }
-            },
-            error: function(xhr) {
-                $("#spinnerOverlay").removeClass("active");
-                const response = xhr.responseJSON || {};
-                alert("Error: " + (response.error || xhr.responseText || "Payment processing failed"));
-                $("#checkoutBtn").prop("disabled", false).html("<i class=\"bi bi-check-circle\"></i> Complete Sale");
-            }
-        });
-    });
-});
-
-function updateCart() {
-    const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-    // Update cart count badge
-    $("#cartCount").text(itemCount);
-
-    // Update FAB badge on mobile
-    if (itemCount > 0) {
-        $("#fabCartBadge").text(itemCount).show();
-    } else {
-        $("#fabCartBadge").hide();
-    }
-
-    if (cart.length === 0) {
-        $("#cartItems").html("<p class=\"text-muted text-center\">Cart is empty</p>");
-        $("#clearCartBtn, #checkoutBtn").prop("disabled", true);
-        $("#cartSubtotal, #cartTax, #cartTotal").text("$0.00");
-        return;
-    }
-
-    let html = "";
-    cart.forEach(function(item, index) {
-        html += `<div class="cart-item">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <div class="flex-grow-1">
-                    <div class="cart-item-name">${item.name}</div>
-                    <small class="text-muted">SKU: ${item.sku}</small><br>
-                    <small class="cart-item-price">${formatCurrency(item.price)} each</small>
-                </div>
-                <button class="btn btn-sm btn-danger remove-item" data-index="${index}">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>
-            <div class="cart-quantity-control">
-                <button class="btn btn-sm btn-outline-secondary qty-minus" data-index="${index}">
-                    <i class="bi bi-dash"></i>
-                </button>
-                <input type="number" class="form-control form-control-sm" value="${item.quantity}" readonly>
-                <button class="btn btn-sm btn-outline-secondary qty-plus" data-index="${index}">
-                    <i class="bi bi-plus"></i>
-                </button>
-                <span class="ms-2 fw-bold">${formatCurrency(item.price * item.quantity)}</span>
-            </div>
-        </div>`;
-    });
-
-    $("#cartItems").html(html);
-
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const tax = Math.round((subtotal * TAX_RATE) * 100) / 100;
-    const total = Math.round((subtotal + tax) * 100) / 100;
-
-    $("#cartSubtotal").text(formatCurrency(subtotal));
-    $("#cartTax").text(formatCurrency(tax));
-    $("#cartTotal").text(formatCurrency(total));
-
-    $("#clearCartBtn, #checkoutBtn").prop("disabled", false);
-}
-
-function formatCurrency(amount) {
-    return "$" + parseFloat(amount).toFixed(2);
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-</script>';
+$additionalJs = '<script src="/assets/js/professional-pos.js"></script>';
 
 require __DIR__ . '/../layouts/app.php';
 ?>
