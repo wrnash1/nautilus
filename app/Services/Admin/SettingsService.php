@@ -74,19 +74,19 @@ class SettingsService
     public function getSettingsByCategory(string $category): array
     {
         $results = Database::fetchAll(
-            "SELECT setting_key, setting_value, setting_type
+            "SELECT `key`, `value`, `type`
              FROM settings
              WHERE category = ?
-             ORDER BY setting_key",
+             ORDER BY `key`",
             [$category]
         );
 
         $settings = [];
         foreach ($results as $row) {
-            $value = $row['setting_value'];
+            $value = $row['value'];
 
             // Decode based on type
-            switch ($row['setting_type']) {
+            switch ($row['type']) {
                 case 'boolean':
                     $value = $value === '1' || $value === 'true';
                     break;
@@ -102,13 +102,13 @@ class SettingsService
                         $value = !empty($value) ? Encryption::decrypt($value) : '';
                     } catch (\Exception $e) {
                         // Log decryption error but don't expose it
-                        error_log("Decryption failed for setting: {$row['setting_key']} - " . $e->getMessage());
+                        error_log("Decryption failed for setting: {$row['key']} - " . $e->getMessage());
                         $value = '';
                     }
                     break;
             }
 
-            $settings[$row['setting_key']] = $value;
+            $settings[$row['key']] = $value;
         }
 
         // Return defaults if no settings exist
@@ -121,8 +121,8 @@ class SettingsService
     public function getSetting(string $category, string $key, $default = null)
     {
         $result = Database::fetchOne(
-            "SELECT setting_value, setting_type FROM settings
-             WHERE category = ? AND setting_key = ?",
+            "SELECT `value`, `type` FROM settings
+             WHERE category = ? AND `key` = ?",
             [$category, $key]
         );
 
@@ -130,10 +130,10 @@ class SettingsService
             return $default;
         }
 
-        $value = $result['setting_value'];
+        $value = $result['value'];
 
         // Decode based on type
-        switch ($result['setting_type']) {
+        switch ($result['type']) {
             case 'boolean':
                 return $value === '1' || $value === 'true';
             case 'integer':
@@ -182,7 +182,7 @@ class SettingsService
 
         // Check if exists
         $exists = Database::fetchOne(
-            "SELECT id FROM settings WHERE category = ? AND setting_key = ?",
+            "SELECT id FROM settings WHERE category = ? AND `key` = ?",
             [$category, $key]
         );
 
@@ -191,15 +191,15 @@ class SettingsService
             // Update
             $result = Database::execute(
                 "UPDATE settings
-                 SET setting_value = ?, setting_type = ?, updated_at = NOW(), updated_by = ?
-                 WHERE category = ? AND setting_key = ?",
+                 SET `value` = ?, `type` = ?, updated_at = NOW(), updated_by = ?
+                 WHERE category = ? AND `key` = ?",
                 [$value, $type, currentUser()['id'], $category, $key]
             );
         } else {
             // Insert
             $result = Database::execute(
-                "INSERT INTO settings (category, setting_key, setting_value, setting_type, created_at, updated_at, updated_by)
-                 VALUES (?, ?, ?, ?, NOW(), NOW(), ?)",
+                "INSERT INTO settings (category, `key`, `value`, `type`, updated_at, updated_by)
+                 VALUES (?, ?, ?, ?, NOW(), ?)",
                 [$category, $key, $value, $type, currentUser()['id']]
             );
         }
@@ -308,14 +308,14 @@ class SettingsService
      */
     public function getAllSettings(): array
     {
-        $results = Database::fetchAll("SELECT * FROM settings ORDER BY category, setting_key");
+        $results = Database::fetchAll("SELECT * FROM settings ORDER BY category, `key`");
 
         $settings = [];
         foreach ($results as $row) {
             if (!isset($settings[$row['category']])) {
                 $settings[$row['category']] = [];
             }
-            $settings[$row['category']][$row['setting_key']] = $row['setting_value'];
+            $settings[$row['category']][$row['key']] = $row['value'];
         }
 
         return $settings;
