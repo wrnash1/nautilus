@@ -22,10 +22,20 @@ class TransactionController
             $_SESSION['flash_error'] = 'Access denied';
             redirect('/');
         }
-        
+
         $products = Product::all(50, 0);
         $customers = Customer::all(100, 0);
-        
+
+        // Get active courses for enrollment
+        $db = Database::getInstance();
+        $stmt = $db->getConnection()->query("
+            SELECT id, course_code, name, price, duration_days, max_students
+            FROM courses
+            WHERE is_active = 1
+            ORDER BY name
+        ");
+        $courses = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
         require __DIR__ . '/../../Views/pos/index.php';
     }
     

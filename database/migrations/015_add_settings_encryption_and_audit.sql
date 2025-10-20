@@ -32,48 +32,48 @@ COMMENT='Audit log for tracking access to sensitive settings';
 
 -- Payment Gateway Secrets
 UPDATE `settings`
-SET `setting_type` = 'encrypted'
-WHERE `setting_key` IN ('stripe_secret_key', 'stripe_webhook_secret')
+SET `type` = 'encrypted'
+WHERE `key` IN ('stripe_secret_key', 'stripe_webhook_secret')
   AND `category` = 'payment';
 
 UPDATE `settings`
-SET `setting_type` = 'encrypted'
-WHERE `setting_key` IN ('square_access_token')
+SET `type` = 'encrypted'
+WHERE `key` IN ('square_access_token')
   AND `category` = 'payment';
 
 UPDATE `settings`
-SET `setting_type` = 'encrypted'
-WHERE `setting_key` IN ('btcpay_api_key')
+SET `type` = 'encrypted'
+WHERE `key` IN ('btcpay_api_key')
   AND `category` = 'payment';
 
 -- Communication Secrets
 UPDATE `settings`
-SET `setting_type` = 'encrypted'
-WHERE `setting_key` IN ('twilio_auth_token')
+SET `type` = 'encrypted'
+WHERE `key` IN ('twilio_auth_token')
   AND `category` = 'integrations';
 
 -- Email Configuration
 UPDATE `settings`
-SET `setting_type` = 'encrypted'
-WHERE `setting_key` IN ('smtp_password')
+SET `type` = 'encrypted'
+WHERE `key` IN ('smtp_password')
   AND `category` = 'email';
 
 -- Integration API Keys
 UPDATE `settings`
-SET `setting_type` = 'encrypted'
-WHERE `setting_key` IN ('padi_api_key', 'padi_api_secret', 'ssi_api_key')
+SET `type` = 'encrypted'
+WHERE `key` IN ('padi_api_key', 'padi_api_secret', 'ssi_api_key')
   AND `category` = 'integrations';
 
 -- Shipping API Credentials
 UPDATE `settings`
-SET `setting_type` = 'encrypted'
-WHERE `setting_key` IN ('ups_password', 'fedex_secret_key')
+SET `type` = 'encrypted'
+WHERE `key` IN ('ups_password', 'fedex_secret_key')
   AND `category` = 'shipping';
 
 -- Other third-party integrations
 UPDATE `settings`
-SET `setting_type` = 'encrypted'
-WHERE `setting_key` IN ('wave_access_token')
+SET `type` = 'encrypted'
+WHERE `key` IN ('wave_access_token')
   AND `category` = 'integrations';
 
 -- ============================================================================
@@ -85,11 +85,11 @@ WHERE `setting_key` IN ('wave_access_token')
 
 -- Composite index for category + key lookups (most common query pattern)
 ALTER TABLE `settings`
-ADD INDEX IF NOT EXISTS `idx_category_key` (`category`, `setting_key`);
+ADD INDEX IF NOT EXISTS `idx_category_key` (`category`, `key`);
 
 -- Index for filtering by type (useful for finding all encrypted settings)
 ALTER TABLE `settings`
-ADD INDEX IF NOT EXISTS `idx_setting_type` (`setting_type`);
+ADD INDEX IF NOT EXISTS `idx_type` (`type`);
 
 -- Index for finding recently updated settings
 ALTER TABLE `settings`
@@ -101,24 +101,10 @@ ADD INDEX IF NOT EXISTS `idx_updated_at` (`updated_at`);
 
 -- Check if description column exists in settings table
 -- This helps document what each setting does
+-- Using simple ALTER TABLE with IF NOT EXISTS
 
-SET @column_exists = (
-  SELECT COUNT(*)
-  FROM INFORMATION_SCHEMA.COLUMNS
-  WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'settings'
-    AND COLUMN_NAME = 'description'
-);
-
-SET @sql = IF(
-  @column_exists = 0,
-  'ALTER TABLE `settings` ADD COLUMN `description` TEXT NULL COMMENT ''Human-readable description of the setting'' AFTER `setting_type`',
-  'SELECT ''Column description already exists'' AS message'
-);
-
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+ALTER TABLE `settings`
+ADD COLUMN IF NOT EXISTS `description` TEXT NULL COMMENT 'Human-readable description of the setting' AFTER `type`;
 
 -- ============================================================================
 -- PART 5: Insert Default Encrypted Settings Documentation
@@ -127,7 +113,7 @@ DEALLOCATE PREPARE stmt;
 -- Insert or update descriptions for encrypted settings
 -- This uses INSERT ... ON DUPLICATE KEY UPDATE to avoid errors if settings don't exist
 
-INSERT INTO `settings` (`category`, `setting_key`, `setting_value`, `setting_type`, `description`, `updated_at`)
+INSERT INTO `settings` (`category`, `key`, `value`, `type`, `description`, `updated_at`)
 VALUES
   ('payment', 'stripe_secret_key', '', 'encrypted', 'Stripe Secret API Key (sk_...)', NOW()),
   ('payment', 'stripe_webhook_secret', '', 'encrypted', 'Stripe Webhook Signing Secret', NOW()),
@@ -139,7 +125,7 @@ VALUES
   ('integrations', 'padi_api_secret', '', 'encrypted', 'PADI API Secret', NOW()),
   ('integrations', 'ssi_api_key', '', 'encrypted', 'SSI API Key', NOW())
 ON DUPLICATE KEY UPDATE
-  `setting_type` = VALUES(`setting_type`),
+  `type` = VALUES(`type`),
   `description` = VALUES(`description`),
   `updated_at` = NOW();
 

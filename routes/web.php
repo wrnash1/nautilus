@@ -301,4 +301,55 @@ $router->post('/integrations/quickbooks/download', 'Integrations\QuickBooksContr
 $router->post('/integrations/quickbooks/preview', 'Integrations\QuickBooksController@preview', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/integrations/quickbooks/delete/{id}', 'Integrations\QuickBooksController@deleteExport', [AuthMiddleware::class, CsrfMiddleware::class]);
 
+// Google Workspace Integration
+$router->get('/integrations/google-workspace', 'Integrations\GoogleWorkspaceController@index', [AuthMiddleware::class]);
+$router->post('/integrations/google-workspace/config', 'Integrations\GoogleWorkspaceController@saveConfig', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/integrations/google-workspace/test', 'Integrations\GoogleWorkspaceController@testConnection', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Dive Sites Management
+$router->get('/dive-sites', 'DiveSitesController@index', [AuthMiddleware::class]);
+$router->get('/dive-sites/create', 'DiveSitesController@create', [AuthMiddleware::class]);
+$router->post('/dive-sites', 'DiveSitesController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/dive-sites/{id}', 'DiveSitesController@show', [AuthMiddleware::class]);
+$router->get('/dive-sites/{id}/edit', 'DiveSitesController@edit', [AuthMiddleware::class]);
+$router->post('/dive-sites/{id}', 'DiveSitesController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/dive-sites/{id}/delete', 'DiveSitesController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/dive-sites/{id}/weather', 'DiveSitesController@getWeather', [AuthMiddleware::class]);
+
+// Serial Number Tracking
+$router->get('/serial-numbers', 'SerialNumberController@index', [AuthMiddleware::class]);
+$router->get('/serial-numbers/create', 'SerialNumberController@create', [AuthMiddleware::class]);
+$router->post('/serial-numbers', 'SerialNumberController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/serial-numbers/{id}', 'SerialNumberController@show', [AuthMiddleware::class]);
+$router->get('/serial-numbers/{id}/edit', 'SerialNumberController@edit', [AuthMiddleware::class]);
+$router->post('/serial-numbers/{id}', 'SerialNumberController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/serial-numbers/{id}/delete', 'SerialNumberController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/serial-numbers/search', 'SerialNumberController@search', [AuthMiddleware::class]);
+$router->get('/serial-numbers/{id}/history', 'SerialNumberController@history', [AuthMiddleware::class]);
+
+// Vendor Catalog Import
+$router->get('/vendor-catalog/import', 'VendorCatalogController@import', [AuthMiddleware::class]);
+$router->post('/vendor-catalog/upload', 'VendorCatalogController@upload', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/vendor-catalog/preview', 'VendorCatalogController@preview', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/vendor-catalog/process', 'VendorCatalogController@process', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/vendor-catalog/templates', 'VendorCatalogController@templates', [AuthMiddleware::class]);
+$router->get('/vendor-catalog/download-template/{vendor}', 'VendorCatalogController@downloadTemplate', [AuthMiddleware::class]);
+
+// API Token Management
+$router->get('/api/tokens', 'API\TokenController@index', [AuthMiddleware::class]);
+$router->get('/api/tokens/create', 'API\TokenController@create', [AuthMiddleware::class]);
+$router->post('/api/tokens', 'API\TokenController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/api/tokens/{id}/revoke', 'API\TokenController@revoke', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/api/tokens/{id}/delete', 'API\TokenController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/api/docs', 'API\DocumentationController@index', [AuthMiddleware::class]);
+
+// Waiver Management
+$router->get('/waivers', 'WaiverController@index', [AuthMiddleware::class]);
+$router->get('/waivers/{id}', 'WaiverController@show', [AuthMiddleware::class]);
+$router->get('/waivers/{id}/pdf', 'WaiverController@downloadPDF', [AuthMiddleware::class]);
+
+// Public Waiver Signing (no auth required - accessed via email link)
+$router->get('/waivers/sign/{token}', 'WaiverController@sign');
+$router->post('/waivers/sign/{token}', 'WaiverController@submitSignature');
+
 return $router;

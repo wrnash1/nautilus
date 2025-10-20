@@ -56,23 +56,26 @@ CREATE TABLE IF NOT EXISTS serial_number_history (
     FOREIGN KEY (performed_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Add serial number reference to rental items
-ALTER TABLE rental_items
-ADD COLUMN serial_number_id BIGINT UNSIGNED AFTER product_id,
-ADD INDEX idx_serial_number_id (serial_number_id),
-ADD FOREIGN KEY (serial_number_id) REFERENCES serial_numbers(id) ON DELETE SET NULL;
+-- Add serial number reference to rental reservation items
+ALTER TABLE rental_reservation_items
+ADD COLUMN IF NOT EXISTS serial_number_id BIGINT UNSIGNED AFTER equipment_id;
+
+ALTER TABLE rental_reservation_items
+ADD INDEX IF NOT EXISTS idx_rental_items_serial (serial_number_id);
 
 -- Add serial number reference to transaction items
 ALTER TABLE transaction_items
-ADD COLUMN serial_number_id BIGINT UNSIGNED AFTER product_id,
-ADD INDEX idx_serial_number_id (serial_number_id),
-ADD FOREIGN KEY (serial_number_id) REFERENCES serial_numbers(id) ON DELETE SET NULL;
+ADD COLUMN IF NOT EXISTS serial_number_id BIGINT UNSIGNED AFTER product_id;
+
+ALTER TABLE transaction_items
+ADD INDEX IF NOT EXISTS idx_trans_items_serial (serial_number_id);
 
 -- Add serial number reference to work orders
 ALTER TABLE work_orders
-ADD COLUMN serial_number_id BIGINT UNSIGNED AFTER customer_id,
-ADD INDEX idx_serial_number_id (serial_number_id),
-ADD FOREIGN KEY (serial_number_id) REFERENCES serial_numbers(id) ON DELETE SET NULL;
+ADD COLUMN IF NOT EXISTS serial_number_id BIGINT UNSIGNED AFTER customer_id;
+
+ALTER TABLE work_orders
+ADD INDEX IF NOT EXISTS idx_work_orders_serial (serial_number_id);
 
 -- Barcode scans log (for analytics)
 CREATE TABLE IF NOT EXISTS barcode_scans (

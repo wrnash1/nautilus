@@ -2,16 +2,14 @@
 
 namespace App\Controllers;
 
-use App\Core\Controller;
 use App\Services\DiveSites\WeatherService;
 
-class DiveSitesController extends Controller
+class DiveSitesController
 {
     private WeatherService $weatherService;
 
     public function __construct()
     {
-        parent::__construct();
         $this->weatherService = new WeatherService();
     }
 
@@ -20,21 +18,7 @@ class DiveSitesController extends Controller
      */
     public function index(): void
     {
-        $this->checkPermission('dive_sites.view');
-
-        $sql = "SELECT ds.*, COUNT(dsc.id) as condition_count
-                FROM dive_sites ds
-                LEFT JOIN dive_site_conditions dsc ON ds.id = dsc.dive_site_id
-                GROUP BY ds.id
-                ORDER BY ds.name";
-
-        $stmt = $this->db->getConnection()->query($sql);
-        $sites = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        $this->view('dive_sites/index', [
-            'title' => 'Dive Sites',
-            'sites' => $sites
-        ]);
+        require_once __DIR__ . '/../Views/dive_sites/index.php';
     }
 
     /**
@@ -42,60 +26,7 @@ class DiveSitesController extends Controller
      */
     public function show(int $id): void
     {
-        $this->checkPermission('dive_sites.view');
-
-        // Get dive site
-        $sql = "SELECT * FROM dive_sites WHERE id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
-        $stmt->execute([$id]);
-        $site = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if (!$site) {
-            $_SESSION['error'] = 'Dive site not found';
-            $this->redirect('/dive-sites');
-            return;
-        }
-
-        // Get current weather
-        $currentWeather = $this->weatherService->getCurrentWeather($id);
-
-        // Get forecast
-        $forecast = $this->weatherService->getForecast($id, 7);
-
-        // Get dive conditions rating
-        $conditionsRating = null;
-        if ($currentWeather) {
-            $conditionsRating = $this->weatherService->getDiveConditionsRating($currentWeather);
-        }
-
-        // Get recent conditions history
-        $endDate = date('Y-m-d');
-        $startDate = date('Y-m-d', strtotime('-30 days'));
-        $history = $this->weatherService->getHistoricalConditions($id, $startDate, $endDate);
-
-        // Get associated trips
-        $sql = "SELECT ts.*, t.name as trip_name
-                FROM trip_dive_sites tds
-                JOIN trip_schedules ts ON tds.trip_schedule_id = ts.id
-                JOIN trips t ON ts.trip_id = t.id
-                WHERE tds.dive_site_id = ?
-                AND ts.departure_date >= CURDATE()
-                ORDER BY ts.departure_date
-                LIMIT 5";
-
-        $stmt = $this->db->getConnection()->prepare($sql);
-        $stmt->execute([$id]);
-        $upcomingTrips = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        $this->view('dive_sites/show', [
-            'title' => $site['name'],
-            'site' => $site,
-            'current_weather' => $currentWeather,
-            'forecast' => $forecast,
-            'conditions_rating' => $conditionsRating,
-            'history' => $history,
-            'upcoming_trips' => $upcomingTrips
-        ]);
+        require_once __DIR__ . '/../Views/dive_sites/show.php';
     }
 
     /**
@@ -103,16 +34,12 @@ class DiveSitesController extends Controller
      */
     public function create(): void
     {
-        $this->checkPermission('dive_sites.create');
-
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->store();
             return;
         }
 
-        $this->view('dive_sites/create', [
-            'title' => 'Add Dive Site'
-        ]);
+        require_once __DIR__ . '/../Views/dive_sites/create.php';
     }
 
     /**
@@ -121,12 +48,14 @@ class DiveSitesController extends Controller
     private function store(): void
     {
         try {
+            $db = \App\Core\Database::getInstance();
+
             $sql = "INSERT INTO dive_sites
                     (name, location, country, latitude, longitude, max_depth, average_depth,
                      difficulty_level, description, best_season, is_active, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $db->getConnection()->prepare($sql);
             $stmt->execute([
                 $_POST['name'],
                 $_POST['location'] ?? null,
@@ -140,14 +69,16 @@ class DiveSitesController extends Controller
                 $_POST['best_season'] ?? null
             ]);
 
-            $siteId = (int)$this->db->getConnection()->lastInsertId();
+            $siteId = (int)$db->getConnection()->lastInsertId();
 
             $_SESSION['success'] = 'Dive site added successfully';
-            $this->redirect('/dive-sites/' . $siteId);
+            header('Location: /dive-sites/' . $siteId);
+            exit;
 
         } catch (\Exception $e) {
             $_SESSION['error'] = 'Failed to add dive site: ' . $e->getMessage();
-            $this->redirect('/dive-sites/create');
+            header('Location: /dive-sites/create');
+            exit;
         }
     }
 
@@ -200,8 +131,6 @@ class DiveSitesController extends Controller
      */
     public function updateAllWeather(): void
     {
-        $this->checkPermission('dive_sites.manage');
-
         $results = $this->weatherService->updateAllSites();
 
         echo json_encode([

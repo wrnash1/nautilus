@@ -46,6 +46,7 @@ class InstallService
                 $pdo = $this->createDatabaseConnection();
                 $stmt = $pdo->query("SHOW TABLES LIKE 'migrations'");
                 $result = $stmt->fetch();
+                $stmt->closeCursor();
 
                 if (!$result) {
                     return false;
@@ -54,6 +55,7 @@ class InstallService
                 // Check if at least one migration has been run
                 $stmt = $pdo->query("SELECT COUNT(*) as count FROM migrations");
                 $count = $stmt->fetch(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
 
                 return $count['count'] > 0;
             } catch (PDOException $e) {
@@ -84,10 +86,12 @@ class InstallService
             // Check if database exists
             $stmt = $pdo->query("SHOW DATABASES LIKE '{$database}'");
             $dbExists = $stmt->fetch();
+            $stmt->closeCursor();
 
             // Check MySQL version
             $stmt = $pdo->query("SELECT VERSION() as version");
             $version = $stmt->fetch();
+            $stmt->closeCursor();
 
             return [
                 'success' => true,
@@ -230,10 +234,24 @@ class InstallService
     private function runMigrations(): array
     {
         try {
-            $pdo = $this->createDatabaseConnection();
+            // Use mysqli instead of PDO to avoid buffering issues
+            $host = $_ENV['DB_HOST'] ?? 'localhost';
+            $port = $_ENV['DB_PORT'] ?? '3306';
+            $database = $_ENV['DB_DATABASE'] ?? '';
+            $username = $_ENV['DB_USERNAME'] ?? '';
+            $password = $_ENV['DB_PASSWORD'] ?? '';
+
+            // Create mysqli connection for migration execution
+            $mysqli = new \mysqli($host, $username, $password, $database, $port);
+
+            if ($mysqli->connect_error) {
+                throw new Exception("Connection failed: " . $mysqli->connect_error);
+            }
+
+            $mysqli->set_charset("utf8mb4");
 
             // Create migrations table
-            $pdo->exec("
+            $mysqli->query("
                 CREATE TABLE IF NOT EXISTS migrations (
                     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                     migration VARCHAR(255) NOT NULL UNIQUE,
@@ -242,8 +260,20 @@ class InstallService
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             ");
 
-            $executed = $pdo->query("SELECT migration FROM migrations")->fetchAll(PDO::FETCH_COLUMN);
-            $lastBatch = $pdo->query("SELECT MAX(batch) as max_batch FROM migrations")->fetch();
+            // Get executed migrations
+            $result = $mysqli->query("SELECT migration FROM migrations");
+            $executed = [];
+            if ($result) {
+                while ($row = $result->fetch_assoc()) {
+                    $executed[] = $row['migration'];
+                }
+                $result->free();
+            }
+
+            // Get current batch
+            $result = $mysqli->query("SELECT MAX(batch) as max_batch FROM migrations");
+            $lastBatch = $result ? $result->fetch_assoc() : null;
+            $result?->free();
             $currentBatch = ($lastBatch['max_batch'] ?? 0) + 1;
 
             $migrationsDir = __DIR__ . '/../../../database/migrations';
@@ -265,24 +295,36 @@ class InstallService
                 $progress = 30 + (($current / $totalMigrations) * 40);
                 $this->updateProgress("Running migration: {$filename}", (int)$progress);
 
+                // Read the entire SQL file
                 $sql = file_get_contents($file);
 
-                $statements = array_filter(
-                    array_map('trim', explode(';', $sql)),
-                    fn($stmt) => !empty($stmt) && !preg_match('/^\s*--/', $stmt)
-                );
-
-                foreach ($statements as $statement) {
-                    if (!empty($statement)) {
-                        $pdo->exec($statement);
-                    }
+                // Execute using multi_query
+                if (!$mysqli->multi_query($sql)) {
+                    throw new Exception("Error in {$filename}: " . $mysqli->error);
                 }
 
-                $stmt = $pdo->prepare("INSERT INTO migrations (migration, batch) VALUES (?, ?)");
-                $stmt->execute([$filename, $currentBatch]);
+                // Clear all result sets
+                do {
+                    if ($result = $mysqli->store_result()) {
+                        $result->free();
+                    }
+                } while ($mysqli->more_results() && $mysqli->next_result());
+
+                // Check for errors
+                if ($mysqli->error) {
+                    throw new Exception("Error in {$filename}: " . $mysqli->error);
+                }
+
+                // Record migration
+                $stmt = $mysqli->prepare("INSERT INTO migrations (migration, batch) VALUES (?, ?)");
+                $stmt->bind_param("si", $filename, $currentBatch);
+                $stmt->execute();
+                $stmt->close();
 
                 $newMigrations++;
             }
+
+            $mysqli->close();
 
             return [
                 'success' => true,
@@ -347,6 +389,7 @@ class InstallService
         // Check if admin role exists
         $stmt = $pdo->query("SELECT id FROM roles WHERE name = 'admin' LIMIT 1");
         $adminRole = $stmt->fetch();
+        $stmt->closeCursor();
 
         if (!$adminRole) {
             throw new Exception('Admin role not found. Please ensure initial data was seeded.');
@@ -358,6 +401,7 @@ class InstallService
         $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->execute([$config['admin_email']]);
         $existingUser = $stmt->fetch();
+        $stmt->closeCursor();
 
         if ($existingUser) {
             // Update existing user
@@ -377,6 +421,7 @@ class InstallService
                 $passwordHash,
                 $config['admin_email']
             ]);
+            $stmt->closeCursor();
         } else {
             // Insert new user
             $stmt = $pdo->prepare("
@@ -390,6 +435,7 @@ class InstallService
                 $config['admin_first_name'],
                 $config['admin_last_name']
             ]);
+            $stmt->closeCursor();
         }
     }
 
@@ -398,30 +444,42 @@ class InstallService
      */
     private function installDemoData(): void
     {
-        $pdo = $this->createDatabaseConnection();
+        $host = $_ENV['DB_HOST'] ?? 'localhost';
+        $port = $_ENV['DB_PORT'] ?? '3306';
+        $database = $_ENV['DB_DATABASE'] ?? '';
+        $username = $_ENV['DB_USERNAME'] ?? '';
+        $password = $_ENV['DB_PASSWORD'] ?? '';
+
+        $mysqli = new \mysqli($host, $username, $password, $database, $port);
+
+        if ($mysqli->connect_error) {
+            throw new \Exception("Connection failed: " . $mysqli->connect_error);
+        }
+
+        $mysqli->set_charset("utf8mb4");
+
         $seedFile = __DIR__ . '/../../../database/seeds/002_seed_demo_data.sql';
 
         if (file_exists($seedFile)) {
             $sql = file_get_contents($seedFile);
 
-            $statements = array_filter(
-                array_map('trim', explode(';', $sql)),
-                fn($stmt) => !empty($stmt) && !preg_match('/^\s*--/', $stmt)
-            );
-
-            foreach ($statements as $statement) {
-                if (!empty($statement)) {
-                    try {
-                        $pdo->exec($statement);
-                    } catch (PDOException $e) {
-                        // Ignore duplicate errors
-                        if ($e->getCode() != 23000) {
-                            throw $e;
-                        }
+            // Execute using multi_query
+            if ($mysqli->multi_query($sql)) {
+                // Clear all result sets
+                do {
+                    if ($result = $mysqli->store_result()) {
+                        $result->free();
                     }
-                }
+                } while ($mysqli->more_results() && $mysqli->next_result());
+            }
+
+            // Check for errors (ignore duplicate key errors)
+            if ($mysqli->error && $mysqli->errno != 1062) {
+                throw new \Exception("Demo data installation failed: " . $mysqli->error);
             }
         }
+
+        $mysqli->close();
     }
 
     /**
@@ -463,7 +521,8 @@ class InstallService
         return new PDO($dsn, $username, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+            PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true  // Fix for migration PDO buffering errors
         ]);
     }
 

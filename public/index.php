@@ -1,5 +1,8 @@
 <?php
 
+// Define base path constant
+define('BASE_PATH', dirname(__DIR__));
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;

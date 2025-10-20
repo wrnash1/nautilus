@@ -18,7 +18,7 @@ class OrderController
         if (!hasPermission('orders.view')) {
             redirect('/');
         }
-        
+
         $filters = [
             'status' => $_GET['status'] ?? null,
             'payment_status' => $_GET['payment_status'] ?? null,
@@ -26,27 +26,35 @@ class OrderController
             'date_from' => $_GET['date_from'] ?? null,
             'date_to' => $_GET['date_to'] ?? null
         ];
-        
+
         $orders = $this->orderService->getOrderList($filters);
         $stats = $this->orderService->getOrderStats();
-        
+
         $activeMenu = 'orders';
         $pageTitle = 'Orders';
-        require_once __DIR__ . '/../../Views/orders/index.php';
+
+        ob_start();
+        require __DIR__ . '/../../Views/orders/index.php';
+        $content = ob_get_clean();
+        require __DIR__ . '/../../Views/layouts/app.php';
     }
-    
+
     public function show(int $id)
     {
         $order = $this->orderService->getOrderById($id);
         $orderItems = $this->orderService->getOrderItems($id);
-        
+
         if (!$order) {
             redirect('/orders');
         }
-        
+
         $activeMenu = 'orders';
         $pageTitle = 'Order ' . $order['order_number'];
-        require_once __DIR__ . '/../../Views/orders/show.php';
+
+        ob_start();
+        require __DIR__ . '/../../Views/orders/show.php';
+        $content = ob_get_clean();
+        require __DIR__ . '/../../Views/layouts/app.php';
     }
     
     public function updateStatus(int $id)

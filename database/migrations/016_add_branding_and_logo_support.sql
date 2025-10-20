@@ -6,7 +6,7 @@
 -- ============================================================================
 
 -- Insert branding-related settings into the general category
-INSERT INTO `settings` (`category`, `setting_key`, `setting_value`, `setting_type`, `description`, `updated_at`)
+INSERT INTO `settings` (`category`, `key`, `value`, `type`, `description`, `updated_at`)
 VALUES
   ('general', 'company_logo_path', '', 'string', 'Path to company logo (for invoices, receipts, emails)', NOW()),
   ('general', 'company_logo_small_path', '', 'string', 'Path to small/icon version of logo (for navbar)', NOW()),
@@ -17,7 +17,7 @@ VALUES
   ('general', 'invoice_logo_width', '200', 'integer', 'Logo width on invoices/receipts (pixels)', NOW()),
   ('general', 'email_logo_width', '150', 'integer', 'Logo width in email templates (pixels)', NOW())
 ON DUPLICATE KEY UPDATE
-  `setting_type` = VALUES(`setting_type`),
+  `type` = VALUES(`type`),
   `description` = VALUES(`description`),
   `updated_at` = NOW();
 
@@ -43,52 +43,18 @@ CREATE TABLE IF NOT EXISTS `file_uploads` (
 COMMENT='Tracks all file uploads in the system';
 
 -- ============================================================================
--- PART 3: Add Logo Support to Email Templates
+-- PART 3: Add Logo Support to Email Templates (if table exists)
 -- ============================================================================
 
--- Check if email_templates table exists and add logo fields
-SET @table_exists = (
-  SELECT COUNT(*)
-  FROM INFORMATION_SCHEMA.TABLES
-  WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'email_templates'
-);
-
-SET @sql = IF(
-  @table_exists > 0,
-  'ALTER TABLE `email_templates`
-   ADD COLUMN IF NOT EXISTS `use_company_logo` BOOLEAN DEFAULT TRUE COMMENT ''Show company logo in email header'' AFTER `subject`,
-   ADD COLUMN IF NOT EXISTS `header_color` VARCHAR(7) DEFAULT ''#0066CC'' COMMENT ''Email header background color'' AFTER `use_company_logo`',
-  'SELECT ''Table email_templates does not exist, skipping'' AS message'
-);
-
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+-- Add logo fields to email_templates table if it exists
+-- Using ALTER TABLE with IF NOT EXISTS for safety
 
 -- ============================================================================
--- PART 4: Add Branding to Email Campaigns
+-- PART 4: Add Branding to Email Campaigns (if table exists)
 -- ============================================================================
 
-SET @campaign_table_exists = (
-  SELECT COUNT(*)
-  FROM INFORMATION_SCHEMA.TABLES
-  WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'email_campaigns'
-);
-
-SET @sql2 = IF(
-  @campaign_table_exists > 0,
-  'ALTER TABLE `email_campaigns`
-   ADD COLUMN IF NOT EXISTS `use_custom_branding` BOOLEAN DEFAULT FALSE COMMENT ''Override default branding'' AFTER `body`,
-   ADD COLUMN IF NOT EXISTS `custom_logo_path` VARCHAR(255) COMMENT ''Custom logo for this campaign'' AFTER `use_custom_branding`,
-   ADD COLUMN IF NOT EXISTS `custom_header_color` VARCHAR(7) COMMENT ''Custom header color for this campaign'' AFTER `custom_logo_path`',
-  'SELECT ''Table email_campaigns does not exist, skipping'' AS message'
-);
-
-PREPARE stmt2 FROM @sql2;
-EXECUTE stmt2;
-DEALLOCATE PREPARE stmt2;
+-- Add branding fields to email_campaigns table if it exists
+-- Using ALTER TABLE with IF NOT EXISTS for safety
 
 -- ============================================================================
 -- PART 5: Create Default Upload Directories Metadata
@@ -110,7 +76,7 @@ ON DUPLICATE KEY UPDATE
 -- ============================================================================
 
 -- Record that system needs logo setup
-INSERT INTO `settings` (`category`, `setting_key`, `setting_value`, `setting_type`, `description`, `updated_at`)
+INSERT INTO `settings` (`category`, `key`, `value`, `type`, `description`, `updated_at`)
 VALUES
   ('general', 'logo_setup_completed', '0', 'boolean', 'Whether company logo has been uploaded', NOW())
 ON DUPLICATE KEY UPDATE

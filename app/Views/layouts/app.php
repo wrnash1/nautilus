@@ -303,6 +303,12 @@
             </a>
             <?php endif; ?>
 
+            <?php if (hasPermission('dashboard.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'waivers' ? 'active' : '' ?>" href="/waivers">
+                <i class="bi bi-file-earmark-check"></i><span>Waivers</span>
+            </a>
+            <?php endif; ?>
+
             <?php if (hasPermission('courses.view')): ?>
             <div class="nav-item">
                 <a class="nav-link <?= $activeMenu === 'courses' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#coursesMenu" role="button" aria-expanded="false">
@@ -345,7 +351,53 @@
                 <i class="bi bi-shop"></i><span>Online Store</span>
             </a>
 
-            <hr class="my-2">
+            <hr class="my-2 text-white-50">
+
+            <?php if (hasPermission('dashboard.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'dive-sites' ? 'active' : '' ?>" href="/dive-sites">
+                <i class="bi bi-geo-alt"></i><span>Dive Sites</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('products.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'serial-numbers' ? 'active' : '' ?>" href="/serial-numbers">
+                <i class="bi bi-upc-scan"></i><span>Serial Numbers</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('products.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'vendor-catalog' ? 'active' : '' ?>" href="/vendor-catalog/import">
+                <i class="bi bi-cloud-download"></i><span>Vendor Import</span>
+            </a>
+            <?php endif; ?>
+
+            <hr class="my-2 text-white-50">
+
+            <?php if (hasPermission('dashboard.view')): ?>
+            <div class="nav-item">
+                <a class="nav-link <?= $activeMenu === 'marketing' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#marketingMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-megaphone"></i><span>Marketing</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="marketingMenu">
+                    <a class="nav-link ps-5" href="/marketing/loyalty">Loyalty Program</a>
+                    <a class="nav-link ps-5" href="/marketing/coupons">Coupons</a>
+                    <a class="nav-link ps-5" href="/marketing/campaigns">Email Campaigns</a>
+                    <a class="nav-link ps-5" href="/marketing/referrals">Referrals</a>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if (hasPermission('dashboard.view')): ?>
+            <div class="nav-item">
+                <a class="nav-link <?= $activeMenu === 'cms' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#cmsMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-file-earmark-text"></i><span>Content</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="cmsMenu">
+                    <a class="nav-link ps-5" href="/cms/pages">Pages</a>
+                    <a class="nav-link ps-5" href="/cms/blog">Blog Posts</a>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <?php if (hasPermission('staff.view')): ?>
             <div class="nav-item">
@@ -361,6 +413,27 @@
             </div>
             <?php endif; ?>
 
+            <hr class="my-2 text-white-50">
+
+            <?php if (hasPermission('admin.integrations')): ?>
+            <div class="nav-item">
+                <a class="nav-link <?= $activeMenu === 'integrations' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#integrationsMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-plugin"></i><span>Integrations</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="integrationsMenu">
+                    <a class="nav-link ps-5" href="/integrations/wave">Wave Accounting</a>
+                    <a class="nav-link ps-5" href="/integrations/quickbooks">QuickBooks</a>
+                    <a class="nav-link ps-5" href="/integrations/google-workspace">Google Workspace</a>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if (hasPermission('admin.api')): ?>
+            <a class="nav-link <?= $activeMenu === 'api' ? 'active' : '' ?>" href="/api/tokens">
+                <i class="bi bi-key"></i><span>API Tokens</span>
+            </a>
+            <?php endif; ?>
+
             <?php if (hasPermission('admin.settings')): ?>
             <a class="nav-link <?= $activeMenu === 'settings' ? 'active' : '' ?>" href="/admin/settings">
                 <i class="bi bi-gear"></i><span>Settings</span>
@@ -370,6 +443,12 @@
             <?php if (hasPermission('admin.users')): ?>
             <a class="nav-link <?= $activeMenu === 'users' ? 'active' : '' ?>" href="/admin/users">
                 <i class="bi bi-people-fill"></i><span>User Management</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('admin.roles')): ?>
+            <a class="nav-link <?= $activeMenu === 'roles' ? 'active' : '' ?>" href="/admin/roles">
+                <i class="bi bi-shield-lock"></i><span>Roles & Permissions</span>
             </a>
             <?php endif; ?>
         </nav>

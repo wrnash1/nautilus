@@ -201,7 +201,7 @@ class Translator
         try {
             $db = Database::getInstance();
             $sql = "SELECT locale FROM users WHERE id = ?";
-            $stmt = $db->getConnection()->prepare($sql);
+            $stmt = $db->prepare($sql);
             $stmt->execute([$userId]);
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
