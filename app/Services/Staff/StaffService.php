@@ -76,7 +76,7 @@ class StaffService
 
     /**
      * Get staff sales summary
-     * 
+     *
      * @param int $staffId
      * @param string|null $startDate
      * @param string|null $endDate
@@ -92,7 +92,7 @@ class StaffService
         }
 
         $stmt = $this->db->prepare("
-            SELECT 
+            SELECT
                 COUNT(*) as transaction_count,
                 SUM(total_amount) as total_sales,
                 AVG(total_amount) as avg_transaction
@@ -101,5 +101,61 @@ class StaffService
         ");
         $stmt->execute([$staffId, $startDate, $endDate]);
         return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get all available roles (non-customer roles)
+     *
+     * @return array
+     */
+    public function getAvailableRoles()
+    {
+        $stmt = $this->db->query("
+            SELECT id, name, display_name, description
+            FROM roles
+            WHERE name != 'customer'
+            ORDER BY display_name
+        ");
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Create a new staff member
+     *
+     * @param array $data
+     * @return int|false Staff ID or false on failure
+     */
+    public function createStaff($data)
+    {
+        try {
+            // Hash the password
+            $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
+
+            $stmt = $this->db->prepare("
+                INSERT INTO users (
+                    first_name, last_name, email, phone, password,
+                    role_id, is_active, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+            ");
+
+            $result = $stmt->execute([
+                $data['first_name'],
+                $data['last_name'],
+                $data['email'],
+                $data['phone'] ?? null,
+                $hashedPassword,
+                $data['role_id'],
+                $data['is_active'] ?? 1
+            ]);
+
+            if ($result) {
+                return (int)$this->db->lastInsertId();
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            error_log("Error creating staff: " . $e->getMessage());
+            return false;
+        }
     }
 }

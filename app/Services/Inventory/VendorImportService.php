@@ -3,6 +3,7 @@
 namespace App\Services\Inventory;
 
 use App\Core\Database;
+use PDO;
 use App\Core\Logger;
 use Exception;
 
@@ -12,7 +13,7 @@ use Exception;
  */
 class VendorImportService
 {
-    private Database $db;
+    private PDO $db;
     private Logger $logger;
 
     public function __construct()
@@ -208,7 +209,7 @@ class VendorImportService
     public function stageProducts(int $vendorId, array $data, array $mappings, ?int $userId = null): int
     {
         try {
-            $this->db->getConnection()->beginTransaction();
+            $this->db->beginTransaction();
 
             // Create catalog record
             $catalogId = $this->createCatalog($vendorId, $userId);
@@ -223,7 +224,7 @@ class VendorImportService
                 }
             }
 
-            $this->db->getConnection()->commit();
+            $this->db->commit();
 
             $this->logger->info('Products staged for import', [
                 'catalog_id' => $catalogId,
@@ -234,7 +235,7 @@ class VendorImportService
             return $catalogId;
 
         } catch (Exception $e) {
-            $this->db->getConnection()->rollBack();
+            $this->db->rollBack();
             $this->logger->error('Product staging failed', ['error' => $e->getMessage()]);
             throw $e;
         }
@@ -248,10 +249,10 @@ class VendorImportService
         $sql = "INSERT INTO vendor_catalogs (vendor_id, imported_by, status, created_at)
                 VALUES (?, ?, 'staged', NOW())";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$vendorId, $userId]);
 
-        return (int)$this->db->getConnection()->lastInsertId();
+        return (int)$this->db->lastInsertId();
     }
 
     /**
@@ -292,7 +293,7 @@ class VendorImportService
                 (catalog_id, sku, name, description, price, cost, category, manufacturer, upc, weight, stock_quantity, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
 
         return $stmt->execute([
             $catalogId,
@@ -319,7 +320,7 @@ class VendorImportService
                 ORDER BY id
                 LIMIT ? OFFSET ?";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$catalogId, $limit, $offset]);
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -331,7 +332,7 @@ class VendorImportService
     public function getStagedCount(int $catalogId): int
     {
         $sql = "SELECT COUNT(*) as count FROM vendor_catalog_items WHERE catalog_id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$catalogId]);
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -344,10 +345,10 @@ class VendorImportService
     public function commitImport(int $catalogId, array $options = []): array
     {
         try {
-            $this->db->getConnection()->beginTransaction();
+            $this->db->beginTransaction();
 
             $sql = "SELECT * FROM vendor_catalog_items WHERE catalog_id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$catalogId]);
             $stagedProducts = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -374,7 +375,7 @@ class VendorImportService
             // Update catalog status
             $this->updateCatalogStatus($catalogId, 'imported');
 
-            $this->db->getConnection()->commit();
+            $this->db->commit();
 
             $this->logger->info('Import committed', [
                 'catalog_id' => $catalogId,
@@ -392,7 +393,7 @@ class VendorImportService
             ];
 
         } catch (Exception $e) {
-            $this->db->getConnection()->rollBack();
+            $this->db->rollBack();
             $this->logger->error('Import commit failed', ['error' => $e->getMessage()]);
 
             return [
@@ -408,7 +409,7 @@ class VendorImportService
     private function findExistingProduct(string $sku): ?array
     {
         $sql = "SELECT id FROM products WHERE sku = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$sku]);
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -427,7 +428,7 @@ class VendorImportService
         // Map category name to category_id
         $categoryId = $this->findOrCreateCategory($data['category'] ?? 'Imported');
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $data['sku'],
             $data['name'],
@@ -441,7 +442,7 @@ class VendorImportService
             $data['stock_quantity'] ?? 0
         ]);
 
-        return (int)$this->db->getConnection()->lastInsertId();
+        return (int)$this->db->lastInsertId();
     }
 
     /**
@@ -455,7 +456,7 @@ class VendorImportService
                 updated_at = NOW()
                 WHERE id = ?";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
 
         return $stmt->execute([
             $data['name'],
@@ -476,7 +477,7 @@ class VendorImportService
     {
         // Try to find existing category
         $sql = "SELECT id FROM categories WHERE name = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$categoryName]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -486,10 +487,10 @@ class VendorImportService
 
         // Create new category
         $sql = "INSERT INTO categories (name, created_at) VALUES (?, NOW())";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$categoryName]);
 
-        return (int)$this->db->getConnection()->lastInsertId();
+        return (int)$this->db->lastInsertId();
     }
 
     /**
@@ -498,7 +499,7 @@ class VendorImportService
     private function updateCatalogStatus(int $catalogId, string $status): void
     {
         $sql = "UPDATE vendor_catalogs SET status = ?, imported_at = NOW() WHERE id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$status, $catalogId]);
     }
 
@@ -508,23 +509,23 @@ class VendorImportService
     public function deleteCatalog(int $catalogId): bool
     {
         try {
-            $this->db->getConnection()->beginTransaction();
+            $this->db->beginTransaction();
 
             // Delete items
             $sql = "DELETE FROM vendor_catalog_items WHERE catalog_id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$catalogId]);
 
             // Delete catalog
             $sql = "DELETE FROM vendor_catalogs WHERE id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$catalogId]);
 
-            $this->db->getConnection()->commit();
+            $this->db->commit();
 
             return true;
         } catch (Exception $e) {
-            $this->db->getConnection()->rollBack();
+            $this->db->rollBack();
             $this->logger->error('Failed to delete catalog', ['error' => $e->getMessage()]);
             return false;
         }

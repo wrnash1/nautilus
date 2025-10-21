@@ -3,6 +3,7 @@
 namespace App\Services\Reports;
 
 use App\Core\Database;
+use PDO;
 use App\Core\Logger;
 use Exception;
 
@@ -12,7 +13,7 @@ use Exception;
  */
 class CustomReportService
 {
-    private Database $db;
+    private PDO $db;
     private Logger $logger;
 
     // Available tables for reporting
@@ -53,7 +54,7 @@ class CustomReportService
         }
 
         $sql = "DESCRIBE {$table}";
-        $stmt = $this->db->getConnection()->query($sql);
+        $stmt = $this->db->query($sql);
         $columns = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         $formatted = [];
@@ -81,7 +82,7 @@ class CustomReportService
                      chart_type, is_public, created_by, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 $reportData['name'],
                 $reportData['description'] ?? null,
@@ -95,7 +96,7 @@ class CustomReportService
                 $userId
             ]);
 
-            $reportId = (int)$this->db->getConnection()->lastInsertId();
+            $reportId = (int)$this->db->lastInsertId();
 
             $this->logger->info('Custom report saved', [
                 'report_id' => $reportId,
@@ -259,7 +260,7 @@ class CustomReportService
         if (is_numeric($value)) {
             return $value;
         }
-        return $this->db->getConnection()->quote($value);
+        return $this->db->quote($value);
     }
 
     /**
@@ -267,7 +268,7 @@ class CustomReportService
      */
     private function executeQuery(string $sql): array
     {
-        $stmt = $this->db->getConnection()->query($sql);
+        $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -277,7 +278,7 @@ class CustomReportService
     public function getReport(int $reportId): ?array
     {
         $sql = "SELECT * FROM custom_reports WHERE id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$reportId]);
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -307,7 +308,7 @@ class CustomReportService
 
         $sql .= " ORDER BY name";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -323,10 +324,10 @@ class CustomReportService
 
             if ($userId) {
                 $sql .= " AND created_by = ?";
-                $stmt = $this->db->getConnection()->prepare($sql);
+                $stmt = $this->db->prepare($sql);
                 $stmt->execute([$reportId, $userId]);
             } else {
-                $stmt = $this->db->getConnection()->prepare($sql);
+                $stmt = $this->db->prepare($sql);
                 $stmt->execute([$reportId]);
             }
 
@@ -370,7 +371,7 @@ class CustomReportService
                 $params[] = $userId;
             }
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
 
             return $stmt->rowCount() > 0;
@@ -392,7 +393,7 @@ class CustomReportService
         $sql = "INSERT INTO report_executions (report_id, executed_by, executed_at)
                 VALUES (?, ?, NOW())";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$reportId, $_SESSION['user_id'] ?? null]);
     }
 
@@ -408,7 +409,7 @@ class CustomReportService
                 ORDER BY re.executed_at DESC
                 LIMIT ?";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$reportId, $limit]);
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -448,7 +449,7 @@ class CustomReportService
                 (report_id, frequency, schedule_time, recipients, format, is_active, created_at)
                 VALUES (?, ?, ?, ?, ?, 1, NOW())";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $reportId,
             $schedule['frequency'], // daily, weekly, monthly
@@ -457,7 +458,7 @@ class CustomReportService
             $schedule['format'] ?? 'csv'
         ]);
 
-        return (int)$this->db->getConnection()->lastInsertId();
+        return (int)$this->db->lastInsertId();
     }
 
     /**
@@ -471,7 +472,7 @@ class CustomReportService
                 WHERE sr.is_active = 1
                 ORDER BY sr.schedule_time";
 
-        $stmt = $this->db->getConnection()->query($sql);
+        $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 }

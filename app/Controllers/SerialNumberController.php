@@ -55,7 +55,7 @@ class SerialNumberController
                      purchase_date, purchase_cost, warranty_expiry, location, notes, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-            $stmt = $db->getConnection()->prepare($sql);
+            $stmt = $db->prepare($sql);
             $stmt->execute([
                 $_POST['product_id'],
                 $_POST['serial_number'],
@@ -69,7 +69,7 @@ class SerialNumberController
                 $_POST['notes'] ?? null
             ]);
 
-            $serialId = (int)$db->getConnection()->lastInsertId();
+            $serialId = (int)$db->lastInsertId();
 
             $_SESSION['success'] = 'Serial number added successfully';
             header('Location: /serial-numbers/' . $serialId);

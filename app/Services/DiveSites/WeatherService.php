@@ -3,6 +3,7 @@
 namespace App\Services\DiveSites;
 
 use App\Core\Database;
+use PDO;
 use App\Core\Logger;
 use App\Core\Cache;
 use Exception;
@@ -13,7 +14,7 @@ use Exception;
  */
 class WeatherService
 {
-    private Database $db;
+    private PDO $db;
     private Logger $logger;
     private Cache $cache;
     private string $apiKey;
@@ -192,7 +193,7 @@ class WeatherService
                 AND recorded_at BETWEEN ? AND ?
                 ORDER BY recorded_at DESC";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$siteId, $startDate, $endDate]);
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -209,7 +210,7 @@ class WeatherService
                      wind_speed, wind_direction, humidity, pressure, visibility, clouds, recorded_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 $siteId,
                 $weather['temperature'],
@@ -249,7 +250,7 @@ class WeatherService
                 AND latitude IS NOT NULL
                 AND longitude IS NOT NULL";
 
-        $stmt = $this->db->getConnection()->query($sql);
+        $stmt = $this->db->query($sql);
         $sites = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         foreach ($sites as $site) {
@@ -307,7 +308,7 @@ class WeatherService
                 WHERE dive_site_id = ?
                 AND DATE_FORMAT(recorded_at, '%m-%d') = ?";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$siteId, $monthDay]);
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -425,7 +426,7 @@ class WeatherService
     private function getDiveSite(int $siteId): ?array
     {
         $sql = "SELECT * FROM dive_sites WHERE id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$siteId]);
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);

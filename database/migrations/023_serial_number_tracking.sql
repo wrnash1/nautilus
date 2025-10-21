@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS serial_number_history (
     new_status VARCHAR(50),
     old_location VARCHAR(100),
     new_location VARCHAR(100),
-    transaction_id INT UNSIGNED COMMENT 'Related transaction if applicable',
+    transaction_id BIGINT UNSIGNED COMMENT 'Related transaction if applicable',
     rental_id INT UNSIGNED COMMENT 'Related rental if applicable',
     work_order_id INT UNSIGNED COMMENT 'Related work order if applicable',
     performed_by INT UNSIGNED COMMENT 'Staff member who performed action',

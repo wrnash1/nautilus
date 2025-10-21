@@ -256,7 +256,7 @@ class VendorCatalogController extends Controller
     private function getVendors(): array
     {
         $sql = "SELECT id, name FROM vendors WHERE is_active = 1 ORDER BY name";
-        $stmt = $this->db->getConnection()->query($sql);
+        $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 }

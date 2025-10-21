@@ -331,4 +331,54 @@ class SettingsController
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     }
+
+    /**
+     * API endpoint to get current tax rate
+     */
+    public function getTaxRate()
+    {
+        header('Content-Type: application/json');
+
+        try {
+            // Get default tax rate from settings or tax_rates table
+            $db = Database::getInstance();
+
+            // First, try to get from settings table
+            $setting = $db->prepare("SELECT value FROM settings WHERE category = 'tax' AND `key` = 'default_rate' LIMIT 1");
+            $setting->execute();
+            $result = $setting->fetch();
+
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'tax_rate' => floatval($result['value'])
+                ]);
+                return;
+            }
+
+            // Fall back to tax_rates table
+            $taxRate = $db->prepare("SELECT rate FROM tax_rates WHERE is_default = 1 LIMIT 1");
+            $taxRate->execute();
+            $rate = $taxRate->fetch();
+
+            if ($rate) {
+                echo json_encode([
+                    'success' => true,
+                    'tax_rate' => floatval($rate['rate']) / 100 // Convert percentage to decimal
+                ]);
+            } else {
+                // Default to 8% if no rate configured
+                echo json_encode([
+                    'success' => true,
+                    'tax_rate' => 0.08
+                ]);
+            }
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'tax_rate' => 0.08 // Fallback
+            ]);
+        }
+    }
 }

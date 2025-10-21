@@ -135,7 +135,11 @@ class InstallService
             $this->updateProgress('Seeding initial data...', 70);
             $this->seedInitialData();
 
-            // Step 5: Create admin user
+            // Step 5: Save company settings
+            $this->updateProgress('Saving company settings...', 75);
+            $this->saveCompanySettings($config);
+
+            // Step 6: Create admin user
             $this->updateProgress('Creating admin user...', 80);
             $this->createAdminUser($config);
 
@@ -480,6 +484,41 @@ class InstallService
         }
 
         $mysqli->close();
+    }
+
+    /**
+     * Save company settings to database
+     */
+    private function saveCompanySettings(array $config): void
+    {
+        $pdo = $this->createDatabaseConnection();
+
+        // Save business/company name to settings
+        $stmt = $pdo->prepare("
+            INSERT INTO settings (category, `key`, `value`, type, description, updated_at)
+            VALUES ('general', 'business_name', ?, 'string', 'Company/Business Name', NOW())
+            ON DUPLICATE KEY UPDATE `value` = ?, updated_at = NOW()
+        ");
+        $stmt->execute([$config['app_name'], $config['app_name']]);
+        $stmt->closeCursor();
+
+        // Save other initial settings if needed
+        $defaultSettings = [
+            ['general', 'timezone', $config['app_timezone'] ?? 'America/New_York', 'string', 'System Timezone'],
+            ['general', 'currency', 'USD', 'string', 'Default Currency'],
+            ['general', 'date_format', 'Y-m-d', 'string', 'Date Format'],
+            ['general', 'time_format', 'H:i:s', 'string', 'Time Format'],
+        ];
+
+        foreach ($defaultSettings as $setting) {
+            $stmt = $pdo->prepare("
+                INSERT INTO settings (category, `key`, `value`, type, description, updated_at)
+                VALUES (?, ?, ?, ?, ?, NOW())
+                ON DUPLICATE KEY UPDATE updated_at = NOW()
+            ");
+            $stmt->execute($setting);
+            $stmt->closeCursor();
+        }
     }
 
     /**

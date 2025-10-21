@@ -22,6 +22,40 @@ $router = require __DIR__ . '/../routes/web.php';
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = $_SERVER['REQUEST_URI'];
 
+// Auto-redirect logic for installation and login
+$path = parse_url($uri, PHP_URL_PATH);
+
+// Skip auto-redirect for install routes, login routes, and assets
+$skipPaths = ['/install', '/login', '/logout', '/assets', '/api'];
+$shouldSkip = false;
+foreach ($skipPaths as $skipPath) {
+    if (strpos($path, $skipPath) === 0) {
+        $shouldSkip = true;
+        break;
+    }
+}
+
+if (!$shouldSkip) {
+    // Check if accessing root or any non-excluded path
+    require_once __DIR__ . '/../app/Services/Install/InstallService.php';
+    $installService = new App\Services\Install\InstallService();
+
+    if (!$installService->isInstalled()) {
+        // Database not set up - redirect to install
+        if ($path !== '/install') {
+            header('Location: /install');
+            exit;
+        }
+    } else {
+        // Database is set up - check if user is logged in
+        if (!isset($_SESSION['user_id']) && $path === '/') {
+            // Not logged in and accessing root - redirect to login
+            header('Location: /login');
+            exit;
+        }
+    }
+}
+
 try {
     $router->dispatch($method, $uri);
 } catch (Exception $e) {

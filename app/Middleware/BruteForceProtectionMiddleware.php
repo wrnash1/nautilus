@@ -3,6 +3,7 @@
 namespace App\Middleware;
 
 use App\Core\Database;
+use PDO;
 use App\Core\Cache;
 
 /**
@@ -12,7 +13,7 @@ use App\Core\Cache;
 class BruteForceProtectionMiddleware
 {
     private Cache $cache;
-    private Database $db;
+    private PDO $db;
     private int $maxAttempts = 5;
     private int $blockDuration = 900; // 15 minutes in seconds
 
@@ -133,7 +134,7 @@ class BruteForceProtectionMiddleware
             $severity = $attempts >= $this->maxAttempts ? 'high' : 'medium';
             $actionTaken = $attempts >= $this->maxAttempts ? 'blocked' : 'logged';
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 $eventType,
                 $severity,

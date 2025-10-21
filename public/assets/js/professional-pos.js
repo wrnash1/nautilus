@@ -248,9 +248,9 @@
     }
 
     function updateTotals(subtotal, tax, total) {
-        const subtotalEl = document.getElementById('subtotalAmount');
-        const taxEl = document.getElementById('taxAmount');
-        const totalEl = document.getElementById('grandTotalAmount');
+        const subtotalEl = document.getElementById('cartSubtotal');
+        const taxEl = document.getElementById('cartTax');
+        const totalEl = document.getElementById('cartTotal');
 
         if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
         if (taxEl) taxEl.textContent = `$${tax.toFixed(2)}`;
@@ -463,12 +463,16 @@
     }
 
     function processStandardPayment(transactionData) {
-        fetch('/api/transactions/create', {
+        // Prepare form data for POST request
+        const formData = new FormData();
+        formData.append('customer_id', transactionData.customer_id || 0);
+        formData.append('payment_method', transactionData.payment_method);
+        formData.append('amount_paid', transactionData.total);
+        formData.append('items', JSON.stringify(transactionData.items));
+
+        fetch('/pos/checkout', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(transactionData)
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
@@ -477,22 +481,35 @@
             if (data.success) {
                 showToast('Transaction completed successfully!', 'success');
 
-                // Print receipt if requested
-                if (confirm('Print receipt?')) {
-                    printReceipt(data.transaction_id);
-                }
-
-                // Clear cart and reset
+                // Clear cart and reset BEFORE showing receipt prompt
                 cart = [];
                 selectedCustomerId = null;
-                document.getElementById('customerSelect').value = '';
+
+                const customerSelect = document.getElementById('customerSelect');
+                if (customerSelect) {
+                    customerSelect.value = '';
+                }
+
+                // Hide customer info display
+                const customerInfo = document.getElementById('customerInfo');
+                if (customerInfo) {
+                    customerInfo.style.display = 'none';
+                }
+
                 document.querySelectorAll('input[name="paymentMethod"]').forEach(r => r.checked = false);
                 document.getElementById('paymentCash').checked = true;
                 selectedPaymentMethod = 'cash';
 
                 updateCartDisplay();
+
+                // Redirect to receipt or ask to print
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else if (confirm('Print receipt?')) {
+                    printReceipt(data.transaction_id);
+                }
             } else {
-                showToast(data.message || 'Transaction failed', 'error');
+                showToast(data.error || 'Transaction failed', 'error');
             }
         })
         .catch(error => {
@@ -634,7 +651,7 @@
 
         // Filter products
         document.querySelectorAll('.product-tile').forEach(tile => {
-            if (category === 'all' || tile.dataset.productCategory === category) {
+            if (category === 'all' || tile.dataset.category === category) {
                 tile.style.display = '';
             } else {
                 tile.style.display = 'none';

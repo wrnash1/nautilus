@@ -352,4 +352,7 @@ $router->get('/waivers/{id}/pdf', 'WaiverController@downloadPDF', [AuthMiddlewar
 $router->get('/waivers/sign/{token}', 'WaiverController@sign');
 $router->post('/waivers/sign/{token}', 'WaiverController@submitSignature');
 
+// API Settings (for AJAX calls)
+$router->get('/api/settings/tax-rate', 'Admin\SettingsController@getTaxRate', [AuthMiddleware::class]);
+
 return $router;

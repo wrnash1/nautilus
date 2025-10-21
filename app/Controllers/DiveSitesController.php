@@ -55,7 +55,7 @@ class DiveSitesController
                      difficulty_level, description, best_season, is_active, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())";
 
-            $stmt = $db->getConnection()->prepare($sql);
+            $stmt = $db->prepare($sql);
             $stmt->execute([
                 $_POST['name'],
                 $_POST['location'] ?? null,
@@ -69,7 +69,7 @@ class DiveSitesController
                 $_POST['best_season'] ?? null
             ]);
 
-            $siteId = (int)$db->getConnection()->lastInsertId();
+            $siteId = (int)$db->lastInsertId();
 
             $_SESSION['success'] = 'Dive site added successfully';
             header('Location: /dive-sites/' . $siteId);

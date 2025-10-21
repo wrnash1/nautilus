@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `rma_requests` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `rma_number` VARCHAR(50) NOT NULL UNIQUE COMMENT 'RMA-YYYYMMDD-XXXX format',
   `customer_id` INT UNSIGNED NOT NULL,
-  `transaction_id` INT UNSIGNED COMMENT 'Original sale transaction',
+  `transaction_id` BIGINT UNSIGNED COMMENT 'Original sale transaction',
   `vendor_id` INT UNSIGNED COMMENT 'If returning to vendor',
   `rma_type` ENUM('customer_return', 'vendor_return', 'warranty_claim', 'defective_exchange') DEFAULT 'customer_return',
   `status` ENUM('pending', 'approved', 'rejected', 'received', 'refunded', 'exchanged', 'vendor_sent', 'vendor_received', 'completed', 'cancelled') DEFAULT 'pending',
@@ -68,7 +68,7 @@ COMMENT='RMA request tracking for customer and vendor returns';
 CREATE TABLE IF NOT EXISTS `rma_items` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `rma_request_id` INT UNSIGNED NOT NULL,
-  `transaction_item_id` INT UNSIGNED COMMENT 'Original transaction item',
+  `transaction_item_id` BIGINT UNSIGNED COMMENT 'Original transaction item',
   `product_id` INT UNSIGNED NOT NULL,
   `variant_id` INT UNSIGNED,
   `quantity` INT NOT NULL DEFAULT 1,
@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS `rma_items` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (`rma_request_id`) REFERENCES `rma_requests`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`transaction_item_id`) REFERENCES `transaction_items`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`product_id`) REFERENCES `products`(`id`),
   FOREIGN KEY (`variant_id`) REFERENCES `product_variants`(`id`),
 
@@ -236,7 +237,7 @@ ADD COLUMN IF NOT EXISTS `country_of_origin` VARCHAR(2) COMMENT 'ISO country cod
 -- ============================================================================
 
 -- Add RMA-related settings
-INSERT INTO `settings` (`category`, `setting_key`, `setting_value`, `setting_type`, `description`, `updated_at`)
+INSERT INTO `settings` (`category`, `key`, `value`, `type`, `description`, `updated_at`)
 VALUES
   ('rma', 'rma_enabled', '1', 'boolean', 'Enable RMA system', NOW()),
   ('rma', 'return_window_days', '30', 'integer', 'Days allowed for returns after purchase', NOW()),
@@ -246,7 +247,7 @@ VALUES
   ('rma', 'email_notifications', '1', 'boolean', 'Send email notifications for RMA status changes', NOW()),
   ('rma', 'return_shipping_paid_by', 'customer', 'string', 'Who pays return shipping (customer/company)', NOW())
 ON DUPLICATE KEY UPDATE
-  `setting_type` = VALUES(`setting_type`),
+  `type` = VALUES(`type`),
   `description` = VALUES(`description`),
   `updated_at` = NOW();
 

@@ -3,6 +3,7 @@
 namespace App\Services\Security;
 
 use App\Core\Database;
+use PDO;
 use App\Core\Logger;
 
 /**
@@ -11,7 +12,7 @@ use App\Core\Logger;
  */
 class SecurityService
 {
-    private Database $db;
+    private PDO $db;
     private Logger $logger;
 
     public function __construct()
@@ -34,7 +35,7 @@ class SecurityService
                     (event_type, severity, description, ip_address, user_id, user_agent, details, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 $eventType,
                 $severity,
@@ -75,7 +76,7 @@ class SecurityService
         $sql .= " ORDER BY created_at DESC LIMIT ?";
         $params[] = $limit;
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -122,7 +123,7 @@ class SecurityService
                 HAVING attempts >= 5
                 ORDER BY attempts DESC";
 
-        $stmt = $this->db->getConnection()->query($sql);
+        $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -138,7 +139,7 @@ class SecurityService
                 HAVING users > 3
                 ORDER BY users DESC";
 
-        $stmt = $this->db->getConnection()->query($sql);
+        $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -154,7 +155,7 @@ class SecurityService
                 GROUP BY ip_address
                 ORDER BY violations DESC";
 
-        $stmt = $this->db->getConnection()->query($sql);
+        $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -169,7 +170,7 @@ class SecurityService
                     blocked_until = DATE_ADD(NOW(), INTERVAL ? SECOND),
                     reason = ?";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$ip, $duration, $reason, $duration, $reason]);
 
         $this->logSecurityEvent('ip_blocked', 'high', "IP address blocked: {$ip}", [
@@ -185,7 +186,7 @@ class SecurityService
     public function unblockIP(string $ip): void
     {
         $sql = "DELETE FROM ip_blacklist WHERE ip_address = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$ip]);
 
         $this->logSecurityEvent('ip_unblocked', 'low', "IP address unblocked: {$ip}", [
@@ -202,7 +203,7 @@ class SecurityService
                 WHERE ip_address = ?
                 AND (blocked_until IS NULL OR blocked_until > NOW())";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$ip]);
 
         return $stmt->fetch() !== false;
@@ -223,7 +224,7 @@ class SecurityService
                 GROUP BY event_type, severity, DATE(created_at)
                 ORDER BY date DESC, count DESC";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$days]);
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);

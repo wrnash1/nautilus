@@ -37,7 +37,7 @@ class SettingsController extends Controller
             // If user is logged in, update their preference in database
             if (isset($_SESSION['user_id'])) {
                 $sql = "UPDATE users SET locale = ? WHERE id = ?";
-                $stmt = $this->db->getConnection()->prepare($sql);
+                $stmt = $this->db->prepare($sql);
                 $stmt->execute([$locale, $_SESSION['user_id']]);
             }
 
@@ -71,7 +71,7 @@ class SettingsController extends Controller
 
         // Get user data
         $sql = "SELECT * FROM users WHERE id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$userId]);
         $user = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -83,13 +83,13 @@ class SettingsController extends Controller
 
         // Get user's notification preferences
         $sql = "SELECT * FROM notification_preferences WHERE user_id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$userId]);
         $notificationPrefs = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         // Get 2FA status
         $sql = "SELECT two_factor_enabled FROM users WHERE id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$userId]);
         $twoFactorStatus = $stmt->fetchColumn();
 
@@ -125,7 +125,7 @@ class SettingsController extends Controller
                     updated_at = NOW()
                     WHERE id = ?";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 $_POST['first_name'] ?? '',
                 $_POST['last_name'] ?? '',
@@ -150,7 +150,7 @@ class SettingsController extends Controller
                     sms_notifications = VALUES(sms_notifications),
                     in_app_notifications = VALUES(in_app_notifications)";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 $userId,
                 isset($_POST['email_notifications']) ? 1 : 0,
@@ -202,7 +202,7 @@ class SettingsController extends Controller
 
             // Verify current password
             $sql = "SELECT password FROM users WHERE id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$userId]);
             $currentHash = $stmt->fetchColumn();
 
@@ -213,7 +213,7 @@ class SettingsController extends Controller
             // Update password
             $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
             $sql = "UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$newHash, $userId]);
 
             $_SESSION['success'] = 'Password changed successfully';

@@ -59,6 +59,73 @@ class StaffController
     }
 
     /**
+     * Display create staff form
+     */
+    public function create()
+    {
+        if (!Auth::hasPermission('staff.create')) {
+            $_SESSION['error'] = 'You do not have permission to create staff members.';
+            redirect('/staff');
+            return;
+        }
+
+        $roles = $this->staffService->getAvailableRoles();
+        $pageTitle = 'Add Staff Member';
+
+        ob_start();
+        require __DIR__ . '/../../Views/staff/create.php';
+        $content = ob_get_clean();
+        require __DIR__ . '/../../Views/layouts/app.php';
+    }
+
+    /**
+     * Store new staff member
+     */
+    public function store()
+    {
+        if (!Auth::hasPermission('staff.create')) {
+            $_SESSION['error'] = 'You do not have permission to create staff members.';
+            redirect('/staff');
+            return;
+        }
+
+        // Validate required fields
+        $required = ['first_name', 'last_name', 'email', 'password', 'role_id'];
+        foreach ($required as $field) {
+            if (empty($_POST[$field])) {
+                $_SESSION['error'] = 'Please fill in all required fields.';
+                redirect('/staff/create');
+                return;
+            }
+        }
+
+        // Validate email format
+        if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['error'] = 'Please enter a valid email address.';
+            redirect('/staff/create');
+            return;
+        }
+
+        // Validate password length
+        if (strlen($_POST['password']) < 8) {
+            $_SESSION['error'] = 'Password must be at least 8 characters long.';
+            redirect('/staff/create');
+            return;
+        }
+
+        // Create staff member
+        $staffId = $this->staffService->createStaff($_POST);
+
+        if ($staffId) {
+            $_SESSION['success'] = 'Staff member created successfully.';
+            redirect('/staff/' . $staffId);
+        } else {
+            $_SESSION['error'] = 'Failed to create staff member. Email may already be in use.';
+            redirect('/staff/create');
+        }
+    }
+
+    /**
      * Display staff performance metrics
      */
     public function performance($id)

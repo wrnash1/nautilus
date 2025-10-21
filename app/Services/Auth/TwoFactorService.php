@@ -3,6 +3,7 @@
 namespace App\Services\Auth;
 
 use App\Core\Database;
+use PDO;
 use App\Core\Logger;
 
 /**
@@ -11,7 +12,7 @@ use App\Core\Logger;
  */
 class TwoFactorService
 {
-    private Database $db;
+    private PDO $db;
     private Logger $logger;
     private int $codeLength = 6;
     private int $period = 30; // seconds
@@ -55,7 +56,7 @@ class TwoFactorService
                         enabled = 1,
                         updated_at = NOW()";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 $userId,
                 $this->encrypt($secret),
@@ -81,7 +82,7 @@ class TwoFactorService
     {
         try {
             $sql = "UPDATE user_two_factor SET enabled = 0, updated_at = NOW() WHERE user_id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$userId]);
 
             $this->logger->info('2FA disabled for user', ['user_id' => $userId]);
@@ -102,7 +103,7 @@ class TwoFactorService
     public function isEnabled(int $userId): bool
     {
         $sql = "SELECT enabled FROM user_two_factor WHERE user_id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$userId]);
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -118,7 +119,7 @@ class TwoFactorService
         try {
             // Get user's secret
             $sql = "SELECT secret, backup_codes FROM user_two_factor WHERE user_id = ? AND enabled = 1";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$userId]);
 
             $twoFactor = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -251,7 +252,7 @@ class TwoFactorService
     public function getBackupCodes(int $userId): array
     {
         $sql = "SELECT backup_codes FROM user_two_factor WHERE user_id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$userId]);
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -271,7 +272,7 @@ class TwoFactorService
         $newCodes = $this->generateBackupCodes();
 
         $sql = "UPDATE user_two_factor SET backup_codes = ?, updated_at = NOW() WHERE user_id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $this->encrypt(json_encode($newCodes)),
             $userId
@@ -286,7 +287,7 @@ class TwoFactorService
     private function updateBackupCodes(int $userId, array $codes): void
     {
         $sql = "UPDATE user_two_factor SET backup_codes = ?, updated_at = NOW() WHERE user_id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $this->encrypt(json_encode($codes)),
             $userId
@@ -301,7 +302,7 @@ class TwoFactorService
         $sql = "INSERT INTO two_factor_logs (user_id, success, method, ip_address, user_agent, created_at)
                 VALUES (?, ?, ?, ?, ?, NOW())";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $userId,
             $success ? 1 : 0,

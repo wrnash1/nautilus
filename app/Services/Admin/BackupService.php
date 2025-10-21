@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Core\Database;
+use PDO;
 use App\Core\Logger;
 use Exception;
 
@@ -12,7 +13,7 @@ use Exception;
  */
 class BackupService
 {
-    private Database $db;
+    private PDO $db;
     private Logger $logger;
     private string $backupPath;
     private string $dbHost;
@@ -197,7 +198,7 @@ class BackupService
                 ORDER BY created_at DESC
                 LIMIT ? OFFSET ?";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$limit, $offset]);
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -210,7 +211,7 @@ class BackupService
     {
         $sql = "SELECT * FROM database_backups WHERE id = ?";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$id]);
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -237,7 +238,7 @@ class BackupService
 
             // Delete from database
             $sql = "DELETE FROM database_backups WHERE id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$backupId]);
 
             $this->logger->info("Backup deleted", ['backup_id' => $backupId]);
@@ -269,7 +270,7 @@ class BackupService
                     ORDER BY created_at DESC
                     LIMIT 999 OFFSET ?";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$keepCount]);
             $oldBackups = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -327,7 +328,7 @@ class BackupService
                 (filename, filepath, file_size, type, created_by, status, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, NOW())";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $data['filename'],
             $data['filepath'],
@@ -337,7 +338,7 @@ class BackupService
             $data['status']
         ]);
 
-        return (int)$this->db->getConnection()->lastInsertId();
+        return (int)$this->db->lastInsertId();
     }
 
     /**
@@ -346,7 +347,7 @@ class BackupService
     private function updateBackupStatus(int $backupId, string $status): void
     {
         $sql = "UPDATE database_backups SET status = ?, restored_at = NOW() WHERE id = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$status, $backupId]);
     }
 

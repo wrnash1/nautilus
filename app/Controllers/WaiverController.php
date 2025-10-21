@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Core\Database;
 use App\Services\Waiver\WaiverService;
 
 class WaiverController
@@ -154,7 +155,7 @@ class WaiverController
 
         $sql .= " ORDER BY sw.signed_at DESC LIMIT 100";
 
-        $waivers = $this->waiverService->db->query($sql, $params)->fetchAll();
+        $waivers = Database::query($sql, $params)->fetchAll();
 
         $content = $this->renderIndex($waivers);
         require BASE_PATH . '/app/Views/layouts/app.php';
@@ -175,7 +176,7 @@ class WaiverController
                 JOIN waiver_templates wt ON sw.waiver_template_id = wt.id
                 WHERE sw.id = ?";
 
-        $waiver = $this->waiverService->db->query($sql, [$id])->fetch();
+        $waiver = Database::query($sql, [$id])->fetch();
 
         if (!$waiver) {
             $_SESSION['flash_error'] = 'Waiver not found';
@@ -193,7 +194,7 @@ class WaiverController
     public function downloadPDF(int $id)
     {
         $sql = "SELECT pdf_path, customer_name FROM signed_waivers WHERE id = ?";
-        $waiver = $this->waiverService->db->query($sql, [$id])->fetch();
+        $waiver = Database::query($sql, [$id])->fetch();
 
         if (!$waiver || !$waiver['pdf_path'] || !file_exists($waiver['pdf_path'])) {
             $_SESSION['flash_error'] = 'PDF not found';

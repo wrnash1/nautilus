@@ -4,10 +4,11 @@ namespace App\Services\Waiver;
 
 use App\Core\Database;
 use PHPMailer\PHPMailer\PHPMailer;
+use PDO;
 
 class WaiverService
 {
-    private Database $db;
+    private PDO $db;
 
     public function __construct()
     {

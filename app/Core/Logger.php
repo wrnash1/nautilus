@@ -186,7 +186,7 @@ class Logger
             $sql = "INSERT INTO error_logs (level, message, context, url, ip_address, user_id, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, NOW())";
 
-            $stmt = $db->getConnection()->prepare($sql);
+            $stmt = $db->prepare($sql);
             $stmt->execute([
                 strtolower($level),
                 $message,

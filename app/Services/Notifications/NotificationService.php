@@ -3,6 +3,7 @@
 namespace App\Services\Notifications;
 
 use App\Core\Database;
+use PDO;
 use App\Core\Logger;
 
 /**
@@ -11,7 +12,7 @@ use App\Core\Logger;
  */
 class NotificationService
 {
-    private Database $db;
+    private PDO $db;
     private Logger $logger;
 
     public function __construct()
@@ -35,7 +36,7 @@ class NotificationService
             $sql = "INSERT INTO notifications (user_id, title, message, type, action_url, data, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, NOW())";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 $userId,
                 $title,
@@ -45,7 +46,7 @@ class NotificationService
                 $data ? json_encode($data) : null
             ]);
 
-            $notificationId = (int)$this->db->getConnection()->lastInsertId();
+            $notificationId = (int)$this->db->lastInsertId();
 
             $this->logger->info('Notification created', [
                 'notification_id' => $notificationId,
@@ -98,7 +99,7 @@ class NotificationService
 
         $sql .= " ORDER BY created_at DESC LIMIT ?";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$userId, $limit]);
 
         $notifications = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -121,7 +122,7 @@ class NotificationService
         $sql = "SELECT COUNT(*) as count FROM notifications
                 WHERE user_id = ? AND is_read = 0";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$userId]);
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -139,7 +140,7 @@ class NotificationService
                     SET is_read = 1, read_at = NOW()
                     WHERE id = ? AND user_id = ?";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$notificationId, $userId]);
 
             return $stmt->rowCount() > 0;
@@ -162,7 +163,7 @@ class NotificationService
                     SET is_read = 1, read_at = NOW()
                     WHERE user_id = ? AND is_read = 0";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$userId]);
 
             return $stmt->rowCount();
@@ -182,7 +183,7 @@ class NotificationService
     {
         try {
             $sql = "DELETE FROM notifications WHERE id = ? AND user_id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$notificationId, $userId]);
 
             return $stmt->rowCount() > 0;
@@ -205,7 +206,7 @@ class NotificationService
                     WHERE is_read = 1
                     AND read_at < DATE_SUB(NOW(), INTERVAL ? DAY)";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$daysOld]);
 
             return $stmt->rowCount();

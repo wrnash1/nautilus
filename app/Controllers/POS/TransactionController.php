@@ -28,7 +28,7 @@ class TransactionController
 
         // Get active courses for enrollment
         $db = Database::getInstance();
-        $stmt = $db->getConnection()->query("
+        $stmt = $db->query("
             SELECT id, course_code, name, price, duration_days, max_students
             FROM courses
             WHERE is_active = 1
@@ -65,9 +65,15 @@ class TransactionController
         $items = json_decode($_POST['items'] ?? '[]', true);
         $paymentMethod = sanitizeInput($_POST['payment_method'] ?? 'cash');
         $amountPaid = (float)($_POST['amount_paid'] ?? 0);
-        
-        if (empty($items) || $customerId <= 0) {
-            jsonResponse(['error' => 'Invalid transaction data'], 400);
+
+        // Allow empty customer_id for walk-in customers (will be set to NULL in transaction)
+        if (empty($items)) {
+            jsonResponse(['error' => 'Invalid transaction data - no items'], 400);
+        }
+
+        // Convert 0 to null for walk-in customers
+        if ($customerId === 0) {
+            $customerId = null;
         }
         
         try {

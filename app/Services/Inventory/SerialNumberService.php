@@ -3,6 +3,7 @@
 namespace App\Services\Inventory;
 
 use App\Core\Database;
+use PDO;
 use App\Core\Logger;
 use Exception;
 
@@ -12,7 +13,7 @@ use Exception;
  */
 class SerialNumberService
 {
-    private Database $db;
+    private PDO $db;
     private Logger $logger;
 
     public function __construct()
@@ -32,7 +33,7 @@ class SerialNumberService
                      purchase_date, purchase_cost, warranty_expiry, location, notes, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 $data['product_id'],
                 $data['serial_number'],
@@ -46,7 +47,7 @@ class SerialNumberService
                 $data['notes'] ?? null
             ]);
 
-            $serialId = (int)$this->db->getConnection()->lastInsertId();
+            $serialId = (int)$this->db->lastInsertId();
 
             // Log creation
             $this->logEvent($serialId, 'created', null, 'available',
@@ -78,7 +79,7 @@ class SerialNumberService
                 JOIN products p ON sn.product_id = p.id
                 WHERE sn.serial_number = ?";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$serialNumber]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -98,7 +99,7 @@ class SerialNumberService
                 JOIN products p ON sn.product_id = p.id
                 WHERE sn.barcode = ?";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$barcode]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -120,7 +121,7 @@ class SerialNumberService
                 WHERE product_id = ?
                 ORDER BY serial_number";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$productId]);
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -135,7 +136,7 @@ class SerialNumberService
                 WHERE product_id = ? AND status = 'available'
                 ORDER BY serial_number";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$productId]);
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -149,7 +150,7 @@ class SerialNumberService
         try {
             // Get current status
             $sql = "SELECT status, location FROM serial_numbers WHERE id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$serialId]);
             $current = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -161,7 +162,7 @@ class SerialNumberService
 
             // Update status
             $sql = "UPDATE serial_numbers SET status = ?, updated_at = NOW() WHERE id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$newStatus, $serialId]);
 
             // Log the status change
@@ -195,13 +196,13 @@ class SerialNumberService
         try {
             // Get current location
             $sql = "SELECT location FROM serial_numbers WHERE id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$serialId]);
             $oldLocation = $stmt->fetchColumn();
 
             // Update location
             $sql = "UPDATE serial_numbers SET location = ?, updated_at = NOW() WHERE id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$newLocation, $serialId]);
 
             // Log the location change
@@ -259,7 +260,7 @@ class SerialNumberService
 
             // Update condition rating
             $sql = "UPDATE serial_numbers SET condition_rating = ?, updated_at = NOW() WHERE id = ?";
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$conditionRating, $serialId]);
 
             // Log return event
@@ -314,7 +315,7 @@ class SerialNumberService
                         updated_at = NOW()
                     WHERE id = ?";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([$nextServiceDue, $serialId]);
 
             return true;
@@ -341,7 +342,7 @@ class SerialNumberService
                 AND sn.status = 'available'
                 ORDER BY sn.next_service_due";
 
-        $stmt = $this->db->getConnection()->query($sql);
+        $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -357,7 +358,7 @@ class SerialNumberService
                 ORDER BY snh.event_date DESC
                 LIMIT ?";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$serialId, $limit]);
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -380,7 +381,7 @@ class SerialNumberService
                  transaction_id, rental_id, work_order_id, performed_by, notes, event_date)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $serialId,
             $eventType,
@@ -405,7 +406,7 @@ class SerialNumberService
                 (barcode, scan_type, scanned_by, scan_location, scanned_at)
                 VALUES (?, ?, ?, ?, NOW())";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $barcode,
             $scanType,
@@ -413,7 +414,7 @@ class SerialNumberService
             $_SESSION['scan_location'] ?? 'web'
         ]);
 
-        return (int)$this->db->getConnection()->lastInsertId();
+        return (int)$this->db->lastInsertId();
     }
 
     /**
@@ -427,7 +428,7 @@ class SerialNumberService
                 ORDER BY scanned_at DESC
                 LIMIT 1";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$serialId, $productId, $result, $barcode]);
     }
 
@@ -446,7 +447,7 @@ class SerialNumberService
                 GROUP BY DATE(scanned_at), scan_type, result
                 ORDER BY scan_date DESC";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$days]);
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);

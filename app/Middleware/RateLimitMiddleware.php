@@ -3,6 +3,7 @@
 namespace App\Middleware;
 
 use App\Core\Database;
+use PDO;
 use App\Core\Cache;
 
 /**
@@ -12,7 +13,7 @@ use App\Core\Cache;
 class RateLimitMiddleware
 {
     private Cache $cache;
-    private Database $db;
+    private PDO $db;
     private int $maxAttempts;
     private int $decayMinutes;
 
@@ -146,7 +147,7 @@ class RateLimitMiddleware
             $sql = "INSERT INTO security_events (event_type, severity, description, ip_address, user_id, details, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, NOW())";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 $eventType,
                 'medium',

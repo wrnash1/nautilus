@@ -171,13 +171,13 @@ INSERT INTO product_images (product_id, file_path, file_name, alt_text, is_prima
 (30, 'https://placehold.co/400x300/20c997/ffffff?text=Hoodie', 'app-002.jpg', 'Nautilus Hoodie', 1, 1);
 
 -- Sample POS Transactions
-INSERT INTO pos_transactions (transaction_number, customer_id, total_amount, subtotal, tax_amount, payment_method, payment_status, transaction_date, created_by, created_at) VALUES
-('TXN-' || DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 5 DAY), '%Y%m%d') || '-001', 1, 169.98, 159.98, 10.00, 'credit_card', 'completed', DATE_SUB(NOW(), INTERVAL 5 DAY), 1, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-('TXN-' || DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 4 DAY), '%Y%m%d') || '-002', 2, 254.99, 239.99, 15.00, 'cash', 'completed', DATE_SUB(NOW(), INTERVAL 4 DAY), 1, DATE_SUB(NOW(), INTERVAL 4 DAY)),
-('TXN-' || DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 3 DAY), '%Y%m%d') || '-003', 3, 524.99, 499.00, 25.99, 'credit_card', 'completed', DATE_SUB(NOW(), INTERVAL 3 DAY), 1, DATE_SUB(NOW(), INTERVAL 3 DAY));
+INSERT INTO transactions (transaction_number, customer_id, transaction_type, subtotal, tax, total, status, transaction_date, cashier_id, created_at) VALUES
+(CONCAT('TXN-', DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 5 DAY), '%Y%m%d'), '-001'), 1, 'sale', 159.98, 10.00, 169.98, 'completed', DATE_SUB(NOW(), INTERVAL 5 DAY), 1, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(CONCAT('TXN-', DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 4 DAY), '%Y%m%d'), '-002'), 2, 'sale', 239.99, 15.00, 254.99, 'completed', DATE_SUB(NOW(), INTERVAL 4 DAY), 1, DATE_SUB(NOW(), INTERVAL 4 DAY)),
+(CONCAT('TXN-', DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 3 DAY), '%Y%m%d'), '-003'), 3, 'sale', 499.00, 25.99, 524.99, 'completed', DATE_SUB(NOW(), INTERVAL 3 DAY), 1, DATE_SUB(NOW(), INTERVAL 3 DAY));
 
 -- Sample POS Transaction Items
-INSERT INTO pos_transaction_items (transaction_id, product_id, product_name, sku, quantity, unit_price, total_price) VALUES
+INSERT INTO transaction_items (transaction_id, product_id, item_name, item_sku, quantity, unit_price, total) VALUES
 (1, 1, 'Cressi Big Eyes Evolution', 'MASK-001', 1, 89.99, 89.99),
 (1, 22, 'SMB Surface Marker Buoy', 'ACC-002', 2, 29.99, 59.99),
 (2, 5, 'Mares Avanti Quattro Plus', 'FIN-001', 1, 149.99, 149.99),
@@ -186,9 +186,9 @@ INSERT INTO pos_transaction_items (transaction_id, product_id, product_name, sku
 
 -- Sample E-commerce Orders
 INSERT INTO orders (order_number, customer_id, order_type, subtotal, shipping, tax, total, status, payment_status, shipping_address_line1, shipping_city, shipping_state, shipping_postal_code, shipping_country, created_at) VALUES
-('ORD-' || DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 10 DAY), '%Y%m%d') || '-ABC123', 1, 'online', 299.97, 10.00, 21.70, 331.67, 'delivered', 'paid', '123 Ocean Drive', 'Miami', 'FL', '33139', 'US', DATE_SUB(NOW(), INTERVAL 10 DAY)),
-('ORD-' || DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 7 DAY), '%Y%m%d') || '-DEF456', 2, 'online', 149.99, 10.00, 11.20, 171.19, 'shipped', 'paid', '456 Beach Blvd', 'San Diego', 'CA', '92101', 'US', DATE_SUB(NOW(), INTERVAL 7 DAY)),
-('ORD-' || DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 2 DAY), '%Y%m%d') || '-GHI789', 3, 'online', 449.97, 0.00, 31.50, 481.47, 'processing', 'paid', '789 Coral Way', 'Key West', 'FL', '33040', 'US', DATE_SUB(NOW(), INTERVAL 2 DAY));
+(CONCAT('ORD-', DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 10 DAY), '%Y%m%d'), '-ABC123'), 1, 'online', 299.97, 10.00, 21.70, 331.67, 'delivered', 'paid', '123 Ocean Drive', 'Miami', 'FL', '33139', 'US', DATE_SUB(NOW(), INTERVAL 10 DAY)),
+(CONCAT('ORD-', DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 7 DAY), '%Y%m%d'), '-DEF456'), 2, 'online', 149.99, 10.00, 11.20, 171.19, 'shipped', 'paid', '456 Beach Blvd', 'San Diego', 'CA', '92101', 'US', DATE_SUB(NOW(), INTERVAL 7 DAY)),
+(CONCAT('ORD-', DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 2 DAY), '%Y%m%d'), '-GHI789'), 3, 'online', 449.97, 0.00, 31.50, 481.47, 'processing', 'paid', '789 Coral Way', 'Key West', 'FL', '33040', 'US', DATE_SUB(NOW(), INTERVAL 2 DAY));
 
 -- Sample Order Items
 INSERT INTO order_items (order_id, product_id, product_name, sku, quantity, unit_price, total) VALUES

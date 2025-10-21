@@ -3,10 +3,11 @@
 namespace App\Controllers\API;
 
 use App\Core\Database;
+use PDO;
 
 class TokenController
 {
-    private Database $db;
+    private PDO $db;
 
     public function __construct()
     {
