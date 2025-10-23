@@ -1,0 +1,291 @@
+/* Storefront Styles - Themed Online Store */
+
+/* Apply theme variables to body */
+body {
+    font-family: var(--font-primary, system-ui, sans-serif);
+    color: var(--text-color, #212529);
+    line-height: var(--line-height, 1.5);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading, system-ui, sans-serif);
+    color: var(--heading-color, #000);
+}
+
+a {
+    color: var(--link-color, #0d6efd);
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--link-hover-color, #0a58ca);
+}
+
+/* Container */
+.container {
+    max-width: var(--container-max-width, 1200px);
+}
+
+/* Buttons */
+.btn {
+    border-radius: var(--border-radius, 0.375rem);
+}
+
+.btn-primary {
+    background-color: var(--primary-color, #0d6efd);
+    border-color: var(--primary-color, #0d6efd);
+}
+
+.btn-primary:hover {
+    background-color: var(--link-hover-color, #0a58ca);
+    border-color: var(--link-hover-color, #0a58ca);
+}
+
+/* Cards */
+.card {
+    border-radius: var(--border-radius, 0.375rem);
+    border-color: rgba(0, 0, 0, 0.125);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Product Cards */
+.product-card {
+    overflow: hidden;
+}
+
+.product-card:hover {
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+}
+
+.product-card img {
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover img {
+    transform: scale(1.05);
+}
+
+/* Category Cards */
+.category-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.category-card i {
+    transition: transform 0.3s ease;
+}
+
+.category-card:hover i {
+    transform: scale(1.2);
+}
+
+/* Header */
+.storefront-header .navbar {
+    transition: background-color 0.3s ease;
+}
+
+.storefront-header .navbar-light .navbar-nav .nav-link {
+    color: var(--text-color, #212529);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: color 0.2s ease;
+}
+
+.storefront-header .navbar-light .navbar-nav .nav-link:hover {
+    color: var(--primary-color, #0d6efd);
+}
+
+/* Hero Section */
+.hero-section {
+    position: relative;
+}
+
+.hero-overlay {
+    z-index: 1;
+}
+
+.hero-section .container {
+    z-index: 2;
+}
+
+.hero-cta .btn {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.hero-cta .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Homepage Sections */
+.homepage-section {
+    position: relative;
+}
+
+/* Footer */
+.storefront-footer {
+    background-color: var(--footer-bg, #212529);
+}
+
+.storefront-footer a {
+    transition: color 0.2s ease;
+}
+
+.storefront-footer a:hover {
+    color: var(--accent-color, #0dcaf0) !important;
+}
+
+/* Promotional Banner */
+.promotional-banner {
+    padding: 0.75rem 0;
+    text-align: center;
+}
+
+.promotional-banner a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+/* Shopping Cart Badge */
+#cart-count {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.4rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: 400px !important;
+    }
+
+    .hero-section h1 {
+        font-size: 2rem !important;
+    }
+
+    .hero-section .lead {
+        font-size: 1.1rem !important;
+    }
+
+    .hero-cta .btn {
+        font-size: 1rem !important;
+        padding: 0.75rem 2rem !important;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Price Display */
+.price .text-danger {
+    color: var(--danger-color, #dc3545) !important;
+}
+
+/* Badges */
+.badge {
+    border-radius: calc(var(--border-radius, 0.375rem) / 2);
+}
+
+/* Forms */
+.form-control:focus {
+    border-color: var(--primary-color, #0d6efd);
+    box-shadow: 0 0 0 0.25rem rgba(var(--primary-color), 0.25);
+}
+
+/* Testimonials */
+.testimonial-card {
+    background: var(--light-color, #f8f9fa);
+    border-left: 4px solid var(--primary-color, #0d6efd);
+}
+
+/* Star Ratings */
+.rating i {
+    color: var(--warning-color, #ffc107);
+}
+
+/* Social Links */
+.social-links a {
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.social-links a:hover {
+    transform: scale(1.2);
+}
+
+/* Top Bar */
+.top-bar a {
+    text-decoration: none;
+}
+
+.top-bar a:hover {
+    opacity: 0.8;
+}
+
+/* Dropdown Menus */
+.dropdown-menu {
+    border-radius: var(--border-radius, 0.375rem);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Image Placeholders */
+.bg-gradient {
+    background: linear-gradient(135deg, var(--primary-color, #0d6efd), var(--accent-color, #0dcaf0));
+}
+
+/* Newsletter Form */
+.newsletter-section {
+    background: linear-gradient(135deg, var(--primary-color, #0d6efd), var(--secondary-color, #6c757d));
+    color: white;
+}
+
+/* Brand Logos */
+.brand-logo img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Utility Classes */
+.text-primary {
+    color: var(--primary-color, #0d6efd) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary-color, #0d6efd) !important;
+}
+
+.border-primary {
+    border-color: var(--primary-color, #0d6efd) !important;
+}

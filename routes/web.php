@@ -14,10 +14,44 @@ $router->post('/install/process', 'Install\InstallController@install');
 $router->get('/install/progress', 'Install\InstallController@progress');
 $router->get('/install/complete', 'Install\InstallController@complete');
 
-$router->get('/', 'Admin\DashboardController@index', [AuthMiddleware::class]);
+// ============================================================================
+// PUBLIC STOREFRONT ROUTES (Customer-facing website)
+// ============================================================================
+
+// Homepage - Public storefront
+$router->get('/', 'HomeController@index');
+$router->get('/about', 'HomeController@about');
+$router->get('/contact', 'HomeController@contact');
+$router->post('/contact', 'HomeController@submitContact', [CsrfMiddleware::class]);
+
+// ============================================================================
+// ADMIN/STAFF ROUTES (Employee backend)
+// ============================================================================
+
+// Admin Dashboard & Auth
+$router->get('/admin', 'Admin\DashboardController@index', [AuthMiddleware::class]);
 $router->get('/login', 'Auth\AuthController@showLogin');
 $router->post('/login', 'Auth\AuthController@login');
 $router->post('/logout', 'Auth\AuthController@logout', [AuthMiddleware::class]);
+
+// Storefront Configuration (Admin only)
+$router->get('/admin/storefront', 'Admin\Storefront\StorefrontController@index', [AuthMiddleware::class]);
+$router->get('/admin/storefront/theme-designer', 'Admin\Storefront\StorefrontController@themeDesigner', [AuthMiddleware::class]);
+$router->get('/admin/storefront/theme', 'Admin\Storefront\StorefrontController@getTheme', [AuthMiddleware::class]);
+$router->post('/admin/storefront/theme', 'Admin\Storefront\StorefrontController@updateTheme', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/storefront/theme/create', 'Admin\Storefront\StorefrontController@createTheme', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/storefront/theme/activate', 'Admin\Storefront\StorefrontController@setActiveTheme', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/storefront/theme/delete', 'Admin\Storefront\StorefrontController@deleteTheme', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/admin/storefront/homepage-builder', 'Admin\Storefront\StorefrontController@homepageBuilder', [AuthMiddleware::class]);
+$router->post('/admin/storefront/sections', 'Admin\Storefront\StorefrontController@createSection', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/storefront/sections/update', 'Admin\Storefront\StorefrontController@updateSection', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/storefront/sections/delete', 'Admin\Storefront\StorefrontController@deleteSection', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/storefront/sections/reorder', 'Admin\Storefront\StorefrontController@reorderSections', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/admin/storefront/settings', 'Admin\Storefront\StorefrontController@settings', [AuthMiddleware::class]);
+$router->post('/admin/storefront/settings', 'Admin\Storefront\StorefrontController@updateSettings', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/admin/storefront/navigation', 'Admin\Storefront\StorefrontController@navigationManager', [AuthMiddleware::class]);
+$router->post('/admin/storefront/assets/upload', 'Admin\Storefront\StorefrontController@uploadAsset', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/admin/storefront/preview', 'Admin\Storefront\StorefrontController@previewTheme', [AuthMiddleware::class]);
 
 $router->get('/pos', 'POS\TransactionController@index', [AuthMiddleware::class]);
 $router->get('/pos/search', 'POS\TransactionController@searchProducts', [AuthMiddleware::class]);
