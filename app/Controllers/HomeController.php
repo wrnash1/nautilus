@@ -74,6 +74,10 @@ class HomeController
             'youtube' => $this->settings->get('youtube_url')
         ];
 
+        // Make service objects available to views
+        $settings = $this->settings;
+        $themeEngine = $this->themeEngine;
+
         require __DIR__ . '/../Views/storefront/home.php';
     }
 
@@ -209,12 +213,14 @@ class HomeController
     private function getUpcomingTrips(int $limit = 3): array
     {
         $stmt = $this->db->prepare("
-            SELECT t.*,
-                   (t.max_participants - (SELECT COUNT(*) FROM trip_bookings WHERE trip_id = t.id AND status IN ('confirmed', 'pending'))) as spots_available
-            FROM trips t
-            WHERE t.status = 'open'
-              AND t.departure_date > NOW()
-            ORDER BY t.departure_date ASC
+            SELECT ts.*, t.name, t.destination, t.description, t.duration_days, t.price,
+                   (ts.max_participants - (SELECT COUNT(*) FROM trip_bookings WHERE schedule_id = ts.id AND status IN ('confirmed', 'pending'))) as spots_available
+            FROM trip_schedules ts
+            JOIN trips t ON ts.trip_id = t.id
+            WHERE ts.status IN ('scheduled', 'confirmed')
+              AND ts.departure_date > NOW()
+              AND t.is_active = TRUE
+            ORDER BY ts.departure_date ASC
             LIMIT ?
         ");
         $stmt->execute([$limit]);
@@ -261,12 +267,10 @@ class HomeController
     private function getBrands(): array
     {
         $stmt = $this->db->query("
-            SELECT DISTINCT v.name, v.logo_url
+            SELECT DISTINCT v.id, v.name, v.website
             FROM vendors v
             INNER JOIN products p ON v.id = p.vendor_id
             WHERE v.is_active = TRUE
-              AND v.logo_url IS NOT NULL
-              AND v.logo_url != ''
             ORDER BY v.name ASC
         ");
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -280,6 +284,10 @@ class HomeController
         $theme = $this->themeEngine->getActiveTheme();
         $headerMenu = $this->settings->getNavigationMenu('header');
         $footerMenu = $this->settings->getNavigationMenu('footer');
+
+        // Make service objects available to views
+        $settings = $this->settings;
+        $themeEngine = $this->themeEngine;
 
         require __DIR__ . '/../Views/storefront/about.php';
     }
@@ -296,6 +304,10 @@ class HomeController
         $contactEmail = $this->settings->get('contact_email');
         $contactPhone = $this->settings->get('contact_phone');
         $storeAddress = $this->settings->get('store_address');
+
+        // Make service objects available to views
+        $settings = $this->settings;
+        $themeEngine = $this->themeEngine;
 
         require __DIR__ . '/../Views/storefront/contact.php';
     }

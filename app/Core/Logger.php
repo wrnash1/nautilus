@@ -23,7 +23,8 @@ class Logger
 
     public function __construct()
     {
-        $this->logPath = $_ENV['LOG_PATH'] ?? BASE_PATH . '/storage/logs';
+        $basePath = dirname(__DIR__, 2); // Go up two levels from app/Core to root
+        $this->logPath = $_ENV['LOG_PATH'] ?? $basePath . '/storage/logs';
         $this->logLevel = $_ENV['LOG_LEVEL'] ?? 'info';
 
         // Ensure log directory exists

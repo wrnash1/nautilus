@@ -40,14 +40,21 @@ class Router
     public function dispatch(string $method, string $uri): void
     {
         $uri = parse_url($uri, PHP_URL_PATH);
-        
-        $scriptName = $_SERVER['SCRIPT_NAME'];
-        $basePath = str_replace('/index.php', '', $scriptName);
-        
+
+        // Support APP_BASE_PATH from .env for enterprise portability
+        $basePath = $_ENV['APP_BASE_PATH'] ?? '';
+
+        // Fallback to auto-detection if not set
+        if (empty($basePath)) {
+            $scriptName = $_SERVER['SCRIPT_NAME'];
+            $basePath = str_replace('/index.php', '', $scriptName);
+        }
+
+        // Strip base path from URI
         if ($basePath && strpos($uri, $basePath) === 0) {
             $uri = substr($uri, strlen($basePath));
         }
-        
+
         if (empty($uri)) {
             $uri = '/';
         }
