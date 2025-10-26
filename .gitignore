@@ -46,6 +46,15 @@ yarn-error.log
 *.min.js
 *.min.css
 
+# Generated applications (build artifacts - not tracked in git)
+# These are created by scripts/split-enterprise-apps.sh
+/nautilus-customer/
+/nautilus-staff/
+
+# Deployment artifacts
+*.tar.gz
+*.zip
+
 # Temporary files
 *.tmp
 *.bak
