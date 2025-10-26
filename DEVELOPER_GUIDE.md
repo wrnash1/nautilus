@@ -1,19 +1,21 @@
-# Nautilus V6 - Complete Developer Guide
+# Nautilus - Complete Developer Guide
 
-This comprehensive guide will help you understand the Nautilus V6 codebase and add new features effectively.
+This comprehensive guide will help you understand the Nautilus codebase and add new features effectively.
 
 ## Table of Contents
 
 1. [Quick Start](#quick-start)
-2. [Architecture Overview](#architecture-overview)
-3. [Core Framework](#core-framework)
-4. [Adding New Features](#adding-new-features)
-5. [Database Operations](#database-operations)
-6. [Security Best Practices](#security-best-practices)
-7. [Common Patterns](#common-patterns)
-8. [Testing](#testing)
-9. [Deployment](#deployment)
-10. [Troubleshooting](#troubleshooting)
+2. [Development Environment](#development-environment)
+3. [Architecture Overview](#architecture-overview)
+4. [Core Framework](#core-framework)
+5. [Adding New Features](#adding-new-features)
+6. [Database Operations](#database-operations)
+7. [Security Best Practices](#security-best-practices)
+8. [Common Patterns](#common-patterns)
+9. [Development Workflow](#development-workflow)
+10. [Testing](#testing)
+11. [Deployment](#deployment)
+12. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -31,8 +33,8 @@ This comprehensive guide will help you understand the Nautilus V6 codebase and a
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository-url> nautilus-v6
-   cd nautilus-v6
+   git clone <repository-url> nautilus
+   cd nautilus
    ```
 
 2. **Install dependencies:**
@@ -55,10 +57,245 @@ This comprehensive guide will help you understand the Nautilus V6 codebase and a
 5. **Run installation wizard:**
    Visit `http://localhost/nautilus/public/install` in your browser
 
+---
+
+## Development Environment
+
+### System Setup
+
+Nautilus is developed on **Linux (Pop!_OS/Ubuntu)** with the following environment:
+
+**Development Machine:**
+- **OS:** Pop!_OS (Ubuntu-based)
+- **Shell:** bash (sh-5.3)
+- **User:** wrnash1
+- **Development Directory:** `/home/wrnash1/Developer/nautilus`
+- **Web Server Directory:** `/var/www/html/nautilus`
+
+**Software Stack:**
+- **PHP:** 8.2+
+- **MySQL/MariaDB:** 8.0+/10.6+
+- **Apache:** 2.4+ with mod_rewrite
+- **Composer:** Latest version
+- **Git:** Version control
+
+### Directory Structure
+
+```
+/home/wrnash1/Developer/nautilus/    ← Development directory (your working code)
+    ↓
+    [Development and Testing]
+    ↓
+/var/www/html/nautilus/                  ← Production/Testing web directory
+```
+
+**Development Workflow:**
+1. Code and test in `/home/wrnash1/Developer/nautilus/`
+2. Deploy to web server at `/var/www/html/nautilus/` for live testing
+3. Test in browser via Apache web server
+
+### Required PHP Extensions
+
+Ensure all extensions are installed:
+
+```bash
+# Check installed extensions
+php -m
+
+# Required extensions:
+# - mysqli
+# - pdo
+# - pdo_mysql
+# - json
+# - curl
+# - mbstring
+# - openssl
+# - gd
+# - xml
+# - zip
+
+# Install missing extensions (Ubuntu/Pop!_OS)
+sudo apt install php8.2-mysql php8.2-curl php8.2-mbstring php8.2-xml php8.2-gd php8.2-zip
+```
+
+### Apache Configuration
+
+**Enable Required Modules:**
+```bash
+sudo a2enmod rewrite
+sudo a2enmod ssl
+sudo systemctl restart apache2
+```
+
+**VirtualHost Setup:**
+
+Create `/etc/apache2/sites-available/nautilus.conf`:
+```apache
+<VirtualHost *:80>
+    ServerName localhost
+    DocumentRoot /var/www/html/nautilus/public
+
+    <Directory /var/www/html/nautilus/public>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/nautilus-error.log
+    CustomLog ${APACHE_LOG_DIR}/nautilus-access.log combined
+</VirtualHost>
+```
+
+Enable the site:
+```bash
+sudo a2ensite nautilus.conf
+sudo systemctl reload apache2
+```
+
+### MySQL/MariaDB Setup
+
+**Create Database:**
+```bash
+mysql -u root -p
+```
+
+```sql
+CREATE DATABASE nautilus CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'nautilus_user'@'localhost' IDENTIFIED BY 'your_secure_password';
+GRANT ALL PRIVILEGES ON nautilus.* TO 'nautilus_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+**Configure .env:**
+```ini
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=nautilus
+DB_USERNAME=nautilus_user
+DB_PASSWORD=your_secure_password
+```
+
+### Composer Dependencies
+
+**Install Composer (if not installed):**
+```bash
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+sudo chmod +x /usr/local/bin/composer
+```
+
+**Install Project Dependencies:**
+```bash
+cd /home/wrnash1/Developer/nautilus
+composer install
+```
+
+### File Permissions
+
+**Development Environment:**
+```bash
+# Set proper ownership for development
+cd /home/wrnash1/Developer/nautilus
+chmod -R 755 storage/
+chmod -R 755 public/uploads/
+chmod 644 .env
+```
+
+**Web Server Environment:**
+```bash
+# After deploying to web server
+cd /var/www/html/nautilus
+sudo chown -R www-data:www-data .
+sudo chmod -R 755 storage/
+sudo chmod -R 755 public/uploads/
+sudo chmod 644 .env
+```
+
+### Git Configuration
+
+**Initialize Repository (if not already):**
+```bash
+cd /home/wrnash1/Developer/nautilus
+git init
+git add .
+git commit -m "Initial commit"
+```
+
+**Recommended .gitignore:**
+```
+vendor/
+.env
+storage/logs/*
+storage/cache/*
+storage/sessions/*
+public/uploads/*
+!storage/logs/.gitkeep
+!storage/cache/.gitkeep
+!storage/sessions/.gitkeep
+!public/uploads/.gitkeep
+*.log
+.DS_Store
+Thumbs.db
+```
+
+### IDE/Editor Setup
+
+**Recommended: Visual Studio Code**
+
+Install useful extensions:
+```bash
+# PHP Intelephense
+# PHP Debug
+# GitLens
+# Apache Conf
+# MySQL (Weijan Chen)
+```
+
+**VSCode Settings** (`.vscode/settings.json`):
+```json
+{
+    "php.suggest.basic": false,
+    "php.validate.executablePath": "/usr/bin/php",
+    "files.associations": {
+        "*.php": "php"
+    },
+    "files.exclude": {
+        "vendor/": true,
+        "storage/logs/": true,
+        "storage/cache/": true
+    }
+}
+```
+
+### Development Tools
+
+**Useful Command-Line Tools:**
+
+```bash
+# PHP Syntax Check
+php -l app/Controllers/YourController.php
+
+# Check PHP Version
+php -v
+
+# Check Apache Status
+sudo systemctl status apache2
+
+# Check MySQL Status
+sudo systemctl status mysql
+
+# View Apache Error Logs
+sudo tail -f /var/log/apache2/error.log
+
+# View Application Logs
+tail -f /var/www/html/nautilus/storage/logs/app.log
+```
+
 ### Project Structure
 
 ```
-nautilus-v6/
+nautilus/
 ├── app/
 │   ├── Controllers/           # HTTP request handlers
 │   │   ├── Admin/            # Admin functionality
@@ -110,7 +347,7 @@ nautilus-v6/
 
 ### MVC Pattern
 
-Nautilus V6 follows the Model-View-Controller pattern:
+Nautilus follows the Model-View-Controller pattern:
 
 ```
 User Request → Router → Middleware → Controller → Service → Model → Database
@@ -130,7 +367,7 @@ User Request → Router → Middleware → Controller → Service → Model → 
 
 ### Two-App Architecture
 
-Nautilus V6 can be deployed as two separate applications sharing one database:
+Nautilus can be deployed as two separate applications sharing one database:
 
 - **nautilus-storefront** (External): Public e-commerce site
 - **nautilus-store** (Internal): Staff management system
@@ -1589,10 +1826,443 @@ logActivity('inventory_adjusted', 'Adjusted stock for product ID: ' . $productId
 
 ---
 
+## Development Workflow
+
+### Daily Development Process
+
+**Standard Workflow:**
+
+1. **Start in Development Directory**
+   ```bash
+   cd /home/wrnash1/Developer/nautilus
+   ```
+
+2. **Make Code Changes**
+   - Edit files using your IDE/editor
+   - Add new features, fix bugs, update documentation
+   - Test syntax if needed:
+     ```bash
+     php -l app/Controllers/YourController.php
+     ```
+
+3. **Deploy to Web Server for Testing**
+   ```bash
+   # Navigate to web server directory
+   cd /var/www/html
+
+   # Sync development code to web server (excluding vendor/)
+   sudo rsync -av --delete --exclude='vendor/' \
+     /home/wrnash1/Developer/nautilus/ \
+     /var/www/html/nautilus/
+
+   # Set proper ownership
+   sudo chown -R www-data:www-data nautilus/
+   ```
+
+4. **Test in Browser**
+   - Visit `http://localhost/nautilus/public` or your configured domain
+   - Test the new functionality
+   - Check for errors in browser and logs
+
+5. **View Logs (if errors)**
+   ```bash
+   # Apache error log
+   sudo tail -f /var/log/apache2/error.log
+
+   # Application log
+   sudo tail -f /var/www/html/nautilus/storage/logs/app.log
+   ```
+
+6. **Iterate**
+   - If issues found, return to step 2
+   - Make fixes in `/home/wrnash1/Developer/nautilus/`
+   - Re-deploy using step 3
+   - Re-test in step 4
+
+7. **Commit Changes**
+   ```bash
+   cd /home/wrnash1/Developer/nautilus
+   git add .
+   git commit -m "Descriptive commit message"
+   git push origin main
+   ```
+
+### Quick Deploy Script
+
+Create a deployment helper script for faster testing:
+
+**Create:** `/home/wrnash1/Developer/deploy-to-test.sh`
+
+```bash
+#!/bin/bash
+
+# Nautilus - Deploy to Test Server Script
+
+echo "=================================="
+echo "Deploying Nautilus to Test Server"
+echo "=================================="
+
+# Source and destination
+SOURCE="/home/wrnash1/Developer/nautilus/"
+DEST="/var/www/html/nautilus/"
+
+# Deploy
+echo "Syncing files..."
+sudo rsync -av --delete --exclude='vendor/' \
+    --exclude='.git/' \
+    --exclude='storage/logs/*' \
+    --exclude='storage/cache/*' \
+    --exclude='storage/sessions/*' \
+    $SOURCE $DEST
+
+# Set permissions
+echo "Setting permissions..."
+sudo chown -R www-data:www-data $DEST
+sudo chmod -R 755 $DEST/storage
+sudo chmod -R 755 $DEST/public/uploads
+
+echo "=================================="
+echo "Deployment Complete!"
+echo "Test at: http://localhost/nautilus/public"
+echo "=================================="
+```
+
+Make it executable:
+```bash
+chmod +x /home/wrnash1/Developer/deploy-to-test.sh
+```
+
+**Usage:**
+```bash
+# From anywhere, run:
+~/Developer/deploy-to-test.sh
+```
+
+### Development Best Practices
+
+**1. Always Develop in `/home/wrnash1/Developer/nautilus/`**
+- Never edit files directly in `/var/www/html/nautilus/`
+- Treat web server directory as read-only (deployment target only)
+
+**2. Use Version Control**
+```bash
+# Before making changes
+git checkout -b feature/new-feature-name
+
+# Make changes, test, commit
+git add .
+git commit -m "Add new feature"
+
+# Merge when complete
+git checkout main
+git merge feature/new-feature-name
+```
+
+**3. Test Before Committing**
+- Deploy to test server
+- Verify functionality works
+- Check for PHP errors
+- Verify database queries work
+- Test edge cases
+
+**4. Keep Dependencies Updated**
+```bash
+cd /home/wrnash1/Developer/nautilus
+composer update
+
+# Then deploy to web server
+cd /var/www/html/nautilus
+sudo composer install
+```
+
+**5. Database Changes**
+```bash
+# Create migration file
+# Edit: database/migrations/XXX_description.sql
+
+# Test migration
+mysql -u root -p nautilus < database/migrations/XXX_description.sql
+
+# Verify tables created
+mysql -u root -p nautilus -e "SHOW TABLES;"
+```
+
+### Debugging Techniques
+
+**Enable Debug Mode (Development Only):**
+
+Edit `.env`:
+```ini
+APP_ENV=local
+APP_DEBUG=true
+```
+
+**View Errors in Browser:**
+- Errors will display in browser when `APP_DEBUG=true`
+- Never enable in production!
+
+**Log Debugging:**
+```php
+// Add to your code for debugging
+error_log("Debug: Variable value = " . print_r($variable, true));
+
+// View in logs
+tail -f /var/www/html/nautilus/storage/logs/app.log
+```
+
+**Database Query Debugging:**
+```php
+// Enable query logging temporarily
+$db = Database::getInstance();
+
+// Your queries here
+$result = $db->fetchAll("SELECT * FROM products");
+
+// Check MySQL slow query log
+sudo tail -f /var/log/mysql/slow-query.log
+```
+
+**Apache Debugging:**
+```bash
+# Check Apache configuration
+sudo apache2ctl -t
+
+# Check what Apache is serving
+curl -I http://localhost/nautilus/public
+
+# View real-time Apache access
+sudo tail -f /var/log/apache2/access.log
+```
+
+### Common Development Tasks
+
+**Adding a New Controller:**
+```bash
+cd /home/wrnash1/Developer/nautilus
+
+# Create controller file
+nano app/Controllers/YourModule/YourController.php
+
+# Add route
+nano routes/web.php
+
+# Deploy and test
+~/Developer/deploy-to-test.sh
+```
+
+**Adding a New Database Table:**
+```bash
+# Create migration
+nano database/migrations/020_create_your_table.sql
+
+# Run migration
+mysql -u root -p nautilus < database/migrations/020_create_your_table.sql
+
+# Create model
+nano app/Models/YourModel.php
+
+# Deploy and test
+~/Developer/deploy-to-test.sh
+```
+
+**Updating an Existing Feature:**
+```bash
+# 1. Make changes in development
+cd /home/wrnash1/Developer/nautilus
+nano app/Controllers/Existing/Controller.php
+
+# 2. Test syntax
+php -l app/Controllers/Existing/Controller.php
+
+# 3. Deploy
+~/Developer/deploy-to-test.sh
+
+# 4. Test in browser
+firefox http://localhost/nautilus/public/your-route
+
+# 5. Check logs if issues
+sudo tail -f /var/log/apache2/error.log
+```
+
+### Environment Variables
+
+**Development (.env):**
+```ini
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost/nautilus/public
+
+DB_HOST=localhost
+DB_DATABASE=nautilus_dev
+DB_USERNAME=root
+DB_PASSWORD=your_dev_password
+```
+
+**Testing/Staging (.env):**
+```ini
+APP_ENV=staging
+APP_DEBUG=true
+APP_URL=http://test.yourdomain.com
+
+DB_HOST=localhost
+DB_DATABASE=nautilus_test
+DB_USERNAME=nautilus_test
+DB_PASSWORD=test_password
+```
+
+**Production (.env):**
+```ini
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://yourdomain.com
+
+DB_HOST=localhost
+DB_DATABASE=nautilus
+DB_USERNAME=nautilus_user
+DB_PASSWORD=secure_production_password
+```
+
+### Code Quality Tools
+
+**PHP CodeSniffer (Optional):**
+```bash
+# Install
+composer require --dev squizlabs/php_codesniffer
+
+# Check code
+vendor/bin/phpcs app/Controllers/YourController.php
+
+# Auto-fix
+vendor/bin/phpcbf app/Controllers/YourController.php
+```
+
+**PHP Mess Detector (Optional):**
+```bash
+# Install
+composer require --dev phpmd/phpmd
+
+# Check code
+vendor/bin/phpmd app/Controllers text cleancode,codesize,controversial,design,naming,unusedcode
+```
+
+### Performance Monitoring
+
+**Enable Query Logging:**
+```sql
+-- In MySQL
+SET GLOBAL general_log = 'ON';
+SET GLOBAL log_output = 'FILE';
+SET GLOBAL general_log_file = '/var/log/mysql/queries.log';
+```
+
+**Monitor Slow Queries:**
+```bash
+# Watch slow query log
+sudo tail -f /var/log/mysql/slow-query.log
+```
+
+**Application Performance:**
+```php
+// Add to controllers for timing
+$start = microtime(true);
+
+// Your code here
+
+$end = microtime(true);
+error_log("Execution time: " . ($end - $start) . " seconds");
+```
+
+---
+
 ## Testing
 
-### Running Tests
+### Testing Approach
 
+Nautilus uses a **manual testing workflow** combined with the rsync deployment process described above.
+
+### Manual Testing Process
+
+**1. Deploy to Test Server**
+
+After making code changes in `/home/wrnash1/Developer/nautilus/`:
+
+```bash
+# Navigate to web server root
+cd /var/www/html
+
+# Deploy your changes
+sudo rsync -av --delete --exclude='vendor/' \
+  /home/wrnash1/Developer/nautilus/ \
+  /var/www/html/nautilus/
+
+# Set proper ownership for Apache
+sudo chown -R www-data:www-data nautilus/
+```
+
+**2. Test in Browser**
+
+```bash
+# Open browser and test
+firefox http://localhost/nautilus/public
+
+# Or use curl for API testing
+curl http://localhost/nautilus/public/api/endpoint
+```
+
+**3. Monitor Logs During Testing**
+
+```bash
+# Watch Apache error log in one terminal
+sudo tail -f /var/log/apache2/error.log
+
+# Watch application log in another terminal
+sudo tail -f /var/www/html/nautilus/storage/logs/app.log
+
+# Watch MySQL query log (if enabled)
+sudo tail -f /var/log/mysql/queries.log
+```
+
+### Testing Checklist
+
+Before considering a feature complete, test:
+
+**Functionality:**
+- [ ] Feature works as expected
+- [ ] All routes accessible
+- [ ] Forms submit correctly
+- [ ] Database queries execute
+- [ ] Data displays properly
+
+**Error Handling:**
+- [ ] Invalid input handled gracefully
+- [ ] Database errors caught
+- [ ] User-friendly error messages
+- [ ] No PHP warnings/notices
+
+**Security:**
+- [ ] CSRF tokens present
+- [ ] Input sanitized
+- [ ] Output escaped
+- [ ] SQL injection prevented
+- [ ] Authentication checked
+
+**Performance:**
+- [ ] Page loads quickly
+- [ ] No N+1 query issues
+- [ ] Images optimized
+- [ ] No memory leaks
+
+### Automated Testing (Optional)
+
+While manual testing is primary, you can set up PHPUnit for automated tests:
+
+**Install PHPUnit:**
+```bash
+cd /home/wrnash1/Developer/nautilus
+composer require --dev phpunit/phpunit
+```
+
+**Run Tests:**
 ```bash
 # Run all tests
 vendor/bin/phpunit
@@ -1788,4 +2458,4 @@ For questions or issues:
 
 ---
 
-**Happy coding!** This guide should help you understand and extend the Nautilus V6 application effectively.
+**Happy coding!** This guide should help you understand and extend the Nautilus application effectively.

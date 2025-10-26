@@ -1,6 +1,6 @@
 {
     "name": "nautilus/dive-shop-management",
-    "description": "Nautilus v1.0 - Enterprise-grade Dive Shop Management System",
+    "description": "Nautilus - Enterprise-grade Dive Shop Management System",
     "type": "project",
     "license": "proprietary",
     "require": {

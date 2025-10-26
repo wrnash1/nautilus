@@ -1,8 +1,8 @@
-# Nautilus V6 - Application Split Guide
+# Nautilus - Application Split Guide
 
 ## Overview
 
-This guide explains the separation of Nautilus V6 into two independent applications:
+This guide explains the separation of Nautilus into two independent applications:
 
 1. **nautilus-storefront** - External customer-facing e-commerce website
 2. **nautilus-store** - Internal staff management system with role-based access
@@ -129,7 +129,7 @@ Both applications share the **same database** but are completely separate codeba
 ### Step 1: Execute the Split Script
 
 ```bash
-cd /home/wrnash1/Developer/nautilus-v6
+cd /home/wrnash1/Developer/nautilus
 chmod +x scripts/split-applications.sh
 ./scripts/split-applications.sh
 ```

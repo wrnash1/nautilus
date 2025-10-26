@@ -191,7 +191,7 @@ These modules have complete structure (database, controllers, services with busi
 
 ```bash
 # Clone the repository
-git clone https://github.com/wrnash1/nautilus-v6.git
+git clone https://github.com/wrnash1/nautilus.git
 cd nautilus
 
 # Install dependencies

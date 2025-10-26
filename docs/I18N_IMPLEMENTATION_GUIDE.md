@@ -1,7 +1,7 @@
 # Multi-Language Support (i18n) Implementation Guide
 
 ## Overview
-Nautilus V6 includes a comprehensive internationalization (i18n) system that supports 8 languages out of the box, with easy extensibility for additional languages.
+Nautilus includes a comprehensive internationalization (i18n) system that supports 8 languages out of the box, with easy extensibility for additional languages.
 
 ## Supported Languages
 - 🇺🇸 English (en) - Default
@@ -49,7 +49,7 @@ Get a translation with optional placeholder replacement.
 ```php
 // Simple translation
 echo __('messages.welcome');
-// Output: "Welcome to Nautilus V6"
+// Output: "Welcome to Nautilus"
 
 // With replacements
 echo __('messages.success.created', ['item' => 'Customer']);
@@ -208,7 +208,7 @@ Edit each file and translate the strings:
 ```php
 // app/Languages/de/messages.php
 return [
-    'welcome' => 'Willkommen bei Nautilus V6',
+    'welcome' => 'Willkommen bei Nautilus',
     'dashboard' => 'Instrumententafel',
     'save' => 'Speichern',
     'cancel' => 'Abbrechen',
@@ -268,7 +268,7 @@ Response:
 ### 1. Always Use Translation Keys
 ❌ **Don't:**
 ```php
-echo "Welcome to Nautilus V6";
+echo "Welcome to Nautilus";
 ```
 
 ✅ **Do:**
@@ -353,7 +353,7 @@ public function testTranslation()
     $translator->setLocale('es');
 
     $result = $translator->get('messages.welcome');
-    $this->assertEquals('Bienvenido a Nautilus V6', $result);
+    $this->assertEquals('Bienvenido a Nautilus', $result);
 }
 ```
 

@@ -136,8 +136,8 @@ For advanced users who prefer command-line installation:
 ### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/nautilus-v6.git
-cd nautilus-v6
+git clone https://github.com/yourusername/nautilus.git
+cd nautilus
 ```
 
 ### Step 2: Install Dependencies

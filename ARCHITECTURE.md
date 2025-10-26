@@ -1,4 +1,4 @@
-# Nautilus V6 - Architecture Overview
+# Nautilus - Architecture Overview
 
 ## Application Structure
 

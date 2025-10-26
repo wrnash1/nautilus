@@ -1,10 +1,10 @@
-# Nautilus V6 - Quick Start Guide
+# Nautilus - Quick Start Guide
 
 ## 🚀 Split Applications in 5 Steps
 
 ### 1️⃣ Run the Split Script
 ```bash
-cd /home/wrnash1/Developer/nautilus-v6
+cd /home/wrnash1/Developer/nautilus
 ./scripts/split-applications.sh
 ```
 

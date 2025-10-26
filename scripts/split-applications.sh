@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################################################
-# Nautilus V6 - Application Split Script
+# Nautilus - Application Split Script
 #
 # This script splits the monolithic application into two separate applications:
 # 1. nautilus-storefront (External - Customer facing)
@@ -19,13 +19,13 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-SOURCE_DIR="/home/wrnash1/Developer/nautilus-v6"
+SOURCE_DIR="/home/wrnash1/Developer/nautilus"
 TARGET_BASE="/home/wrnash1/Developer"
 STOREFRONT_DIR="$TARGET_BASE/nautilus-storefront"
 STORE_DIR="$TARGET_BASE/nautilus-store"
 
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║     Nautilus V6 - Application Split Script                ║${NC}"
+echo -e "${GREEN}║     Nautilus - Application Split Script                ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
