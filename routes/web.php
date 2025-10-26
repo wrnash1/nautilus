@@ -196,6 +196,7 @@ $router->get('/shop', 'Shop\ShopController@index');
 $router->get('/shop/product/{id}', 'Shop\ShopController@productDetail');
 $router->post('/shop/cart/add', 'Shop\ShopController@addToCart', [CsrfMiddleware::class]);
 $router->get('/shop/cart', 'Shop\ShopController@cart');
+$router->get('/shop/cart/count', 'Shop\ShopController@cartCount');
 $router->post('/shop/cart/update', 'Shop\ShopController@updateCart', [CsrfMiddleware::class]);
 $router->get('/shop/checkout', 'Shop\ShopController@checkout');
 $router->post('/shop/checkout', 'Shop\ShopController@processCheckout', [CsrfMiddleware::class]);

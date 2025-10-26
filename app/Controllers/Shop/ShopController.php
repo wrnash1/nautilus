@@ -145,11 +145,20 @@ class ShopController
         $this->cartService->clearCart();
         
         $_SESSION['flash_success'] = 'Order placed successfully!';
-        
+
         if (\App\Core\CustomerAuth::check()) {
             redirect('/account/orders/' . $orderId);
         } else {
             redirect('/orders/' . $orderId);
         }
+    }
+
+    public function cartCount()
+    {
+        $cart = $this->cartService->getCart();
+        $count = array_sum(array_column($cart, 'quantity'));
+
+        header('Content-Type: application/json');
+        echo json_encode(['count' => $count]);
     }
 }
