@@ -24,15 +24,88 @@ class ThemeEngine
             return $this->activeTheme;
         }
 
-        $stmt = $this->db->prepare("
-            SELECT * FROM theme_config
-            WHERE is_active = TRUE
-            LIMIT 1
-        ");
-        $stmt->execute();
-        $this->activeTheme = $stmt->fetch(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare("
+                SELECT * FROM theme_config
+                WHERE is_active = TRUE
+                LIMIT 1
+            ");
+            $stmt->execute();
+            $this->activeTheme = $stmt->fetch(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // If theme_config table doesn't exist, return default theme data
+            if ($e->getCode() === '42S02') {
+                $this->activeTheme = $this->getDefaultTheme();
+            } else {
+                throw $e;
+            }
+        }
 
         return $this->activeTheme;
+    }
+
+    /**
+     * Get default theme configuration when table doesn't exist
+     */
+    private function getDefaultTheme(): array
+    {
+        return [
+            'id' => 0,
+            'theme_name' => 'Default',
+            'is_active' => true,
+            'is_default' => true,
+            'primary_color' => '#0d6efd',
+            'secondary_color' => '#6c757d',
+            'accent_color' => '#0dcaf0',
+            'success_color' => '#198754',
+            'danger_color' => '#dc3545',
+            'warning_color' => '#ffc107',
+            'info_color' => '#0dcaf0',
+            'dark_color' => '#212529',
+            'light_color' => '#f8f9fa',
+            'body_bg_color' => '#ffffff',
+            'header_bg_color' => '#ffffff',
+            'footer_bg_color' => '#212529',
+            'hero_bg_color' => '#01012e',
+            'text_color' => '#212529',
+            'heading_color' => '#000000',
+            'link_color' => '#0d6efd',
+            'link_hover_color' => '#0a58ca',
+            'font_family_primary' => 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+            'font_family_heading' => 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+            'font_size_base' => '16px',
+            'font_size_heading_1' => '2.5rem',
+            'font_size_heading_2' => '2rem',
+            'font_size_heading_3' => '1.75rem',
+            'line_height' => '1.5',
+            'container_max_width' => '1200px',
+            'border_radius' => '0.375rem',
+            'spacing_unit' => '1rem',
+            'header_style' => 'solid',
+            'nav_position' => 'top',
+            'show_search_bar' => true,
+            'show_cart_icon' => true,
+            'show_account_icon' => true,
+            'hero_style' => 'image',
+            'hero_height' => '500px',
+            'hero_overlay_opacity' => '0.5',
+            'show_hero_cta' => true,
+            'hero_cta_text' => 'Shop Now',
+            'hero_cta_url' => '/shop',
+            'products_per_row' => 4,
+            'product_card_style' => 'classic',
+            'show_product_ratings' => true,
+            'show_product_quick_view' => true,
+            'show_add_to_cart_button' => true,
+            'show_wishlist_button' => true,
+            'footer_style' => 'detailed',
+            'show_newsletter_signup' => true,
+            'show_social_links' => true,
+            'show_payment_icons' => true,
+            'custom_css' => '',
+            'custom_js' => '',
+            'custom_head_html' => '',
+        ];
     }
 
     /**
@@ -254,13 +327,22 @@ class ThemeEngine
             return null;
         }
 
-        $stmt = $this->db->prepare("
-            SELECT * FROM theme_assets
-            WHERE theme_id = ? AND asset_type = ? AND is_primary = TRUE
-            LIMIT 1
-        ");
-        $stmt->execute([$theme['id'], $assetType]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        try {
+            $stmt = $this->db->prepare("
+                SELECT * FROM theme_assets
+                WHERE theme_id = ? AND asset_type = ? AND is_primary = TRUE
+                LIMIT 1
+            ");
+            $stmt->execute([$theme['id'], $assetType]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\PDOException $e) {
+            // If theme_assets table doesn't exist, return null
+            if ($e->getCode() === '42S02') {
+                return null;
+            } else {
+                throw $e;
+            }
+        }
     }
 
     /**
@@ -323,22 +405,31 @@ class ThemeEngine
             return [];
         }
 
-        $stmt = $this->db->prepare("
-            SELECT * FROM homepage_sections
-            WHERE theme_id = ? AND is_active = TRUE
-            ORDER BY display_order ASC
-        ");
-        $stmt->execute([$themeId]);
-        $sections = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare("
+                SELECT * FROM homepage_sections
+                WHERE theme_id = ? AND is_active = TRUE
+                ORDER BY display_order ASC
+            ");
+            $stmt->execute([$themeId]);
+            $sections = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        // Decode JSON config
-        foreach ($sections as &$section) {
-            if (!empty($section['config'])) {
-                $section['config'] = json_decode($section['config'], true);
+            // Decode JSON config
+            foreach ($sections as &$section) {
+                if (!empty($section['config'])) {
+                    $section['config'] = json_decode($section['config'], true);
+                }
+            }
+
+            return $sections;
+        } catch (\PDOException $e) {
+            // If homepage_sections table doesn't exist, return empty array
+            if ($e->getCode() === '42S02') {
+                return [];
+            } else {
+                throw $e;
             }
         }
-
-        return $sections;
     }
 
     /**

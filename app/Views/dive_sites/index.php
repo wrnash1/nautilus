@@ -21,17 +21,30 @@ ob_start();
     use App\Core\Database;
 
     $db = Database::getInstance();
-    $stmt = $db->query("
-        SELECT id, name, location, country, max_depth, difficulty_level, is_active
-        FROM dive_sites
-        ORDER BY name
-    ");
-    $diveSites = $stmt->fetchAll();
+    $diveSites = [];
+    $tableExists = true;
+
+    try {
+        $stmt = $db->query("
+            SELECT id, name, location, country, max_depth, difficulty_level, is_active
+            FROM dive_sites
+            ORDER BY name
+        ");
+        $diveSites = $stmt->fetchAll();
+    } catch (\PDOException $e) {
+        $tableExists = false;
+    }
     ?>
 
     <div class="card">
         <div class="card-body">
-            <?php if (empty($diveSites)): ?>
+            <?php if (!$tableExists): ?>
+                <div class="alert alert-info">
+                    <h4><i class="bi bi-info-circle"></i> Dive Sites Feature Not Yet Configured</h4>
+                    <p>The dive sites database table has not been created yet. This feature will be available once the database migrations are completed.</p>
+                    <p class="mb-0"><strong>Feature includes:</strong> Dive site locations, depth information, difficulty ratings, weather integration, and site recommendations.</p>
+                </div>
+            <?php elseif (empty($diveSites)): ?>
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle"></i> No dive sites found.
                     <a href="/dive-sites/create">Add your first dive site</a>.

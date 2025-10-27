@@ -28,6 +28,14 @@ $router->post('/contact', 'HomeController@submitContact', [CsrfMiddleware::class
 // STORE/STAFF ROUTES (Employee backend - Internal Application)
 // ============================================================================
 
+// Convenience redirects for common URLs
+$router->get('/login', function() {
+    redirect('/store/login');
+});
+$router->get('/logout', function() {
+    redirect('/store/logout');
+});
+
 // Store Dashboard & Auth
 $router->get('/store', 'Admin\DashboardController@index', [AuthMiddleware::class]);
 $router->get('/store/login', 'Auth\AuthController@showLogin');

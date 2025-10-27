@@ -33,16 +33,7 @@ class HomeController
      */
     public function index()
     {
-        // Check if storefront tables exist
-        try {
-            $this->db->query("SELECT 1 FROM theme_config LIMIT 1");
-        } catch (\PDOException $e) {
-            // Tables don't exist - redirect to installation
-            redirect('/install');
-            return;
-        }
-
-        // Get active theme configuration
+        // Get active theme configuration (gracefully handles missing tables)
         $theme = $this->themeEngine->getActiveTheme();
         $sections = $this->themeEngine->getHomepageSections();
 

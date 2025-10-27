@@ -121,6 +121,18 @@ class WaiverController
         $pageTitle = 'Waivers';
         $activeMenu = 'waivers';
 
+        // Check if waiver tables exist
+        try {
+            Database::getInstance()->query("SELECT 1 FROM signed_waivers LIMIT 1");
+        } catch (\PDOException $e) {
+            // Tables don't exist yet - show migration message
+            $waivers = [];
+            $migrationNeeded = true;
+            $content = $this->renderIndex($waivers, $migrationNeeded);
+            require BASE_PATH . '/app/Views/layouts/app.php';
+            return;
+        }
+
         // Get filters
         $search = $_GET['search'] ?? '';
         $status = $_GET['status'] ?? '';
@@ -156,8 +168,9 @@ class WaiverController
         $sql .= " ORDER BY sw.signed_at DESC LIMIT 100";
 
         $waivers = Database::query($sql, $params)->fetchAll();
+        $migrationNeeded = false;
 
-        $content = $this->renderIndex($waivers);
+        $content = $this->renderIndex($waivers, $migrationNeeded);
         require BASE_PATH . '/app/Views/layouts/app.php';
     }
 
@@ -211,13 +224,21 @@ class WaiverController
     /**
      * Render index view
      */
-    private function renderIndex(array $waivers): string
+    private function renderIndex(array $waivers, bool $migrationNeeded = false): string
     {
         ob_start();
         ?>
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="bi bi-file-earmark-text"></i> Signed Waivers</h2>
         </div>
+
+        <?php if ($migrationNeeded): ?>
+        <div class="alert alert-info">
+            <h4><i class="bi bi-info-circle"></i> Waiver System Not Yet Configured</h4>
+            <p>The digital waiver system tables have not been created yet. This feature will be available once migration 024 is completed.</p>
+            <p class="mb-0"><strong>Feature includes:</strong> Digital waiver signing, rental waivers, repair waivers, air fill waivers, training waivers, and customer signature tracking.</p>
+        </div>
+        <?php else: ?>
 
         <div class="card mb-3">
             <div class="card-body">
@@ -320,6 +341,7 @@ class WaiverController
                 </div>
             </div>
         </div>
+        <?php endif; ?>
         <?php
         return ob_get_clean();
     }

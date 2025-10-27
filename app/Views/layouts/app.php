@@ -234,7 +234,7 @@
     <div class="sidebar">
         <nav class="nav flex-column">
             <?php if (hasPermission('dashboard.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'dashboard' ? 'active' : '' ?>" href="/">
+            <a class="nav-link <?= $activeMenu === 'dashboard' ? 'active' : '' ?>" href="<?= url('/store') ?>">
                 <i class="bi bi-speedometer2"></i><span>Dashboard</span>
             </a>
             <?php endif; ?>

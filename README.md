@@ -7,6 +7,18 @@
 
 ---
 
+## 🚀 Quick Start
+
+**For deployment and testing instructions, see:** [DEPLOYMENT_AND_TESTING_GUIDE.md](DEPLOYMENT_AND_TESTING_GUIDE.md)
+
+**Testing Workflow:**
+1. Run: `./deploy-to-test.sh`
+2. Test with curl: `curl -k https://pangolin.local/store/login`
+3. Open in browser: `https://pangolin.local/store/login`
+4. Login: `admin@nautilus.local` / `password`
+
+---
+
 ## What is Nautilus?
 
 Nautilus is a comprehensive, enterprise-grade web application designed specifically for scuba diving businesses. It combines a public-facing e-commerce storefront with a powerful internal management system for running all aspects of a dive shop.

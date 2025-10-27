@@ -30,18 +30,27 @@ class StorefrontSettingsService
             return $cached;
         }
 
-        $stmt = $this->db->prepare("SELECT setting_value, setting_type FROM storefront_settings WHERE setting_key = ?");
-        $stmt->execute([$key]);
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare("SELECT setting_value, setting_type FROM storefront_settings WHERE setting_key = ?");
+            $stmt->execute([$key]);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$result) {
-            return $default;
+            if (!$result) {
+                return $default;
+            }
+
+            $value = $this->castValue($result['setting_value'], $result['setting_type']);
+            $this->cache->set($cacheKey, $value, self::CACHE_TTL);
+
+            return $value;
+        } catch (\PDOException $e) {
+            // If storefront_settings table doesn't exist, return default value
+            if ($e->getCode() === '42S02') {
+                return $default;
+            } else {
+                throw $e;
+            }
         }
-
-        $value = $this->castValue($result['setting_value'], $result['setting_type']);
-        $this->cache->set($cacheKey, $value, self::CACHE_TTL);
-
-        return $value;
     }
 
     /**
@@ -260,16 +269,46 @@ class StorefrontSettingsService
      */
     public function getNavigationMenu(string $location): array
     {
-        $stmt = $this->db->prepare("
-            SELECT * FROM navigation_menus
-            WHERE menu_location = ? AND is_active = TRUE
-            ORDER BY display_order ASC
-        ");
-        $stmt->execute([$location]);
-        $items = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare("
+                SELECT * FROM navigation_menus
+                WHERE menu_location = ? AND is_active = TRUE
+                ORDER BY display_order ASC
+            ");
+            $stmt->execute([$location]);
+            $items = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        // Build nested menu structure
-        return $this->buildMenuTree($items);
+            // Build nested menu structure
+            return $this->buildMenuTree($items);
+        } catch (\PDOException $e) {
+            // If navigation_menus table doesn't exist, return default menu
+            if ($e->getCode() === '42S02') {
+                return $this->getDefaultMenu($location);
+            } else {
+                throw $e;
+            }
+        }
+    }
+
+    /**
+     * Get default navigation menu when table doesn't exist
+     */
+    private function getDefaultMenu(string $location): array
+    {
+        if ($location === 'header') {
+            return [
+                ['label' => 'Home', 'url' => '/', 'link_type' => 'custom', 'link_target' => '_self', 'icon_class' => null, 'children' => []],
+                ['label' => 'Shop', 'url' => '/shop', 'link_type' => 'shop', 'link_target' => '_self', 'icon_class' => null, 'children' => []],
+                ['label' => 'About', 'url' => '/about', 'link_type' => 'custom', 'link_target' => '_self', 'icon_class' => null, 'children' => []],
+                ['label' => 'Contact', 'url' => '/contact', 'link_type' => 'custom', 'link_target' => '_self', 'icon_class' => null, 'children' => []],
+            ];
+        } elseif ($location === 'footer') {
+            return [
+                ['label' => 'Privacy Policy', 'url' => '/privacy', 'link_type' => 'custom', 'link_target' => '_self', 'icon_class' => null, 'children' => []],
+                ['label' => 'Terms of Service', 'url' => '/terms', 'link_type' => 'custom', 'link_target' => '_self', 'icon_class' => null, 'children' => []],
+            ];
+        }
+        return [];
     }
 
     /**
@@ -368,37 +407,46 @@ class StorefrontSettingsService
      */
     public function getActiveBanners(?string $bannerType = null, ?string $page = null): array
     {
-        $sql = "
-            SELECT * FROM promotional_banners
-            WHERE is_active = TRUE
-            AND (start_date IS NULL OR start_date <= NOW())
-            AND (end_date IS NULL OR end_date >= NOW())
-        ";
-        $params = [];
+        try {
+            $sql = "
+                SELECT * FROM promotional_banners
+                WHERE is_active = TRUE
+                AND (start_date IS NULL OR start_date <= NOW())
+                AND (end_date IS NULL OR end_date >= NOW())
+            ";
+            $params = [];
 
-        if ($bannerType) {
-            $sql .= " AND banner_type = ?";
-            $params[] = $bannerType;
+            if ($bannerType) {
+                $sql .= " AND banner_type = ?";
+                $params[] = $bannerType;
+            }
+
+            $sql .= " ORDER BY display_order ASC";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $banners = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Filter by page if specified
+            if ($page) {
+                $banners = array_filter($banners, function($banner) use ($page) {
+                    if (empty($banner['show_on_pages'])) {
+                        return true;
+                    }
+                    $pages = json_decode($banner['show_on_pages'], true);
+                    return in_array($page, $pages) || in_array('all', $pages);
+                });
+            }
+
+            return $banners;
+        } catch (\PDOException $e) {
+            // If promotional_banners table doesn't exist, return empty array
+            if ($e->getCode() === '42S02') {
+                return [];
+            } else {
+                throw $e;
+            }
         }
-
-        $sql .= " ORDER BY display_order ASC";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        $banners = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        // Filter by page if specified
-        if ($page) {
-            $banners = array_filter($banners, function($banner) use ($page) {
-                if (empty($banner['show_on_pages'])) {
-                    return true;
-                }
-                $pages = json_decode($banner['show_on_pages'], true);
-                return in_array($page, $pages) || in_array('all', $pages);
-            });
-        }
-
-        return $banners;
     }
 
     /**
