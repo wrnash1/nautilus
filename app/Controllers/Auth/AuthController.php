@@ -9,34 +9,34 @@ class AuthController
     public function showLogin()
     {
         if (Auth::check()) {
-            redirect('/');
+            redirect('/store');
         }
-        
+
         require __DIR__ . '/../../Views/auth/login.php';
     }
-    
+
     public function login()
     {
         $email = sanitizeInput($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
-        
+
         if (empty($email) || empty($password)) {
             $_SESSION['flash_error'] = 'Please enter email and password';
-            redirect('/login');
+            redirect('/store/login');
         }
-        
+
         if (Auth::attempt($email, $password)) {
-            redirect('/');
+            redirect('/store');
         }
-        
+
         $_SESSION['flash_error'] = 'Invalid email or password';
-        redirect('/login');
+        redirect('/store/login');
     }
-    
+
     public function logout()
     {
         Auth::logout();
-        redirect('/login');
+        redirect('/store/login');
     }
     
     public function verify2FA()

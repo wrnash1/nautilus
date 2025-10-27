@@ -58,24 +58,18 @@ CREATE TABLE IF NOT EXISTS serial_number_history (
 
 -- Add serial number reference to rental reservation items
 ALTER TABLE rental_reservation_items
-ADD COLUMN IF NOT EXISTS serial_number_id BIGINT UNSIGNED AFTER equipment_id;
-
-ALTER TABLE rental_reservation_items
-ADD INDEX IF NOT EXISTS idx_rental_items_serial (serial_number_id);
+ADD COLUMN IF NOT EXISTS serial_number_id BIGINT UNSIGNED AFTER equipment_id,
+ADD INDEX idx_rental_items_serial (serial_number_id);
 
 -- Add serial number reference to transaction items
 ALTER TABLE transaction_items
-ADD COLUMN IF NOT EXISTS serial_number_id BIGINT UNSIGNED AFTER product_id;
-
-ALTER TABLE transaction_items
-ADD INDEX IF NOT EXISTS idx_trans_items_serial (serial_number_id);
+ADD COLUMN IF NOT EXISTS serial_number_id BIGINT UNSIGNED AFTER product_id,
+ADD INDEX idx_trans_items_serial (serial_number_id);
 
 -- Add serial number reference to work orders
 ALTER TABLE work_orders
-ADD COLUMN IF NOT EXISTS serial_number_id BIGINT UNSIGNED AFTER customer_id;
-
-ALTER TABLE work_orders
-ADD INDEX IF NOT EXISTS idx_work_orders_serial (serial_number_id);
+ADD COLUMN IF NOT EXISTS serial_number_id BIGINT UNSIGNED AFTER customer_id,
+ADD INDEX idx_work_orders_serial (serial_number_id);
 
 -- Barcode scans log (for analytics)
 CREATE TABLE IF NOT EXISTS barcode_scans (

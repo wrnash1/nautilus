@@ -26,6 +26,14 @@ if ($_ENV['APP_ENV'] === 'production') {
 // Set timezone
 date_default_timezone_set($_ENV['APP_TIMEZONE'] ?? 'America/New_York');
 
+// Start session
+session_start();
+
+// Generate CSRF token if not exists
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Register autoloader
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';

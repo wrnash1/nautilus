@@ -37,8 +37,8 @@ class HomeController
         try {
             $this->db->query("SELECT 1 FROM theme_config LIMIT 1");
         } catch (\PDOException $e) {
-            // Tables don't exist - show installation message
-            $this->showInstallationMessage();
+            // Tables don't exist - redirect to installation
+            redirect('/install');
             return;
         }
 

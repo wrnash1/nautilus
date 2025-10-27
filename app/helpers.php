@@ -18,9 +18,20 @@ if (!function_exists('dd')) {
 if (!function_exists('url')) {
     function url(string $path): string
     {
-        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        $basePath = str_replace('/index.php', '', $scriptName);
+        // Use APP_BASE_PATH from .env if set (explicitly check if it's set, even if empty)
+        if (isset($_ENV['APP_BASE_PATH'])) {
+            $basePath = $_ENV['APP_BASE_PATH'];
+        } else {
+            // Fallback to auto-detection: get directory from SCRIPT_NAME
+            $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+            $basePath = dirname($scriptName);
+            // If at root, dirname returns '/', but we want empty string
+            if ($basePath === '/' || $basePath === '\\') {
+                $basePath = '';
+            }
+        }
 
+        // Only add base path if it's not empty and path doesn't already have it
         if ($basePath && strpos($path, $basePath) !== 0) {
             $path = $basePath . $path;
         }
@@ -32,9 +43,20 @@ if (!function_exists('url')) {
 if (!function_exists('redirect')) {
     function redirect(string $path): void
     {
-        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        $basePath = str_replace('/index.php', '', $scriptName);
+        // Use APP_BASE_PATH from .env if set (explicitly check if it's set, even if empty)
+        if (isset($_ENV['APP_BASE_PATH'])) {
+            $basePath = $_ENV['APP_BASE_PATH'];
+        } else {
+            // Fallback to auto-detection: get directory from SCRIPT_NAME
+            $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+            $basePath = dirname($scriptName);
+            // If at root, dirname returns '/', but we want empty string
+            if ($basePath === '/' || $basePath === '\\') {
+                $basePath = '';
+            }
+        }
 
+        // Only add base path if it's not empty and path doesn't already have it
         if ($basePath && strpos($path, $basePath) !== 0) {
             $path = $basePath . $path;
         }

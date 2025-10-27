@@ -240,31 +240,31 @@
             <?php endif; ?>
 
             <?php if (hasPermission('pos.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'pos' ? 'active' : '' ?>" href="<?= url('/store/pos') ?>">
+            <a class="nav-link <?= $activeMenu === 'pos' ? 'active' : '' ?>" href="/pos">
                 <i class="bi bi-cart-check"></i><span>Point of Sale</span>
             </a>
             <?php endif; ?>
 
             <?php if (hasPermission('customers.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'customers' ? 'active' : '' ?>" href="<?= url('/store/customers') ?>">
+            <a class="nav-link <?= $activeMenu === 'customers' ? 'active' : '' ?>" href="/customers">
                 <i class="bi bi-people"></i><span>Customers</span>
             </a>
             <?php endif; ?>
 
             <?php if (hasPermission('products.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'products' ? 'active' : '' ?>" href="<?= url('/store/products') ?>">
+            <a class="nav-link <?= $activeMenu === 'products' ? 'active' : '' ?>" href="/products">
                 <i class="bi bi-box-seam"></i><span>Products</span>
             </a>
             <?php endif; ?>
 
             <?php if (hasPermission('categories.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'categories' ? 'active' : '' ?>" href="<?= url('/store/categories') ?>">
+            <a class="nav-link <?= $activeMenu === 'categories' ? 'active' : '' ?>" href="/categories">
                 <i class="bi bi-tags"></i><span>Categories</span>
             </a>
             <?php endif; ?>
 
             <?php if (hasPermission('products.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'vendors' ? 'active' : '' ?>" href="<?= url('/store/vendors') ?>">
+            <a class="nav-link <?= $activeMenu === 'vendors' ? 'active' : '' ?>" href="/vendors">
                 <i class="bi bi-building"></i><span>Vendors</span>
             </a>
             <?php endif; ?>
@@ -291,20 +291,20 @@
                     <i class="bi bi-briefcase"></i><span>Rentals</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <div class="collapse" id="rentalsMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/rentals') ?>">Equipment</a>
+                    <a class="nav-link ps-5" href="/rentals">Equipment</a>
                     <a class="nav-link ps-5" href="/rentals/reservations">Reservations</a>
                 </div>
             </div>
             <?php endif; ?>
 
             <?php if (hasPermission('air_fills.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'air-fills' ? 'active' : '' ?>" href="<?= url('/store/air-fills') ?>">
+            <a class="nav-link <?= $activeMenu === 'air-fills' ? 'active' : '' ?>" href="/air-fills">
                 <i class="bi bi-wind"></i><span>Air Fills</span>
             </a>
             <?php endif; ?>
 
             <?php if (hasPermission('dashboard.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'waivers' ? 'active' : '' ?>" href="<?= url('/store/waivers') ?>">
+            <a class="nav-link <?= $activeMenu === 'waivers' ? 'active' : '' ?>" href="/waivers">
                 <i class="bi bi-file-earmark-check"></i><span>Waivers</span>
             </a>
             <?php endif; ?>
@@ -315,7 +315,7 @@
                     <i class="bi bi-mortarboard"></i><span>Courses</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <div class="collapse" id="coursesMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/courses') ?>">Course Catalog</a>
+                    <a class="nav-link ps-5" href="/courses">Course Catalog</a>
                     <a class="nav-link ps-5" href="/courses/schedules">Schedules</a>
                     <a class="nav-link ps-5" href="/courses/enrollments">Enrollments</a>
                 </div>
@@ -328,7 +328,7 @@
                     <i class="bi bi-airplane"></i><span>Trips</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <div class="collapse" id="tripsMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/trips') ?>">Trip Catalog</a>
+                    <a class="nav-link ps-5" href="/trips">Trip Catalog</a>
                     <a class="nav-link ps-5" href="/trips/schedules">Schedules</a>
                     <a class="nav-link ps-5" href="/trips/bookings">Bookings</a>
                 </div>
@@ -336,31 +336,31 @@
             <?php endif; ?>
 
             <?php if (hasPermission('workorders.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'workorders' ? 'active' : '' ?>" href="<?= url('/store/workorders') ?>">
+            <a class="nav-link <?= $activeMenu === 'workorders' ? 'active' : '' ?>" href="/workorders">
                 <i class="bi bi-tools"></i><span>Work Orders</span>
             </a>
             <?php endif; ?>
 
             <?php if (hasPermission('orders.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'orders' ? 'active' : '' ?>" href="<?= url('/store/orders') ?>">
+            <a class="nav-link <?= $activeMenu === 'orders' ? 'active' : '' ?>" href="/orders">
                 <i class="bi bi-box-seam"></i><span>Orders</span>
             </a>
             <?php endif; ?>
 
-            <a class="nav-link" href="<?= url('/store/shop') ?>" target="_blank">
+            <a class="nav-link" href="/shop" target="_blank">
                 <i class="bi bi-shop"></i><span>Online Store</span>
             </a>
 
             <hr class="my-2 text-white-50">
 
             <?php if (hasPermission('dashboard.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'dive-sites' ? 'active' : '' ?>" href="<?= url('/store/dive-sites') ?>">
+            <a class="nav-link <?= $activeMenu === 'dive-sites' ? 'active' : '' ?>" href="/dive-sites">
                 <i class="bi bi-geo-alt"></i><span>Dive Sites</span>
             </a>
             <?php endif; ?>
 
             <?php if (hasPermission('products.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'serial-numbers' ? 'active' : '' ?>" href="<?= url('/store/serial-numbers') ?>">
+            <a class="nav-link <?= $activeMenu === 'serial-numbers' ? 'active' : '' ?>" href="/serial-numbers">
                 <i class="bi bi-upc-scan"></i><span>Serial Numbers</span>
             </a>
             <?php endif; ?>
@@ -405,7 +405,7 @@
                     <i class="bi bi-person-badge"></i><span>Staff</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <div class="collapse" id="staffMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/staff') ?>">Employees</a>
+                    <a class="nav-link ps-5" href="/staff">Employees</a>
                     <a class="nav-link ps-5" href="/staff/schedules">Schedules</a>
                     <a class="nav-link ps-5" href="/staff/timeclock">Time Clock</a>
                     <a class="nav-link ps-5" href="/staff/commissions">Commissions</a>

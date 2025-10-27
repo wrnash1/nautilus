@@ -274,9 +274,7 @@ INSERT INTO waiver_requirements (waiver_template_id, service_type, auto_send, se
 (3, 'air_fill', TRUE, 'email', 0, TRUE, 90),
 (4, 'course', TRUE, 'email', 3, TRUE, 0);
 
--- Add indexes for performance
-CREATE INDEX idx_waiver_customer_type ON signed_waivers(customer_id, reference_type);
-CREATE INDEX idx_waiver_created ON signed_waivers(created_at DESC);
+-- Indexes already created in table definition above
 
 -- Comments
 ALTER TABLE waiver_templates COMMENT = 'Waiver document templates for different services';

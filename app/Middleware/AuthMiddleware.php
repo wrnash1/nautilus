@@ -9,7 +9,7 @@ class AuthMiddleware
     public function handle(): void
     {
         if (Auth::guest()) {
-            redirect('/login');
+            redirect('/store/login');
         }
     }
 }
