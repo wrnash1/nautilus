@@ -1,0 +1,40 @@
+Point of Sale:  
+the new custmer button should open the same windows as the customers add customer button,
+Need to add date and clock to the POINT of SALE screen.
+Need to add Store logo to the POINT of SALE screen.
+Need to see a picture of the customer on the Point of Sale screen.
+Need to see a logo of the certificate agency on the POINT of SALE screen. This help validate the person is cerified
+The customer search button should be rework to make it easier to search for a customer or add a new customer. 
+The black in the customer and search section makes it hard to read. 
+How does the search for barcode work in the Point of Sale. 
+I do not see a way to add a product to layaway from the Point of Sale screen.
+
+
+Customer module:
+Need to see a picture of the customer on the customer screen.
+
+
+
+Products module:
+Add a qrc code for customers can scan the procut and to see that item on the website. 
+Add a field for product weight.
+Add a field for product dimensions.
+Add a field for product color.
+Add a field for product material.
+Add a field for product manufacturer.
+Add a field for product warranty information.
+Add a field for product stock quantity.
+Add a field for product location in the store.
+Add a field for product supplier information.
+Add a field for product expiration date.
+the add Productbuttons does not work
+need add AI to all search fields to help find products faster.
+
+
+Side menu.
+ when the admin sign on add the settings button to the side menu.
+ when the sales person sign on remove the settings button from the side menu.
+need a way to add that is easy to updates compressor hours and oil fills. 
+the side bar needs to be rework to make it easier to navigate.  
+
+ When going to the url have the icons for the dive shop show up in the browser tab.

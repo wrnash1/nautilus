@@ -213,19 +213,19 @@ ob_start();
             <div class="modern-card-body">
                 <div class="d-grid gap-2">
                     <?php if (hasPermission('pos.create')): ?>
-                    <a href="/pos" class="btn-modern btn-primary">
+                    <a href="/store/pos" class="btn-modern btn-primary">
                         <i class="bi bi-cart-plus"></i> New Sale
                     </a>
                     <?php endif; ?>
 
                     <?php if (hasPermission('rentals.create')): ?>
-                    <a href="/rentals/reservations/create" class="btn-modern btn-success">
+                    <a href="/store/rentals/reservations/create" class="btn-modern btn-success">
                         <i class="bi bi-gear"></i> New Rental
                     </a>
                     <?php endif; ?>
 
                     <?php if (hasPermission('customers.create')): ?>
-                    <a href="/customers/create" class="btn-modern btn-secondary">
+                    <a href="/store/customers/create" class="btn-modern btn-secondary">
                         <i class="bi bi-person-plus"></i> Add Customer
                     </a>
                     <?php endif; ?>

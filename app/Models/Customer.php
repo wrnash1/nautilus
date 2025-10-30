@@ -228,9 +228,7 @@ class Customer
                     c.code as certification_code,
                     ca.id as agency_id,
                     ca.name as agency_name,
-                    ca.abbreviation as agency_abbreviation,
-                    ca.logo_path,
-                    ca.primary_color
+                    ca.abbreviation as agency_abbreviation
              FROM customer_certifications cc
              LEFT JOIN certifications c ON cc.certification_id = c.id
              LEFT JOIN certification_agencies ca ON c.agency_id = ca.id

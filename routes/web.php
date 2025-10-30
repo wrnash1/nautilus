@@ -405,6 +405,15 @@ $router->post('/waivers/sign/{token}', 'WaiverController@submitSignature');
 // API Settings (for AJAX calls)
 $router->get('/store/api/settings/tax-rate', 'Admin\SettingsController@getTaxRate', [AuthMiddleware::class]);
 
+// AI Image Search API
+$router->get('/store/api/product-embeddings', 'API\ProductEmbeddingsController@getEmbeddings', [AuthMiddleware::class]);
+$router->post('/store/api/product-embeddings', 'API\ProductEmbeddingsController@saveEmbedding', [AuthMiddleware::class]);
+$router->post('/store/api/visual-search-log', 'API\ProductEmbeddingsController@logSearch', [AuthMiddleware::class]);
+$router->get('/store/api/products-without-embeddings', 'API\ProductEmbeddingsController@getProductsWithoutEmbeddings', [AuthMiddleware::class]);
+
+// Customer Info API for POS
+$router->get('/store/api/customers/{id}/pos-info', 'API\CustomerInfoController@getPosInfo', [AuthMiddleware::class]);
+
 // ============================================================================
 // PHASE 4, 5, 6 ROUTES - Advanced Features
 // ============================================================================

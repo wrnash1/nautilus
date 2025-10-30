@@ -16,7 +16,7 @@ ob_start();
         <?php endif; ?>
         
         <?php if (hasPermission('customers.create')): ?>
-        <a href="/customers/create" class="btn btn-primary">
+        <a href="/store/customers/create" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Add Customer
         </a>
         <?php endif; ?>
@@ -66,7 +66,7 @@ ob_start();
                             </span>
                         </td>
                         <td>
-                            <a href="/customers/<?= $customer['id'] ?>">
+                            <a href="/store/customers/<?= $customer['id'] ?>">
                                 <?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?>
                             </a>
                         </td>
@@ -75,16 +75,16 @@ ob_start();
                         <td><?= htmlspecialchars($customer['company_name'] ?? '-') ?></td>
                         <td>
                             <div class="btn-group btn-group-sm">
-                                <a href="/customers/<?= $customer['id'] ?>" class="btn btn-outline-primary" title="View">
+                                <a href="/store/customers/<?= $customer['id'] ?>" class="btn btn-outline-primary" title="View">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 <?php if (hasPermission('customers.edit')): ?>
-                                <a href="/customers/<?= $customer['id'] ?>/edit" class="btn btn-outline-secondary" title="Edit">
+                                <a href="/store/customers/<?= $customer['id'] ?>/edit" class="btn btn-outline-secondary" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <?php endif; ?>
                                 <?php if (hasPermission('customers.delete')): ?>
-                                <form method="POST" action="/customers/<?= $customer['id'] ?>/delete" class="d-inline" 
+                                <form method="POST" action="/store/customers/<?= $customer['id'] ?>/delete" class="d-inline"
                                       onsubmit="return confirm('Are you sure you want to delete this customer?')">
                                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                                     <button type="submit" class="btn btn-outline-danger" title="Delete">
@@ -105,7 +105,7 @@ ob_start();
             <ul class="pagination justify-content-center">
                 <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                 <li class="page-item <?= $i === $page ? 'active' : '' ?>">
-                    <a class="page-link" href="/customers?page=<?= $i ?><?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>">
+                    <a class="page-link" href="/store/customers?page=<?= $i ?><?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>">
                         <?= $i ?>
                     </a>
                 </li>
@@ -137,7 +137,7 @@ searchInput.addEventListener('input', function() {
     }
     
     searchTimeout = setTimeout(() => {
-        fetch(`/customers/search?q=${encodeURIComponent(query)}`, {
+        fetch(`/store/customers/search?q=${encodeURIComponent(query)}`, {
             headers: {
                 'X-CSRF-TOKEN': csrfToken
             }
@@ -159,7 +159,7 @@ searchInput.addEventListener('input', function() {
                     `<br><small class="text-muted">${escapeHtml(customer.company_name)}</small>` : '';
                 
                 html += `
-                    <a href="/customers/${customer.id}" class="list-group-item list-group-item-action">
+                    <a href="/store/customers/${customer.id}" class="list-group-item list-group-item-action">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <strong>${escapeHtml(customer.first_name)} ${escapeHtml(customer.last_name)}</strong>
@@ -204,15 +204,15 @@ function escapeHtml(text) {
 }
 
 typeFilter.addEventListener('change', function() {
-    window.location.href = '/customers?type=' + this.value;
+    window.location.href = '/store/customers?type=' + this.value;
 });
 
 function exportCustomersCsv() {
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
-    iframe.src = '/customers/export';
+    iframe.src = '/store/customers/export';
     document.body.appendChild(iframe);
-    
+
     setTimeout(() => {
         document.body.removeChild(iframe);
     }, 5000);

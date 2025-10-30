@@ -9,7 +9,7 @@ ob_start();
 <div class="mb-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/customers">Customers</a></li>
+            <li class="breadcrumb-item"><a href="/store/customers">Customers</a></li>
             <li class="breadcrumb-item active">Add Customer</li>
         </ol>
     </nav>
@@ -20,7 +20,7 @@ ob_start();
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <form method="POST" action="/customers" id="customerForm">
+                <form method="POST" action="/store/customers" id="customerForm">
                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                     
                     <div class="mb-3">
@@ -154,7 +154,7 @@ ob_start();
                     </div>
                     
                     <div class="d-flex justify-content-between">
-                        <a href="/customers" class="btn btn-secondary">Cancel</a>
+                        <a href="/store/customers" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle"></i> Create Customer
                         </button>

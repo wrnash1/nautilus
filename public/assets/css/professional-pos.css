@@ -3,15 +3,75 @@
  * Inspired by DiveShop360 layout with high contrast
  */
 
-/* Customer Bar - Fixed at Top */
-.pos-customer-bar {
+/* POS Header Bar - Store Logo and Date/Time */
+.pos-header-bar {
     position: sticky;
     top: 56px;
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    border-bottom: 3px solid #004d99;
+    color: white;
+    z-index: 901;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.pos-store-logo img {
+    filter: brightness(0) invert(1);
+    opacity: 0.95;
+}
+
+.pos-datetime-display {
+    text-align: right;
+    color: white;
+}
+
+#posCurrentDate {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+#posCurrentTime {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+/* Customer Bar - Fixed Below Header */
+.pos-customer-bar {
+    position: sticky;
+    top: calc(56px + 74px); /* navbar + header */
     background: #ffffff;
     border-bottom: 3px solid #0066cc;
     padding: 1rem 0;
-    z-index: 100;
+    z-index: 900;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Customer Info Panel */
+.customer-info-panel {
+    background: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+}
+
+.customer-photo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.customer-name {
+    font-size: 1.1rem;
+    color: #212529;
+}
+
+.customer-contact {
+    color: #6c757d;
+}
+
+.customer-certs .badge {
+    font-weight: 600;
+    padding: 0.35em 0.65em;
+    border-radius: 4px;
 }
 
 .customer-label {
@@ -35,11 +95,19 @@
     border: 2px solid #dee2e6;
     border-radius: 8px;
     font-weight: 600;
+    background-color: #ffffff;
+    color: #212529;
+}
+
+.customer-select::placeholder {
+    color: #6c757d;
+    opacity: 0.7;
 }
 
 .customer-select:focus {
     border-color: #0066cc;
     box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    background-color: #ffffff;
 }
 
 .btn-add-customer {
@@ -327,6 +395,17 @@
     padding: 0.5rem 1rem;
     border-radius: 20px;
     font-weight: 600;
+    font-size: 1rem;
+}
+
+#posDateTime {
+    background: rgba(255,255,255,0.15);
+    padding: 0.35rem 0.75rem;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 0.85rem !important;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
 }
 
 /* Cart Items */
@@ -630,6 +709,32 @@
     font-size: 1.05rem;
     cursor: pointer;
     width: 100%;
+}
+
+/* AI Search Results */
+.ai-search-results-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.ai-search-result-item {
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #ffffff;
+}
+
+.ai-search-result-item:hover {
+    border-color: #0066cc;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
+    transform: translateY(-2px);
+}
+
+.ai-search-result-item:active {
+    transform: translateY(0);
 }
 
 /* Responsive */

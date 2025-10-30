@@ -14,6 +14,8 @@
     let selectedCustomerId = null;
     let selectedPaymentMethod = 'cash';
     let taxRate = 0.08; // 8% default, will be loaded from settings
+    let appliedCoupon = null;
+    let couponDiscount = 0;
 
     // ============================================================================
     // Initialization
@@ -23,6 +25,9 @@
         initializeEventListeners();
         loadTaxRate();
         updateCartDisplay();
+        updateDateTime();
+        // Update date/time every second
+        setInterval(updateDateTime, 1000);
     });
 
     // ============================================================================
@@ -30,13 +35,32 @@
     // ============================================================================
 
     function initializeEventListeners() {
-        // Customer selection
-        const customerSelect = document.getElementById('customerSelect');
-        if (customerSelect) {
-            customerSelect.addEventListener('change', function() {
-                selectedCustomerId = this.value || null;
+        // Customer search
+        const customerSearchInput = document.getElementById('customerSearchInput');
+        if (customerSearchInput) {
+            customerSearchInput.addEventListener('input', handleCustomerSearch);
+            customerSearchInput.addEventListener('focus', function() {
+                if (this.value.length >= 2) {
+                    handleCustomerSearch();
+                }
             });
         }
+
+        const clearCustomerBtn = document.getElementById('clearCustomerBtn');
+        if (clearCustomerBtn) {
+            clearCustomerBtn.addEventListener('click', clearSelectedCustomer);
+        }
+
+        // Hide customer search results when clicking outside
+        document.addEventListener('click', function(e) {
+            const searchResults = document.getElementById('customerSearchResults');
+            const searchInput = document.getElementById('customerSearchInput');
+            if (searchResults && searchInput &&
+                !searchResults.contains(e.target) &&
+                !searchInput.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
 
         // Customer creation form
         const addCustomerForm = document.getElementById('addCustomerForm');
@@ -123,6 +147,43 @@
                 checkbox.addEventListener('change', updateCourseAddonsTotal);
             });
         }
+
+        // Coupon/Discount functionality
+        const applyCouponBtn = document.getElementById('applyCouponBtn');
+        if (applyCouponBtn) {
+            applyCouponBtn.addEventListener('click', handleApplyCoupon);
+        }
+
+        const removeCouponBtn = document.getElementById('removeCouponBtn');
+        if (removeCouponBtn) {
+            removeCouponBtn.addEventListener('click', handleRemoveCoupon);
+        }
+
+        const couponCodeInput = document.getElementById('couponCode');
+        if (couponCodeInput) {
+            couponCodeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleApplyCoupon();
+                }
+            });
+        }
+
+        // AI Image Search functionality
+        const aiSearchBtn = document.getElementById('aiSearchBtn');
+        if (aiSearchBtn) {
+            aiSearchBtn.addEventListener('click', showAISearchModal);
+        }
+
+        const aiSearchImageInput = document.getElementById('aiSearchImageInput');
+        if (aiSearchImageInput) {
+            aiSearchImageInput.addEventListener('change', handleImageUpload);
+        }
+
+        const aiSearchExecuteBtn = document.getElementById('aiSearchExecuteBtn');
+        if (aiSearchExecuteBtn) {
+            aiSearchExecuteBtn.addEventListener('click', executeAISearch);
+        }
     }
 
     // ============================================================================
@@ -175,6 +236,10 @@
 
         if (confirm('Are you sure you want to clear the cart?')) {
             cart = [];
+            // Also clear any applied coupon
+            if (appliedCoupon) {
+                handleRemoveCoupon();
+            }
             updateCartDisplay();
             showToast('Cart cleared', 'info');
         }
@@ -241,18 +306,31 @@
 
         // Update totals
         const subtotal = cart.reduce((sum, item) => sum + (item.price + item.addonTotal) * item.quantity, 0);
-        const tax = subtotal * taxRate;
-        const total = subtotal + tax;
+        const discount = couponDiscount || 0;
+        const subtotalAfterDiscount = Math.max(0, subtotal - discount);
+        const tax = subtotalAfterDiscount * taxRate;
+        const total = subtotalAfterDiscount + tax;
 
-        updateTotals(subtotal, tax, total);
+        updateTotals(subtotal, discount, tax, total);
     }
 
-    function updateTotals(subtotal, tax, total) {
+    function updateTotals(subtotal, discount, tax, total) {
         const subtotalEl = document.getElementById('cartSubtotal');
+        const discountEl = document.getElementById('cartDiscount');
+        const discountRow = document.getElementById('discountRow');
         const taxEl = document.getElementById('cartTax');
         const totalEl = document.getElementById('cartTotal');
 
         if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+
+        // Show/hide discount row
+        if (discount > 0) {
+            if (discountEl) discountEl.textContent = `-$${discount.toFixed(2)}`;
+            if (discountRow) discountRow.style.display = 'flex';
+        } else {
+            if (discountRow) discountRow.style.display = 'none';
+        }
+
         if (taxEl) taxEl.textContent = `$${tax.toFixed(2)}`;
         if (totalEl) totalEl.textContent = `$${total.toFixed(2)}`;
 
@@ -269,23 +347,143 @@
     }
 
     // ============================================================================
+    // Date/Time Display
+    // ============================================================================
+
+    function updateDateTime() {
+        const now = new Date();
+
+        // Update cart header datetime (old)
+        const dateTimeEl = document.getElementById('posDateTime');
+        if (dateTimeEl) {
+            const options = {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            dateTimeEl.textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        // Update header date
+        const dateEl = document.getElementById('posCurrentDate');
+        if (dateEl) {
+            const dateOptions = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+            dateEl.textContent = now.toLocaleDateString('en-US', dateOptions);
+        }
+
+        // Update header time
+        const timeEl = document.getElementById('posCurrentTime');
+        if (timeEl) {
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            timeEl.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+    }
+
+    // ============================================================================
     // Customer Management
     // ============================================================================
+
+    let customerSearchTimeout;
+
+    function handleCustomerSearch() {
+        clearTimeout(customerSearchTimeout);
+
+        const searchInput = document.getElementById('customerSearchInput');
+        const searchResults = document.getElementById('customerSearchResults');
+        const query = searchInput.value.trim();
+
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        customerSearchTimeout = setTimeout(() => {
+            fetch(`/store/customers/search?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(customers => {
+                    if (customers.length === 0) {
+                        searchResults.innerHTML = '<div class="search-result-item text-muted">No customers found</div>';
+                        searchResults.style.display = 'block';
+                        return;
+                    }
+
+                    searchResults.innerHTML = customers.map(customer => {
+                        const badge = customer.customer_type === 'B2B' ?
+                            '<span class="badge bg-primary ms-2">B2B</span>' :
+                            '<span class="badge bg-secondary ms-2">B2C</span>';
+                        const company = customer.company_name ?
+                            `<br><small class="text-muted">${escapeHtml(customer.company_name)}</small>` : '';
+
+                        return `
+                            <div class="search-result-item" onclick="selectCustomer(${customer.id}, '${escapeHtml(customer.first_name)} ${escapeHtml(customer.last_name)}', '${escapeHtml(customer.email || '')}', '${escapeHtml(customer.phone || '')}')">
+                                <div>
+                                    <strong>${escapeHtml(customer.first_name)} ${escapeHtml(customer.last_name)}</strong>
+                                    ${badge}
+                                    ${company}
+                                </div>
+                                <div class="text-muted small">
+                                    ${customer.email ? '<i class="bi bi-envelope"></i> ' + escapeHtml(customer.email) : ''}
+                                    ${customer.phone ? '<i class="bi bi-telephone ms-2"></i> ' + escapeHtml(customer.phone) : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    searchResults.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error searching customers:', error);
+                    searchResults.innerHTML = '<div class="search-result-item text-danger">Error searching customers</div>';
+                    searchResults.style.display = 'block';
+                });
+        }, 300);
+    }
+
+    function clearSelectedCustomer() {
+        selectedCustomerId = null;
+        document.getElementById('customerSearchInput').value = '';
+        document.getElementById('selectedCustomerId').value = '';
+        document.getElementById('clearCustomerBtn').style.display = 'none';
+        document.getElementById('customerInfo').style.display = 'none';
+        document.getElementById('customerSearchResults').style.display = 'none';
+    }
 
     function handleCustomerCreation(e) {
         e.preventDefault();
 
+        const customerType = document.querySelector('input[name="customer_type"]:checked').value;
         const formData = {
+            customer_type: customerType,
             first_name: document.getElementById('firstName').value.trim(),
             last_name: document.getElementById('lastName').value.trim(),
             email: document.getElementById('email').value.trim(),
             phone: document.getElementById('phone').value.trim(),
-            newsletter_opt_in: document.getElementById('newsletterOptIn').checked
+            mobile: document.getElementById('mobile').value.trim(),
+            birth_date: document.getElementById('birthDate').value,
+            company_name: customerType === 'B2B' ? document.getElementById('companyName').value.trim() : null,
+            emergency_contact_name: document.getElementById('emergencyContactName')?.value.trim(),
+            emergency_contact_phone: document.getElementById('emergencyContactPhone')?.value.trim()
         };
 
         // Validate required fields
         if (!formData.first_name || !formData.last_name) {
             showToast('First and last name are required', 'error');
+            return;
+        }
+
+        if (customerType === 'B2B' && !formData.company_name) {
+            showToast('Company name is required for B2B customers', 'error');
             return;
         }
 
@@ -344,6 +542,107 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         });
+    }
+
+    // ============================================================================
+    // Coupon/Discount Management
+    // ============================================================================
+
+    function handleApplyCoupon() {
+        const couponCode = document.getElementById('couponCode').value.trim().toUpperCase();
+        const couponMessage = document.getElementById('couponMessage');
+
+        if (!couponCode) {
+            showCouponMessage('Please enter a coupon code', 'error');
+            return;
+        }
+
+        const subtotal = cart.reduce((sum, item) => {
+            const itemTotal = (item.price + item.addonTotal) * item.quantity;
+            return sum + itemTotal;
+        }, 0);
+
+        // Show loading state
+        const applyCouponBtn = document.getElementById('applyCouponBtn');
+        const originalText = applyCouponBtn.innerHTML;
+        applyCouponBtn.disabled = true;
+        applyCouponBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Validating...';
+
+        // Validate coupon
+        fetch('/store/marketing/coupons/validate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                code: couponCode,
+                customer_id: selectedCustomerId,
+                cart_total: subtotal
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.valid) {
+                appliedCoupon = {
+                    code: couponCode,
+                    coupon_id: data.coupon_id,
+                    discount: data.discount
+                };
+                couponDiscount = data.discount;
+
+                // Update UI
+                document.getElementById('appliedCouponCode').textContent = couponCode;
+                document.getElementById('appliedCoupon').style.display = 'block';
+                document.getElementById('couponCode').value = '';
+                document.getElementById('couponCode').disabled = true;
+                applyCouponBtn.disabled = true;
+
+                updateCartDisplay();
+                showCouponMessage(data.message, 'success');
+            } else {
+                showCouponMessage(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error validating coupon:', error);
+            showCouponMessage('Failed to validate coupon. Please try again.', 'error');
+        })
+        .finally(() => {
+            applyCouponBtn.disabled = false;
+            applyCouponBtn.innerHTML = originalText;
+        });
+    }
+
+    function handleRemoveCoupon() {
+        appliedCoupon = null;
+        couponDiscount = 0;
+
+        // Update UI
+        document.getElementById('appliedCoupon').style.display = 'none';
+        document.getElementById('couponCode').value = '';
+        document.getElementById('couponCode').disabled = false;
+        document.getElementById('applyCouponBtn').disabled = false;
+        document.getElementById('couponMessage').innerHTML = '';
+
+        updateCartDisplay();
+    }
+
+    function showCouponMessage(message, type) {
+        const couponMessage = document.getElementById('couponMessage');
+        const iconClass = type === 'success' ? 'check-circle-fill' : 'exclamation-circle-fill';
+        const textClass = type === 'success' ? 'text-success' : 'text-danger';
+
+        couponMessage.innerHTML = `
+            <div class="${textClass}">
+                <i class="bi bi-${iconClass}"></i> ${message}
+            </div>
+        `;
+
+        if (type === 'error') {
+            setTimeout(() => {
+                couponMessage.innerHTML = '';
+            }, 5000);
+        }
     }
 
     // ============================================================================
@@ -836,6 +1135,143 @@
     }
 
     // ============================================================================
+    // AI Image Search
+    // ============================================================================
+
+    let currentSearchImage = null;
+
+    function showAISearchModal() {
+        const modal = new bootstrap.Modal(document.getElementById('aiSearchModal'));
+        modal.show();
+
+        // Reset modal state
+        document.getElementById('aiSearchImagePreview').style.display = 'none';
+        document.getElementById('aiSearchResults').innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-image" style="font-size: 3rem;"></i>
+                <p class="mt-2">Upload an image to find matching products</p>
+                <small>Works best with clear photos of diving equipment</small>
+            </div>
+        `;
+        currentSearchImage = null;
+    }
+
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('aiSearchPreviewImg');
+            preview.src = e.target.result;
+            document.getElementById('aiSearchImagePreview').style.display = 'block';
+            currentSearchImage = file;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function executeAISearch() {
+        if (!currentSearchImage) {
+            showToast('Please select an image first', 'error');
+            return;
+        }
+
+        const loadingEl = document.getElementById('aiSearchLoading');
+        const previewEl = document.getElementById('aiSearchImagePreview');
+        const resultsEl = document.getElementById('aiSearchResults');
+
+        try {
+            // Show loading state
+            previewEl.style.display = 'none';
+            loadingEl.style.display = 'block';
+            resultsEl.innerHTML = '';
+
+            // Perform AI search
+            const results = await window.aiImageSearch.searchByImage(currentSearchImage, {
+                maxResults: 10,
+                minSimilarity: 0.4
+            });
+
+            // Hide loading
+            loadingEl.style.display = 'none';
+            previewEl.style.display = 'block';
+
+            // Display results
+            displayAISearchResults(results);
+
+        } catch (error) {
+            console.error('AI search error:', error);
+            loadingEl.style.display = 'none';
+            previewEl.style.display = 'block';
+
+            resultsEl.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Search Error:</strong> ${error.message}
+                    <br><small class="mt-2">Make sure AI models are loaded. Check console for details.</small>
+                </div>
+            `;
+        }
+    }
+
+    function displayAISearchResults(results) {
+        const resultsEl = document.getElementById('aiSearchResults');
+
+        if (results.length === 0) {
+            resultsEl.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    No similar products found. Try a different image or angle.
+                </div>
+            `;
+            return;
+        }
+
+        resultsEl.innerHTML = results.map(result => {
+            const confidenceBadge = getConfidenceBadge(result.similarity);
+            const percentage = (result.similarity * 100).toFixed(1);
+
+            return `
+                <div class="ai-search-result-item" onclick="addProductFromAISearch(${result.product_id}, '${escapeHtml(result.name)}', ${result.price})">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            ${result.image_path ?
+                                `<img src="${result.image_path}" alt="${escapeHtml(result.name)}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">` :
+                                `<div style="width: 60px; height: 60px; background: #e9ecef; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-image text-muted"></i>
+                                </div>`
+                            }
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">${escapeHtml(result.name)}</div>
+                            <div class="small text-muted">SKU: ${escapeHtml(result.sku)} | ${result.category}</div>
+                            <div class="small">
+                                ${confidenceBadge}
+                                <span class="text-muted">${percentage}% match</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-primary">$${result.price.toFixed(2)}</div>
+                            <button class="btn btn-sm btn-outline-primary mt-1">
+                                <i class="bi bi-cart-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function getConfidenceBadge(similarity) {
+        if (similarity >= 0.9) return '<span class="badge bg-success">Very High</span>';
+        if (similarity >= 0.8) return '<span class="badge bg-success">High</span>';
+        if (similarity >= 0.7) return '<span class="badge bg-info">Good</span>';
+        if (similarity >= 0.6) return '<span class="badge bg-warning">Moderate</span>';
+        return '<span class="badge bg-secondary">Low</span>';
+    }
+
+    // ============================================================================
     // Public API
     // ============================================================================
 
@@ -844,7 +1280,117 @@
         removeFromCart,
         updateQuantity,
         clearCart,
-        showCourseAddonsModal
+        showCourseAddonsModal,
+        setSelectedCustomer: function(id) {
+            selectedCustomerId = id;
+        }
     };
 
 })();
+
+// ============================================================================
+// Global Helper Functions (outside IIFE for inline event handlers)
+// ============================================================================
+
+function togglePosCustomerType() {
+    const isB2B = document.getElementById('posTypeB2B').checked;
+    const b2bFields = document.getElementById('posB2bFields');
+    const b2cFields = document.getElementById('posB2cFields');
+    const birthDateField = document.getElementById('posBirthDateField');
+    const companyName = document.getElementById('companyName');
+
+    if (b2bFields) b2bFields.style.display = isB2B ? 'block' : 'none';
+    if (b2cFields) b2cFields.style.display = isB2B ? 'none' : 'block';
+    if (birthDateField) birthDateField.style.display = isB2B ? 'none' : 'block';
+
+    if (companyName) {
+        companyName.required = isB2B;
+    }
+}
+
+function selectCustomer(id, name, email, phone) {
+    // This function is called from onclick in search results
+    const searchInput = document.getElementById('customerSearchInput');
+    const searchResults = document.getElementById('customerSearchResults');
+    const selectedIdInput = document.getElementById('selectedCustomerId');
+    const clearBtn = document.getElementById('clearCustomerBtn');
+    const customerInfo = document.getElementById('customerInfo');
+
+    // Set selected customer
+    window.posApp.setSelectedCustomer(id);
+    selectedIdInput.value = id;
+
+    // Update UI
+    searchInput.value = name;
+    searchResults.style.display = 'none';
+    clearBtn.style.display = 'block';
+
+    // Load full customer details including photo and certifications
+    loadCustomerDetails(id, name, email, phone);
+
+    // Show customer info panel
+    customerInfo.style.display = 'block';
+}
+
+async function loadCustomerDetails(id, name, email, phone) {
+    // Update basic info immediately
+    document.getElementById('customerName').textContent = name;
+    document.getElementById('customerEmail').textContent = email || '-';
+    document.getElementById('customerPhone').textContent = phone || '-';
+
+    try {
+        // Fetch full customer details including photo and certifications
+        const response = await fetch(`/store/api/customers/${id}/pos-info`);
+        const data = await response.json();
+
+        // Update photo
+        const photoContainer = document.getElementById('customerPhoto');
+        if (data.photo_path) {
+            photoContainer.innerHTML = `
+                <img src="${data.photo_path}" alt="${name}"
+                     style="width: 70px; height: 70px; border-radius: 50%;
+                            border: 3px solid #0066cc; object-fit: cover;">
+            `;
+        } else {
+            photoContainer.innerHTML = `
+                <i class="bi bi-person-circle" style="font-size: 4rem; color: #6c757d;"></i>
+            `;
+        }
+
+        // Display certifications
+        const certsContainer = document.getElementById('customerCertifications');
+        if (data.certifications && data.certifications.length > 0) {
+            certsContainer.innerHTML = data.certifications.map(cert => {
+                const agencyColor = cert.agency_color || '#0066cc';
+                const agencyAbbr = cert.agency_abbreviation || cert.agency_name;
+                return `
+                    <span class="badge me-1" style="background-color: ${agencyColor}; font-size: 0.75rem;">
+                        ${agencyAbbr} - ${cert.cert_name}
+                    </span>
+                `;
+            }).join('');
+        } else {
+            certsContainer.innerHTML = '<small class="text-muted">No certifications on file</small>';
+        }
+    } catch (error) {
+        console.error('Error loading customer details:', error);
+        // Basic info is already shown, so we can continue
+    }
+}
+
+function addProductFromAISearch(productId, productName, price) {
+    // Add product to cart from AI search results
+    window.posApp.addToCart({
+        id: productId,
+        name: productName,
+        price: price,
+        type: 'product',
+        sku: ''
+    });
+
+    // Close the AI search modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('aiSearchModal'));
+    if (modal) {
+        modal.hide();
+    }
+}

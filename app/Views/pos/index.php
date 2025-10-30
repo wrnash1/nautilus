@@ -12,6 +12,27 @@ $additionalCss = '
 ob_start();
 ?>
 
+<!-- POS Header Bar -->
+<div class="pos-header-bar">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center py-2">
+            <div class="pos-store-logo">
+                <?php
+                $logoPath = getSettingValue('store_logo') ?? '/assets/images/nautilus-logo.png';
+                $storeName = getSettingValue('store_name') ?? 'Nautilus Dive Shop';
+                ?>
+                <img src="<?= $logoPath ?>" alt="<?= htmlspecialchars($storeName) ?>" style="height: 50px; max-width: 200px; object-fit: contain;">
+            </div>
+            <div class="pos-datetime-display">
+                <div class="text-end">
+                    <div id="posCurrentDate" class="fw-bold" style="font-size: 1.1rem;"></div>
+                    <div id="posCurrentTime" class="text-muted" style="font-size: 1.5rem; font-family: 'Courier New', monospace;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Customer Selection Bar (Fixed at Top) -->
 <div class="pos-customer-bar">
     <div class="container-fluid">
@@ -21,32 +42,44 @@ ob_start();
                     <i class="bi bi-person-circle"></i> Customer
                 </label>
                 <div class="customer-select-wrapper">
-                    <select id="customerSelect" class="form-select customer-select">
-                        <option value="">Walk-In Customer</option>
-                        <?php foreach ($customers as $customer): ?>
-                        <option value="<?= $customer['id'] ?>"
-                                data-email="<?= htmlspecialchars($customer['email'] ?? '') ?>"
-                                data-phone="<?= htmlspecialchars($customer['phone'] ?? '') ?>">
-                            <?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?>
-                            <?php if ($customer['company_name']): ?>
-                            - <?= htmlspecialchars($customer['company_name']) ?>
-                            <?php endif; ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button type="button" class="btn btn-success btn-add-customer" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
-                        <i class="bi bi-person-plus-fill"></i> New Customer
-                    </button>
+                    <div class="position-relative" style="flex: 1;">
+                        <input type="text" id="customerSearchInput" class="form-control customer-select" placeholder="Search customer or Walk-In..." autocomplete="off" style="padding-right: 2.5rem;">
+                        <button type="button" id="clearCustomerBtn" class="btn btn-sm btn-link position-absolute" style="right: 0.5rem; top: 50%; transform: translateY(-50%); display: none;">
+                            <i class="bi bi-x-circle-fill text-muted"></i>
+                        </button>
+                        <input type="hidden" id="selectedCustomerId" value="">
+                        <div id="customerSearchResults" class="search-dropdown"></div>
+                    </div>
+                    <a href="/store/customers/create?return_to=pos" class="btn btn-success btn-add-customer">
+                        <i class="bi bi-person-plus-fill"></i> New
+                    </a>
                 </div>
             </div>
-            <div class="col-md-6 text-end">
-                <div class="customer-info" id="customerInfo" style="display: none;">
-                    <span class="customer-detail">
-                        <i class="bi bi-envelope"></i> <span id="customerEmail">-</span>
-                    </span>
-                    <span class="customer-detail ms-3">
-                        <i class="bi bi-telephone"></i> <span id="customerPhone">-</span>
-                    </span>
+            <div class="col-md-6">
+                <div class="customer-info-panel" id="customerInfo" style="display: none;">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div id="customerPhoto" class="customer-photo-container">
+                                <i class="bi bi-person-circle" style="font-size: 4rem; color: #6c757d;"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="customer-details">
+                                <div class="customer-name fw-bold mb-1" id="customerName"></div>
+                                <div class="customer-contact small">
+                                    <span class="me-3">
+                                        <i class="bi bi-envelope"></i> <span id="customerEmail">-</span>
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-telephone"></i> <span id="customerPhone">-</span>
+                                    </span>
+                                </div>
+                                <div id="customerCertifications" class="customer-certs mt-2">
+                                    <!-- Certification badges will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -81,6 +114,9 @@ ob_start();
             <div class="search-input-group">
                 <i class="bi bi-search"></i>
                 <input type="text" id="productSearch" class="search-input" placeholder="Search products, courses, or scan barcode..." autocomplete="off">
+                <button class="btn btn-primary btn-sm ms-2" id="aiSearchBtn" title="AI Visual Search - Take or upload photo">
+                    <i class="bi bi-camera-fill"></i> AI Search
+                </button>
                 <button class="btn-clear-search" id="clearSearch" style="display: none;">
                     <i class="bi bi-x-circle-fill"></i>
                 </button>
@@ -151,7 +187,10 @@ ob_start();
     <div class="pos-cart-panel">
         <div class="cart-header">
             <h3><i class="bi bi-cart3"></i> Current Sale</h3>
-            <span class="cart-item-count" id="cartItemCount">0 items</span>
+            <div class="d-flex flex-column align-items-end">
+                <span class="cart-item-count" id="cartItemCount">0 items</span>
+                <small class="text-muted mt-1" id="posDateTime" style="font-size: 0.75rem;"></small>
+            </div>
         </div>
 
         <div class="cart-items-list" id="cartItemsList">
@@ -162,11 +201,37 @@ ob_start();
             </div>
         </div>
 
+        <!-- Discount/Coupon Section -->
+        <div class="discount-section" style="padding: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div class="input-group input-group-sm">
+                <input type="text" class="form-control" id="couponCode" placeholder="Enter coupon or promo code" style="text-transform: uppercase;">
+                <button class="btn btn-outline-primary" type="button" id="applyCouponBtn">
+                    <i class="bi bi-tag-fill"></i> Apply
+                </button>
+            </div>
+            <div id="couponMessage" style="margin-top: 0.5rem; font-size: 0.875rem;"></div>
+            <div id="appliedCoupon" style="display: none; margin-top: 0.5rem;">
+                <div class="d-flex justify-content-between align-items-center p-2 bg-success bg-opacity-10 rounded">
+                    <span class="text-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <strong id="appliedCouponCode"></strong> applied
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" id="removeCouponBtn">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Cart Totals -->
         <div class="cart-totals">
             <div class="total-row subtotal-row">
                 <span>Subtotal:</span>
                 <span id="cartSubtotal">$0.00</span>
+            </div>
+            <div class="total-row discount-row" id="discountRow" style="display: none; color: var(--success);">
+                <span>Discount:</span>
+                <span id="cartDiscount">-$0.00</span>
             </div>
             <div class="total-row tax-row">
                 <span>Tax (8%):</span>
@@ -232,6 +297,27 @@ ob_start();
             </div>
             <form id="addCustomerForm">
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Customer Type *</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="customer_type"
+                                       id="posTypeB2C" value="B2C" checked onchange="togglePosCustomerType()">
+                                <label class="form-check-label" for="posTypeB2C">B2C (Individual)</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="customer_type"
+                                       id="posTypeB2B" value="B2B" onchange="togglePosCustomerType()">
+                                <label class="form-check-label" for="posTypeB2B">B2B (Business)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="posB2bFields" style="display: none;" class="mb-3">
+                        <label for="companyName" class="form-label">Company Name *</label>
+                        <input type="text" class="form-control" id="companyName">
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="firstName" class="form-label">First Name *</label>
@@ -242,24 +328,38 @@ ob_start();
                             <input type="text" class="form-control" id="lastName" required>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="phone">
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">Phone</label>
-                        <input type="tel" class="form-control" id="phone">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="mobile" class="form-label">Mobile</label>
+                            <input type="tel" class="form-control" id="mobile">
+                        </div>
+                        <div class="col-md-6 mb-3" id="posBirthDateField">
+                            <label for="birthDate" class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" id="birthDate">
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="companyName" class="form-label">Company Name</label>
-                        <input type="text" class="form-control" id="companyName">
-                    </div>
-                    <div class="form-check mb-3">
-                        <input type="checkbox" class="form-check-input" id="newsletterOptIn">
-                        <label class="form-check-label" for="newsletterOptIn">
-                            <strong>Subscribe to Newsletter</strong>
-                            <br><small class="text-muted">Receive updates, promotions, and dive news</small>
-                        </label>
+
+                    <div id="posB2cFields">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="emergencyContactName" class="form-label">Emergency Contact Name</label>
+                                <input type="text" class="form-control" id="emergencyContactName">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="emergencyContactPhone" class="form-label">Emergency Contact Phone</label>
+                                <input type="tel" class="form-control" id="emergencyContactPhone">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -354,6 +454,68 @@ ob_start();
     </div>
 </div>
 
+<!-- AI Visual Search Modal -->
+<div class="modal fade" id="aiSearchModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-camera-fill"></i> AI Visual Search
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="mb-3">Capture or Upload Image</h6>
+
+                        <!-- Camera Input -->
+                        <div class="mb-3">
+                            <input type="file" id="aiSearchImageInput" accept="image/*" capture="environment" class="form-control" style="display: none;">
+                            <button type="button" class="btn btn-primary w-100 mb-2" onclick="document.getElementById('aiSearchImageInput').click()">
+                                <i class="bi bi-camera"></i> Take Photo / Upload Image
+                            </button>
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div id="aiSearchImagePreview" style="display: none;">
+                            <img id="aiSearchPreviewImg" src="" alt="Search Image" class="img-fluid rounded mb-2" style="max-height: 300px; width: 100%; object-fit: contain; border: 2px solid #dee2e6;">
+                            <button type="button" class="btn btn-success w-100" id="aiSearchExecuteBtn">
+                                <i class="bi bi-search"></i> Search Similar Products
+                            </button>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div id="aiSearchLoading" style="display: none;" class="text-center py-5">
+                            <div class="spinner-border text-primary mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="text-muted">AI is analyzing your image...</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="mb-3">Search Results</h6>
+                        <div id="aiSearchResults" class="ai-search-results-container">
+                            <div class="text-center text-muted py-5">
+                                <i class="bi bi-image" style="font-size: 3rem;"></i>
+                                <p class="mt-2">Upload an image to find matching products</p>
+                                <small>Works best with clear photos of diving equipment</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="text-muted small me-auto">
+                    <i class="bi bi-shield-check"></i> All processing happens locally - your images never leave this device
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-content">
@@ -365,7 +527,12 @@ ob_start();
 <?php
 $content = ob_get_clean();
 
-$additionalJs = '<script src="/assets/js/professional-pos.js"></script>';
+$additionalJs = '
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
+<script src="/assets/js/ai-image-search.js"></script>
+<script src="/assets/js/professional-pos.js"></script>
+';
 
 require __DIR__ . '/../layouts/app.php';
 ?>
