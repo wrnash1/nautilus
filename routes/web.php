@@ -405,4 +405,146 @@ $router->post('/waivers/sign/{token}', 'WaiverController@submitSignature');
 // API Settings (for AJAX calls)
 $router->get('/store/api/settings/tax-rate', 'Admin\SettingsController@getTaxRate', [AuthMiddleware::class]);
 
+// ============================================================================
+// PHASE 4, 5, 6 ROUTES - Advanced Features
+// ============================================================================
+
+// Notifications
+$router->get('/store/notifications', 'NotificationsController@index', [AuthMiddleware::class]);
+$router->get('/store/notifications/unread', 'NotificationsController@getUnread', [AuthMiddleware::class]);
+$router->post('/store/notifications/{id}/mark-read', 'NotificationsController@markAsRead', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/notifications/mark-all-read', 'NotificationsController@markAllAsRead', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/notifications/{id}/delete', 'NotificationsController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Appointments
+$router->get('/store/appointments', 'AppointmentsController@index', [AuthMiddleware::class]);
+$router->get('/store/appointments/create', 'AppointmentsController@create', [AuthMiddleware::class]);
+$router->post('/store/appointments', 'AppointmentsController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/appointments/{id}', 'AppointmentsController@show', [AuthMiddleware::class]);
+$router->get('/store/appointments/{id}/edit', 'AppointmentsController@edit', [AuthMiddleware::class]);
+$router->post('/store/appointments/{id}', 'AppointmentsController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/appointments/{id}/delete', 'AppointmentsController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/appointments/{id}/confirm', 'AppointmentsController@confirm', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/appointments/{id}/cancel', 'AppointmentsController@cancel', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/appointments/calendar', 'AppointmentsController@calendar', [AuthMiddleware::class]);
+
+// Documents
+$router->get('/store/documents', 'DocumentsController@index', [AuthMiddleware::class]);
+$router->get('/store/documents/create', 'DocumentsController@create', [AuthMiddleware::class]);
+$router->post('/store/documents/upload', 'DocumentsController@upload', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/documents/{id}', 'DocumentsController@show', [AuthMiddleware::class]);
+$router->get('/store/documents/{id}/download', 'DocumentsController@download', [AuthMiddleware::class]);
+$router->post('/store/documents/{id}/delete', 'DocumentsController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/documents/{id}/share', 'DocumentsController@share', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/documents/customer/{customerId}', 'DocumentsController@customerDocuments', [AuthMiddleware::class]);
+
+// Reports Dashboard
+$router->get('/store/reports', 'Reports\ReportsDashboardController@index', [AuthMiddleware::class]);
+$router->get('/store/reports/custom/create', 'Reports\ReportsDashboardController@create', [AuthMiddleware::class]);
+$router->post('/store/reports/custom', 'Reports\ReportsDashboardController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/reports/custom/{id}', 'Reports\ReportsDashboardController@show', [AuthMiddleware::class]);
+$router->post('/store/reports/custom/{id}/run', 'Reports\ReportsDashboardController@run', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Audit Logs
+$router->get('/store/admin/audit', 'Admin\AuditLogController@index', [AuthMiddleware::class]);
+$router->get('/store/admin/audit/export', 'Admin\AuditLogController@export', [AuthMiddleware::class]);
+$router->get('/store/admin/audit/{id}', 'Admin\AuditLogController@show', [AuthMiddleware::class]);
+$router->get('/store/admin/audit/user/{userId}', 'Admin\AuditLogController@userActivity', [AuthMiddleware::class]);
+
+// System Settings (Advanced)
+$router->get('/store/admin/system-settings', 'Admin\SystemSettingsController@index', [AuthMiddleware::class]);
+$router->post('/store/admin/system-settings/update', 'Admin\SystemSettingsController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/admin/system-settings/cache/clear', 'Admin\SystemSettingsController@clearCache', [AuthMiddleware::class]);
+$router->get('/store/admin/system-settings/logs', 'Admin\SystemSettingsController@viewLogs', [AuthMiddleware::class]);
+
+// Customer Portal
+$router->get('/customer/portal', 'Customer\PortalDashboardController@index');
+$router->get('/customer/portal/dashboard', 'Customer\PortalDashboardController@dashboard');
+$router->get('/customer/portal/certifications', 'Customer\PortalDashboardController@certifications');
+$router->get('/customer/portal/rental-history', 'Customer\PortalDashboardController@rentalHistory');
+$router->get('/customer/portal/trip-history', 'Customer\PortalDashboardController@tripHistory');
+$router->get('/customer/portal/documents', 'Customer\PortalDashboardController@documents');
+
+// Global Search
+$router->get('/store/search', 'SearchController@index', [AuthMiddleware::class]);
+$router->get('/store/search/results', 'SearchController@search', [AuthMiddleware::class]);
+$router->get('/store/search/quick', 'SearchController@quickSearch', [AuthMiddleware::class]);
+
+// Dashboard Widgets
+$router->get('/store/dashboard/widgets', 'Dashboard\WidgetController@index', [AuthMiddleware::class]);
+$router->get('/store/dashboard/widgets/available', 'Dashboard\WidgetController@available', [AuthMiddleware::class]);
+$router->post('/store/dashboard/widgets/add', 'Dashboard\WidgetController@add', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/dashboard/widgets/remove', 'Dashboard\WidgetController@remove', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/dashboard/widgets/update-layout', 'Dashboard\WidgetController@updateLayout', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/dashboard/widgets/{id}/config', 'Dashboard\WidgetController@updateConfig', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/dashboard/widgets/{id}/data', 'Dashboard\WidgetController@getData', [AuthMiddleware::class]);
+
+// Backup & Restore
+$router->get('/store/admin/backups', 'Admin\BackupController@index', [AuthMiddleware::class]);
+$router->post('/store/admin/backups/create', 'Admin\BackupController@create', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/admin/backups/{filename}/download', 'Admin\BackupController@download', [AuthMiddleware::class]);
+$router->post('/store/admin/backups/{filename}/restore', 'Admin\BackupController@restore', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/admin/backups/{filename}/delete', 'Admin\BackupController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/admin/backups/statistics', 'Admin\BackupController@statistics', [AuthMiddleware::class]);
+$router->post('/store/admin/backups/schedule', 'Admin\BackupController@schedule', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Communication Center
+$router->get('/store/communication', 'CommunicationController@index', [AuthMiddleware::class]);
+$router->post('/store/communication/sms/send', 'CommunicationController@sendSMS', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/communication/push/send', 'CommunicationController@sendPush', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/communication/bulk/sms', 'CommunicationController@sendBulkSMS', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/communication/bulk/push', 'CommunicationController@sendBulkPush', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/communication/history', 'CommunicationController@history', [AuthMiddleware::class]);
+$router->get('/store/communication/campaigns', 'CommunicationController@campaigns', [AuthMiddleware::class]);
+$router->get('/store/communication/preferences/{customerId}', 'CommunicationController@getPreferences', [AuthMiddleware::class]);
+$router->post('/store/communication/preferences/{customerId}', 'CommunicationController@updatePreferences', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Equipment Maintenance
+$router->get('/store/maintenance', 'MaintenanceController@index', [AuthMiddleware::class]);
+$router->get('/store/maintenance/equipment/{id}', 'MaintenanceController@equipment', [AuthMiddleware::class]);
+$router->post('/store/maintenance/record', 'MaintenanceController@record', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/maintenance/schedule', 'MaintenanceController@schedule', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/maintenance/due', 'MaintenanceController@getDue', [AuthMiddleware::class]);
+$router->get('/store/maintenance/overdue', 'MaintenanceController@getOverdue', [AuthMiddleware::class]);
+$router->get('/store/maintenance/history/{equipmentId}', 'MaintenanceController@history', [AuthMiddleware::class]);
+$router->get('/store/maintenance/statistics', 'MaintenanceController@statistics', [AuthMiddleware::class]);
+$router->post('/store/maintenance/{id}/complete', 'MaintenanceController@complete', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Advanced Inventory Management
+$router->get('/store/inventory/advanced', 'Inventory\AdvancedInventoryController@index', [AuthMiddleware::class]);
+$router->get('/store/inventory/reorder-alerts', 'Inventory\AdvancedInventoryController@reorderAlerts', [AuthMiddleware::class]);
+$router->post('/store/inventory/reorder-rules', 'Inventory\AdvancedInventoryController@setReorderRule', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/inventory/auto-po/{id}', 'Inventory\AdvancedInventoryController@createAutoPO', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/inventory/turnover', 'Inventory\AdvancedInventoryController@turnover', [AuthMiddleware::class]);
+$router->get('/store/inventory/valuation', 'Inventory\AdvancedInventoryController@valuation', [AuthMiddleware::class]);
+$router->get('/store/inventory/slow-moving', 'Inventory\AdvancedInventoryController@slowMoving', [AuthMiddleware::class]);
+$router->get('/store/inventory/fast-moving', 'Inventory\AdvancedInventoryController@fastMoving', [AuthMiddleware::class]);
+$router->post('/store/inventory/cycle-count', 'Inventory\AdvancedInventoryController@recordCycleCount', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/inventory/forecast', 'Inventory\AdvancedInventoryController@forecast', [AuthMiddleware::class]);
+$router->get('/store/inventory/purchase-orders', 'Inventory\AdvancedInventoryController@purchaseOrders', [AuthMiddleware::class]);
+
+// Loyalty Program Dashboard
+$router->get('/store/loyalty', 'LoyaltyController@index', [AuthMiddleware::class]);
+$router->get('/store/loyalty/dashboard', 'LoyaltyController@dashboard', [AuthMiddleware::class]);
+$router->get('/store/loyalty/members', 'LoyaltyController@members', [AuthMiddleware::class]);
+$router->get('/store/loyalty/members/{id}', 'LoyaltyController@memberDetails', [AuthMiddleware::class]);
+$router->post('/store/loyalty/points/award', 'LoyaltyController@awardPoints', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/loyalty/points/redeem', 'LoyaltyController@redeemPoints', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/loyalty/rewards', 'LoyaltyController@rewards', [AuthMiddleware::class]);
+$router->post('/store/loyalty/rewards/create', 'LoyaltyController@createReward', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/loyalty/tiers', 'LoyaltyController@tiers', [AuthMiddleware::class]);
+$router->get('/store/loyalty/statistics', 'LoyaltyController@statistics', [AuthMiddleware::class]);
+$router->get('/store/loyalty/transactions', 'LoyaltyController@transactions', [AuthMiddleware::class]);
+
+// Analytics Dashboard
+$router->get('/store/analytics', 'AnalyticsController@index', [AuthMiddleware::class]);
+$router->get('/store/analytics/sales', 'AnalyticsController@sales', [AuthMiddleware::class]);
+$router->get('/store/analytics/customers', 'AnalyticsController@customers', [AuthMiddleware::class]);
+$router->get('/store/analytics/products', 'AnalyticsController@products', [AuthMiddleware::class]);
+$router->get('/store/analytics/courses', 'AnalyticsController@courses', [AuthMiddleware::class]);
+$router->get('/store/analytics/trips', 'AnalyticsController@trips', [AuthMiddleware::class]);
+$router->get('/store/analytics/rentals', 'AnalyticsController@rentals', [AuthMiddleware::class]);
+$router->get('/store/analytics/export', 'AnalyticsController@export', [AuthMiddleware::class]);
+$router->get('/store/analytics/dashboard-metrics', 'AnalyticsController@dashboardMetrics', [AuthMiddleware::class]);
+
 return $router;
