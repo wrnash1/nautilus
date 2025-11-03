@@ -20,6 +20,9 @@ class DashboardController
             'equipment_maintenance' => $this->getEquipmentMaintenanceCount(),
             'pending_certifications' => $this->getPendingCertifications(),
             'today_air_fills' => $this->getTodayAirFills(),
+            'open_cash_sessions' => $this->getOpenCashSessions(),
+            'today_cash_variance' => $this->getTodayCashVariance(),
+            'new_customers_this_month' => $this->getNewCustomersThisMonth(),
         ];
 
         // Add trend data
@@ -456,5 +459,35 @@ class DashboardController
         // For AJAX endpoint if needed
         header('Content-Type: application/json');
         echo json_encode($this->getUpcomingEvents());
+    }
+
+    private function getOpenCashSessions(): int
+    {
+        $result = Database::fetchOne(
+            "SELECT COUNT(*) as count FROM cash_drawer_sessions WHERE status = 'open'"
+        );
+        return (int)($result['count'] ?? 0);
+    }
+
+    private function getTodayCashVariance(): float
+    {
+        $result = Database::fetchOne(
+            "SELECT COALESCE(SUM(ABS(difference)), 0) as total_variance
+             FROM cash_drawer_sessions
+             WHERE DATE(closed_at) = CURDATE()
+             AND status IN ('over', 'short')"
+        );
+        return (float)($result['total_variance'] ?? 0);
+    }
+
+    private function getNewCustomersThisMonth(): int
+    {
+        $result = Database::fetchOne(
+            "SELECT COUNT(*) as count
+             FROM customers
+             WHERE YEAR(created_at) = YEAR(CURDATE())
+             AND MONTH(created_at) = MONTH(CURDATE())"
+        );
+        return (int)($result['count'] ?? 0);
     }
 }

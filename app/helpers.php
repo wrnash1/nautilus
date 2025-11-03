@@ -134,3 +134,47 @@ if (!function_exists('currentUser')) {
         return \App\Core\Auth::user();
     }
 }
+
+if (!function_exists('getSettingValue')) {
+    /**
+     * Get a setting value from database
+     *
+     * @param string $key The setting key
+     * @param string $category The setting category (default: 'general')
+     * @param mixed $default Default value if setting not found
+     * @return mixed
+     */
+    function getSettingValue(string $key, string $category = 'general', $default = null)
+    {
+        try {
+            $settingsService = new \App\Services\Settings\SettingsService();
+            return $settingsService->get($key, $category, $default);
+        } catch (\Exception $e) {
+            // If database not connected yet (during install), return default
+            return $default;
+        }
+    }
+}
+
+if (!function_exists('setSettingValue')) {
+    /**
+     * Set a setting value in database
+     *
+     * @param string $key The setting key
+     * @param mixed $value The value to set
+     * @param string $category The setting category (default: 'general')
+     * @param string $type The value type (string, integer, boolean, json)
+     * @param string|null $description Setting description
+     * @return bool
+     */
+    function setSettingValue(string $key, $value, string $category = 'general', string $type = 'string', ?string $description = null): bool
+    {
+        try {
+            $settingsService = new \App\Services\Settings\SettingsService();
+            $userId = $_SESSION['user_id'] ?? null;
+            return $settingsService->set($key, $value, $category, $type, $description, $userId);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+}

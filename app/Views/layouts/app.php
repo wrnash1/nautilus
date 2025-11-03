@@ -270,6 +270,18 @@
                 <i class="bi bi-building"></i><span>Vendors</span>
             </a>
             <?php endif; ?>
+
+            <?php if (hasPermission('pos.access')): ?>
+            <a class="nav-link <?= $activeMenu === 'cash-drawer' ? 'active' : '' ?>" href="<?= url('/store/cash-drawer') ?>">
+                <i class="bi bi-cash-stack"></i><span>Cash Drawer</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('customers.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'customer-tags' ? 'active' : '' ?>" href="<?= url('/store/customers/tags') ?>">
+                <i class="bi bi-tags-fill"></i><span>Customer Tags</span>
+            </a>
+            <?php endif; ?>
             
             <?php if (hasPermission('dashboard.view')): ?>
             <div class="nav-item">
@@ -437,7 +449,7 @@
             <?php endif; ?>
 
             <?php if (hasPermission('admin.settings')): ?>
-            <a class="nav-link <?= $activeMenu === 'settings' ? 'active' : '' ?>" href="/admin/settings">
+            <a class="nav-link <?= $activeMenu === 'settings' ? 'active' : '' ?>" href="<?= url('/store/admin/settings') ?>">
                 <i class="bi bi-gear"></i><span>Settings</span>
             </a>
             <?php endif; ?>

@@ -61,12 +61,45 @@ class CustomerService
             ", [$id]);
         }
 
+        // Fetch phones, emails, contacts, and tags
+        $phones = Database::fetchAll("
+            SELECT * FROM customer_phones
+            WHERE customer_id = ?
+            ORDER BY is_primary DESC, phone_type
+        ", [$id]);
+
+        $emails = Database::fetchAll("
+            SELECT * FROM customer_emails
+            WHERE customer_id = ?
+            ORDER BY is_primary DESC, email_type
+        ", [$id]);
+
+        $contacts = Database::fetchAll("
+            SELECT * FROM customer_contacts
+            WHERE customer_id = ?
+            ORDER BY is_primary DESC, contact_name
+        ", [$id]);
+
+        $customerTags = Database::fetchAll("
+            SELECT t.*, cta.assigned_at, cta.notes,
+                   CONCAT(u.first_name, ' ', u.last_name) as assigned_by_name
+            FROM customer_tag_assignments cta
+            INNER JOIN customer_tags t ON cta.tag_id = t.id
+            LEFT JOIN users u ON cta.assigned_by = u.id
+            WHERE cta.customer_id = ?
+            ORDER BY t.display_order, t.name
+        ", [$id]);
+
         return [
             'customer' => $customer,
             'addresses' => $addresses,
             'transactions' => $transactions,
             'certifications' => $certifications,
-            'highestCert' => $highestCert
+            'highestCert' => $highestCert,
+            'phones' => $phones,
+            'emails' => $emails,
+            'contacts' => $contacts,
+            'customerTags' => $customerTags
         ];
     }
     

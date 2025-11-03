@@ -81,16 +81,21 @@ class TransactionService
         );
         
         Database::query(
-            "UPDATE transactions SET status = 'completed' 
+            "UPDATE transactions SET status = 'completed'
              WHERE id = ?",
             [$transactionId]
         );
-        
+
+        // Record cash drawer transaction if payment is cash and there's an open session
+        if ($method === 'cash') {
+            $this->recordCashDrawerTransaction($transactionId, $amount);
+        }
+
         $items = Database::fetchAll(
             "SELECT product_id, quantity FROM transaction_items WHERE transaction_id = ?",
             [$transactionId]
         );
-        
+
         foreach ($items as $item) {
             Product::adjustStock(
                 $item['product_id'],
@@ -211,5 +216,66 @@ class TransactionService
              WHERE ti.transaction_id = ?",
             [$transactionId]
         ) ?? [];
+    }
+
+    /**
+     * Record a cash drawer transaction for POS sales
+     * Automatically links to the current open cash drawer session
+     */
+    private function recordCashDrawerTransaction(int $transactionId, float $amount): void
+    {
+        try {
+            // Find the current user's open cash drawer session
+            $session = Database::fetchOne("
+                SELECT cds.id, cd.id as drawer_id
+                FROM cash_drawer_sessions cds
+                INNER JOIN cash_drawers cd ON cds.drawer_id = cd.id
+                WHERE cds.status = 'open'
+                AND cds.user_id = ?
+                ORDER BY cds.opened_at DESC
+                LIMIT 1
+            ", [$_SESSION['user_id']]);
+
+            if (!$session) {
+                // No open session for this user - log but don't fail
+                error_log("No open cash drawer session for user {$_SESSION['user_id']} during transaction {$transactionId}");
+                return;
+            }
+
+            // Get transaction details for description
+            $transaction = Database::fetchOne("
+                SELECT transaction_number, total
+                FROM transactions
+                WHERE id = ?
+            ", [$transactionId]);
+
+            $description = "POS Sale - " . ($transaction['transaction_number'] ?? "Transaction #{$transactionId}");
+
+            // Record the cash drawer transaction
+            Database::query("
+                INSERT INTO cash_drawer_transactions (
+                    session_id,
+                    transaction_type,
+                    amount,
+                    payment_method,
+                    description,
+                    reference_type,
+                    reference_id,
+                    created_by
+                ) VALUES (?, 'sale', ?, 'cash', ?, 'transaction', ?, ?)
+            ", [
+                $session['id'],
+                $amount,
+                $description,
+                $transactionId,
+                $_SESSION['user_id']
+            ]);
+
+            error_log("Cash drawer transaction recorded for POS sale #{$transactionId}, session {$session['id']}");
+
+        } catch (\Exception $e) {
+            // Log error but don't fail the sale
+            error_log("Failed to record cash drawer transaction: " . $e->getMessage());
+        }
     }
 }

@@ -556,4 +556,37 @@ $router->get('/store/analytics/rentals', 'AnalyticsController@rentals', [AuthMid
 $router->get('/store/analytics/export', 'AnalyticsController@export', [AuthMiddleware::class]);
 $router->get('/store/analytics/dashboard-metrics', 'AnalyticsController@dashboardMetrics', [AuthMiddleware::class]);
 
+// Customer Tags
+$router->get('/store/customers/tags', 'CRM\CustomerTagController@index', [AuthMiddleware::class]);
+$router->get('/store/customers/tags/create', 'CRM\CustomerTagController@create', [AuthMiddleware::class]);
+$router->post('/store/customers/tags', 'CRM\CustomerTagController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/tags/{id}', 'CRM\CustomerTagController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/tags/{id}/delete', 'CRM\CustomerTagController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/tags/assign', 'CRM\CustomerTagController@assignToCustomer', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/tags/{tagId}/remove', 'CRM\CustomerTagController@removeFromCustomer', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/customers/{id}/tags', 'CRM\CustomerTagController@getCustomerTags', [AuthMiddleware::class]);
+
+// Customer Additional Contact Info
+$router->post('/store/customers/{id}/phones', 'CRM\CustomerController@addPhone', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/phones/{phoneId}', 'CRM\CustomerController@updatePhone', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/phones/{phoneId}/delete', 'CRM\CustomerController@deletePhone', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/emails/add', 'CRM\CustomerController@addEmail', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/emails/{emailId}', 'CRM\CustomerController@updateEmail', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/emails/{emailId}/delete', 'CRM\CustomerController@deleteEmail', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/contacts', 'CRM\CustomerController@addContact', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/contacts/{contactId}', 'CRM\CustomerController@updateContact', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/contacts/{contactId}/delete', 'CRM\CustomerController@deleteContact', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/certifications', 'CRM\CustomerController@addCertification', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/certifications/{certId}/delete', 'CRM\CustomerController@deleteCertification', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Cash Drawer Management
+$router->get('/store/cash-drawer', 'CashDrawer\CashDrawerController@index', [AuthMiddleware::class]);
+$router->get('/store/cash-drawer/{id}/open', 'CashDrawer\CashDrawerController@open', [AuthMiddleware::class]);
+$router->post('/store/cash-drawer/open', 'CashDrawer\CashDrawerController@processOpen', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/cash-drawer/session/{id}/close', 'CashDrawer\CashDrawerController@close', [AuthMiddleware::class]);
+$router->post('/store/cash-drawer/session/{id}/close', 'CashDrawer\CashDrawerController@processClose', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/cash-drawer/transaction', 'CashDrawer\CashDrawerController@addTransaction', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/cash-drawer/history', 'CashDrawer\CashDrawerController@history', [AuthMiddleware::class]);
+$router->get('/store/cash-drawer/session/{id}', 'CashDrawer\CashDrawerController@viewSession', [AuthMiddleware::class]);
+
 return $router;

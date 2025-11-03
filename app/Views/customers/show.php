@@ -82,8 +82,23 @@ ob_start();
         </button>
     </li>
     <li class="nav-item" role="presentation">
+        <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button">
+            <i class="bi bi-phone"></i> Contact Info
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
         <button class="nav-link" id="addresses-tab" data-bs-toggle="tab" data-bs-target="#addresses" type="button">
             <i class="bi bi-geo-alt"></i> Addresses (<?= count($addresses) ?>)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="travel-tab" data-bs-toggle="tab" data-bs-target="#travel" type="button">
+            <i class="bi bi-airplane"></i> Travel Info
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="certifications-tab" data-bs-toggle="tab" data-bs-target="#certifications" type="button">
+            <i class="bi bi-award"></i> Certifications (<?= count($certifications) ?>)
         </button>
     </li>
     <li class="nav-item" role="presentation">
@@ -92,8 +107,8 @@ ob_start();
         </button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="certifications-tab" data-bs-toggle="tab" data-bs-target="#certifications" type="button">
-            <i class="bi bi-award"></i> Certifications (<?= count($certifications) ?>)
+        <button class="nav-link" id="tags-tab" data-bs-toggle="tab" data-bs-target="#tags" type="button">
+            <i class="bi bi-tags"></i> Tags
         </button>
     </li>
 </ul>
@@ -467,6 +482,263 @@ ob_start();
             </div>
         </div>
         <?php endif; ?>
+    </div>
+
+    <div class="tab-pane fade" id="contact" role="tabpanel">
+        <!-- Phones -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-telephone"></i> Phone Numbers</h5>
+                <?php if (hasPermission('customers.edit')): ?>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPhoneModal">
+                    <i class="bi bi-plus-circle"></i> Add Phone
+                </button>
+                <?php endif; ?>
+            </div>
+            <div class="card-body">
+                <?php
+                // Fetch phones - in real implementation, controller would pass this
+                $phones = [];
+                ?>
+                <?php if (empty($phones)): ?>
+                <p class="text-muted">No phone numbers on file.</p>
+                <?php else: ?>
+                <div class="list-group">
+                    <?php foreach ($phones as $phone): ?>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong><?= htmlspecialchars($phone['phone_number']) ?></strong>
+                                <span class="badge bg-primary"><?= ucfirst($phone['phone_type']) ?></span>
+                                <?php if ($phone['is_primary']): ?><span class="badge bg-success">Primary</span><?php endif; ?>
+                            </div>
+                            <?php if (hasPermission('customers.edit')): ?>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deletePhone(<?= $phone['id'] ?>)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Emails -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-envelope"></i> Email Addresses</h5>
+                <?php if (hasPermission('customers.edit')): ?>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addEmailModal">
+                    <i class="bi bi-plus-circle"></i> Add Email
+                </button>
+                <?php endif; ?>
+            </div>
+            <div class="card-body">
+                <?php
+                // Fetch emails - in real implementation, controller would pass this
+                $emails = [];
+                ?>
+                <?php if (empty($emails)): ?>
+                <p class="text-muted">No email addresses on file.</p>
+                <?php else: ?>
+                <div class="list-group">
+                    <?php foreach ($emails as $email): ?>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong><?= htmlspecialchars($email['email_address']) ?></strong>
+                                <span class="badge bg-primary"><?= ucfirst($email['email_type']) ?></span>
+                                <?php if ($email['is_primary']): ?><span class="badge bg-success">Primary</span><?php endif; ?>
+                            </div>
+                            <?php if (hasPermission('customers.edit')): ?>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteEmail(<?= $email['id'] ?>)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Emergency Contacts -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-person-lines-fill"></i> Emergency Contacts</h5>
+                <?php if (hasPermission('customers.edit')): ?>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addContactModal">
+                    <i class="bi bi-plus-circle"></i> Add Contact
+                </button>
+                <?php endif; ?>
+            </div>
+            <div class="card-body">
+                <?php
+                // Fetch contacts - in real implementation, controller would pass this
+                $contacts = [];
+                ?>
+                <?php if (empty($contacts)): ?>
+                <p class="text-muted">No emergency contacts on file.</p>
+                <?php else: ?>
+                <div class="row">
+                    <?php foreach ($contacts as $contact): ?>
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6><?= htmlspecialchars($contact['contact_name']) ?></h6>
+                                <p class="mb-1"><small><strong>Relationship:</strong> <?= htmlspecialchars($contact['relationship']) ?></small></p>
+                                <p class="mb-1"><small><strong>Phone:</strong> <?= htmlspecialchars($contact['contact_phone']) ?></small></p>
+                                <?php if ($contact['is_primary']): ?><span class="badge bg-warning">Primary</span><?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="travel" role="tabpanel">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header"><strong>Passport Information</strong></div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr>
+                                <th width="40%">Passport Number:</th>
+                                <td><?= htmlspecialchars($customer['passport_number'] ?? '-') ?></td>
+                            </tr>
+                            <tr>
+                                <th>Expiration Date:</th>
+                                <td>
+                                    <?php if (!empty($customer['passport_expiration'])): ?>
+                                        <?= date('M d, Y', strtotime($customer['passport_expiration'])) ?>
+                                        <?php
+                                        $daysUntilExpiry = floor((strtotime($customer['passport_expiration']) - time()) / 86400);
+                                        if ($daysUntilExpiry < 0): ?>
+                                            <span class="badge bg-danger">Expired</span>
+                                        <?php elseif ($daysUntilExpiry < 180): ?>
+                                            <span class="badge bg-warning">Expires Soon</span>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header"><strong>Physical Information</strong></div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr>
+                                <th width="40%">Height:</th>
+                                <td><?= !empty($customer['height']) ? $customer['height'] . ' cm' : '-' ?></td>
+                            </tr>
+                            <tr>
+                                <th>Weight:</th>
+                                <td><?= !empty($customer['weight']) ? $customer['weight'] . ' kg' : '-' ?></td>
+                            </tr>
+                            <tr>
+                                <th>Shoe Size:</th>
+                                <td><?= htmlspecialchars($customer['shoe_size'] ?? '-') ?></td>
+                            </tr>
+                            <tr>
+                                <th>Wetsuit Size:</th>
+                                <td><?= htmlspecialchars($customer['wetsuit_size'] ?? '-') ?></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header"><strong>Medical Information</strong></div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Allergies:</label>
+                            <p class="text-muted"><?= !empty($customer['allergies']) ? nl2br(htmlspecialchars($customer['allergies'])) : 'None reported' ?></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Medications:</label>
+                            <p class="text-muted"><?= !empty($customer['medications']) ? nl2br(htmlspecialchars($customer['medications'])) : 'None reported' ?></p>
+                        </div>
+                        <div>
+                            <label class="form-label fw-bold">Medical Notes:</label>
+                            <p class="text-muted"><?= !empty($customer['medical_notes']) ? nl2br(htmlspecialchars($customer['medical_notes'])) : 'None' ?></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php if (hasPermission('customers.edit')): ?>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            To update travel and medical information, <a href="/store/customers/<?= $customer['id'] ?>/edit">edit the customer profile</a>.
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <div class="tab-pane fade" id="tags" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-tags"></i> Customer Tags</h5>
+                <?php if (hasPermission('customers.edit')): ?>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignTagModal">
+                    <i class="bi bi-plus-circle"></i> Assign Tag
+                </button>
+                <?php endif; ?>
+            </div>
+            <div class="card-body">
+                <?php
+                // Fetch customer tags - in real implementation, controller would pass this
+                $customerTags = [];
+                ?>
+                <?php if (empty($customerTags)): ?>
+                <p class="text-muted">No tags assigned to this customer.</p>
+                <?php else: ?>
+                <div class="d-flex flex-wrap gap-2">
+                    <?php foreach ($customerTags as $tag): ?>
+                    <div class="position-relative">
+                        <span class="badge" style="background-color: <?= htmlspecialchars($tag['color']) ?>; color: white; font-size: 1rem; padding: 8px 12px;">
+                            <?php if ($tag['icon']): ?>
+                            <i class="<?= htmlspecialchars($tag['icon']) ?>"></i>
+                            <?php endif; ?>
+                            <?= htmlspecialchars($tag['name']) ?>
+                        </span>
+                        <?php if (hasPermission('customers.edit')): ?>
+                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                                onclick="removeTag(<?= $tag['id'] ?>)" style="padding: 2px 6px;">
+                            <i class="bi bi-x"></i>
+                        </button>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="mt-4">
+                    <?php foreach ($customerTags as $tag): ?>
+                    <?php if (!empty($tag['notes'])): ?>
+                    <div class="alert alert-light">
+                        <strong><?= htmlspecialchars($tag['name']) ?>:</strong>
+                        <?= htmlspecialchars($tag['notes']) ?>
+                        <br><small class="text-muted">Assigned by <?= htmlspecialchars($tag['assigned_by_name']) ?> on <?= date('M d, Y', strtotime($tag['assigned_at'])) ?></small>
+                    </div>
+                    <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
 </div>
 

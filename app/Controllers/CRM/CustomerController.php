@@ -304,10 +304,298 @@ class CustomerController
             $_SESSION['flash_error'] = 'Access denied';
             redirect("/customers/{$id}");
         }
-        
+
         Customer::deleteAddress($address_id);
-        
+
         $_SESSION['flash_success'] = 'Address deleted successfully';
         redirect("/customers/{$id}");
+    }
+
+    // ========== Phone Number Management ==========
+
+    public function addPhone(int $id)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("
+                INSERT INTO customer_phones (customer_id, phone_type, phone_number, extension, is_default, can_sms, can_call, notes, label)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $id,
+                sanitizeInput($_POST['phone_type'] ?? 'mobile'),
+                sanitizeInput($_POST['phone_number'] ?? ''),
+                sanitizeInput($_POST['extension'] ?? ''),
+                isset($_POST['is_default']) ? 1 : 0,
+                isset($_POST['can_sms']) ? 1 : 0,
+                isset($_POST['can_call']) ? 1 : 0,
+                sanitizeInput($_POST['notes'] ?? ''),
+                sanitizeInput($_POST['label'] ?? '')
+            ]);
+
+            jsonResponse(['success' => true, 'message' => 'Phone added successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function updatePhone(int $id, int $phoneId)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("
+                UPDATE customer_phones
+                SET phone_type = ?, phone_number = ?, extension = ?, is_default = ?, can_sms = ?, can_call = ?, notes = ?, label = ?
+                WHERE id = ? AND customer_id = ?
+            ");
+            $stmt->execute([
+                sanitizeInput($_POST['phone_type'] ?? 'mobile'),
+                sanitizeInput($_POST['phone_number'] ?? ''),
+                sanitizeInput($_POST['extension'] ?? ''),
+                isset($_POST['is_default']) ? 1 : 0,
+                isset($_POST['can_sms']) ? 1 : 0,
+                isset($_POST['can_call']) ? 1 : 0,
+                sanitizeInput($_POST['notes'] ?? ''),
+                sanitizeInput($_POST['label'] ?? ''),
+                $phoneId,
+                $id
+            ]);
+
+            jsonResponse(['success' => true, 'message' => 'Phone updated successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function deletePhone(int $id, int $phoneId)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("DELETE FROM customer_phones WHERE id = ? AND customer_id = ?");
+            $stmt->execute([$phoneId, $id]);
+
+            jsonResponse(['success' => true, 'message' => 'Phone deleted successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    // ========== Email Management ==========
+
+    public function addEmail(int $id)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("
+                INSERT INTO customer_emails (customer_id, email_type, email, is_default, can_market, notes, label)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $id,
+                sanitizeInput($_POST['email_type'] ?? 'personal'),
+                sanitizeInput($_POST['email'] ?? ''),
+                isset($_POST['is_default']) ? 1 : 0,
+                isset($_POST['can_market']) ? 1 : 0,
+                sanitizeInput($_POST['notes'] ?? ''),
+                sanitizeInput($_POST['label'] ?? '')
+            ]);
+
+            jsonResponse(['success' => true, 'message' => 'Email added successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function updateEmail(int $id, int $emailId)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("
+                UPDATE customer_emails
+                SET email_type = ?, email = ?, is_default = ?, can_market = ?, notes = ?, label = ?
+                WHERE id = ? AND customer_id = ?
+            ");
+            $stmt->execute([
+                sanitizeInput($_POST['email_type'] ?? 'personal'),
+                sanitizeInput($_POST['email'] ?? ''),
+                isset($_POST['is_default']) ? 1 : 0,
+                isset($_POST['can_market']) ? 1 : 0,
+                sanitizeInput($_POST['notes'] ?? ''),
+                sanitizeInput($_POST['label'] ?? ''),
+                $emailId,
+                $id
+            ]);
+
+            jsonResponse(['success' => true, 'message' => 'Email updated successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function deleteEmail(int $id, int $emailId)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("DELETE FROM customer_emails WHERE id = ? AND customer_id = ?");
+            $stmt->execute([$emailId, $id]);
+
+            jsonResponse(['success' => true, 'message' => 'Email deleted successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    // ========== Contact Management ==========
+
+    public function addContact(int $id)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("
+                INSERT INTO customer_contacts (customer_id, contact_type, first_name, last_name, phone, email, relationship, is_primary_emergency, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $id,
+                sanitizeInput($_POST['contact_type'] ?? 'emergency'),
+                sanitizeInput($_POST['first_name'] ?? ''),
+                sanitizeInput($_POST['last_name'] ?? ''),
+                sanitizeInput($_POST['phone'] ?? ''),
+                sanitizeInput($_POST['email'] ?? ''),
+                sanitizeInput($_POST['relationship'] ?? ''),
+                isset($_POST['is_primary_emergency']) ? 1 : 0,
+                sanitizeInput($_POST['notes'] ?? '')
+            ]);
+
+            jsonResponse(['success' => true, 'message' => 'Contact added successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function updateContact(int $id, int $contactId)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("
+                UPDATE customer_contacts
+                SET contact_type = ?, first_name = ?, last_name = ?, phone = ?, email = ?, relationship = ?, is_primary_emergency = ?, notes = ?
+                WHERE id = ? AND customer_id = ?
+            ");
+            $stmt->execute([
+                sanitizeInput($_POST['contact_type'] ?? 'emergency'),
+                sanitizeInput($_POST['first_name'] ?? ''),
+                sanitizeInput($_POST['last_name'] ?? ''),
+                sanitizeInput($_POST['phone'] ?? ''),
+                sanitizeInput($_POST['email'] ?? ''),
+                sanitizeInput($_POST['relationship'] ?? ''),
+                isset($_POST['is_primary_emergency']) ? 1 : 0,
+                sanitizeInput($_POST['notes'] ?? ''),
+                $contactId,
+                $id
+            ]);
+
+            jsonResponse(['success' => true, 'message' => 'Contact updated successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function deleteContact(int $id, int $contactId)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("DELETE FROM customer_contacts WHERE id = ? AND customer_id = ?");
+            $stmt->execute([$contactId, $id]);
+
+            jsonResponse(['success' => true, 'message' => 'Contact deleted successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    // ========== Certification Management ==========
+
+    public function addCertification(int $id)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("
+                INSERT INTO customer_certifications (customer_id, certification_agency_id, certification_level, certification_number, issue_date, expiration_date, instructor_name, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $id,
+                (int)($_POST['certification_agency_id'] ?? 0),
+                sanitizeInput($_POST['certification_level'] ?? ''),
+                sanitizeInput($_POST['certification_number'] ?? ''),
+                sanitizeInput($_POST['issue_date'] ?? null),
+                sanitizeInput($_POST['expiration_date'] ?? null),
+                sanitizeInput($_POST['instructor_name'] ?? ''),
+                sanitizeInput($_POST['notes'] ?? '')
+            ]);
+
+            $_SESSION['flash_success'] = 'Certification added successfully';
+            jsonResponse(['success' => true, 'message' => 'Certification added successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function deleteCertification(int $id, int $certId)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("DELETE FROM customer_certifications WHERE id = ? AND customer_id = ?");
+            $stmt->execute([$certId, $id]);
+
+            jsonResponse(['success' => true, 'message' => 'Certification deleted successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
     }
 }
