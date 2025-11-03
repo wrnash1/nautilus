@@ -14,6 +14,9 @@ $router->post('/install/process', 'Install\InstallController@install');
 $router->get('/install/progress', 'Install\InstallController@progress');
 $router->get('/install/complete', 'Install\InstallController@complete');
 
+// Deployment Route (for running migrations and seeders)
+$router->get('/deploy', 'Install\DeploymentController@run');
+
 // ============================================================================
 // PUBLIC STOREFRONT ROUTES (Customer-facing website)
 // ============================================================================

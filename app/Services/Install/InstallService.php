@@ -135,21 +135,28 @@ class InstallService
             $this->updateProgress('Seeding initial data...', 70);
             $this->seedInitialData();
 
-            // Step 5: Save company settings
-            $this->updateProgress('Saving company settings...', 75);
+            // Step 5: Seed certification agencies and cash drawers
+            $this->updateProgress('Seeding certification agencies...', 72);
+            $this->seedCertificationAgencies();
+
+            $this->updateProgress('Seeding cash drawers and customer tags...', 74);
+            $this->seedCashDrawers();
+
+            // Step 6: Save company settings
+            $this->updateProgress('Saving company settings...', 76);
             $this->saveCompanySettings($config);
 
-            // Step 6: Create admin user
+            // Step 7: Create admin user
             $this->updateProgress('Creating admin user...', 80);
             $this->createAdminUser($config);
 
-            // Step 6: Install demo data if requested
+            // Step 8: Install demo data if requested
             if ($config['install_demo_data']) {
                 $this->updateProgress('Installing demo data...', 85);
                 $this->installDemoData();
             }
 
-            // Step 7: Finalize
+            // Step 9: Finalize
             $this->updateProgress('Finalizing installation...', 95);
             $this->finalizeInstallation();
 
@@ -518,6 +525,118 @@ class InstallService
             ");
             $stmt->execute($setting);
             $stmt->closeCursor();
+        }
+    }
+
+    /**
+     * Seed certification agencies
+     */
+    private function seedCertificationAgencies(): void
+    {
+        $pdo = $this->createDatabaseConnection();
+
+        // Check if already seeded
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM certification_agencies");
+        $result = $stmt->fetch();
+        $stmt->closeCursor();
+
+        if ($result['count'] > 0) {
+            // Already seeded, skip
+            return;
+        }
+
+        // Run seeder
+        $seederFile = __DIR__ . '/../../../database/seeders/certification_agencies.sql';
+
+        if (!file_exists($seederFile)) {
+            // Seeder doesn't exist yet, skip silently
+            return;
+        }
+
+        try {
+            $sql = file_get_contents($seederFile);
+
+            // Use mysqli for multi-query support
+            $host = $_ENV['DB_HOST'] ?? 'localhost';
+            $port = $_ENV['DB_PORT'] ?? '3306';
+            $database = $_ENV['DB_DATABASE'] ?? '';
+            $username = $_ENV['DB_USERNAME'] ?? '';
+            $password = $_ENV['DB_PASSWORD'] ?? '';
+
+            $mysqli = new \mysqli($host, $username, $password, $database, $port);
+            $mysqli->set_charset("utf8mb4");
+
+            if (!$mysqli->multi_query($sql)) {
+                throw new \Exception("Error seeding certification agencies: " . $mysqli->error);
+            }
+
+            // Clear all result sets
+            do {
+                if ($result = $mysqli->store_result()) {
+                    $result->free();
+                }
+            } while ($mysqli->more_results() && $mysqli->next_result());
+
+            $mysqli->close();
+        } catch (\Exception $e) {
+            // Log error but don't fail installation
+            error_log("Failed to seed certification agencies: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Seed cash drawers and customer tags
+     */
+    private function seedCashDrawers(): void
+    {
+        $pdo = $this->createDatabaseConnection();
+
+        // Check if already seeded
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM cash_drawers");
+        $result = $stmt->fetch();
+        $stmt->closeCursor();
+
+        if ($result['count'] > 0) {
+            // Already seeded, skip
+            return;
+        }
+
+        // Run seeder
+        $seederFile = __DIR__ . '/../../../database/seeders/cash_drawers.sql';
+
+        if (!file_exists($seederFile)) {
+            // Seeder doesn't exist yet, skip silently
+            return;
+        }
+
+        try {
+            $sql = file_get_contents($seederFile);
+
+            // Use mysqli for multi-query support
+            $host = $_ENV['DB_HOST'] ?? 'localhost';
+            $port = $_ENV['DB_PORT'] ?? '3306';
+            $database = $_ENV['DB_DATABASE'] ?? '';
+            $username = $_ENV['DB_USERNAME'] ?? '';
+            $password = $_ENV['DB_PASSWORD'] ?? '';
+
+            $mysqli = new \mysqli($host, $username, $password, $database, $port);
+            $mysqli->set_charset("utf8mb4");
+
+            if (!$mysqli->multi_query($sql)) {
+                throw new \Exception("Error seeding cash drawers: " . $mysqli->error);
+            }
+
+            // Clear all result sets
+            do {
+                if ($result = $mysqli->store_result()) {
+                    $result->free();
+                }
+            } while ($mysqli->more_results() && $mysqli->next_result());
+
+            $mysqli->close();
+        } catch (\Exception $e) {
+            // Log error but don't fail installation
+            error_log("Failed to seed cash drawers: " . $e->getMessage());
         }
     }
 
