@@ -46,12 +46,12 @@ class ProductController
     {
         if (!hasPermission('products.create')) {
             $_SESSION['flash_error'] = 'Access denied';
-            redirect('/products');
+            redirect('/store/products');
         }
-        
+
         $categories = Category::all();
         $vendors = Vendor::all();
-        
+
         require __DIR__ . '/../../Views/products/create.php';
     }
     
@@ -60,16 +60,28 @@ class ProductController
         if (!hasPermission('products.create')) {
             jsonResponse(['error' => 'Access denied'], 403);
         }
-        
+
         try {
             $data = [
                 'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
                 'vendor_id' => !empty($_POST['vendor_id']) ? (int)$_POST['vendor_id'] : null,
                 'name' => sanitizeInput($_POST['name'] ?? ''),
                 'sku' => sanitizeInput($_POST['sku'] ?? ''),
+                'barcode' => sanitizeInput($_POST['barcode'] ?? ''),
+                'qr_code' => sanitizeInput($_POST['qr_code'] ?? ''),
                 'description' => sanitizeInput($_POST['description'] ?? ''),
                 'cost_price' => (float)($_POST['cost_price'] ?? 0),
                 'retail_price' => (float)($_POST['retail_price'] ?? 0),
+                'weight' => !empty($_POST['weight']) ? (float)$_POST['weight'] : null,
+                'weight_unit' => sanitizeInput($_POST['weight_unit'] ?? 'lb'),
+                'dimensions' => sanitizeInput($_POST['dimensions'] ?? ''),
+                'color' => sanitizeInput($_POST['color'] ?? ''),
+                'material' => sanitizeInput($_POST['material'] ?? ''),
+                'manufacturer' => sanitizeInput($_POST['manufacturer'] ?? ''),
+                'warranty_info' => sanitizeInput($_POST['warranty_info'] ?? ''),
+                'location_in_store' => sanitizeInput($_POST['location_in_store'] ?? ''),
+                'supplier_info' => sanitizeInput($_POST['supplier_info'] ?? ''),
+                'expiration_date' => !empty($_POST['expiration_date']) ? $_POST['expiration_date'] : null,
                 'stock_quantity' => (int)($_POST['stock_quantity'] ?? 0),
                 'low_stock_threshold' => (int)($_POST['low_stock_threshold'] ?? 5),
                 'track_inventory' => isset($_POST['track_inventory']) ? 1 : 0,
@@ -77,12 +89,12 @@ class ProductController
             ];
             
             $productId = $this->productService->createProduct($data);
-            
+
             $_SESSION['flash_success'] = 'Product created successfully';
-            redirect("/products/{$productId}");
+            redirect("/store/products/{$productId}");
         } catch (\Exception $e) {
             $_SESSION['flash_error'] = $e->getMessage();
-            redirect('/products/create');
+            redirect('/store/products/create');
         }
     }
     
@@ -92,16 +104,16 @@ class ProductController
             $_SESSION['flash_error'] = 'Access denied';
             redirect('/');
         }
-        
+
         $product = Product::find($id);
-        
+
         if (!$product) {
             $_SESSION['flash_error'] = 'Product not found';
-            redirect('/products');
+            redirect('/store/products');
         }
-        
+
         $transactions = Product::getInventoryTransactions($id);
-        
+
         require __DIR__ . '/../../Views/products/show.php';
     }
     
@@ -109,19 +121,19 @@ class ProductController
     {
         if (!hasPermission('products.edit')) {
             $_SESSION['flash_error'] = 'Access denied';
-            redirect('/products');
+            redirect('/store/products');
         }
-        
+
         $product = Product::find($id);
-        
+
         if (!$product) {
             $_SESSION['flash_error'] = 'Product not found';
-            redirect('/products');
+            redirect('/store/products');
         }
-        
+
         $categories = Category::all();
         $vendors = Vendor::all();
-        
+
         require __DIR__ . '/../../Views/products/edit.php';
     }
     
@@ -130,16 +142,28 @@ class ProductController
         if (!hasPermission('products.edit')) {
             jsonResponse(['error' => 'Access denied'], 403);
         }
-        
+
         try {
             $data = [
                 'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
                 'vendor_id' => !empty($_POST['vendor_id']) ? (int)$_POST['vendor_id'] : null,
                 'name' => sanitizeInput($_POST['name'] ?? ''),
                 'sku' => sanitizeInput($_POST['sku'] ?? ''),
+                'barcode' => sanitizeInput($_POST['barcode'] ?? ''),
+                'qr_code' => sanitizeInput($_POST['qr_code'] ?? ''),
                 'description' => sanitizeInput($_POST['description'] ?? ''),
                 'cost_price' => (float)($_POST['cost_price'] ?? 0),
                 'retail_price' => (float)($_POST['retail_price'] ?? 0),
+                'weight' => !empty($_POST['weight']) ? (float)$_POST['weight'] : null,
+                'weight_unit' => sanitizeInput($_POST['weight_unit'] ?? 'lb'),
+                'dimensions' => sanitizeInput($_POST['dimensions'] ?? ''),
+                'color' => sanitizeInput($_POST['color'] ?? ''),
+                'material' => sanitizeInput($_POST['material'] ?? ''),
+                'manufacturer' => sanitizeInput($_POST['manufacturer'] ?? ''),
+                'warranty_info' => sanitizeInput($_POST['warranty_info'] ?? ''),
+                'location_in_store' => sanitizeInput($_POST['location_in_store'] ?? ''),
+                'supplier_info' => sanitizeInput($_POST['supplier_info'] ?? ''),
+                'expiration_date' => !empty($_POST['expiration_date']) ? $_POST['expiration_date'] : null,
                 'stock_quantity' => (int)($_POST['stock_quantity'] ?? 0),
                 'low_stock_threshold' => (int)($_POST['low_stock_threshold'] ?? 5),
                 'track_inventory' => isset($_POST['track_inventory']) ? 1 : 0,
@@ -147,12 +171,12 @@ class ProductController
             ];
             
             $this->productService->updateProduct($id, $data);
-            
+
             $_SESSION['flash_success'] = 'Product updated successfully';
-            redirect("/products/{$id}");
+            redirect("/store/products/{$id}");
         } catch (\Exception $e) {
             $_SESSION['flash_error'] = $e->getMessage();
-            redirect("/products/{$id}/edit");
+            redirect("/store/products/{$id}/edit");
         }
     }
     
@@ -160,13 +184,13 @@ class ProductController
     {
         if (!hasPermission('products.delete')) {
             $_SESSION['flash_error'] = 'Access denied';
-            redirect('/products');
+            redirect('/store/products');
         }
-        
+
         Product::delete($id);
-        
+
         $_SESSION['flash_success'] = 'Product deleted successfully';
-        redirect('/products');
+        redirect('/store/products');
     }
     
     public function search()
@@ -200,12 +224,12 @@ class ProductController
             }
             
             $this->productService->updateStock($id, $quantity, $reason);
-            
+
             $_SESSION['flash_success'] = 'Stock adjusted successfully';
-            redirect("/products/{$id}");
+            redirect("/store/products/{$id}");
         } catch (\Exception $e) {
             $_SESSION['flash_error'] = $e->getMessage();
-            redirect("/products/{$id}");
+            redirect("/store/products/{$id}");
         }
     }
 }

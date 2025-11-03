@@ -21,7 +21,7 @@ ob_start();
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <form method="POST" action="/customers/<?= $customer['id'] ?>" id="customerForm">
+                <form method="POST" action="/customers/<?= $customer['id'] ?>" id="customerForm" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                     <input type="hidden" name="_method" value="PUT">
                     
@@ -171,7 +171,23 @@ ob_start();
                         <label for="notes" class="form-label">Notes</label>
                         <textarea class="form-control" id="notes" name="notes" rows="3"><?= htmlspecialchars($customer['notes'] ?? '') ?></textarea>
                     </div>
-                    
+
+                    <!-- Customer Photo Upload -->
+                    <div class="mb-3">
+                        <label for="photo" class="form-label">Customer Photo</label>
+                        <?php if (!empty($customer['photo_path'])): ?>
+                        <div class="mb-2">
+                            <img src="<?= htmlspecialchars($customer['photo_path']) ?>"
+                                 alt="Current photo"
+                                 class="rounded border"
+                                 style="max-width: 150px; max-height: 150px; object-fit: cover;">
+                            <div class="form-text">Current photo</div>
+                        </div>
+                        <?php endif; ?>
+                        <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                        <div class="form-text">Upload a new photo (JPG, PNG, GIF - Max 5MB). Leave empty to keep current photo.</div>
+                    </div>
+
                     <div class="d-flex justify-content-between">
                         <a href="/customers/<?= $customer['id'] ?>" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">

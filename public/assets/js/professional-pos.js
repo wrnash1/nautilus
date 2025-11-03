@@ -1357,17 +1357,30 @@ async function loadCustomerDetails(id, name, email, phone) {
             `;
         }
 
-        // Display certifications
+        // Display certifications with agency logos
         const certsContainer = document.getElementById('customerCertifications');
         if (data.certifications && data.certifications.length > 0) {
             certsContainer.innerHTML = data.certifications.map(cert => {
                 const agencyColor = cert.agency_color || '#0066cc';
                 const agencyAbbr = cert.agency_abbreviation || cert.agency_name;
-                return `
-                    <span class="badge me-1" style="background-color: ${agencyColor}; font-size: 0.75rem;">
-                        ${agencyAbbr} - ${cert.cert_name}
-                    </span>
-                `;
+                const agencyLogo = cert.agency_logo_path;
+
+                if (agencyLogo) {
+                    // Show agency logo with certification name
+                    return `
+                        <div class="d-inline-block me-2 mb-1" style="background: white; padding: 4px 8px; border-radius: 6px; border: 2px solid ${agencyColor};">
+                            <img src="${agencyLogo}" alt="${agencyAbbr}" style="height: 24px; vertical-align: middle; margin-right: 6px;">
+                            <span style="font-size: 0.75rem; font-weight: 600; color: #333;">${cert.cert_name}</span>
+                        </div>
+                    `;
+                } else {
+                    // Fallback to colored badge
+                    return `
+                        <span class="badge me-1" style="background-color: ${agencyColor}; font-size: 0.75rem;">
+                            ${agencyAbbr} - ${cert.cert_name}
+                        </span>
+                    `;
+                }
             }).join('');
         } else {
             certsContainer.innerHTML = '<small class="text-muted">No certifications on file</small>';

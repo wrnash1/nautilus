@@ -79,46 +79,76 @@ class Product
     {
         Database::query(
             "INSERT INTO products (
-                category_id, name, slug, sku, description, 
-                retail_price, cost_price, track_inventory, 
+                category_id, vendor_id, name, slug, sku, barcode, qr_code, description,
+                retail_price, cost_price, weight, weight_unit, dimensions,
+                color, material, manufacturer, warranty_info, location_in_store,
+                supplier_info, expiration_date, track_inventory,
                 stock_quantity, low_stock_threshold, is_active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 $data['category_id'] ?? null,
+                $data['vendor_id'] ?? null,
                 $data['name'],
                 $data['slug'],
                 $data['sku'],
+                $data['barcode'] ?? null,
+                $data['qr_code'] ?? null,
                 $data['description'] ?? null,
                 $data['retail_price'],
                 $data['cost_price'] ?? 0,
+                $data['weight'] ?? null,
+                $data['weight_unit'] ?? 'lb',
+                $data['dimensions'] ?? null,
+                $data['color'] ?? null,
+                $data['material'] ?? null,
+                $data['manufacturer'] ?? null,
+                $data['warranty_info'] ?? null,
+                $data['location_in_store'] ?? null,
+                $data['supplier_info'] ?? null,
+                $data['expiration_date'] ?? null,
                 $data['track_inventory'] ?? 1,
                 $data['stock_quantity'] ?? 0,
                 $data['low_stock_threshold'] ?? 5,
                 $data['is_active'] ?? 1
             ]
         );
-        
+
         return (int)Database::lastInsertId();
     }
     
     public static function update(int $id, array $data): bool
     {
         Database::query(
-            "UPDATE products SET 
-                category_id = ?, name = ?, slug = ?, sku = ?,
-                description = ?, retail_price = ?, cost_price = ?,
-                track_inventory = ?, stock_quantity = ?, 
-                low_stock_threshold = ?, is_active = ?,
+            "UPDATE products SET
+                category_id = ?, vendor_id = ?, name = ?, slug = ?, sku = ?,
+                barcode = ?, qr_code = ?, description = ?, retail_price = ?, cost_price = ?,
+                weight = ?, weight_unit = ?, dimensions = ?, color = ?, material = ?,
+                manufacturer = ?, warranty_info = ?, location_in_store = ?,
+                supplier_info = ?, expiration_date = ?, track_inventory = ?,
+                stock_quantity = ?, low_stock_threshold = ?, is_active = ?,
                 updated_at = NOW()
              WHERE id = ?",
             [
                 $data['category_id'] ?? null,
+                $data['vendor_id'] ?? null,
                 $data['name'],
                 $data['slug'],
                 $data['sku'],
+                $data['barcode'] ?? null,
+                $data['qr_code'] ?? null,
                 $data['description'] ?? null,
                 $data['retail_price'],
                 $data['cost_price'] ?? 0,
+                $data['weight'] ?? null,
+                $data['weight_unit'] ?? 'lb',
+                $data['dimensions'] ?? null,
+                $data['color'] ?? null,
+                $data['material'] ?? null,
+                $data['manufacturer'] ?? null,
+                $data['warranty_info'] ?? null,
+                $data['location_in_store'] ?? null,
+                $data['supplier_info'] ?? null,
+                $data['expiration_date'] ?? null,
                 $data['track_inventory'] ?? 1,
                 $data['stock_quantity'] ?? 0,
                 $data['low_stock_threshold'] ?? 5,
@@ -126,7 +156,7 @@ class Product
                 $id
             ]
         );
-        
+
         return true;
     }
     

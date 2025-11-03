@@ -10,7 +10,7 @@ ob_start();
     <h2><i class="bi bi-box-seam"></i> Products</h2>
     <div>
         <?php if (hasPermission('products.create')): ?>
-        <a href="/products/create" class="btn btn-primary">
+        <a href="/store/products/create" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Add Product
         </a>
         <?php endif; ?>
@@ -64,7 +64,7 @@ ob_start();
                         </td>
                         <td><code><?= htmlspecialchars($product['sku']) ?></code></td>
                         <td>
-                            <a href="/products/<?= $product['id'] ?>">
+                            <a href="/store/products/<?= $product['id'] ?>">
                                 <?= htmlspecialchars($product['name']) ?>
                             </a>
                         </td>
@@ -89,16 +89,16 @@ ob_start();
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm">
-                                <a href="/products/<?= $product['id'] ?>" class="btn btn-outline-primary" title="View">
+                                <a href="/store/products/<?= $product['id'] ?>" class="btn btn-outline-primary" title="View">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 <?php if (hasPermission('products.edit')): ?>
-                                <a href="/products/<?= $product['id'] ?>/edit" class="btn btn-outline-secondary" title="Edit">
+                                <a href="/store/products/<?= $product['id'] ?>/edit" class="btn btn-outline-secondary" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <?php endif; ?>
                                 <?php if (hasPermission('products.delete')): ?>
-                                <form method="POST" action="/products/<?= $product['id'] ?>/delete" class="d-inline" 
+                                <form method="POST" action="/store/products/<?= $product['id'] ?>/delete" class="d-inline"
                                       onsubmit="return confirm('Are you sure you want to delete this product?')">
                                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                                     <button type="submit" class="btn btn-outline-danger" title="Delete">
@@ -119,7 +119,7 @@ ob_start();
             <ul class="pagination justify-content-center">
                 <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                 <li class="page-item <?= $i === $page ? 'active' : '' ?>">
-                    <a class="page-link" href="/products?page=<?= $i ?><?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>">
+                    <a class="page-link" href="/store/products?page=<?= $i ?><?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>">
                         <?= $i ?>
                     </a>
                 </li>
@@ -151,7 +151,7 @@ searchInput.addEventListener('input', function() {
     }
     
     searchTimeout = setTimeout(() => {
-        fetch(`/products/search?q=${encodeURIComponent(query)}`, {
+        fetch(`/store/products/search?q=${encodeURIComponent(query)}`, {
             headers: {
                 'X-CSRF-TOKEN': csrfToken
             }
@@ -171,7 +171,7 @@ searchInput.addEventListener('input', function() {
                     '<span class="text-muted">N/A</span>';
                 
                 html += `
-                    <a href="/products/${product.id}" class="list-group-item list-group-item-action">
+                    <a href="/store/products/${product.id}" class="list-group-item list-group-item-action">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <strong>${escapeHtml(product.name)}</strong>
@@ -221,7 +221,7 @@ function formatCurrency(amount) {
 }
 
 categoryFilter.addEventListener('change', function() {
-    window.location.href = '/products?category=' + this.value;
+    window.location.href = '/store/products?category=' + this.value;
 });
 </script>
 JS;

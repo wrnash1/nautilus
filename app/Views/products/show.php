@@ -8,7 +8,7 @@ ob_start();
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="/products">Products</a></li>
+        <li class="breadcrumb-item"><a href="/store/products">Products</a></li>
         <li class="breadcrumb-item active"><?= htmlspecialchars($product['name']) ?></li>
     </ol>
 </nav>
@@ -22,7 +22,7 @@ ob_start();
         </button>
         <?php endif; ?>
         <?php if (hasPermission('products.edit')): ?>
-        <a href="/products/<?= $product['id'] ?>/edit" class="btn btn-primary">
+        <a href="/store/products/<?= $product['id'] ?>/edit" class="btn btn-primary">
             <i class="bi bi-pencil"></i> Edit
         </a>
         <?php endif; ?>
@@ -179,7 +179,7 @@ ob_start();
 <div class="modal fade" id="adjustStockModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="/products/<?= $product['id'] ?>/adjust-stock">
+            <form method="POST" action="/store/products/<?= $product['id'] ?>/adjust-stock">
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                 
                 <div class="modal-header">

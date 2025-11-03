@@ -20,7 +20,7 @@ ob_start();
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <form method="POST" action="/store/customers" id="customerForm">
+                <form method="POST" action="/store/customers" id="customerForm" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                     
                     <div class="mb-3">
@@ -152,7 +152,14 @@ ob_start();
                         <label for="notes" class="form-label">Notes</label>
                         <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
                     </div>
-                    
+
+                    <!-- Customer Photo Upload -->
+                    <div class="mb-3">
+                        <label for="photo" class="form-label">Customer Photo</label>
+                        <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                        <div class="form-text">Upload customer photo (JPG, PNG, GIF - Max 5MB). Optional.</div>
+                    </div>
+
                     <div class="d-flex justify-content-between">
                         <a href="/store/customers" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">

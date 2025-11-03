@@ -16,6 +16,8 @@
 
     <?php if ($favicon): ?>
     <link rel="icon" type="image/x-icon" href="<?= htmlspecialchars($favicon) ?>">
+    <?php else: ?>
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico">
     <?php endif; ?>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -275,12 +277,12 @@
                     <i class="bi bi-clipboard-data"></i><span>Reports</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <div class="collapse" id="reportsMenu">
-                    <a class="nav-link ps-5" href="/reports/sales">Sales Report</a>
-                    <a class="nav-link ps-5" href="/reports/customers">Customer Report</a>
-                    <a class="nav-link ps-5" href="/reports/products">Product Report</a>
-                    <a class="nav-link ps-5" href="/reports/payments">Payment Report</a>
-                    <a class="nav-link ps-5" href="/reports/inventory">Inventory Report</a>
-                    <a class="nav-link ps-5" href="/reports/low-stock">Low Stock Alert</a>
+                    <a class="nav-link ps-5" href="/store/reports/sales">Sales Report</a>
+                    <a class="nav-link ps-5" href="/store/reports/customers">Customer Report</a>
+                    <a class="nav-link ps-5" href="/store/reports/products">Product Report</a>
+                    <a class="nav-link ps-5" href="/store/reports/payments">Payment Report</a>
+                    <a class="nav-link ps-5" href="/store/reports/inventory">Inventory Report</a>
+                    <a class="nav-link ps-5" href="/store/reports/low-stock">Low Stock Alert</a>
                 </div>
             </div>
             <?php endif; ?>

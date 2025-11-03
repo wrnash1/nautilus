@@ -3,9 +3,16 @@
 namespace App\Services\Courses;
 
 use App\Core\Database;
+use App\Services\Courses\CourseEnrollmentWorkflow;
 
 class CourseService
 {
+    private CourseEnrollmentWorkflow $workflow;
+
+    public function __construct()
+    {
+        $this->workflow = new CourseEnrollmentWorkflow();
+    }
     public function getCourseList(array $filters = []): array
     {
         $sql = "SELECT c.* FROM courses c WHERE 1=1";
@@ -201,19 +208,35 @@ class CourseService
         return Database::fetchOne($sql, [$id]);
     }
     
-    public function enrollStudent(int $scheduleId, int $customerId): int
+    public function enrollStudent(int $scheduleId, int $customerId, float $amountPaid = 0): int
     {
-        $sql = "INSERT INTO course_enrollments 
-                (schedule_id, customer_id, status, enrollment_date, created_by)
-                VALUES (?, ?, 'enrolled', NOW(), ?)";
-        
+        // Get course details
+        $schedule = $this->getScheduleById($scheduleId);
+        if (!$schedule) {
+            throw new \Exception('Schedule not found');
+        }
+
+        // Create enrollment record
+        $sql = "INSERT INTO course_enrollments
+                (schedule_id, customer_id, status, enrollment_date, amount_paid, payment_status, created_by)
+                VALUES (?, ?, 'enrolled', NOW(), ?, ?, ?)";
+
+        $paymentStatus = $amountPaid > 0 ? 'partial' : 'pending';
+
         Database::execute($sql, [
             $scheduleId,
             $customerId,
+            $amountPaid,
+            $paymentStatus,
             $_SESSION['user_id'] ?? 1
         ]);
-        
-        return Database::lastInsertId();
+
+        $enrollmentId = Database::lastInsertId();
+
+        // Trigger automated workflow
+        $this->workflow->processEnrollment($enrollmentId);
+
+        return $enrollmentId;
     }
     
     public function updateEnrollmentStatus(int $id, string $status): bool
