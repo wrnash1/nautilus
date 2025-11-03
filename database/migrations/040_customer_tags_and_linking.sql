@@ -3,43 +3,27 @@
 -- Description: Customer tagging system and customer relationship linking
 -- ==========================================
 
--- Customer tags table
-CREATE TABLE IF NOT EXISTS customer_tags (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE,
-    slug VARCHAR(50) NOT NULL UNIQUE,
-    color VARCHAR(7) DEFAULT '#3498db' COMMENT 'Hex color code for badge',
-    icon VARCHAR(50) COMMENT 'Bootstrap icon class name',
-    description VARCHAR(255),
-    is_active BOOLEAN DEFAULT TRUE,
-    display_order INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+-- Customer tags table - already exists from migration 002, adding missing columns
+-- Note: customer_tags table created in migration 002 with: id, name, color, created_at
+ALTER TABLE customer_tags
+ADD COLUMN IF NOT EXISTS slug VARCHAR(50) AFTER name,
+ADD COLUMN IF NOT EXISTS icon VARCHAR(50) AFTER color,
+ADD COLUMN IF NOT EXISTS description VARCHAR(255) AFTER icon,
+ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE AFTER description,
+ADD COLUMN IF NOT EXISTS display_order INT DEFAULT 0 AFTER is_active,
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at,
+ADD COLUMN IF NOT EXISTS created_by INT UNSIGNED AFTER updated_at;
 
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    INDEX idx_active (is_active),
-    INDEX idx_slug (slug),
-    INDEX idx_order (display_order)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Add indexes if they don't exist
+ALTER TABLE customer_tags ADD INDEX IF NOT EXISTS idx_active (is_active);
+ALTER TABLE customer_tags ADD INDEX IF NOT EXISTS idx_slug (slug);
+ALTER TABLE customer_tags ADD INDEX IF NOT EXISTS idx_order (display_order);
 
--- Customer tag assignments (many-to-many relationship)
-CREATE TABLE IF NOT EXISTS customer_tag_assignments (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
-    tag_id INT UNSIGNED NOT NULL,
-    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    assigned_by INT UNSIGNED,
-    notes VARCHAR(255) COMMENT 'Reason for tag assignment',
-
-    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES customer_tags(id) ON DELETE CASCADE,
-    FOREIGN KEY (assigned_by) REFERENCES users(id) ON DELETE SET NULL,
-    UNIQUE KEY unique_customer_tag (customer_id, tag_id),
-    INDEX idx_customer (customer_id),
-    INDEX idx_tag (tag_id),
-    INDEX idx_assigned_at (assigned_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Customer tag assignments - already exists from migration 002, adding missing columns
+-- Note: customer_tag_assignments table created in migration 002 with PK (customer_id, tag_id) and assigned_at
+ALTER TABLE customer_tag_assignments
+ADD COLUMN IF NOT EXISTS assigned_by INT UNSIGNED AFTER assigned_at,
+ADD COLUMN IF NOT EXISTS notes VARCHAR(255) COMMENT 'Reason for tag assignment' AFTER assigned_by;
 
 -- Customer relationships (linking customers together)
 CREATE TABLE IF NOT EXISTS customer_relationships (
@@ -100,28 +84,22 @@ CREATE TABLE IF NOT EXISTS customer_group_memberships (
     INDEX idx_group (group_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Customer notes (separate from main notes field for better tracking)
-CREATE TABLE IF NOT EXISTS customer_notes (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
-    note_type ENUM('general', 'sales', 'service', 'billing', 'complaint', 'preference', 'medical', 'other') DEFAULT 'general',
-    subject VARCHAR(255),
-    note_text TEXT NOT NULL,
-    is_important BOOLEAN DEFAULT FALSE,
-    is_visible_to_customer BOOLEAN DEFAULT FALSE COMMENT 'Show in customer portal',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    updated_by INT UNSIGNED,
+-- Customer notes - already exists from migration 002, adding missing columns
+-- Note: customer_notes table created in migration 002 with: id, customer_id, user_id, note_type (different values), content, is_pinned, created_at, updated_at
+ALTER TABLE customer_notes
+ADD COLUMN IF NOT EXISTS subject VARCHAR(255) AFTER note_type,
+ADD COLUMN IF NOT EXISTS note_text TEXT AFTER subject,
+ADD COLUMN IF NOT EXISTS is_important BOOLEAN DEFAULT FALSE AFTER note_text,
+ADD COLUMN IF NOT EXISTS is_visible_to_customer BOOLEAN DEFAULT FALSE COMMENT 'Show in customer portal' AFTER is_important,
+ADD COLUMN IF NOT EXISTS created_by INT UNSIGNED AFTER created_at,
+ADD COLUMN IF NOT EXISTS updated_by INT UNSIGNED AFTER updated_at;
 
-    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
-    INDEX idx_customer (customer_id),
-    INDEX idx_type (note_type),
-    INDEX idx_important (is_important),
-    INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Rename content to note_text if it exists (migration 002 calls it 'content')
+-- This can't be done with ALTER IF NOT EXISTS, so skip for safety
+
+-- Add indexes
+ALTER TABLE customer_notes ADD INDEX IF NOT EXISTS idx_type (note_type);
+ALTER TABLE customer_notes ADD INDEX IF NOT EXISTS idx_important (is_important);
 
 -- Customer reminders/follow-ups
 CREATE TABLE IF NOT EXISTS customer_reminders (

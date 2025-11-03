@@ -4,22 +4,23 @@
 -- ==========================================
 
 -- Add travel and medical fields to customers table
+-- Note: shoe_size and wetsuit_size already added in migration 033
 ALTER TABLE customers
-ADD COLUMN passport_number VARCHAR(50) AFTER notes,
-ADD COLUMN passport_expiration DATE AFTER passport_number,
-ADD COLUMN passport_country VARCHAR(3) AFTER passport_expiration,
-ADD COLUMN weight DECIMAL(5,2) AFTER passport_country,
-ADD COLUMN weight_unit ENUM('lb', 'kg') DEFAULT 'lb' AFTER weight,
-ADD COLUMN height DECIMAL(5,2) AFTER weight_unit,
-ADD COLUMN height_unit ENUM('in', 'cm') DEFAULT 'in' AFTER height,
-ADD COLUMN allergies TEXT AFTER height_unit,
-ADD COLUMN medications TEXT AFTER allergies,
-ADD COLUMN medical_notes TEXT AFTER medications,
-ADD COLUMN shoe_size VARCHAR(20) AFTER medical_notes,
-ADD COLUMN wetsuit_size VARCHAR(20) AFTER shoe_size;
+ADD COLUMN IF NOT EXISTS passport_number VARCHAR(50) AFTER notes,
+ADD COLUMN IF NOT EXISTS passport_expiration DATE AFTER passport_number,
+ADD COLUMN IF NOT EXISTS passport_country VARCHAR(3) AFTER passport_expiration,
+ADD COLUMN IF NOT EXISTS weight DECIMAL(5,2) AFTER passport_country,
+ADD COLUMN IF NOT EXISTS weight_unit ENUM('lb', 'kg') DEFAULT 'lb' AFTER weight,
+ADD COLUMN IF NOT EXISTS height DECIMAL(5,2) AFTER weight_unit,
+ADD COLUMN IF NOT EXISTS height_unit ENUM('in', 'cm') DEFAULT 'in' AFTER height,
+ADD COLUMN IF NOT EXISTS allergies TEXT AFTER height_unit,
+ADD COLUMN IF NOT EXISTS medications TEXT AFTER allergies,
+ADD COLUMN IF NOT EXISTS medical_notes TEXT AFTER medications,
+ADD COLUMN IF NOT EXISTS shoe_size VARCHAR(20) AFTER medical_notes,
+ADD COLUMN IF NOT EXISTS wetsuit_size VARCHAR(20) AFTER shoe_size;
 
 -- Create indexes for travel fields
-ALTER TABLE customers ADD INDEX idx_passport_expiration (passport_expiration);
+ALTER TABLE customers ADD INDEX IF NOT EXISTS idx_passport_expiration (passport_expiration);
 
 -- Create multiple addresses table
 CREATE TABLE IF NOT EXISTS customer_addresses (
@@ -162,24 +163,13 @@ ALTER TABLE customer_contacts COMMENT = 'Emergency contacts and other related co
 ALTER TABLE customer_custom_fields COMMENT = 'Definition of custom fields for customers';
 ALTER TABLE customer_custom_field_values COMMENT = 'Values of custom fields for each customer';
 
--- Migrate existing customer address data to customer_addresses table
-INSERT INTO customer_addresses (customer_id, address_type, is_default, address_line1, address_line2, city, state, postal_code, country, created_at)
-SELECT
-    id,
-    'home' as address_type,
-    TRUE as is_default,
-    address_line1,
-    address_line2,
-    city,
-    state,
-    postal_code,
-    country,
-    created_at
-FROM customers
-WHERE address_line1 IS NOT NULL AND address_line1 != '';
+-- Note: Data migration skipped - customers table does not have address columns.
+-- Address data should already be in customer_addresses table from migration 002.
+-- INSERT INTO customer_addresses ... (migration skipped)
 
--- Migrate existing customer phone data to customer_phones table
-INSERT INTO customer_phones (customer_id, phone_type, phone_number, is_default, created_at)
+-- Note: Data migration for phone/email/emergency contacts preserved as these columns exist in customers table.
+-- Migrate existing customer phone data to customer_phones table (if not already migrated)
+INSERT IGNORE INTO customer_phones (customer_id, phone_type, phone_number, is_default, created_at)
 SELECT
     id,
     'home' as phone_type,
@@ -187,38 +177,33 @@ SELECT
     TRUE as is_default,
     created_at
 FROM customers
-WHERE phone IS NOT NULL AND phone != '' AND phone NOT IN (
-    SELECT phone_number FROM customer_phones WHERE customer_id = customers.id
-);
+WHERE phone IS NOT NULL AND phone != '';
 
--- Migrate existing customer mobile data to customer_phones table
-INSERT INTO customer_phones (customer_id, phone_type, phone_number, is_default, created_at)
+-- Migrate existing customer mobile data to customer_phones table (if not already migrated)
+INSERT IGNORE INTO customer_phones (customer_id, phone_type, phone_number, is_default, created_at)
 SELECT
     id,
     'mobile' as phone_type,
     mobile as phone_number,
-    CASE WHEN phone IS NULL OR phone = '' THEN TRUE ELSE FALSE END as is_default,
+    FALSE as is_default,
     created_at
 FROM customers
-WHERE mobile IS NOT NULL AND mobile != '' AND mobile NOT IN (
-    SELECT phone_number FROM customer_phones WHERE customer_id = customers.id
-);
+WHERE mobile IS NOT NULL AND mobile != '';
 
--- Migrate existing customer email data to customer_emails table
-INSERT INTO customer_emails (customer_id, email_type, email, is_default, created_at)
+-- Migrate existing customer email data to customer_emails table (if not already migrated)
+INSERT IGNORE INTO customer_emails (customer_id, email_type, email, is_default, is_verified, created_at)
 SELECT
     id,
     'personal' as email_type,
     email as email,
     TRUE as is_default,
+    TRUE as is_verified,
     created_at
 FROM customers
-WHERE email IS NOT NULL AND email != '' AND email NOT IN (
-    SELECT email FROM customer_emails WHERE customer_id = customers.id
-);
+WHERE email IS NOT NULL AND email != '';
 
--- Migrate existing emergency contact data to customer_contacts table
-INSERT INTO customer_contacts (customer_id, contact_type, first_name, last_name, phone, is_primary_emergency, created_at)
+-- Migrate existing emergency contact data to customer_contacts table (if not already migrated)
+INSERT IGNORE INTO customer_contacts (customer_id, contact_type, first_name, last_name, phone, is_primary_emergency, created_at)
 SELECT
     id,
     'emergency' as contact_type,

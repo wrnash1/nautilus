@@ -215,71 +215,9 @@ VALUES
 ('Main Register', 'Front Counter', '001', 200.00, 200.00, TRUE, TRUE, TRUE, 'Primary POS register', NOW()),
 ('Back Office', 'Back Office', '002', 100.00, 100.00, FALSE, TRUE, TRUE, 'Backup register for busy periods', NOW());
 
--- Create view for current open sessions
-CREATE OR REPLACE VIEW cash_drawer_sessions_open AS
-SELECT
-    cds.id,
-    cds.session_number,
-    cds.drawer_id,
-    cd.name as drawer_name,
-    cd.location as drawer_location,
-    cds.user_id,
-    CONCAT(u.first_name, ' ', u.last_name) as user_name,
-    cds.opened_at,
-    cds.starting_balance,
-    cds.status,
-    COALESCE(SUM(CASE WHEN cdt.transaction_type = 'sale' THEN cdt.amount ELSE 0 END), 0) as total_sales_today,
-    COALESCE(SUM(CASE WHEN cdt.transaction_type = 'withdrawal' THEN cdt.amount ELSE 0 END), 0) as total_withdrawals_today,
-    COALESCE(SUM(CASE WHEN cdt.transaction_type = 'deposit' THEN cdt.amount ELSE 0 END), 0) as total_deposits_today,
-    cds.starting_balance +
-    COALESCE(SUM(CASE
-        WHEN cdt.transaction_type IN ('sale', 'deposit', 'till_payback') THEN cdt.amount
-        WHEN cdt.transaction_type IN ('return', 'refund', 'withdrawal', 'payout', 'till_loan') THEN -cdt.amount
-        ELSE 0
-    END), 0) as expected_current_balance,
-    COUNT(cdt.id) as transaction_count,
-    TIMESTAMPDIFF(HOUR, cds.opened_at, NOW()) as hours_open
-FROM cash_drawer_sessions cds
-INNER JOIN cash_drawers cd ON cds.drawer_id = cd.id
-INNER JOIN users u ON cds.user_id = u.id
-LEFT JOIN cash_drawer_transactions cdt ON cds.id = cdt.session_id
-WHERE cds.status = 'open'
-GROUP BY cds.id;
-
--- Create view for session summaries
-CREATE OR REPLACE VIEW cash_drawer_session_summary AS
-SELECT
-    cds.id,
-    cds.session_number,
-    cds.drawer_id,
-    cd.name as drawer_name,
-    cds.user_id,
-    CONCAT(u.first_name, ' ', u.last_name) as user_name,
-    cds.opened_at,
-    cds.closed_at,
-    cds.starting_balance,
-    cds.ending_balance,
-    cds.expected_balance,
-    cds.difference,
-    cds.status,
-    CASE
-        WHEN cds.status = 'open' THEN 'Active'
-        WHEN cds.difference = 0 THEN 'Balanced'
-        WHEN cds.difference > 0 THEN CONCAT('Over $', ABS(cds.difference))
-        WHEN cds.difference < 0 THEN CONCAT('Short $', ABS(cds.difference))
-        ELSE 'Unknown'
-    END as balance_status,
-    cds.total_sales,
-    cds.total_refunds,
-    cds.total_deposits,
-    cds.total_withdrawals,
-    COUNT(DISTINCT cdt.id) as transaction_count,
-    TIMESTAMPDIFF(HOUR, cds.opened_at, COALESCE(cds.closed_at, NOW())) as session_duration_hours
-FROM cash_drawer_sessions cds
-INNER JOIN cash_drawers cd ON cds.drawer_id = cd.id
-INNER JOIN users u ON cds.user_id = u.id
-LEFT JOIN cash_drawer_transactions cdt ON cds.id = cdt.session_id
-GROUP BY cds.id;
+-- NOTE: Views 'cash_drawer_sessions_open' and 'cash_drawer_session_summary' removed from migration.
+-- CREATE VIEW statements cause issues with mysqli::multi_query() execution.
+-- The views can be created manually after installation if needed.
 
 -- Comments
 ALTER TABLE cash_drawers COMMENT = 'Physical cash register drawers';

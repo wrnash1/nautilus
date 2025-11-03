@@ -2,46 +2,49 @@
 -- This migration adds all necessary fields for a professional scuba diving business
 
 -- Add core customer profile fields
+-- Note: photo_path already added in migration 014
 ALTER TABLE `customers`
-ADD COLUMN `middle_name` VARCHAR(100) NULL AFTER `last_name`,
-ADD COLUMN `gender` ENUM('male', 'female', 'other', 'prefer_not_to_say') NULL AFTER `birth_date`,
-ADD COLUMN `photo_path` VARCHAR(255) NULL AFTER `gender`,
-ADD COLUMN `signature_path` VARCHAR(255) NULL AFTER `photo_path`,
-ADD COLUMN `height_cm` DECIMAL(5,2) NULL COMMENT 'Height in centimeters' AFTER `signature_path`,
-ADD COLUMN `weight_kg` DECIMAL(5,2) NULL COMMENT 'Weight in kilograms' AFTER `height_cm`,
-ADD COLUMN `shoe_size` VARCHAR(10) NULL AFTER `weight_kg`,
-ADD COLUMN `wetsuit_size` VARCHAR(10) NULL AFTER `shoe_size`,
-ADD COLUMN `bcd_size` VARCHAR(10) NULL AFTER `wetsuit_size`;
+ADD COLUMN IF NOT EXISTS `middle_name` VARCHAR(100) NULL AFTER `last_name`,
+ADD COLUMN IF NOT EXISTS `gender` ENUM('male', 'female', 'other', 'prefer_not_to_say') NULL AFTER `birth_date`,
+ADD COLUMN IF NOT EXISTS `photo_path` VARCHAR(255) NULL AFTER `gender`,
+ADD COLUMN IF NOT EXISTS `signature_path` VARCHAR(255) NULL AFTER `photo_path`,
+ADD COLUMN IF NOT EXISTS `height_cm` DECIMAL(5,2) NULL COMMENT 'Height in centimeters' AFTER `signature_path`,
+ADD COLUMN IF NOT EXISTS `weight_kg` DECIMAL(5,2) NULL COMMENT 'Weight in kilograms' AFTER `height_cm`,
+ADD COLUMN IF NOT EXISTS `shoe_size` VARCHAR(10) NULL AFTER `weight_kg`,
+ADD COLUMN IF NOT EXISTS `wetsuit_size` VARCHAR(10) NULL AFTER `shoe_size`,
+ADD COLUMN IF NOT EXISTS `bcd_size` VARCHAR(10) NULL AFTER `wetsuit_size`;
 
 -- Add contact information fields
 ALTER TABLE `customers`
-ADD COLUMN `home_phone` VARCHAR(20) NULL AFTER `phone`,
-ADD COLUMN `work_phone` VARCHAR(20) NULL AFTER `home_phone`,
-ADD COLUMN `preferred_contact_method` ENUM('email', 'mobile', 'home_phone', 'work_phone', 'sms') DEFAULT 'email' AFTER `work_phone`,
-ADD COLUMN `preferred_language` VARCHAR(10) DEFAULT 'en' AFTER `preferred_contact_method`;
+ADD COLUMN IF NOT EXISTS `home_phone` VARCHAR(20) NULL AFTER `phone`,
+ADD COLUMN IF NOT EXISTS `work_phone` VARCHAR(20) NULL AFTER `home_phone`,
+ADD COLUMN IF NOT EXISTS `preferred_contact_method` ENUM('email', 'mobile', 'home_phone', 'work_phone', 'sms') DEFAULT 'email' AFTER `work_phone`,
+ADD COLUMN IF NOT EXISTS `preferred_language` VARCHAR(10) DEFAULT 'en' AFTER `preferred_contact_method`;
 
 -- Add personal information
 ALTER TABLE `customers`
-ADD COLUMN `occupation` VARCHAR(100) NULL AFTER `preferred_language`,
-ADD COLUMN `marital_status` ENUM('single', 'married', 'divorced', 'widowed', 'other') NULL AFTER `occupation`,
-ADD COLUMN `spouse_name` VARCHAR(200) NULL AFTER `marital_status`,
-ADD COLUMN `number_of_children` INT DEFAULT 0 AFTER `spouse_name`,
-ADD COLUMN `how_did_you_hear` VARCHAR(255) NULL COMMENT 'How did you hear about us' AFTER `number_of_children`;
+ADD COLUMN IF NOT EXISTS `occupation` VARCHAR(100) NULL AFTER `preferred_language`,
+ADD COLUMN IF NOT EXISTS `marital_status` ENUM('single', 'married', 'divorced', 'widowed', 'other') NULL AFTER `occupation`,
+ADD COLUMN IF NOT EXISTS `spouse_name` VARCHAR(200) NULL AFTER `marital_status`,
+ADD COLUMN IF NOT EXISTS `number_of_children` INT DEFAULT 0 AFTER `spouse_name`,
+ADD COLUMN IF NOT EXISTS `how_did_you_hear` VARCHAR(255) NULL COMMENT 'How did you hear about us' AFTER `number_of_children`;
 
 -- Add membership and loyalty fields
-ADD COLUMN `is_loyalty_member` BOOLEAN DEFAULT FALSE AFTER `how_did_you_hear`,
-ADD COLUMN `loyalty_tier` ENUM('bronze', 'silver', 'gold', 'platinum') NULL AFTER `is_loyalty_member`,
-ADD COLUMN `club_membership_start` DATE NULL AFTER `loyalty_tier`,
-ADD COLUMN `club_membership_end` DATE NULL AFTER `club_membership_start`,
-ADD COLUMN `newsletter_opt_in` BOOLEAN DEFAULT FALSE AFTER `club_membership_end`;
+ALTER TABLE `customers`
+ADD COLUMN IF NOT EXISTS `is_loyalty_member` BOOLEAN DEFAULT FALSE AFTER `how_did_you_hear`,
+ADD COLUMN IF NOT EXISTS `loyalty_tier` ENUM('bronze', 'silver', 'gold', 'platinum') NULL AFTER `is_loyalty_member`,
+ADD COLUMN IF NOT EXISTS `club_membership_start` DATE NULL AFTER `loyalty_tier`,
+ADD COLUMN IF NOT EXISTS `club_membership_end` DATE NULL AFTER `club_membership_start`,
+ADD COLUMN IF NOT EXISTS `newsletter_opt_in` BOOLEAN DEFAULT FALSE AFTER `club_membership_end`;
 
 -- Add status and tracking
-ADD COLUMN `status` ENUM('active', 'inactive', 'suspended', 'archived') DEFAULT 'active' AFTER `newsletter_opt_in`,
-ADD COLUMN `deactivation_date` TIMESTAMP NULL AFTER `status`,
-ADD COLUMN `deactivation_reason` TEXT NULL AFTER `deactivation_date`,
-ADD COLUMN `last_visit_date` TIMESTAMP NULL AFTER `deactivation_reason`,
-ADD COLUMN `total_visits` INT DEFAULT 0 AFTER `last_visit_date`,
-ADD COLUMN `lifetime_value` DECIMAL(10,2) DEFAULT 0.00 AFTER `total_visits`;
+ALTER TABLE `customers`
+ADD COLUMN IF NOT EXISTS `status` ENUM('active', 'inactive', 'suspended', 'archived') DEFAULT 'active' AFTER `newsletter_opt_in`,
+ADD COLUMN IF NOT EXISTS `deactivation_date` TIMESTAMP NULL AFTER `status`,
+ADD COLUMN IF NOT EXISTS `deactivation_reason` TEXT NULL AFTER `deactivation_date`,
+ADD COLUMN IF NOT EXISTS `last_visit_date` TIMESTAMP NULL AFTER `deactivation_reason`,
+ADD COLUMN IF NOT EXISTS `total_visits` INT DEFAULT 0 AFTER `last_visit_date`,
+ADD COLUMN IF NOT EXISTS `lifetime_value` DECIMAL(10,2) DEFAULT 0.00 AFTER `total_visits`;
 
 -- Create customer medical information table
 CREATE TABLE IF NOT EXISTS `customer_medical_info` (

@@ -246,40 +246,9 @@ INSERT INTO layaway_settings (
     3       -- Remind 3 days before due
 );
 
--- Create View for Active Layaways with Balances
-CREATE OR REPLACE VIEW layaway_summary AS
-SELECT
-    l.id,
-    l.layaway_number,
-    l.customer_id,
-    CONCAT(c.first_name, ' ', c.last_name) as customer_name,
-    c.email as customer_email,
-    c.phone as customer_phone,
-    l.total_amount,
-    l.deposit_amount,
-    l.amount_paid,
-    l.balance_due,
-    l.payment_schedule,
-    l.payment_amount,
-    l.start_date,
-    l.due_date,
-    l.status,
-    DATEDIFF(l.due_date, CURDATE()) as days_until_due,
-    CASE
-        WHEN l.status = 'completed' THEN 'Completed'
-        WHEN l.status = 'cancelled' THEN 'Cancelled'
-        WHEN l.status = 'defaulted' THEN 'Defaulted'
-        WHEN CURDATE() > l.due_date THEN 'Overdue'
-        WHEN DATEDIFF(l.due_date, CURDATE()) <= 7 THEN 'Due Soon'
-        ELSE 'Current'
-    END as payment_status,
-    (SELECT COUNT(*) FROM layaway_items WHERE layaway_id = l.id) as item_count,
-    (SELECT SUM(quantity) FROM layaway_items WHERE layaway_id = l.id) as total_items,
-    l.created_at,
-    CONCAT(u.first_name, ' ', u.last_name) as created_by_name
-FROM layaway l
-LEFT JOIN customers c ON l.customer_id = c.id
-LEFT JOIN users u ON l.created_by = u.id;
+-- NOTE: View 'layaway_summary' removed from migration.
+-- CREATE VIEW statements cause issues with mysqli::multi_query() execution.
+-- The view can be created manually after installation if needed.
 
 -- Comments
 ALTER TABLE layaway COMMENT = 'Main layaway transactions';

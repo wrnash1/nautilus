@@ -6,18 +6,18 @@
 
 -- Equipment Maintenance Records
 CREATE TABLE IF NOT EXISTS equipment_maintenance (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    equipment_id INTEGER NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    equipment_id INT UNSIGNED NOT NULL,
     maintenance_type VARCHAR(50) NOT NULL,  -- 'inspection', 'service', 'repair', 'annual_inspection'
     performed_date DATE NOT NULL,
-    performed_by INTEGER,  -- user_id of staff member
+    performed_by INT UNSIGNED,  -- user_id of staff member
     next_maintenance_date DATE,
     hours_at_maintenance DECIMAL(10,2),  -- Equipment usage hours at time of maintenance
     cost DECIMAL(10,2) DEFAULT 0.00,
     notes TEXT,
     parts_replaced TEXT,  -- JSON array of parts
     certification_number VARCHAR(100),  -- For certified inspections
-    is_passed BOOLEAN DEFAULT 1,  -- Did equipment pass inspection?
+    is_passed TINYINT(1) DEFAULT 1,  -- Did equipment pass inspection?
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (equipment_id) REFERENCES rental_equipment(id) ON DELETE CASCADE,
@@ -31,15 +31,15 @@ CREATE INDEX IF NOT EXISTS idx_equipment_maintenance_type ON equipment_maintenan
 
 -- Scheduled Maintenance
 CREATE TABLE IF NOT EXISTS maintenance_schedules (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    equipment_id INTEGER NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    equipment_id INT UNSIGNED NOT NULL,
     maintenance_type VARCHAR(50) NOT NULL,
     frequency_type VARCHAR(20) NOT NULL,  -- 'days', 'weeks', 'months', 'hours', 'uses'
-    frequency_value INTEGER NOT NULL,  -- Every X days/weeks/months/hours/uses
+    frequency_value INT UNSIGNED NOT NULL,  -- Every X days/weeks/months/hours/uses
     last_maintenance_date DATE,
     next_due_date DATE NOT NULL,
-    is_active BOOLEAN DEFAULT 1,
-    notify_days_before INTEGER DEFAULT 7,  -- Send reminder X days before due
+    is_active TINYINT(1) DEFAULT 1,
+    notify_days_before INT DEFAULT 7,  -- Send reminder X days before due
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (equipment_id) REFERENCES rental_equipment(id) ON DELETE CASCADE
@@ -51,14 +51,14 @@ CREATE INDEX IF NOT EXISTS idx_maintenance_schedules_active ON maintenance_sched
 
 -- Maintenance Costs by Category (for analytics)
 CREATE TABLE IF NOT EXISTS maintenance_cost_categories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insert default maintenance cost categories
-INSERT OR IGNORE INTO maintenance_cost_categories (id, name, description) VALUES
+INSERT IGNORE INTO maintenance_cost_categories (id, name, description) VALUES
 (1, 'Inspection', 'Regular safety and operational inspections'),
 (2, 'Service', 'Routine service and preventive maintenance'),
 (3, 'Repair', 'Breakdown repairs and emergency fixes'),

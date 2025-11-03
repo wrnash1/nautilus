@@ -7,16 +7,16 @@
 
 -- Loyalty Points Transaction Ledger (detailed history)
 CREATE TABLE IF NOT EXISTS loyalty_transactions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_id INTEGER NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT UNSIGNED NOT NULL,
     transaction_type VARCHAR(50) NOT NULL,  -- 'earn', 'redeem', 'expire', 'bonus', 'adjustment'
-    points_amount INTEGER NOT NULL,  -- Positive for earn, negative for redeem/expire
-    points_balance_after INTEGER NOT NULL,  -- Running balance
+    points_amount INT UNSIGNED NOT NULL,  -- Positive for earn, negative for redeem/expire
+    points_balance_after INT UNSIGNED NOT NULL,  -- Running balance
     source_type VARCHAR(50),  -- 'purchase', 'referral', 'birthday', 'review', 'manual'
     source_id INTEGER,  -- ID of related transaction/order
     description TEXT,
     expires_at TIMESTAMP,  -- When these points expire
-    created_by INTEGER,  -- user_id if manual adjustment
+    created_by INT UNSIGNED,  -- user_id if manual adjustment
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
@@ -29,22 +29,22 @@ CREATE INDEX IF NOT EXISTS idx_loyalty_transactions_expires ON loyalty_transacti
 
 -- Rewards Catalog
 CREATE TABLE IF NOT EXISTS loyalty_rewards (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     description TEXT,
-    points_required INTEGER NOT NULL,
+    points_required INT UNSIGNED NOT NULL,
     reward_type VARCHAR(50) NOT NULL,  -- 'discount_percentage', 'discount_fixed', 'free_product', 'free_shipping', 'gift_card'
     reward_value DECIMAL(10,2),  -- Value of reward (e.g., 10.00 for $10 discount)
-    product_id INTEGER,  -- If reward_type is 'free_product'
+    product_id INT UNSIGNED,  -- If reward_type is 'free_product'
     min_purchase_amount DECIMAL(10,2),  -- Minimum purchase to use reward
     max_discount_amount DECIMAL(10,2),  -- Maximum discount for percentage-based rewards
-    is_active BOOLEAN DEFAULT 1,
+    is_active TINYINT(1) DEFAULT 1,
     start_date DATE,
     end_date DATE,
     usage_limit INTEGER,  -- How many times this can be redeemed total
-    usage_limit_per_customer INTEGER DEFAULT 1,
-    times_redeemed INTEGER DEFAULT 0,
-    sort_order INTEGER DEFAULT 0,
+    usage_limit_per_customer INT DEFAULT 1,
+    times_redeemed INT DEFAULT 0,
+    sort_order INT DEFAULT 0,
     image_url VARCHAR(500),
     terms_conditions TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -58,13 +58,13 @@ CREATE INDEX IF NOT EXISTS idx_loyalty_rewards_dates ON loyalty_rewards(start_da
 
 -- Reward Redemptions
 CREATE TABLE IF NOT EXISTS loyalty_reward_claims (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_id INTEGER NOT NULL,
-    reward_id INTEGER NOT NULL,
-    points_spent INTEGER NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT UNSIGNED NOT NULL,
+    reward_id INT UNSIGNED NOT NULL,
+    points_spent INT UNSIGNED NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'approved', 'redeemed', 'expired', 'cancelled'
     redemption_code VARCHAR(50) UNIQUE,  -- Unique code for customer to use
-    order_id INTEGER,  -- If used in an order
+    order_id INT UNSIGNED,  -- If used in an order
     expires_at TIMESTAMP,  -- When redemption code expires
     redeemed_at TIMESTAMP,
     notes TEXT,
@@ -82,13 +82,13 @@ CREATE INDEX IF NOT EXISTS idx_loyalty_reward_claims_code ON loyalty_reward_clai
 
 -- Referral Tracking (enhanced from existing)
 CREATE TABLE IF NOT EXISTS customer_referrals (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    referrer_customer_id INTEGER NOT NULL,  -- Customer who referred
-    referred_customer_id INTEGER NOT NULL,  -- New customer
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    referrer_customer_id INT UNSIGNED NOT NULL,  -- Customer who referred
+    referred_customer_id INT UNSIGNED NOT NULL,  -- New customer
     referral_code VARCHAR(50),
     status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'completed', 'paid'
-    referrer_points_awarded INTEGER DEFAULT 0,
-    referred_points_awarded INTEGER DEFAULT 0,
+    referrer_points_awarded INT DEFAULT 0,
+    referred_points_awarded INT DEFAULT 0,
     first_purchase_amount DECIMAL(10,2),
     first_purchase_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -102,7 +102,7 @@ CREATE INDEX IF NOT EXISTS idx_customer_referrals_referred ON customer_referrals
 CREATE INDEX IF NOT EXISTS idx_customer_referrals_status ON customer_referrals(status);
 
 -- Insert default rewards
-INSERT OR IGNORE INTO loyalty_rewards (id, name, description, points_required, reward_type, reward_value, is_active, sort_order) VALUES
+INSERT IGNORE INTO loyalty_rewards (id, name, description, points_required, reward_type, reward_value, is_active, sort_order) VALUES
 (1, '$5 Off Any Purchase', 'Get $5 off your next purchase', 500, 'discount_fixed', 5.00, 1, 1),
 (2, '$10 Off Any Purchase', 'Get $10 off your next purchase', 1000, 'discount_fixed', 10.00, 1, 2),
 (3, '$25 Off Any Purchase', 'Get $25 off your next purchase', 2500, 'discount_fixed', 25.00, 1, 3),

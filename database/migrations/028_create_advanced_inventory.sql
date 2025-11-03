@@ -6,15 +6,15 @@
 
 -- Product Reorder Rules
 CREATE TABLE IF NOT EXISTS product_reorder_rules (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id INTEGER NOT NULL,
-    reorder_point INTEGER NOT NULL,  -- Trigger reorder when stock hits this level
-    reorder_quantity INTEGER NOT NULL,  -- How much to order
-    lead_time_days INTEGER DEFAULT 7,  -- How long until delivery
-    safety_stock_days INTEGER DEFAULT 3,  -- Extra buffer stock
-    is_active BOOLEAN DEFAULT 1,
-    auto_create_po BOOLEAN DEFAULT 0,  -- Automatically create purchase orders?
-    preferred_vendor_id INTEGER,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id INT UNSIGNED NOT NULL,
+    reorder_point INT UNSIGNED NOT NULL,  -- Trigger reorder when stock hits this level
+    reorder_quantity INT UNSIGNED NOT NULL,  -- How much to order
+    lead_time_days INT DEFAULT 7,  -- How long until delivery
+    safety_stock_days INT DEFAULT 3,  -- Extra buffer stock
+    is_active TINYINT(1) DEFAULT 1,
+    auto_create_po TINYINT(1) DEFAULT 0,  -- Automatically create purchase orders?
+    preferred_vendor_id INT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
@@ -27,17 +27,17 @@ CREATE INDEX IF NOT EXISTS idx_product_reorder_rules_active ON product_reorder_r
 
 -- Inventory Cycle Counts
 CREATE TABLE IF NOT EXISTS inventory_cycle_counts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id INTEGER NOT NULL,
-    counted_by INTEGER,  -- user_id
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id INT UNSIGNED NOT NULL,
+    counted_by INT UNSIGNED,  -- user_id
     count_date DATE NOT NULL,
-    expected_quantity INTEGER NOT NULL,
-    actual_quantity INTEGER NOT NULL,
-    variance INTEGER NOT NULL,  -- actual - expected
+    expected_quantity INT UNSIGNED NOT NULL,
+    actual_quantity INT UNSIGNED NOT NULL,
+    variance INT UNSIGNED NOT NULL,  -- actual - expected
     variance_value DECIMAL(10,2),  -- Financial impact of variance
     notes TEXT,
-    is_resolved BOOLEAN DEFAULT 0,
-    resolved_by INTEGER,
+    is_resolved TINYINT(1) DEFAULT 0,
+    resolved_by INT UNSIGNED,
     resolved_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
@@ -51,9 +51,9 @@ CREATE INDEX IF NOT EXISTS idx_inventory_cycle_counts_resolved ON inventory_cycl
 
 -- Purchase Orders
 CREATE TABLE IF NOT EXISTS purchase_orders (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     po_number VARCHAR(50) NOT NULL UNIQUE,
-    vendor_id INTEGER NOT NULL,
+    vendor_id INT UNSIGNED NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'draft',  -- 'draft', 'sent', 'confirmed', 'received', 'cancelled'
     order_date DATE NOT NULL,
     expected_delivery_date DATE,
@@ -63,9 +63,9 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
     shipping DECIMAL(10,2) DEFAULT 0.00,
     total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     notes TEXT,
-    created_by INTEGER,
-    received_by INTEGER,
-    auto_generated BOOLEAN DEFAULT 0,  -- Was this auto-created by reorder rules?
+    created_by INT UNSIGNED,
+    received_by INT UNSIGNED,
+    auto_generated TINYINT(1) DEFAULT 0,  -- Was this auto-created by reorder rules?
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE RESTRICT,
@@ -80,11 +80,11 @@ CREATE INDEX IF NOT EXISTS idx_purchase_orders_number ON purchase_orders(po_numb
 
 -- Purchase Order Line Items
 CREATE TABLE IF NOT EXISTS purchase_order_items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    purchase_order_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
-    quantity_ordered INTEGER NOT NULL,
-    quantity_received INTEGER DEFAULT 0,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    purchase_order_id INT UNSIGNED NOT NULL,
+    product_id INT UNSIGNED NOT NULL,
+    quantity_ordered INT UNSIGNED NOT NULL,
+    quantity_received INT DEFAULT 0,
     unit_cost DECIMAL(10,2) NOT NULL,
     line_total DECIMAL(10,2) NOT NULL,
     notes TEXT,
@@ -99,16 +99,16 @@ CREATE INDEX IF NOT EXISTS idx_purchase_order_items_product ON purchase_order_it
 
 -- Inventory Movement Categories
 CREATE TABLE IF NOT EXISTS inventory_movement_types (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(20) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
-    affects_quantity BOOLEAN DEFAULT 1,
+    affects_quantity TINYINT(1) DEFAULT 1,
     direction VARCHAR(10),  -- 'in', 'out', 'adjust'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insert default movement types
-INSERT OR IGNORE INTO inventory_movement_types (id, code, name, affects_quantity, direction) VALUES
+INSERT IGNORE INTO inventory_movement_types (id, code, name, affects_quantity, direction) VALUES
 (1, 'PURCHASE', 'Purchase Order Received', 1, 'in'),
 (2, 'SALE', 'Sold to Customer', 1, 'out'),
 (3, 'RETURN', 'Customer Return', 1, 'in'),

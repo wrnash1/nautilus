@@ -5,12 +5,43 @@
 -- Note: customer_communications table already exists from 002_create_customer_tables.sql
 -- ============================================================================
 
--- Communication Message Log
+-- Communication Campaigns (created first so communication_log can reference it)
+CREATE TABLE IF NOT EXISTS communication_campaigns (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    campaign_type VARCHAR(20) NOT NULL,  -- 'sms', 'push', 'email', 'multi'
+    status VARCHAR(20) NOT NULL DEFAULT 'draft',  -- 'draft', 'scheduled', 'sending', 'completed', 'cancelled'
+    target_audience VARCHAR(20) NOT NULL,  -- 'all', 'segment', 'individual', 'tier'
+    target_segment TEXT,  -- JSON criteria for segmentation
+    message_subject VARCHAR(200),
+    message_body TEXT NOT NULL,
+    scheduled_at TIMESTAMP,
+    started_at TIMESTAMP,
+    completed_at TIMESTAMP,
+    total_recipients INT DEFAULT 0,
+    total_sent INT DEFAULT 0,
+    total_delivered INT DEFAULT 0,
+    total_failed INT DEFAULT 0,
+    total_opened INT DEFAULT 0,
+    total_clicked INT DEFAULT 0,
+    total_cost DECIMAL(10,2) DEFAULT 0.00,
+    created_by INT UNSIGNED,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_communication_campaigns_status ON communication_campaigns(status);
+CREATE INDEX IF NOT EXISTS idx_communication_campaigns_type ON communication_campaigns(campaign_type);
+CREATE INDEX IF NOT EXISTS idx_communication_campaigns_scheduled ON communication_campaigns(scheduled_at);
+
+-- Communication Message Log (created after campaigns so it can reference campaign_id)
 CREATE TABLE IF NOT EXISTS communication_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_id INTEGER NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT UNSIGNED NOT NULL,
     message_type VARCHAR(20) NOT NULL,  -- 'sms', 'push', 'email'
-    campaign_id INTEGER,  -- If part of a campaign
+    campaign_id INT UNSIGNED,  -- If part of a campaign
     subject VARCHAR(200),
     message TEXT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'sent', 'delivered', 'failed', 'bounced'
@@ -34,47 +65,16 @@ CREATE INDEX IF NOT EXISTS idx_communication_log_status ON communication_log(sta
 CREATE INDEX IF NOT EXISTS idx_communication_log_campaign ON communication_log(campaign_id);
 CREATE INDEX IF NOT EXISTS idx_communication_log_sent_at ON communication_log(sent_at);
 
--- Communication Campaigns
-CREATE TABLE IF NOT EXISTS communication_campaigns (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(200) NOT NULL,
-    description TEXT,
-    campaign_type VARCHAR(20) NOT NULL,  -- 'sms', 'push', 'email', 'multi'
-    status VARCHAR(20) NOT NULL DEFAULT 'draft',  -- 'draft', 'scheduled', 'sending', 'completed', 'cancelled'
-    target_audience VARCHAR(20) NOT NULL,  -- 'all', 'segment', 'individual', 'tier'
-    target_segment TEXT,  -- JSON criteria for segmentation
-    message_subject VARCHAR(200),
-    message_body TEXT NOT NULL,
-    scheduled_at TIMESTAMP,
-    started_at TIMESTAMP,
-    completed_at TIMESTAMP,
-    total_recipients INTEGER DEFAULT 0,
-    total_sent INTEGER DEFAULT 0,
-    total_delivered INTEGER DEFAULT 0,
-    total_failed INTEGER DEFAULT 0,
-    total_opened INTEGER DEFAULT 0,
-    total_clicked INTEGER DEFAULT 0,
-    total_cost DECIMAL(10,2) DEFAULT 0.00,
-    created_by INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_communication_campaigns_status ON communication_campaigns(status);
-CREATE INDEX IF NOT EXISTS idx_communication_campaigns_type ON communication_campaigns(campaign_type);
-CREATE INDEX IF NOT EXISTS idx_communication_campaigns_scheduled ON communication_campaigns(scheduled_at);
-
 -- Customer Device Tokens (for Push Notifications)
 CREATE TABLE IF NOT EXISTS customer_devices (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_id INTEGER NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT UNSIGNED NOT NULL,
     device_type VARCHAR(20) NOT NULL,  -- 'ios', 'android', 'web'
     device_token TEXT NOT NULL,  -- FCM/APNs token
     device_name VARCHAR(100),  -- User-friendly device name
     app_version VARCHAR(20),
     os_version VARCHAR(20),
-    is_active BOOLEAN DEFAULT 1,
+    is_active TINYINT(1) DEFAULT 1,
     last_used_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -87,15 +87,15 @@ CREATE INDEX IF NOT EXISTS idx_customer_devices_token ON customer_devices(device
 
 -- Communication Templates
 CREATE TABLE IF NOT EXISTS communication_templates (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     template_type VARCHAR(20) NOT NULL,  -- 'sms', 'push', 'email'
     category VARCHAR(50),  -- 'transactional', 'marketing', 'notification'
     subject VARCHAR(200),
     body TEXT NOT NULL,
     variables TEXT,  -- JSON array of available variables
-    is_active BOOLEAN DEFAULT 1,
-    usage_count INTEGER DEFAULT 0,
+    is_active TINYINT(1) DEFAULT 1,
+    usage_count INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -105,19 +105,19 @@ CREATE INDEX IF NOT EXISTS idx_communication_templates_active ON communication_t
 
 -- Customer Communication Preferences (enhanced)
 CREATE TABLE IF NOT EXISTS customer_communication_preferences (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_id INTEGER NOT NULL,
-    email_enabled BOOLEAN DEFAULT 1,
-    sms_enabled BOOLEAN DEFAULT 1,
-    push_enabled BOOLEAN DEFAULT 1,
-    marketing_email BOOLEAN DEFAULT 1,
-    marketing_sms BOOLEAN DEFAULT 0,  -- Opt-in required for SMS marketing
-    marketing_push BOOLEAN DEFAULT 1,
-    transactional_email BOOLEAN DEFAULT 1,  -- Order confirmations, receipts
-    transactional_sms BOOLEAN DEFAULT 1,  -- Booking reminders, alerts
-    reminder_notifications BOOLEAN DEFAULT 1,  -- Appointment/trip reminders
-    promotional_notifications BOOLEAN DEFAULT 1,
-    newsletter BOOLEAN DEFAULT 1,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT UNSIGNED NOT NULL,
+    email_enabled TINYINT(1) DEFAULT 1,
+    sms_enabled TINYINT(1) DEFAULT 1,
+    push_enabled TINYINT(1) DEFAULT 1,
+    marketing_email TINYINT(1) DEFAULT 1,
+    marketing_sms TINYINT(1) DEFAULT 0,  -- Opt-in required for SMS marketing
+    marketing_push TINYINT(1) DEFAULT 1,
+    transactional_email TINYINT(1) DEFAULT 1,  -- Order confirmations, receipts
+    transactional_sms TINYINT(1) DEFAULT 1,  -- Booking reminders, alerts
+    reminder_notifications TINYINT(1) DEFAULT 1,  -- Appointment/trip reminders
+    promotional_notifications TINYINT(1) DEFAULT 1,
+    newsletter TINYINT(1) DEFAULT 1,
     preferred_contact_method VARCHAR(20) DEFAULT 'email',  -- 'email', 'sms', 'push'
     quiet_hours_start TIME,  -- Don't send between these hours
     quiet_hours_end TIME,
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS customer_communication_preferences (
 CREATE INDEX IF NOT EXISTS idx_customer_comm_prefs_customer ON customer_communication_preferences(customer_id);
 
 -- Insert default templates
-INSERT OR IGNORE INTO communication_templates (id, name, template_type, category, subject, body, variables) VALUES
+INSERT IGNORE INTO communication_templates (id, name, template_type, category, subject, body, variables) VALUES
 (1, 'Welcome SMS', 'sms', 'transactional', NULL, 'Welcome to {{shop_name}}! Your account is ready. Reply STOP to opt-out.', '["shop_name", "customer_name"]'),
 (2, 'Order Confirmation', 'sms', 'transactional', NULL, 'Thanks {{customer_name}}! Order #{{order_number}} confirmed. Total: ${{order_total}}', '["customer_name", "order_number", "order_total"]'),
 (3, 'Appointment Reminder', 'sms', 'transactional', NULL, 'Reminder: Your {{appointment_type}} is tomorrow at {{appointment_time}}. See you soon!', '["appointment_type", "appointment_time", "shop_name"]'),

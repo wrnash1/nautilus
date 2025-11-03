@@ -238,50 +238,9 @@ CREATE TABLE IF NOT EXISTS compressor_log_parts (
     INDEX idx_part (part_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Create View for Compressor Status Dashboard
-CREATE OR REPLACE VIEW compressor_status_dashboard AS
-SELECT
-    c.id,
-    c.name,
-    c.serial_number,
-    c.manufacturer,
-    c.model,
-    c.current_hours,
-    c.location,
-    c.is_active,
-    c.is_operational,
-
-    -- Oil Change Status
-    c.last_oil_change_hours,
-    c.oil_change_interval_hours,
-    c.next_oil_change_due_hours,
-    (c.next_oil_change_due_hours - c.current_hours) as hours_until_oil_change,
-    CASE
-        WHEN c.current_hours >= c.next_oil_change_due_hours THEN 'Overdue'
-        WHEN (c.next_oil_change_due_hours - c.current_hours) <= 10 THEN 'Due Soon'
-        ELSE 'OK'
-    END as oil_change_status,
-
-    -- Filter Change Status
-    c.next_filter_change_due_hours,
-    (c.next_filter_change_due_hours - c.current_hours) as hours_until_filter_change,
-
-    -- Service Status
-    c.last_service_date,
-    c.next_service_due_date,
-    c.next_service_due_hours,
-    DATEDIFF(c.next_service_due_date, CURDATE()) as days_until_service,
-
-    -- Alert Count
-    (SELECT COUNT(*) FROM compressor_alerts
-     WHERE compressor_id = c.id AND is_active = TRUE) as active_alert_count,
-
-    -- Recent Activity
-    (SELECT MAX(logged_at) FROM compressor_logs
-     WHERE compressor_id = c.id) as last_activity
-
-FROM compressors c
-WHERE c.is_active = TRUE;
+-- NOTE: View 'compressor_status_dashboard' removed from migration.
+-- CREATE VIEW statements cause issues with mysqli::multi_query() execution.
+-- The view can be created manually after installation if needed.
 
 -- Insert Sample Compressor
 INSERT INTO compressors (

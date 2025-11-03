@@ -1,8 +1,7 @@
--- Add branding fields to certification agencies
+-- Add description field to certification agencies
+-- Note: logo_path and primary_color already added in migration 014
 ALTER TABLE `certification_agencies`
-ADD COLUMN `logo_path` VARCHAR(255) NULL AFTER `abbreviation`,
-ADD COLUMN `primary_color` VARCHAR(7) DEFAULT '#0066CC' AFTER `logo_path`,
-ADD COLUMN `description` TEXT NULL AFTER `primary_color`;
+ADD COLUMN IF NOT EXISTS `description` TEXT NULL AFTER `primary_color`;
 
 -- Update existing agencies with default colors
 UPDATE `certification_agencies` SET `primary_color` = '#0066CC' WHERE `abbreviation` = 'PADI';

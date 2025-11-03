@@ -1,0 +1,206 @@
+================================================================================
+  NAUTILUS DEPLOYMENT INSTRUCTIONS
+  For Servers WITHOUT Command Line Access
+================================================================================
+
+PACKAGE CONTENTS:
+✓ Complete application code
+✓ Vendor folder (Composer dependencies) - INCLUDED!
+✓ All database migrations (001-041)
+✓ Seeders (certification agencies, cash drawers, tags)
+✓ Web installer
+
+WHAT YOU NEED:
+- Web hosting with PHP 8.0+, MySQL 8.0+
+- FTP access or cPanel File Manager
+- Ability to create MySQL database
+
+================================================================================
+INSTALLATION STEPS
+================================================================================
+
+1. UPLOAD FILES
+   -------------
+   Via FTP or cPanel File Manager:
+   - Upload the ZIP or TAR.GZ file to your web server
+   - Extract to: /var/www/html/nautilus
+     (or wherever your web root is)
+
+   cPanel: Use "Extract" button after uploading
+   FTP: Extract locally, then upload the nautilus folder
+
+2. CREATE DATABASE
+   ---------------
+   Via cPanel or hosting control panel:
+   - Create new MySQL database
+     Example name: nautilus_db
+
+   - Create database user
+     Example: nautilus_user
+
+   - Set strong password
+
+   - Grant ALL PRIVILEGES to user on database
+
+   WRITE DOWN:
+   - Database name: _________________
+   - Username: _____________________
+   - Password: _____________________
+   - Host: localhost (usually)
+
+3. CREATE .ENV FILE
+   ----------------
+   In the nautilus folder:
+   - Copy .env.example to .env
+   - Edit .env file
+   - Set database credentials:
+
+     DB_HOST=localhost
+     DB_DATABASE=nautilus_db
+     DB_USERNAME=nautilus_user
+     DB_PASSWORD=your_password_here
+
+4. SET PERMISSIONS (if possible)
+   -----------------------------
+   If your hosting panel allows:
+   - storage/ folder → 775
+   - storage/logs/ → 775
+   - storage/cache/ → 775
+   - storage/sessions/ → 775
+
+5. POINT DOMAIN TO PUBLIC FOLDER
+   ------------------------------
+   Set your domain's document root to:
+   /var/www/html/nautilus/public
+
+   NOT just /var/www/html/nautilus
+
+   This is important for security!
+
+6. RUN WEB INSTALLER
+   ------------------
+   Visit in your browser:
+   https://yourdomain.com/install
+
+   Follow the 5-screen wizard:
+
+   Screen 1: System Requirements Check
+   - Should see all green checkmarks
+
+   Screen 2: Database Configuration
+   - Enter credentials from step 2
+   - Click "Test Connection"
+
+   Screen 3: Admin Account
+   - Enter your name
+   - Enter admin email
+   - Create password (min 8 chars)
+
+   Screen 4: Company Information
+   - Enter your business name
+   - Select timezone
+   - Demo data: unchecked
+
+   Screen 5: Installation Progress
+   - Watch as it runs all 41 migrations
+   - Seeds certification agencies
+   - Seeds cash drawers and tags
+   - Creates your admin account
+   - Takes 30-60 seconds
+
+   Screen 6: Complete!
+   - Click "Go to Dashboard"
+   - Login with your credentials
+
+7. VERIFY INSTALLATION
+   -------------------
+   Check these URLs work:
+   ✓ https://yourdomain.com/store/login
+   ✓ https://yourdomain.com/store/dashboard
+   ✓ https://yourdomain.com/store/pos
+   ✓ https://yourdomain.com/store/customers
+   ✓ https://yourdomain.com/store/cash-drawer
+
+8. DELETE TEMPORARY FILES
+   ----------------------
+   For security, delete:
+   - /public/test.php (if exists)
+   - /public/phpinfo.php (if exists)
+   - /deploy-direct.php
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: "This page isn't working" or 500 error
+Solution:
+  - Check .env file exists and has correct database credentials
+  - Verify vendor/ folder exists (should be ~50MB)
+  - Check storage/ folder is writable (775 permissions)
+  - Ensure document root points to /public folder
+
+Problem: "Database connection failed"
+Solution:
+  - Verify database exists
+  - Check username has privileges
+  - Try host as '127.0.0.1' instead of 'localhost'
+
+Problem: "Blank white page"
+Solution:
+  - Check PHP version is 8.0+
+  - Verify all files uploaded correctly
+  - Check Apache/Nginx error logs
+
+Problem: Can't access /install
+Solution:
+  - Verify .htaccess file exists in public/ folder
+  - Check mod_rewrite is enabled (Apache)
+  - Try: https://yourdomain.com/index.php (if routes work)
+
+Problem: "Composer dependencies missing"
+Solution:
+  - You're using the wrong package!
+  - Use the one created by create-package.sh
+  - It includes vendor/ folder already
+
+================================================================================
+WHAT GETS INSTALLED
+================================================================================
+
+When installation completes, you'll have:
+
+DATABASE:
+✓ 80+ tables (complete schema)
+✓ 15 certification agencies (PADI, SSI, NAUI, SDI, TDI, etc.)
+✓ 20+ certification types (Open Water → Instructor)
+✓ 3 cash drawers (Main Register, Pool, Boat)
+✓ 10 customer tags (VIP, Wholesale, Instructor, etc.)
+✓ Roles and permissions
+✓ Your admin user account
+
+FEATURES READY TO USE:
+✓ Point of Sale (POS)
+✓ Customer Management (CRM)
+✓ Inventory Management
+✓ Cash Drawer System
+✓ Customer Tags
+✓ Certification Tracking
+✓ Reports & Analytics
+✓ User Management
+
+================================================================================
+SUPPORT
+================================================================================
+
+Documentation: See DOCUMENTATION.md included in package
+Email: support@yourdomain.com
+Issues: Report bugs on GitHub
+
+Need help? Contact us for professional installation service.
+
+================================================================================
+
+Package created: $(date)
+Ready for deployment!
+
+================================================================================
