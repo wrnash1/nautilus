@@ -73,6 +73,8 @@ $router->get('/store/pos/receipt/{id}', 'POS\TransactionController@receipt', [Au
 // CRM - Customers
 $router->get('/store/customers', 'CRM\CustomerController@index', [AuthMiddleware::class]);
 $router->get('/store/customers/create', 'CRM\CustomerController@create', [AuthMiddleware::class]);
+$router->get('/store/customers/tags', 'CRM\CustomerTagController@index', [AuthMiddleware::class]); // Must be before {id}
+$router->get('/store/customers/tags/create', 'CRM\CustomerTagController@create', [AuthMiddleware::class]);
 $router->post('/store/customers', 'CRM\CustomerController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/customers/search', 'CRM\CustomerController@search', [AuthMiddleware::class]);
 $router->get('/store/customers/export', 'CRM\CustomerController@exportCsv', [AuthMiddleware::class]);
@@ -164,6 +166,7 @@ $router->get('/store/courses/schedules', 'Courses\CourseController@schedules', [
 $router->get('/store/courses/schedules/create', 'Courses\CourseController@createSchedule', [AuthMiddleware::class]);
 $router->post('/store/courses/schedules', 'Courses\CourseController@storeSchedule', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/courses/schedules/{id}', 'Courses\CourseController@showSchedule', [AuthMiddleware::class]);
+$router->post('/store/courses/transfer-student', 'Courses\CourseController@transferStudent', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/courses/enrollments', 'Courses\CourseController@enrollments', [AuthMiddleware::class]);
 $router->get('/store/courses/enrollments/{id}', 'Courses\CourseController@showEnrollment', [AuthMiddleware::class]);
 $router->post('/store/courses/enrollments/{id}/attendance', 'Courses\CourseController@markAttendance', [AuthMiddleware::class, CsrfMiddleware::class]);
@@ -395,6 +398,9 @@ $router->post('/store/api/tokens', 'API\TokenController@store', [AuthMiddleware:
 $router->post('/store/api/tokens/{id}/revoke', 'API\TokenController@revoke', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/api/tokens/{id}/delete', 'API\TokenController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/api/docs', 'API\DocumentationController@index', [AuthMiddleware::class]);
+
+// API - Course Schedules (for POS)
+$router->get('/store/api/courses/{id}/schedules', 'API\CourseScheduleController@getAvailableSchedules', [AuthMiddleware::class]);
 
 // Waiver Management (Staff)
 $router->get('/store/waivers', 'WaiverController@index', [AuthMiddleware::class]);

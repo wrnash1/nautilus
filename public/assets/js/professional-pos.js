@@ -71,6 +71,21 @@
         // Product tile clicks
         document.querySelectorAll('.product-tile').forEach(tile => {
             tile.addEventListener('click', function() {
+                // Check if this is a course with schedule selection
+                if (this.classList.contains('course-tile') && this.dataset.courseId) {
+                    // Show course schedule selection modal
+                    if (typeof window.showCourseScheduleModal === 'function') {
+                        window.showCourseScheduleModal(
+                            this.dataset.courseId,
+                            this.dataset.productName,
+                            this.dataset.productPrice
+                        );
+                    } else {
+                        console.error('Course schedule modal function not loaded');
+                    }
+                    return;
+                }
+
                 const productData = {
                     id: this.dataset.productId,
                     name: this.dataset.productName,

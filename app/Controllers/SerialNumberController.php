@@ -18,7 +18,30 @@ class SerialNumberController
      */
     public function index(): void
     {
-        require_once __DIR__ . '/../Views/serial_numbers/index.php';
+        // Get filters from query string
+        $serialFilter = $_GET['serial'] ?? '';
+        $statusFilter = $_GET['status'] ?? '';
+        $serviceDueFilter = $_GET['service_due'] ?? '';
+
+        // Fetch serial numbers with filters
+        $serialNumbers = $this->serialService->getAllWithFilters([
+            'serial' => $serialFilter,
+            'status' => $statusFilter,
+            'service_due' => $serviceDueFilter
+        ]);
+
+        // Set variables for layout
+        $pageTitle = 'Serial Number Tracking';
+        $activeMenu = 'inventory';
+        $user = \App\Core\Auth::user();
+
+        // Start output buffering for the view
+        ob_start();
+        require __DIR__ . '/../Views/serial_numbers/index.php';
+        $content = ob_get_clean();
+
+        // Load layout
+        require BASE_PATH . '/app/Views/layouts/app.php';
     }
 
     /**

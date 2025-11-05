@@ -28,7 +28,18 @@ class CustomerTagController
             $tag['customer_count'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
         }
 
+        // Set variables for layout
+        $pageTitle = 'Customer Tags';
+        $activeMenu = 'customers';
+        $user = \App\Core\Auth::user();
+
+        // Start output buffering for the view
+        ob_start();
         require __DIR__ . '/../../Views/customers/tags/index.php';
+        $content = ob_get_clean();
+
+        // Load layout
+        require BASE_PATH . '/app/Views/layouts/app.php';
     }
 
     /**

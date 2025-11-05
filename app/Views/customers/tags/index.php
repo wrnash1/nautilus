@@ -1,7 +1,5 @@
 <?php
-$pageTitle = 'Customer Tags';
-$activeMenu = 'customers';
-require __DIR__ . '/../../layouts/header.php';
+// This view content will be rendered inside layouts/app.php
 ?>
 
 <div class="container-fluid">
@@ -209,5 +207,3 @@ function deleteTag(tagId, tagName, customerCount) {
     form.submit();
 }
 </script>
-
-<?php require __DIR__ . '/../../layouts/footer.php'; ?>

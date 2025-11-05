@@ -70,6 +70,53 @@ class SerialNumberService
     }
 
     /**
+     * Get all serial numbers with filters
+     */
+    public function getAllWithFilters(array $filters = []): array
+    {
+        $sql = "SELECT sn.*, p.name as product_name, p.sku
+                FROM serial_numbers sn
+                LEFT JOIN products p ON sn.product_id = p.id
+                WHERE 1=1";
+
+        $params = [];
+
+        // Filter by serial number
+        if (!empty($filters['serial'])) {
+            $sql .= " AND sn.serial_number LIKE ?";
+            $params[] = '%' . $filters['serial'] . '%';
+        }
+
+        // Filter by status
+        if (!empty($filters['status'])) {
+            $sql .= " AND sn.status = ?";
+            $params[] = $filters['status'];
+        }
+
+        // Filter by service due
+        if (!empty($filters['service_due'])) {
+            switch ($filters['service_due']) {
+                case 'overdue':
+                    $sql .= " AND sn.next_service_due < CURDATE()";
+                    break;
+                case '30days':
+                    $sql .= " AND sn.next_service_due BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)";
+                    break;
+                case '90days':
+                    $sql .= " AND sn.next_service_due BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 90 DAY)";
+                    break;
+            }
+        }
+
+        $sql .= " ORDER BY sn.created_at DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Find by serial number
      */
     public function findBySerial(string $serialNumber): ?array

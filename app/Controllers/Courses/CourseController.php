@@ -3,14 +3,17 @@
 namespace App\Controllers\Courses;
 
 use App\Services\Courses\CourseService;
+use App\Services\Courses\EnrollmentService;
 
 class CourseController
 {
     private CourseService $courseService;
-    
+    private EnrollmentService $enrollmentService;
+
     public function __construct()
     {
         $this->courseService = new CourseService();
+        $this->enrollmentService = new EnrollmentService();
     }
     
     public function index()
@@ -199,25 +202,65 @@ class CourseController
         if (!hasPermission('courses.view')) {
             redirect('/courses/schedules');
         }
-        
+
         $schedule = $this->courseService->getScheduleById($id);
-        
+
         if (!$schedule) {
             $_SESSION['flash_error'] = 'Schedule not found';
             redirect('/courses/schedules');
         }
-        
-        $enrollments = $this->courseService->getScheduleEnrollments($id);
-        
-        $pageTitle = 'Course Schedule';
+
+        // Get detailed roster with enrollment service
+        $roster = $this->enrollmentService->getScheduleRoster($id);
+
+        // Get available schedules for same course (for transfers)
+        $availableSchedules = $this->enrollmentService->getAvailableSchedules($schedule['course_id']);
+
+        $pageTitle = 'Course Roster - ' . $schedule['course_name'];
         $activeMenu = 'courses';
         $user = $_SESSION['user'] ?? [];
-        
+
         ob_start();
         require __DIR__ . '/../../Views/courses/schedules/show.php';
         $content = ob_get_clean();
-        
+
         require __DIR__ . '/../../Views/layouts/app.php';
+    }
+
+    /**
+     * Transfer a student to a different schedule
+     */
+    public function transferStudent()
+    {
+        if (!hasPermission('courses.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+            return;
+        }
+
+        try {
+            $enrollmentId = (int)($_POST['enrollment_id'] ?? 0);
+            $newScheduleId = (int)($_POST['new_schedule_id'] ?? 0);
+            $reason = sanitizeInput($_POST['reason'] ?? '');
+
+            if (!$enrollmentId || !$newScheduleId) {
+                throw new \Exception('Invalid transfer data');
+            }
+
+            $success = $this->enrollmentService->transferToSchedule(
+                $enrollmentId,
+                $newScheduleId,
+                $reason,
+                $_SESSION['user_id']
+            );
+
+            if ($success) {
+                jsonResponse(['success' => true, 'message' => 'Student transferred successfully']);
+            } else {
+                jsonResponse(['error' => 'Transfer failed'], 500);
+            }
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
     }
     
     public function enrollments()

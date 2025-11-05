@@ -4,12 +4,19 @@ namespace App\Services\POS;
 
 use App\Core\Database;
 use App\Models\Product;
+use App\Services\Courses\EnrollmentService;
 
 class TransactionService
 {
     private const TAX_RATE = 0.08;
-    
-    public function createTransaction(int $customerId, array $items): int
+    private EnrollmentService $enrollmentService;
+
+    public function __construct()
+    {
+        $this->enrollmentService = new EnrollmentService();
+    }
+
+    public function createTransaction(?int $customerId, array $items): int
     {
         $subtotal = 0;
         foreach ($items as $item) {
@@ -104,10 +111,38 @@ class TransactionService
                 $transactionId
             );
         }
-        
+
+        // Handle course enrollments if customer is specified
+        if ($transaction['customer_id']) {
+            $this->processCourseEnrollments($transactionId, $transaction['customer_id'], $items);
+        }
+
         logActivity('complete', 'transactions', $transactionId);
-        
+
         return true;
+    }
+
+    /**
+     * Process course enrollments from transaction items
+     */
+    private function processCourseEnrollments(int $transactionId, int $customerId, array $items): void
+    {
+        try {
+            foreach ($items as $item) {
+                // Check if this is a course purchase (has schedule_id)
+                if (isset($item['schedule_id']) && $item['schedule_id']) {
+                    $this->enrollmentService->enrollFromTransaction(
+                        $customerId,
+                        $item['schedule_id'],
+                        $item['total'], // Amount paid for this course
+                        $transactionId
+                    );
+                }
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the transaction
+            error_log("Failed to process course enrollment: " . $e->getMessage());
+        }
     }
     
     public function voidTransaction(int $transactionId, string $reason): bool

@@ -306,7 +306,7 @@
                 </a>
                 <div class="collapse" id="rentalsMenu">
                     <a class="nav-link ps-5" href="<?= url('/store/rentals') ?>">Equipment</a>
-                    <a class="nav-link ps-5" href="/rentals/reservations">Reservations</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/rentals/reservations') ?>">Reservations</a>
                 </div>
             </div>
             <?php endif; ?>
@@ -330,8 +330,8 @@
                 </a>
                 <div class="collapse" id="coursesMenu">
                     <a class="nav-link ps-5" href="<?= url('/store/courses') ?>">Course Catalog</a>
-                    <a class="nav-link ps-5" href="/courses/schedules">Schedules</a>
-                    <a class="nav-link ps-5" href="/courses/enrollments">Enrollments</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/courses/schedules') ?>">Schedules</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/courses/enrollments') ?>">Enrollments</a>
                 </div>
             </div>
             <?php endif; ?>
@@ -343,8 +343,8 @@
                 </a>
                 <div class="collapse" id="tripsMenu">
                     <a class="nav-link ps-5" href="<?= url('/store/trips') ?>">Trip Catalog</a>
-                    <a class="nav-link ps-5" href="/trips/schedules">Schedules</a>
-                    <a class="nav-link ps-5" href="/trips/bookings">Bookings</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/trips/schedules') ?>">Schedules</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/trips/bookings') ?>">Bookings</a>
                 </div>
             </div>
             <?php endif; ?>
@@ -361,7 +361,7 @@
             </a>
             <?php endif; ?>
 
-            <a class="nav-link" href="<?= url('/store/shop') ?>" target="_blank">
+            <a class="nav-link" href="<?= url('/shop') ?>" target="_blank">
                 <i class="bi bi-shop"></i><span>Online Store</span>
             </a>
 
@@ -380,7 +380,7 @@
             <?php endif; ?>
 
             <?php if (hasPermission('products.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'vendor-catalog' ? 'active' : '' ?>" href="/vendor-catalog/import">
+            <a class="nav-link <?= $activeMenu === 'vendor-catalog' ? 'active' : '' ?>" href="<?= url('/store/vendor-catalog/import') ?>">
                 <i class="bi bi-cloud-download"></i><span>Vendor Import</span>
             </a>
             <?php endif; ?>
@@ -393,10 +393,10 @@
                     <i class="bi bi-megaphone"></i><span>Marketing</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <div class="collapse" id="marketingMenu">
-                    <a class="nav-link ps-5" href="/marketing/loyalty">Loyalty Program</a>
-                    <a class="nav-link ps-5" href="/marketing/coupons">Coupons</a>
-                    <a class="nav-link ps-5" href="/marketing/campaigns">Email Campaigns</a>
-                    <a class="nav-link ps-5" href="/marketing/referrals">Referrals</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/marketing/loyalty') ?>">Loyalty Program</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/marketing/coupons') ?>">Coupons</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/marketing/campaigns') ?>">Email Campaigns</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/marketing/referrals') ?>">Referrals</a>
                 </div>
             </div>
             <?php endif; ?>
@@ -407,8 +407,8 @@
                     <i class="bi bi-file-earmark-text"></i><span>Content</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <div class="collapse" id="cmsMenu">
-                    <a class="nav-link ps-5" href="/cms/pages">Pages</a>
-                    <a class="nav-link ps-5" href="/cms/blog">Blog Posts</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/cms/pages') ?>">Pages</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/cms/blog') ?>">Blog Posts</a>
                 </div>
             </div>
             <?php endif; ?>
@@ -420,9 +420,9 @@
                 </a>
                 <div class="collapse" id="staffMenu">
                     <a class="nav-link ps-5" href="<?= url('/store/staff') ?>">Employees</a>
-                    <a class="nav-link ps-5" href="/staff/schedules">Schedules</a>
-                    <a class="nav-link ps-5" href="/staff/timeclock">Time Clock</a>
-                    <a class="nav-link ps-5" href="/staff/commissions">Commissions</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/staff/schedules') ?>">Schedules</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/staff/timeclock') ?>">Time Clock</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/staff/commissions') ?>">Commissions</a>
                 </div>
             </div>
             <?php endif; ?>
@@ -435,15 +435,15 @@
                     <i class="bi bi-plugin"></i><span>Integrations</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <div class="collapse" id="integrationsMenu">
-                    <a class="nav-link ps-5" href="/integrations/wave">Wave Accounting</a>
-                    <a class="nav-link ps-5" href="/integrations/quickbooks">QuickBooks</a>
-                    <a class="nav-link ps-5" href="/integrations/google-workspace">Google Workspace</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/integrations/wave') ?>">Wave Accounting</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/integrations/quickbooks') ?>">QuickBooks</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/integrations/google-workspace') ?>">Google Workspace</a>
                 </div>
             </div>
             <?php endif; ?>
 
             <?php if (hasPermission('admin.api')): ?>
-            <a class="nav-link <?= $activeMenu === 'api' ? 'active' : '' ?>" href="/api/tokens">
+            <a class="nav-link <?= $activeMenu === 'api' ? 'active' : '' ?>" href="<?= url('/store/api/tokens') ?>">
                 <i class="bi bi-key"></i><span>API Tokens</span>
             </a>
             <?php endif; ?>
@@ -455,13 +455,13 @@
             <?php endif; ?>
 
             <?php if (hasPermission('admin.users')): ?>
-            <a class="nav-link <?= $activeMenu === 'users' ? 'active' : '' ?>" href="/admin/users">
+            <a class="nav-link <?= $activeMenu === 'users' ? 'active' : '' ?>" href="<?= url('/store/admin/users') ?>">
                 <i class="bi bi-people-fill"></i><span>User Management</span>
             </a>
             <?php endif; ?>
 
             <?php if (hasPermission('admin.roles')): ?>
-            <a class="nav-link <?= $activeMenu === 'roles' ? 'active' : '' ?>" href="/admin/roles">
+            <a class="nav-link <?= $activeMenu === 'roles' ? 'active' : '' ?>" href="<?= url('/store/admin/roles') ?>">
                 <i class="bi bi-shield-lock"></i><span>Roles & Permissions</span>
             </a>
             <?php endif; ?>

@@ -149,7 +149,13 @@ ob_start();
             <?php endforeach; ?>
 
             <!-- Course Tiles -->
-            <div class="product-tile" data-category="courses" data-product-id="course_1" data-product-name="Open Water Diver" data-product-price="399.00" data-product-sku="COURSE-OW">
+            <div class="product-tile course-tile"
+                 data-category="courses"
+                 data-product-id="course_1"
+                 data-course-id="1"
+                 data-product-name="Open Water Diver"
+                 data-product-price="399.00"
+                 data-product-sku="COURSE-OW">
                 <div class="product-tile-image course-item">
                     <i class="bi bi-mortarboard-fill"></i>
                 </div>
@@ -454,6 +460,49 @@ ob_start();
     </div>
 </div>
 
+<!-- Course Schedule Selection Modal -->
+<div class="modal fade" id="courseScheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-calendar-check"></i> Select Course Schedule
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Course:</strong> <span id="modalCourseName"></span><br>
+                    <strong>Price:</strong> <span id="modalCoursePrice"></span>
+                </div>
+
+                <p class="text-muted mb-3">Please select which class schedule to enroll the student in:</p>
+
+                <div id="schedulesList" class="schedules-list">
+                    <!-- Schedules will be loaded here dynamically -->
+                </div>
+
+                <div id="schedulesLoading" class="text-center py-5" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mt-2">Loading available schedules...</p>
+                </div>
+
+                <div id="schedulesEmpty" class="text-center py-5" style="display: none;">
+                    <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-3">No schedules available for this course.</p>
+                    <small>Please contact administration to schedule a new class.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- AI Visual Search Modal -->
 <div class="modal fade" id="aiSearchModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -531,6 +580,7 @@ $additionalJs = '
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
 <script src="/assets/js/ai-image-search.js"></script>
+<script src="/assets/js/pos-course-enrollment.js"></script>
 <script src="/assets/js/professional-pos.js"></script>
 ';
 

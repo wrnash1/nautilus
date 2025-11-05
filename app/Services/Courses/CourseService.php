@@ -309,7 +309,7 @@ class CourseService
         return true;
     }
     
-    public function updateGrade(int $enrollmentId, string $grade, string $certNumber = null): bool
+    public function updateGrade(int $enrollmentId, string $grade, ?string $certNumber = null): bool
     {
         Database::execute(
             "UPDATE course_enrollments SET final_grade = ?, certification_number = ?, 
