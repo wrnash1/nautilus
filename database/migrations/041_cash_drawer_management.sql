@@ -209,8 +209,12 @@ CREATE TABLE IF NOT EXISTS cash_variances (
     INDEX idx_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Ensure status column exists (in case table was partially created before)
+ALTER TABLE cash_drawer_sessions
+ADD COLUMN IF NOT EXISTS status ENUM('open', 'closed', 'balanced', 'over', 'short') DEFAULT 'open' AFTER difference_reason;
+
 -- Insert default cash drawer
-INSERT INTO cash_drawers (name, location, drawer_number, current_balance, starting_float, is_active, requires_count_in, requires_count_out, notes, created_at)
+INSERT IGNORE INTO cash_drawers (name, location, drawer_number, current_balance, starting_float, is_active, requires_count_in, requires_count_out, notes, created_at)
 VALUES
 ('Main Register', 'Front Counter', '001', 200.00, 200.00, TRUE, TRUE, TRUE, 'Primary POS register', NOW()),
 ('Back Office', 'Back Office', '002', 100.00, 100.00, FALSE, TRUE, TRUE, 'Backup register for busy periods', NOW());
