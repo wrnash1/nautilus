@@ -27,7 +27,17 @@ class CashDrawerController
         $stmt = $db->query("SELECT * FROM cash_drawer_sessions_open");
         $openSessions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        $pageTitle = 'Cash Drawer Management';
+        $activeMenu = 'cash-drawer';
+        $user = \App\Core\Auth::user();
+
+        // Start output buffering for the view
+        ob_start();
         require __DIR__ . '/../../Views/cash_drawer/index.php';
+        $content = ob_get_clean();
+
+        // Load layout
+        require BASE_PATH . '/app/Views/layouts/app.php';
     }
 
     /**

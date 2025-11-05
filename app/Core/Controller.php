@@ -34,7 +34,8 @@ class Controller
      */
     protected function view(string $view, array $data = []): void
     {
-        extract($data);
+        // Use EXTR_SKIP to prevent overwriting existing variables (security measure)
+        extract($data, EXTR_SKIP);
 
         // Convert view path to file path
         $viewPath = str_replace('.', '/', $view);

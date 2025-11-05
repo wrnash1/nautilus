@@ -1,7 +1,7 @@
 <?php
 $pageTitle = 'Cash Drawer Management';
 $activeMenu = 'cash-drawer';
-require __DIR__ . '/../layouts/header.php';
+// This view content will be rendered inside layouts/app.php
 ?>
 
 <div class="container-fluid">
@@ -197,5 +197,3 @@ require __DIR__ . '/../layouts/header.php';
         </div>
     </div>
 </div>
-
-<?php require __DIR__ . '/../layouts/footer.php'; ?>

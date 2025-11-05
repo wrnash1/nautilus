@@ -104,14 +104,16 @@
                 
                 <hr class="my-4">
                 
+                <?php if (($_ENV['APP_ENV'] ?? 'local') !== 'production'): ?>
                 <div class="text-center text-muted">
                     <small>
-                        <strong>Demo Credentials:</strong><br>
-                        Admin: admin@nautilus.com / admin123<br>
-                        Manager: manager@nautilus.com / admin123<br>
-                        Cashier: cashier@nautilus.com / admin123
+                        <strong>Default Admin Credentials:</strong><br>
+                        Email: admin@nautilus.local<br>
+                        Password: password<br>
+                        <em class="text-warning">⚠️ Change password after first login!</em>
                     </small>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
         

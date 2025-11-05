@@ -98,14 +98,15 @@ class CustomerController
         }
         
         $data = $this->customerService->getCustomer360($id);
-        
+
         if (empty($data)) {
             $_SESSION['flash_error'] = 'Customer not found';
             redirect('/customers');
         }
-        
-        extract($data);
-        
+
+        // Use EXTR_SKIP to prevent overwriting existing variables (security measure)
+        extract($data, EXTR_SKIP);
+
         require __DIR__ . '/../../Views/customers/show.php';
     }
     

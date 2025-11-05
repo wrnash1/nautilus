@@ -472,7 +472,7 @@ class DashboardController
     private function getTodayCashVariance(): float
     {
         $result = Database::fetchOne(
-            "SELECT COALESCE(SUM(ABS(difference)), 0) as total_variance
+            "SELECT COALESCE(SUM(ABS(variance)), 0) as total_variance
              FROM cash_drawer_sessions
              WHERE DATE(closed_at) = CURDATE()
              AND status IN ('over', 'short')"

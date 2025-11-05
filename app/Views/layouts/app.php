@@ -498,7 +498,12 @@
             </div>
             <?php unset($_SESSION['flash_warning']); ?>
             <?php endif; ?>
-            
+
+            <?php
+            // Display Alpha/Development Warning Banner
+            require BASE_PATH . '/app/Views/partials/alpha-warning.php';
+            ?>
+
             <?php if (isset($content)) echo $content; ?>
         </div>
     </div>
