@@ -598,4 +598,53 @@ $router->post('/store/cash-drawer/transaction', 'CashDrawer\CashDrawerController
 $router->get('/store/cash-drawer/history', 'CashDrawer\CashDrawerController@history', [AuthMiddleware::class]);
 $router->get('/store/cash-drawer/session/{id}', 'CashDrawer\CashDrawerController@viewSession', [AuthMiddleware::class]);
 
+// ============================================================================
+// FEEDBACK & SUPPORT TICKET SYSTEM (Beta 1)
+// ============================================================================
+
+// Feedback Submission (Public - no auth required for easy access)
+$router->get('/feedback/create', 'FeedbackController@create');
+$router->post('/feedback/submit', 'FeedbackController@store', [CsrfMiddleware::class]);
+$router->get('/feedback/success', 'FeedbackController@success');
+
+// Feedback Management (Staff only)
+$router->get('/store/feedback', 'FeedbackController@index', [AuthMiddleware::class]);
+$router->get('/store/feedback/{id}', 'FeedbackController@show', [AuthMiddleware::class]);
+$router->post('/store/feedback/{id}/comment', 'FeedbackController@addComment', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/feedback/{id}/status', 'FeedbackController@updateStatus', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/feedback/{id}/assign', 'FeedbackController@assign', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/feedback/{id}/vote', 'FeedbackController@vote', [CsrfMiddleware::class]);
+$router->get('/store/feedback/category/{slug}', 'FeedbackController@byCategory', [AuthMiddleware::class]);
+$router->get('/store/feedback/export', 'FeedbackController@export', [AuthMiddleware::class]);
+
+// ============================================================================
+// PADI MEDICAL FORMS (Phase 1 - Week 1)
+// ============================================================================
+
+// Medical Form Submission
+$router->get('/medical/create', 'MedicalFormController@create', [AuthMiddleware::class]);
+$router->post('/medical/submit', 'MedicalFormController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/medical/{id}', 'MedicalFormController@show', [AuthMiddleware::class]);
+$router->post('/medical/upload-clearance', 'MedicalFormController@uploadClearance', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// ============================================================================
+// PADI TRAINING COMPLETION (Phase 1 - Week 3)
+// ============================================================================
+
+// Training Completion (PADI Form 10234)
+$router->get('/training/complete', 'TrainingCompletionController@create', [AuthMiddleware::class]);
+$router->post('/training/submit-completion', 'TrainingCompletionController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/training/completion/{id}', 'TrainingCompletionController@show', [AuthMiddleware::class]);
+$router->post('/training/submit-to-padi', 'TrainingCompletionController@submitToPadi', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// ============================================================================
+// PADI INCIDENT REPORTING (Phase 1 - Week 3)
+// ============================================================================
+
+// Incident Reports (PADI Form 10120) - Mobile optimized
+$router->get('/incidents/report', 'IncidentReportController@create', [AuthMiddleware::class]);
+$router->post('/incidents/submit', 'IncidentReportController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/incidents', 'IncidentReportController@index', [AuthMiddleware::class]);
+$router->get('/store/incidents/{id}', 'IncidentReportController@show', [AuthMiddleware::class]);
+
 return $router;

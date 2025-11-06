@@ -1,89 +1,85 @@
 # 🌊 Nautilus Dive Shop Management System
 
-**Professional, enterprise-grade dive shop management software**
+**Complete dive shop management with PADI standards compliance**
 
-![Version](https://img.shields.io/badge/version-2.0-blue)
-![PHP](https://img.shields.io/badge/PHP-8.0%2B-purple)
+![Version](https://img.shields.io/badge/version-Beta_1-blue)
+![PHP](https://img.shields.io/badge/PHP-8.4-purple)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-orange)
-![License](https://img.shields.io/badge/license-Proprietary-green)
+![PADI Compliance](https://img.shields.io/badge/PADI_Compliance-91%25-green)
 
 ---
 
 ## Overview
 
-Nautilus is a complete, modern dive shop management system built for professional dive businesses. It handles everything from point-of-sale transactions to customer management, inventory tracking, cash drawer operations, and certification management.
+Nautilus is a complete dive shop management system with **91% PADI standards compliance**. It handles everything from point-of-sale to customer management, inventory, course enrollment, student skills tracking, equipment rentals, and comprehensive reporting.
 
-### Why Choose Nautilus?
+### Key Features
 
-- ✅ **No Monthly Fees** - One-time license, use forever
-- ✅ **5-Minute Installation** - Web-based setup, no technical skills required
-- ✅ **Complete Ownership** - Your data stays on your server
-- ✅ **Modern Interface** - Built with Bootstrap 5, mobile-friendly
-- ✅ **Pre-Loaded Data** - 15 certification agencies, cash drawers, tags ready to use
-- ✅ **Fully Integrated** - POS, CRM, inventory all work together seamlessly
+- ✅ **PADI-Compliant Student Tracking** - 45 Open Water skills with tablet interface
+- ✅ **Offline Mode** - Skills checkoff works without internet at dive sites
+- ✅ **Universal Camera Capture** - Works on desktop, tablet, and mobile devices
+- ✅ **Complete POS & Inventory** - Point-of-sale, stock tracking, barcode support
+- ✅ **Course Management** - Enrollment, scheduling, student progress tracking
+- ✅ **Built-in Feedback System** - Submit bugs and feature requests at `/feedback/create`
 
 ---
 
 ## Features
 
-### 💰 Point of Sale (POS)
-- Fast checkout interface
-- Multiple payment methods
-- Automatic cash drawer recording
-- Receipt printing
-- Transaction history
+### 🎓 PADI Compliance (91% Complete)
+- **Student Skills Tracking** - 45 Open Water skills (Confined Water 1-5, Open Water 1-4)
+- **Tablet-Optimized Interface** - Large touch buttons for use at dive sites
+- **Offline Capability** - Skills sync when internet returns
+- **Medical Form Management** - 34 PADI medical questions
+- **Liability Waivers** - 11 waiver types
+- **Incident Reporting** - PADI Form 10120
+- **Training Completion** - PADI Form 10234
+- **Quality Control** - Automated student feedback
 
-### 👥 Customer Management
-- Complete customer profiles
-- Multiple phones/emails per customer
-- Emergency contact tracking
-- Passport and medical information
-- Certification tracking (15+ agencies)
-- Custom tagging system (VIP, Wholesale, etc.)
+### 💰 Point of Sale & Inventory
+- Fast checkout with barcode scanning
+- Cash drawer tracking with denomination counting
+- Real-time stock levels and low stock alerts
+- Product categories and supplier management
 
-### 📦 Inventory Management
-- Product catalog with categories
-- Real-time stock tracking
-- Barcode support
-- Low stock alerts
-- Supplier management
+### 👥 Customer & Course Management
+- Complete customer profiles with certifications
+- Course enrollment and scheduling
+- Student progress tracking
+- Emergency contacts and medical information
 
-### 💵 Cash Drawer System
-- Open/close sessions with user tracking
-- Bill and coin denomination counting
-- Real-time validation
-- Automatic POS integration
-- Variance detection
-- Complete audit trail
-
-### 🎓 Certification Tracking
-- 15 pre-loaded dive agencies (PADI, SSI, NAUI, etc.)
-- 20+ certification types
-- Automatic expiration tracking
-- Complete cert history per customer
+### 🚤 Equipment & Trips
+- Equipment rental management
+- Trip planning and manifests
+- Maintenance tracking
 
 ### 📊 Reports & Analytics
 - Sales reports (daily/weekly/monthly)
 - Customer analytics
-- Inventory reports
+- Instructor performance
 - Cash variance reports
-- Export to CSV/PDF
 
 ---
 
 ## Quick Start
 
-### Installation (5 Minutes)
+### Installation (3 Steps)
 
-**No command line required!** Install entirely through your web browser.
+```bash
+# 1. Clone repository
+git clone https://github.com/yourusername/nautilus.git
+cd nautilus
 
-1. **Upload files** to your web server (FTP or cPanel)
-2. **Create MySQL database** via hosting control panel
-3. **Visit** `https://yourdomain.com/install`
-4. **Follow wizard** (5 simple screens)
-5. **Done!** Start using immediately
+# 2. Create database
+mysql -u root -p -e "CREATE DATABASE nautilus"
 
-📖 **Full Instructions:** See [DOCUMENTATION.md](DOCUMENTATION.md)
+# 3. Run web installer
+# Navigate to: https://your-domain.com/install
+```
+
+The installer will run all 55+ migrations, seed PADI skills data, and create your admin account.
+
+📖 **Full Instructions:** See [QUICK_START.md](QUICK_START.md)
 
 ---
 
@@ -99,199 +95,111 @@ Nautilus is a complete, modern dive shop management system built for professiona
 
 ## Documentation
 
-📘 **[Complete Documentation](DOCUMENTATION.md)** - Everything you need to know:
+📖 **[Quick Start Guide](QUICK_START.md)** - Installation, updates, and getting started
 
-- **Installation Guide** - Step-by-step web installation
-- **User Guide** - How to use all features
-- **Configuration** - Settings and customization
-- **Troubleshooting** - Common issues and solutions
-- **Technical Reference** - Database schema, API endpoints
-
-🆚 **[Feature Comparison](DIVESHOP360_FEATURE_COMPARISON.md)** - vs DiveShop360 and competitors
-
----
-
-## What's Included
-
-### Pre-Loaded Data
-
-When you install Nautilus, you automatically get:
-
-- **15 Certification Agencies** - PADI, SSI, NAUI, SDI, TDI, ERDI, PFI, BSAC, CMAS, GUE, IANTD, ACUC, IDA, PDIC, RAID
-- **20+ Certifications** - Complete ladder from Open Water to Instructor
-- **3 Cash Drawers** - Main Register, Pool Register, Boat Register
-- **10 Customer Tags** - VIP, Wholesale, Instructor, and more
-
-### Complete Feature Set
-
-- Point of Sale (POS) system
-- Customer Relationship Management (CRM)
-- Inventory management
-- Cash drawer tracking
-- Customer tagging
-- Certification tracking
-- User management with roles
-- Reports and analytics
-- Settings and configuration
+📘 **[Complete Documentation](docs/)** - Detailed guides:
+- [Installation Guide](docs/INSTALLATION_COMPLETE_FIX.md) - Step-by-step installation
+- [Production Roadmap](docs/PRODUCTION_ROADMAP.md) - Path to v1.0 (12-18 weeks)
+- [PADI Compliance Checklist](docs/PADI_COMPLIANCE_CHECKLIST.md) - What's implemented (91%)
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - Production deployment
+- [Version History](VERSION.md) - Release notes and roadmap
 
 ---
 
-## Screenshots
+## Feedback & Support
 
-*(Add screenshots of key features)*
+### Built-in Feedback System
+Your testers can submit feedback directly in the application:
 
-- Dashboard overview
-- POS interface
-- Customer profile
-- Cash drawer management
-- Reports section
+**Navigate to:** `/feedback/create`
+
+Features:
+- 🐛 Bug reports with auto-captured system info
+- 💡 Feature requests with voting system
+- ❓ Questions and support
+- 📸 Screenshot uploads
+- 🎫 Ticket tracking system
+
+### Beta Testing
+**Current Status:** Beta 1 - Ready for production testing
+**PADI Compliance:** 91% complete
+**Target:** v1.0 in Q1 2026 (12-18 weeks)
 
 ---
 
-## Support
+## What's Next - Production Roadmap
 
-### Documentation
-- 📘 [Complete Documentation](DOCUMENTATION.md)
-- 📧 Email: support@yourdomain.com
-- 🐛 [Report Issues](https://github.com/your-username/nautilus/issues)
+### Path to v1.0 (12-18 weeks)
 
-### Professional Services
-- **Installation Service** - We handle everything ($299)
-- **Staff Training** - On-site or remote
-- **Custom Development** - Contact for quote
-- **Priority Support** - Support plans available
+**Backend:** 100% complete ✅
+**Frontend:** 6 major UIs needed
+
+**Week 1-2:** Medical & Waiver UIs
+**Week 3-4:** Training & Incident UIs
+**Week 5-6:** Safety Check & Quality Dashboard
+**Week 7-9:** Email automation & PDF generation
+**Week 10-15:** Testing, bug fixes, documentation
+
+See [PRODUCTION_ROADMAP.md](docs/PRODUCTION_ROADMAP.md) for detailed breakdown.
 
 ---
 
 ## Technical Details
 
 ### Built With
-- PHP 8.2+
+- PHP 8.4
 - MySQL 8.0+
 - Bootstrap 5.3
-- JavaScript (vanilla)
-- Composer for dependencies
+- Vanilla JavaScript (no jQuery)
+- Offline-first design
 
 ### Architecture
-- MVC pattern with service layer
+- MVC with service layer
 - PDO with prepared statements
 - Role-based access control
+- 55+ database migrations
 - Complete audit logging
-- RESTful API endpoints
-
-### Security
-- Password hashing (bcrypt)
-- CSRF protection
-- SQL injection prevention
-- XSS protection
-- Session security
-- Input validation
 
 ---
 
-## Comparison
+## Contributing
 
-### vs DiveShop360
-- ✅ Open architecture (vs closed source)
-- ✅ No monthly fees (vs $199/month)
-- ✅ Full customization (vs limited)
-- ✅ Your server (vs their cloud only)
-- ✅ Modern UI (vs outdated interface)
-- ✅ 5-minute install (vs complex setup)
+This is a beta release. We welcome testers and feedback!
 
-### vs Custom Development
-- ✅ Ready now (vs months of development)
-- ✅ Proven system (vs untested code)
-- ✅ Pre-built features (vs starting from scratch)
-- ✅ Active support (vs depending on one developer)
-- ✅ Regular updates (vs stale codebase)
+### How to Help
+1. Install on your test server
+2. Test with real dive shop workflows
+3. Submit feedback via `/feedback/create` in the app
+4. Report bugs on GitHub Issues
+5. Vote on feature requests
 
 ---
 
-## Hosting Recommendations
+## Version History
 
-### Works Great With:
-- SiteGround
-- Bluehost
-- HostGator
-- A2 Hosting
-- InMotion Hosting
+See [VERSION.md](VERSION.md) for complete release history.
 
-### VPS/Cloud Options:
-- DigitalOcean
-- Linode
-- Vultr
-- AWS Lightsail
-
-**All you need:** PHP 8.0+, MySQL 8.0+, and 500MB disk space
-
----
-
-## Roadmap
-
-### Planned Features
-- [ ] Mobile app (iOS/Android)
-- [ ] Online booking system
-- [ ] Email marketing integration
-- [ ] SMS notifications (Twilio)
-- [ ] QuickBooks integration
-- [ ] Stripe payment gateway
-- [ ] API for third-party integrations
-- [ ] Multi-location support
-- [ ] Waiver management
-- [ ] Equipment servicing tracker
+**Current:** Beta 1 (November 6, 2025)
+**Next:** v1.0 (Target: Q1 2026)
 
 ---
 
 ## License
 
-Proprietary - All Rights Reserved
-
-Contact us for licensing information.
+All Rights Reserved
 
 ---
 
-## About
+**Ready to test Nautilus?**
 
-Nautilus is developed and maintained by [Your Company Name].
-
-**Contact Us:**
-- 🌐 Website: [Your Website]
-- 📧 Email: [Your Email]
-- 📞 Phone: [Your Phone]
-- 💬 Support: [Support Email]
-
----
-
-## Get Started Today
-
-### Option 1: Download & Install Yourself
-1. Download the latest release
-2. Follow the [5-minute installation guide](DOCUMENTATION.md#installation)
-3. Start managing your dive shop!
-
-### Option 2: Professional Installation
-Let us handle everything:
-- ✅ We upload and configure
-- ✅ We set up your database
-- ✅ We import your data
-- ✅ We train your staff
-- **Price:** $299 one-time
-
-**Contact:** install@yourdomain.com
-
----
-
-**Ready to modernize your dive shop?**
-
-📥 [Download Now](https://github.com/your-username/nautilus/releases) | 📖 [Read Docs](DOCUMENTATION.md) | 💬 [Get Support](mailto:support@yourdomain.com)
+📖 [Get Started](QUICK_START.md) | 📘 [Documentation](docs/) | 💬 [Submit Feedback](/feedback/create)
 
 ---
 
 <p align="center">
-  <strong>Made with ❤️ for the dive community</strong>
+  <strong>Built for the dive community 🌊🤿</strong>
 </p>
 
 <p align="center">
-  <sub>Version 2.0 • Last Updated: 2024 • Status: Production Ready</sub>
+  <sub>Beta 1 • November 6, 2025 • 91% PADI Compliant</sub>
 </p>
