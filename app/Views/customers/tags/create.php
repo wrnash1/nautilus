@@ -1,7 +1,7 @@
 <?php
 $pageTitle = 'Create Customer Tag';
 $activeMenu = 'customers';
-require __DIR__ . '/../../layouts/header.php';
+require __DIR__ . '/../../../layouts/header.php';
 ?>
 
 <div class="container-fluid">
@@ -187,4 +187,4 @@ function applyTemplate(name, color, icon, description) {
 }
 </script>
 
-<?php require __DIR__ . '/../../layouts/footer.php'; ?>
+<?php require __DIR__ . '/../../../layouts/footer.php'; ?>
