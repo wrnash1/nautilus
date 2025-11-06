@@ -2,19 +2,33 @@
 
 -- Add logo and color scheme to certification agencies
 ALTER TABLE `certification_agencies`
-ADD COLUMN `logo_path` VARCHAR(255) AFTER `abbreviation`,
-ADD COLUMN `primary_color` VARCHAR(7) DEFAULT '#0066CC' AFTER `logo_path`,
-ADD COLUMN `verification_enabled` BOOLEAN DEFAULT FALSE AFTER `api_key_encrypted`,
-ADD COLUMN `verification_url` VARCHAR(255) AFTER `verification_enabled`,
-ADD COLUMN `country` VARCHAR(100) AFTER `website`;
+ADD COLUMN IF NOT EXISTS `logo_path` VARCHAR(255) AFTER `abbreviation`,
+ADD COLUMN IF NOT EXISTS `primary_color` VARCHAR(7) DEFAULT '#0066CC' AFTER `logo_path`,
+ADD COLUMN IF NOT EXISTS `verification_enabled` BOOLEAN DEFAULT FALSE AFTER `api_key_encrypted`,
+ADD COLUMN IF NOT EXISTS `verification_url` VARCHAR(255) AFTER `verification_enabled`,
+ADD COLUMN IF NOT EXISTS `country` VARCHAR(100) AFTER `website`;
 
 -- Add expiry tracking to customer certifications
 ALTER TABLE `customer_certifications`
-ADD COLUMN `expiry_date` DATE AFTER `issue_date`,
-ADD COLUMN `auto_verified` BOOLEAN DEFAULT FALSE AFTER `verification_status`,
-ADD COLUMN `verified_at` TIMESTAMP NULL AFTER `auto_verified`,
-ADD COLUMN `verified_by` INT UNSIGNED NULL AFTER `verified_at`,
-ADD CONSTRAINT `fk_verified_by_user` FOREIGN KEY (`verified_by`) REFERENCES `users`(`id`);
+ADD COLUMN IF NOT EXISTS `expiry_date` DATE AFTER `issue_date`,
+ADD COLUMN IF NOT EXISTS `auto_verified` BOOLEAN DEFAULT FALSE AFTER `verification_status`,
+ADD COLUMN IF NOT EXISTS `verified_at` TIMESTAMP NULL AFTER `auto_verified`,
+ADD COLUMN IF NOT EXISTS `verified_by` INT UNSIGNED NULL AFTER `verified_at`;
+
+-- Add foreign key if it doesn't exist
+SET @constraint_exists = (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+WHERE CONSTRAINT_SCHEMA = DATABASE()
+AND TABLE_NAME = 'customer_certifications'
+AND CONSTRAINT_NAME = 'fk_verified_by_user'
+AND CONSTRAINT_TYPE = 'FOREIGN KEY');
+
+SET @sql = IF(@constraint_exists = 0,
+    'ALTER TABLE `customer_certifications` ADD CONSTRAINT `fk_verified_by_user` FOREIGN KEY (`verified_by`) REFERENCES `users`(`id`)',
+    'SELECT "Foreign key already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- Add photo to customers table if not exists
 ALTER TABLE `customers`

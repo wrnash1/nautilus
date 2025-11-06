@@ -535,6 +535,16 @@ class InstallService
     {
         $pdo = $this->createDatabaseConnection();
 
+        // Check if table exists first
+        $stmt = $pdo->query("SHOW TABLES LIKE 'certification_agencies'");
+        $tableExists = $stmt->fetch();
+        $stmt->closeCursor();
+
+        if (!$tableExists) {
+            // Table doesn't exist yet, skip silently (will be created by migrations)
+            return;
+        }
+
         // Check if already seeded
         $stmt = $pdo->query("SELECT COUNT(*) as count FROM certification_agencies");
         $result = $stmt->fetch();
@@ -590,6 +600,16 @@ class InstallService
     private function seedCashDrawers(): void
     {
         $pdo = $this->createDatabaseConnection();
+
+        // Check if table exists first
+        $stmt = $pdo->query("SHOW TABLES LIKE 'cash_drawers'");
+        $tableExists = $stmt->fetch();
+        $stmt->closeCursor();
+
+        if (!$tableExists) {
+            // Table doesn't exist yet, skip silently (will be created by migration 041)
+            return;
+        }
 
         // Check if already seeded
         $stmt = $pdo->query("SELECT COUNT(*) as count FROM cash_drawers");

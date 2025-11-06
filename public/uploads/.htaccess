@@ -1,0 +1,31 @@
+# Security configuration for uploads directory
+# Allow access to images and PDFs, block PHP execution
+
+# Prevent PHP execution in uploads directory
+<FilesMatch "\.php$">
+    Require all denied
+</FilesMatch>
+
+# Allow only specific file types
+<FilesMatch "\.(jpg|jpeg|png|gif|svg|webp|pdf|doc|docx)$">
+    Require all granted
+</FilesMatch>
+
+# Deny access to .htaccess itself
+<Files .htaccess>
+    Require all denied
+</Files>
+
+# Set proper MIME types
+AddType image/jpeg .jpg .jpeg
+AddType image/png .png
+AddType image/svg+xml .svg
+AddType image/webp .webp
+AddType application/pdf .pdf
+
+# Disable directory listings
+Options -Indexes
+
+# Security headers
+Header set X-Content-Type-Options "nosniff"
+Header set X-Frame-Options "SAMEORIGIN"

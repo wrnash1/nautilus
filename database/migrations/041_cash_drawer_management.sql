@@ -209,9 +209,65 @@ CREATE TABLE IF NOT EXISTS cash_variances (
     INDEX idx_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Ensure status column exists (in case table was partially created before)
+-- Add status column if it doesn't exist (for databases where 004 created the table first)
 ALTER TABLE cash_drawer_sessions
-ADD COLUMN IF NOT EXISTS status ENUM('open', 'closed', 'balanced', 'over', 'short') DEFAULT 'open' AFTER difference_reason;
+ADD COLUMN IF NOT EXISTS status ENUM('open', 'closed', 'balanced', 'over', 'short') DEFAULT 'open';
+
+-- Add other columns from the enhanced structure if they don't exist
+ALTER TABLE cash_drawer_sessions
+ADD COLUMN IF NOT EXISTS session_number VARCHAR(50) UNIQUE COMMENT 'Unique session identifier' AFTER id,
+ADD COLUMN IF NOT EXISTS drawer_id INT UNSIGNED AFTER session_number,
+ADD COLUMN IF NOT EXISTS starting_balance DECIMAL(10,2) COMMENT 'Cash at start of session' AFTER user_id,
+ADD COLUMN IF NOT EXISTS starting_bills_100 INT DEFAULT 0 AFTER starting_balance,
+ADD COLUMN IF NOT EXISTS starting_bills_50 INT DEFAULT 0 AFTER starting_bills_100,
+ADD COLUMN IF NOT EXISTS starting_bills_20 INT DEFAULT 0 AFTER starting_bills_50,
+ADD COLUMN IF NOT EXISTS starting_bills_10 INT DEFAULT 0 AFTER starting_bills_20,
+ADD COLUMN IF NOT EXISTS starting_bills_5 INT DEFAULT 0 AFTER starting_bills_10,
+ADD COLUMN IF NOT EXISTS starting_bills_2 INT DEFAULT 0 AFTER starting_bills_5,
+ADD COLUMN IF NOT EXISTS starting_bills_1 INT DEFAULT 0 AFTER starting_bills_2,
+ADD COLUMN IF NOT EXISTS starting_coins_dollar INT DEFAULT 0 AFTER starting_bills_1,
+ADD COLUMN IF NOT EXISTS starting_coins_quarter INT DEFAULT 0 AFTER starting_coins_dollar,
+ADD COLUMN IF NOT EXISTS starting_coins_dime INT DEFAULT 0 AFTER starting_coins_quarter,
+ADD COLUMN IF NOT EXISTS starting_coins_nickel INT DEFAULT 0 AFTER starting_coins_dime,
+ADD COLUMN IF NOT EXISTS starting_coins_penny INT DEFAULT 0 AFTER starting_coins_nickel,
+ADD COLUMN IF NOT EXISTS starting_notes TEXT COMMENT 'Notes when opening drawer' AFTER starting_coins_penny;
+
+ALTER TABLE cash_drawer_sessions
+ADD COLUMN IF NOT EXISTS ending_balance DECIMAL(10,2) NULL COMMENT 'Actual counted cash at end' AFTER closed_at,
+ADD COLUMN IF NOT EXISTS ending_bills_100 INT DEFAULT 0 AFTER ending_balance,
+ADD COLUMN IF NOT EXISTS ending_bills_50 INT DEFAULT 0 AFTER ending_bills_100,
+ADD COLUMN IF NOT EXISTS ending_bills_20 INT DEFAULT 0 AFTER ending_bills_50,
+ADD COLUMN IF NOT EXISTS ending_bills_10 INT DEFAULT 0 AFTER ending_bills_20,
+ADD COLUMN IF NOT EXISTS ending_bills_5 INT DEFAULT 0 AFTER ending_bills_10,
+ADD COLUMN IF NOT EXISTS ending_bills_2 INT DEFAULT 0 AFTER ending_bills_5,
+ADD COLUMN IF NOT EXISTS ending_bills_1 INT DEFAULT 0 AFTER ending_bills_2,
+ADD COLUMN IF NOT EXISTS ending_coins_dollar INT DEFAULT 0 AFTER ending_bills_1,
+ADD COLUMN IF NOT EXISTS ending_coins_quarter INT DEFAULT 0 AFTER ending_coins_dollar,
+ADD COLUMN IF NOT EXISTS ending_coins_dime INT DEFAULT 0 AFTER ending_coins_quarter,
+ADD COLUMN IF NOT EXISTS ending_coins_nickel INT DEFAULT 0 AFTER ending_coins_dime,
+ADD COLUMN IF NOT EXISTS ending_coins_penny INT DEFAULT 0 AFTER ending_coins_nickel,
+ADD COLUMN IF NOT EXISTS ending_notes TEXT COMMENT 'Notes when closing drawer' AFTER ending_coins_penny;
+
+ALTER TABLE cash_drawer_sessions
+ADD COLUMN IF NOT EXISTS expected_balance DECIMAL(10,2) NULL COMMENT 'Expected based on transactions',
+ADD COLUMN IF NOT EXISTS total_sales DECIMAL(10,2) DEFAULT 0.00,
+ADD COLUMN IF NOT EXISTS total_refunds DECIMAL(10,2) DEFAULT 0.00,
+ADD COLUMN IF NOT EXISTS total_deposits DECIMAL(10,2) DEFAULT 0.00,
+ADD COLUMN IF NOT EXISTS total_withdrawals DECIMAL(10,2) DEFAULT 0.00,
+ADD COLUMN IF NOT EXISTS difference DECIMAL(10,2) NULL COMMENT 'Difference between expected and actual',
+ADD COLUMN IF NOT EXISTS difference_reason TEXT COMMENT 'Explanation for cash difference';
+
+ALTER TABLE cash_drawer_sessions
+ADD COLUMN IF NOT EXISTS closed_by INT UNSIGNED COMMENT 'Staff member who closed session',
+ADD COLUMN IF NOT EXISTS approved_by INT UNSIGNED COMMENT 'Manager who approved closing',
+ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP NULL;
+
+-- Add indexes if they don't exist
+SET @index_status = (SELECT COUNT(*) FROM information_schema.STATISTICS
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'cash_drawer_sessions' AND INDEX_NAME = 'idx_status');
+
+SET @sql_status = IF(@index_status = 0, 'ALTER TABLE cash_drawer_sessions ADD INDEX idx_status (status)', 'SELECT "idx_status exists"');
+PREPARE stmt FROM @sql_status; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Insert default cash drawer
 INSERT IGNORE INTO cash_drawers (name, location, drawer_number, current_balance, starting_float, is_active, requires_count_in, requires_count_out, notes, created_at)

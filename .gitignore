@@ -1,61 +1,51 @@
+# Development/debugging files
+archive/
+*.bak
+*.old
+*.tmp
+*~
+
 # Environment files
 .env
 .env.local
 .env.production
 
-# Composer
-/vendor/
-composer.lock
-
-# Storage
-/storage/logs/*.log
-/storage/cache/*
-!/storage/cache/.gitkeep
-/storage/sessions/*
-!/storage/sessions/.gitkeep
-/storage/backups/*
-!/storage/backups/.gitkeep
-/storage/install_progress.json
-
-# Uploads
-/public/uploads/*
-!/public/uploads/.gitkeep
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# OS
-Thumbs.db
-desktop.ini
-
-# Tests
-/tests/coverage/
-.phpunit.result.cache
-
-# Node (if used for frontend build)
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# Build artifacts
-*.min.js
-*.min.css
-
-# Generated applications (build artifacts - not tracked in git)
-# These are created by scripts/split-enterprise-apps.sh
-/nautilus-customer/
-/nautilus-staff/
-
-# Deployment artifacts
-*.tar.gz
-*.zip
+# Storage directories
+storage/logs/*
+!storage/logs/.gitkeep
+storage/sessions/*
+!storage/sessions/.gitkeep
+storage/cache/*
+!storage/cache/.gitkeep
+storage/uploads/*
+!storage/uploads/.gitkeep
 
 # Temporary files
-*.tmp
-*.bak
-*.old
+/tmp/
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build artifacts
+/public/hot
+/public/storage
+
+# Composer
+composer.phar
+composer.lock
+
+# NPM
+package-lock.json
+npm-debug.log
+yarn-error.log
