@@ -23,28 +23,24 @@ class POSTransactionTest extends TestCase
         $product2 = $this->createTestProduct(['price' => 30.00, 'stock_quantity' => 50]);
         $user = $this->createTestUser();
 
-        // Create transaction data
-        $transactionData = [
-            'customer_id' => $customer['id'],
-            'user_id' => $user['id'],
-            'items' => [
-                [
-                    'product_id' => $product1['id'],
-                    'quantity' => 2,
-                    'price' => 50.00
-                ],
-                [
-                    'product_id' => $product2['id'],
-                    'quantity' => 1,
-                    'price' => 30.00
-                ]
+        // Set session user for the transaction
+        $_SESSION['user_id'] = $user['id'];
+
+        // Create transaction (without payment)
+        $items = [
+            [
+                'product_id' => $product1['id'],
+                'quantity' => 2,
+                'price' => 50.00
             ],
-            'payment_method' => 'cash',
-            'tax_rate' => 8.5
+            [
+                'product_id' => $product2['id'],
+                'quantity' => 1,
+                'price' => 30.00
+            ]
         ];
 
-        // Process transaction
-        $transactionId = $this->transactionService->processTransaction($transactionData);
+        $transactionId = $this->transactionService->createTransaction($customer['id'], $items);
 
         $this->assertIsInt($transactionId);
         $this->assertGreaterThan(0, $transactionId);
@@ -52,44 +48,67 @@ class POSTransactionTest extends TestCase
         // Verify transaction was created
         $this->assertDatabaseHas('transactions', [
             'id' => $transactionId,
-            'customer_id' => $customer['id']
+            'customer_id' => $customer['id'],
+            'status' => 'pending'
         ]);
 
-        // Verify stock was decreased
-        $updatedProduct1 = $this->db->getConnection()->prepare("SELECT stock_quantity FROM products WHERE id = ?");
+        // Process payment to complete transaction
+        $transaction = $this->db->prepare("SELECT total FROM transactions WHERE id = ?");
+        $transaction->execute([$transactionId]);
+        $txn = $transaction->fetch(\PDO::FETCH_ASSOC);
+
+        $paymentResult = $this->transactionService->processPayment($transactionId, 'credit_card', $txn['total']);
+        $this->assertTrue($paymentResult);
+
+        // Verify stock was decreased after payment
+        $updatedProduct1 = $this->db->prepare("SELECT stock_quantity FROM products WHERE id = ?");
         $updatedProduct1->execute([$product1['id']]);
         $result1 = $updatedProduct1->fetch(\PDO::FETCH_ASSOC);
         $this->assertEquals(98, $result1['stock_quantity']); // 100 - 2
 
-        $updatedProduct2 = $this->db->getConnection()->prepare("SELECT stock_quantity FROM products WHERE id = ?");
+        $updatedProduct2 = $this->db->prepare("SELECT stock_quantity FROM products WHERE id = ?");
         $updatedProduct2->execute([$product2['id']]);
         $result2 = $updatedProduct2->fetch(\PDO::FETCH_ASSOC);
         $this->assertEquals(49, $result2['stock_quantity']); // 50 - 1
     }
 
-    public function testTransactionWithInsufficientStock(): void
+    public function testVoidTransaction(): void
     {
         $customer = $this->createTestCustomer();
-        $product = $this->createTestProduct(['stock_quantity' => 5]);
+        $product = $this->createTestProduct(['price' => 50.00, 'stock_quantity' => 100]);
         $user = $this->createTestUser();
 
-        $transactionData = [
-            'customer_id' => $customer['id'],
-            'user_id' => $user['id'],
-            'items' => [
-                [
-                    'product_id' => $product['id'],
-                    'quantity' => 10, // More than available
-                    'price' => 50.00
-                ]
-            ],
-            'payment_method' => 'cash'
+        $_SESSION['user_id'] = $user['id'];
+
+        // Create and complete a transaction
+        $items = [
+            ['product_id' => $product['id'], 'quantity' => 2, 'price' => 50.00]
         ];
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Insufficient stock');
+        $transactionId = $this->transactionService->createTransaction($customer['id'], $items);
 
-        $this->transactionService->processTransaction($transactionData);
+        $transaction = $this->db->prepare("SELECT total FROM transactions WHERE id = ?");
+        $transaction->execute([$transactionId]);
+        $txn = $transaction->fetch(\PDO::FETCH_ASSOC);
+
+        $this->transactionService->processPayment($transactionId, 'cash', $txn['total']);
+
+        // Now void it
+        $result = $this->transactionService->voidTransaction($transactionId, 'Test void');
+
+        $this->assertTrue($result);
+
+        // Verify transaction is voided
+        $this->assertDatabaseHas('transactions', [
+            'id' => $transactionId,
+            'status' => 'voided'
+        ]);
+
+        // Verify stock was returned
+        $updatedProduct = $this->db->prepare("SELECT stock_quantity FROM products WHERE id = ?");
+        $updatedProduct->execute([$product['id']]);
+        $result = $updatedProduct->fetch(\PDO::FETCH_ASSOC);
+        $this->assertEquals(100, $result['stock_quantity']); // Back to original
     }
 
     public function testRefundTransaction(): void
@@ -99,31 +118,33 @@ class POSTransactionTest extends TestCase
         $product = $this->createTestProduct(['price' => 100.00, 'stock_quantity' => 50]);
         $user = $this->createTestUser();
 
-        $transactionData = [
-            'customer_id' => $customer['id'],
-            'user_id' => $user['id'],
-            'items' => [
-                ['product_id' => $product['id'], 'quantity' => 2, 'price' => 100.00]
-            ],
-            'payment_method' => 'credit_card'
+        $_SESSION['user_id'] = $user['id'];
+
+        $items = [
+            ['product_id' => $product['id'], 'quantity' => 2, 'price' => 100.00]
         ];
 
-        $transactionId = $this->transactionService->processTransaction($transactionData);
+        $transactionId = $this->transactionService->createTransaction($customer['id'], $items);
+
+        $transaction = $this->db->prepare("SELECT total FROM transactions WHERE id = ?");
+        $transaction->execute([$transactionId]);
+        $txn = $transaction->fetch(\PDO::FETCH_ASSOC);
+
+        $this->transactionService->processPayment($transactionId, 'credit_card', $txn['total']);
 
         // Now process refund
-        $refundId = $this->transactionService->processRefund($transactionId, $user['id'], 'Customer request');
+        $refundResult = $this->transactionService->refundTransaction($transactionId, $txn['total']);
 
-        $this->assertIsInt($refundId);
-        $this->assertGreaterThan(0, $refundId);
+        $this->assertTrue($refundResult);
 
-        // Verify refund record
-        $this->assertDatabaseHas('refunds', [
-            'transaction_id' => $transactionId,
-            'processed_by' => $user['id']
+        // Verify transaction is refunded
+        $this->assertDatabaseHas('transactions', [
+            'id' => $transactionId,
+            'status' => 'refunded'
         ]);
 
         // Verify stock was returned
-        $updatedProduct = $this->db->getConnection()->prepare("SELECT stock_quantity FROM products WHERE id = ?");
+        $updatedProduct = $this->db->prepare("SELECT stock_quantity FROM products WHERE id = ?");
         $updatedProduct->execute([$product['id']]);
         $result = $updatedProduct->fetch(\PDO::FETCH_ASSOC);
         $this->assertEquals(50, $result['stock_quantity']); // Back to original

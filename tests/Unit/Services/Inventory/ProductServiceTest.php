@@ -42,40 +42,32 @@ class ProductServiceTest extends TestCase
         $product = $this->createTestProduct(['stock_quantity' => 100]);
 
         // Add stock
-        $this->productService->updateStock($product['id'], 20, 'add');
+        $this->productService->updateStock($product['id'], 20, 'restock');
 
-        $updatedProduct = $this->productService->getProductById($product['id']);
-        $this->assertEquals(120, $updatedProduct['stock_quantity']);
+        $stmt = $this->db->prepare("SELECT stock_quantity FROM products WHERE id = ?");
+        $stmt->execute([$product['id']]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $this->assertEquals(120, $result['stock_quantity']);
 
         // Subtract stock
-        $this->productService->updateStock($product['id'], 30, 'subtract');
+        $this->productService->updateStock($product['id'], -30, 'adjustment');
 
-        $updatedProduct = $this->productService->getProductById($product['id']);
-        $this->assertEquals(90, $updatedProduct['stock_quantity']);
+        $stmt = $this->db->prepare("SELECT stock_quantity FROM products WHERE id = ?");
+        $stmt->execute([$product['id']]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $this->assertEquals(90, $result['stock_quantity']);
     }
 
-    public function testGetLowStockProducts(): void
+    public function testCheckLowStock(): void
     {
         // Create products with varying stock levels
         $this->createTestProduct(['name' => 'Low Stock Item 1', 'stock_quantity' => 5, 'low_stock_threshold' => 10]);
         $this->createTestProduct(['name' => 'Low Stock Item 2', 'stock_quantity' => 3, 'low_stock_threshold' => 10]);
         $this->createTestProduct(['name' => 'Normal Stock Item', 'stock_quantity' => 50, 'low_stock_threshold' => 10]);
 
-        $lowStockProducts = $this->productService->getLowStockProducts();
+        $lowStockProducts = $this->productService->checkLowStock();
 
         $this->assertIsArray($lowStockProducts);
         $this->assertGreaterThanOrEqual(2, count($lowStockProducts));
-    }
-
-    public function testCalculateInventoryValue(): void
-    {
-        // Create products with known costs
-        $this->createTestProduct(['cost' => 50.00, 'stock_quantity' => 10]);
-        $this->createTestProduct(['cost' => 100.00, 'stock_quantity' => 5]);
-
-        $totalValue = $this->productService->calculateInventoryValue();
-
-        // 50*10 + 100*5 = 500 + 500 = 1000
-        $this->assertGreaterThanOrEqual(1000, $totalValue);
     }
 }

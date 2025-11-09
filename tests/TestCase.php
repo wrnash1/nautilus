@@ -11,7 +11,7 @@ use App\Core\Database;
  */
 abstract class TestCase extends BaseTestCase
 {
-    protected Database $db;
+    protected \PDO $db;
     protected static bool $dbInitialized = false;
 
     protected function setUp(): void
@@ -28,14 +28,14 @@ abstract class TestCase extends BaseTestCase
         }
 
         // Start transaction for test isolation
-        $this->db->getConnection()->beginTransaction();
+        $this->db->beginTransaction();
     }
 
     protected function tearDown(): void
     {
         // Rollback transaction to keep database clean
-        if ($this->db->getConnection()->inTransaction()) {
-            $this->db->getConnection()->rollBack();
+        if ($this->db->inTransaction()) {
+            $this->db->rollBack();
         }
 
         parent::tearDown();
@@ -68,7 +68,7 @@ abstract class TestCase extends BaseTestCase
 
         $data = array_merge($defaults, $attributes);
 
-        $stmt = $this->db->getConnection()->prepare(
+        $stmt = $this->db->prepare(
             "INSERT INTO users (username, email, password, first_name, last_name, role_id, is_active, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
@@ -84,7 +84,7 @@ abstract class TestCase extends BaseTestCase
             $data['created_at']
         ]);
 
-        $data['id'] = $this->db->getConnection()->lastInsertId();
+        $data['id'] = $this->db->lastInsertId();
         unset($data['password']); // Don't return password
 
         return $data;
@@ -107,7 +107,7 @@ abstract class TestCase extends BaseTestCase
 
         $data = array_merge($defaults, $attributes);
 
-        $stmt = $this->db->getConnection()->prepare(
+        $stmt = $this->db->prepare(
             "INSERT INTO customers (first_name, last_name, email, phone, customer_type, status, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)"
         );
@@ -122,7 +122,7 @@ abstract class TestCase extends BaseTestCase
             $data['created_at']
         ]);
 
-        $data['id'] = $this->db->getConnection()->lastInsertId();
+        $data['id'] = $this->db->lastInsertId();
 
         return $data;
     }
@@ -145,7 +145,7 @@ abstract class TestCase extends BaseTestCase
 
         $data = array_merge($defaults, $attributes);
 
-        $stmt = $this->db->getConnection()->prepare(
+        $stmt = $this->db->prepare(
             "INSERT INTO products (name, sku, category_id, price, cost, stock_quantity, is_active, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
@@ -161,7 +161,7 @@ abstract class TestCase extends BaseTestCase
             $data['created_at']
         ]);
 
-        $data['id'] = $this->db->getConnection()->lastInsertId();
+        $data['id'] = $this->db->lastInsertId();
 
         return $data;
     }
@@ -180,7 +180,7 @@ abstract class TestCase extends BaseTestCase
         }
 
         $sql = "SELECT COUNT(*) as count FROM $table WHERE " . implode(' AND ', $conditions);
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute($values);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -203,7 +203,7 @@ abstract class TestCase extends BaseTestCase
         }
 
         $sql = "SELECT COUNT(*) as count FROM $table WHERE " . implode(' AND ', $conditions);
-        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute($values);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 

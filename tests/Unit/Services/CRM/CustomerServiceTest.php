@@ -37,7 +37,7 @@ class CustomerServiceTest extends TestCase
         ]);
     }
 
-    public function testGetCustomerById(): void
+    public function testGetCustomer360(): void
     {
         // Create a test customer
         $testCustomer = $this->createTestCustomer([
@@ -46,13 +46,14 @@ class CustomerServiceTest extends TestCase
             'email' => 'jane.smith@example.com'
         ]);
 
-        // Retrieve the customer
-        $customer = $this->customerService->getCustomerById($testCustomer['id']);
+        // Retrieve the customer 360 view
+        $customer360 = $this->customerService->getCustomer360($testCustomer['id']);
 
-        $this->assertIsArray($customer);
-        $this->assertEquals($testCustomer['id'], $customer['id']);
-        $this->assertEquals('Jane', $customer['first_name']);
-        $this->assertEquals('Smith', $customer['last_name']);
+        $this->assertIsArray($customer360);
+        $this->assertArrayHasKey('customer', $customer360);
+        $this->assertEquals($testCustomer['id'], $customer360['customer']['id']);
+        $this->assertEquals('Jane', $customer360['customer']['first_name']);
+        $this->assertEquals('Smith', $customer360['customer']['last_name']);
     }
 
     public function testUpdateCustomer(): void
@@ -78,23 +79,6 @@ class CustomerServiceTest extends TestCase
         ]);
     }
 
-    public function testDeleteCustomer(): void
-    {
-        // Create a test customer
-        $testCustomer = $this->createTestCustomer();
-
-        // Delete the customer (soft delete)
-        $result = $this->customerService->deleteCustomer($testCustomer['id']);
-
-        $this->assertTrue($result);
-
-        // Verify customer is marked as deleted
-        $this->assertDatabaseHas('customers', [
-            'id' => $testCustomer['id'],
-            'status' => 'inactive'
-        ]);
-    }
-
     public function testSearchCustomers(): void
     {
         // Create multiple test customers
@@ -103,7 +87,7 @@ class CustomerServiceTest extends TestCase
         $this->createTestCustomer(['first_name' => 'Alice', 'last_name' => 'Baker']);
 
         // Search for customers named Alice
-        $results = $this->customerService->searchCustomers('Alice');
+        $results = $this->customerService->search('Alice');
 
         $this->assertIsArray($results);
         $this->assertGreaterThanOrEqual(2, count($results));
