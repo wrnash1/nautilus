@@ -268,7 +268,7 @@ class LayawayService
     /**
      * Cancel a layaway
      */
-    public function cancelLayaway(int $layawayId, string $reason = null, bool $refund = false): void
+    public function cancelLayaway(int $layawayId, ?string $reason = null, bool $refund = false): void
     {
         $layaway = $this->getLayaway($layawayId);
 

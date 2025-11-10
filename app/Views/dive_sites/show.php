@@ -23,7 +23,7 @@ ob_start();
             <h1><i class="bi bi-geo-alt-fill"></i> <?= htmlspecialchars($site['name']) ?></h1>
         </div>
         <div class="col-md-4 text-end">
-            <a href="/dive-sites" class="btn btn-secondary">
+            <a href="/store/dive-sites" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>
         </div>

@@ -156,7 +156,7 @@ class HomeController
     /**
      * Get product categories
      */
-    private function getCategories(?int $limit = null): array
+    private function getCategories(??int $limit = null): array
     {
         $sql = "
             SELECT c.*, COUNT(p.id) as product_count

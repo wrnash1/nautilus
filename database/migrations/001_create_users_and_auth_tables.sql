@@ -1,13 +1,4 @@
-
-CREATE TABLE IF NOT EXISTS `roles` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `name` VARCHAR(50) NOT NULL UNIQUE,
-  `display_name` VARCHAR(100) NOT NULL,
-  `description` TEXT,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX `idx_name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- roles table created in 000_multi_tenant_base.sql
 
 CREATE TABLE IF NOT EXISTS `permissions` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -30,6 +21,7 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
 
 CREATE TABLE IF NOT EXISTS `users` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT UNSIGNED NOT NULL,
   `role_id` INT UNSIGNED NOT NULL,
   `email` VARCHAR(255) NOT NULL UNIQUE,
   `password_hash` VARCHAR(255) NOT NULL,
@@ -44,7 +36,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   `is_active` BOOLEAN DEFAULT TRUE,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`),
+  INDEX `idx_tenant_id` (`tenant_id`),
   INDEX `idx_email` (`email`),
   INDEX `idx_google_id` (`google_id`),
   INDEX `idx_is_active` (`is_active`)
@@ -91,4 +85,16 @@ CREATE TABLE IF NOT EXISTS `audit_logs` (
   INDEX `idx_action` (`action`),
   INDEX `idx_module` (`module`),
   INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `user_roles` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT UNSIGNED NOT NULL,
+  `role_id` INT UNSIGNED NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `unique_user_role` (`user_id`, `role_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE,
+  INDEX `idx_user_id` (`user_id`),
+  INDEX `idx_role_id` (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

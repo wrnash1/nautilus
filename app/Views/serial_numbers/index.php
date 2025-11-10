@@ -6,10 +6,10 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0"><i class="bi bi-upc-scan"></i> Serial Number Tracking</h1>
         <div>
-            <a href="/inventory/serial-numbers/scan" class="btn btn-info me-2">
+            <a href="/store/serial-numbers/scan" class="btn btn-info me-2">
                 <i class="bi bi-camera-fill"></i> Scan Barcode
             </a>
-            <a href="/inventory/serial-numbers/create" class="btn btn-primary">
+            <a href="/store/serial-numbers/create" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Add Serial Number
             </a>
         </div>
@@ -70,7 +70,7 @@
                         <button type="submit" class="btn btn-primary flex-fill">
                             <i class="bi bi-search"></i> Filter
                         </button>
-                        <a href="/inventory/serial-numbers" class="btn btn-secondary">
+                        <a href="/store/serial-numbers" class="btn btn-secondary">
                             <i class="bi bi-x-circle"></i> Clear
                         </a>
                     </div>
@@ -90,7 +90,7 @@
             <div class="text-center py-5">
                 <i class="bi bi-upc-scan text-muted" style="font-size: 4rem;"></i>
                 <p class="text-muted mt-3">No serial numbers found.</p>
-                <a href="/inventory/serial-numbers/create" class="btn btn-primary">
+                <a href="/store/serial-numbers/create" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Add First Serial Number
                 </a>
             </div>
@@ -177,10 +177,10 @@
                             </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
-                                    <a href="/inventory/serial-numbers/<?= $sn['id'] ?>" class="btn btn-outline-primary" title="View Details">
+                                    <a href="/store/serial-numbers/<?= $sn['id'] ?>" class="btn btn-outline-primary" title="View Details">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="/inventory/serial-numbers/<?= $sn['id'] ?>/edit" class="btn btn-outline-secondary" title="Edit">
+                                    <a href="/store/serial-numbers/<?= $sn['id'] ?>/edit" class="btn btn-outline-secondary" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <button type="button" class="btn btn-outline-info" onclick="printLabel(<?= $sn['id'] ?>)" title="Print Label">

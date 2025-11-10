@@ -2,11 +2,11 @@
     <h2><i class="bi bi-mortarboard"></i> <?= htmlspecialchars($course['name']) ?></h2>
     <div>
         <?php if (hasPermission('courses.edit')): ?>
-        <a href="/courses/<?= $course['id'] ?>/edit" class="btn btn-warning">
+        <a href="/store/courses/<?= $course['id'] ?>/edit" class="btn btn-warning">
             <i class="bi bi-pencil"></i> Edit
         </a>
         <?php endif; ?>
-        <a href="/courses" class="btn btn-secondary">
+        <a href="/store/courses" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back
         </a>
     </div>

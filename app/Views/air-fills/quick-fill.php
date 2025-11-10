@@ -91,7 +91,7 @@ ob_start();
                         <button type="submit" class="btn btn-success btn-lg">
                             <i class="bi bi-check-circle"></i> Record Fill
                         </button>
-                        <a href="/air-fills" class="btn btn-secondary">
+                        <a href="/store/air-fills" class="btn btn-secondary">
                             <i class="bi bi-arrow-left"></i> Back to List
                         </a>
                     </div>

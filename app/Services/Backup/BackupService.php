@@ -37,7 +37,7 @@ class BackupService
     /**
      * Create full database backup
      */
-    public function createDatabaseBackup(?int $tenantId = null): array
+    public function createDatabaseBackup(??int $tenantId = null): array
     {
         try {
             $tenantId = $tenantId ?? TenantMiddleware::getCurrentTenantId();
@@ -120,7 +120,7 @@ class BackupService
     /**
      * Create files backup (uploads, etc.)
      */
-    public function createFilesBackup(?int $tenantId = null): array
+    public function createFilesBackup(??int $tenantId = null): array
     {
         try {
             $tenantId = $tenantId ?? TenantMiddleware::getCurrentTenantId();
@@ -195,7 +195,7 @@ class BackupService
     /**
      * Create complete backup (database + files)
      */
-    public function createCompleteBackup(?int $tenantId = null): array
+    public function createCompleteBackup(??int $tenantId = null): array
     {
         try {
             $dbBackup = $this->createDatabaseBackup($tenantId);
@@ -318,7 +318,7 @@ class BackupService
     /**
      * List all available backups
      */
-    public function listBackups(?int $tenantId = null): array
+    public function listBackups(??int $tenantId = null): array
     {
         try {
             $pattern = $tenantId

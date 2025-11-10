@@ -9,7 +9,7 @@ ob_start();
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="/air-fills">Air Fills</a></li>
+            <li class="breadcrumb-item"><a href="/store/air-fills">Air Fills</a></li>
             <li class="breadcrumb-item active">New Air Fill</li>
         </ol>
     </nav>
@@ -23,7 +23,7 @@ ob_start();
     <div class="col-lg-8">
         <div class="card">
             <div class="card-body">
-                <form method="POST" action="/air-fills" id="airFillForm">
+                <form method="POST" action="/store/air-fills" id="airFillForm">
                     <!-- Customer Selection -->
                     <div class="mb-3">
                         <label for="customer_id" class="form-label">
@@ -124,7 +124,7 @@ ob_start();
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle"></i> Record Air Fill
                         </button>
-                        <a href="/air-fills" class="btn btn-secondary">
+                        <a href="/store/air-fills" class="btn btn-secondary">
                             <i class="bi bi-x-circle"></i> Cancel
                         </a>
                     </div>

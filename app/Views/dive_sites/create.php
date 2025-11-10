@@ -11,7 +11,7 @@ ob_start();
             <h1><i class="bi bi-plus-circle"></i> Add New Dive Site</h1>
         </div>
         <div class="col-md-4 text-end">
-            <a href="/dive-sites" class="btn btn-secondary">
+            <a href="/store/dive-sites" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>
         </div>
@@ -21,7 +21,7 @@ ob_start();
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body">
-                    <form method="POST" action="/dive-sites/create">
+                    <form method="POST" action="/store/dive-sites/create">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="name" class="form-label">Site Name *</label>
@@ -82,7 +82,7 @@ ob_start();
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="/dive-sites" class="btn btn-secondary">Cancel</a>
+                            <a href="/store/dive-sites" class="btn btn-secondary">Cancel</a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-save"></i> Save Dive Site
                             </button>

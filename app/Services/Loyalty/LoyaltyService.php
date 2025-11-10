@@ -125,7 +125,7 @@ class LoyaltyService
     /**
      * Redeem points for discount
      */
-    public function redeemPoints(int $customerId, int $points, int $orderId = null): bool
+    public function redeemPoints(int $customerId, int $points, ?int $orderId = null): bool
     {
         $balance = $this->getPointsBalance($customerId);
 

@@ -256,7 +256,7 @@ class EmailService
     /**
      * Send welcome email to new customer
      */
-    public function sendWelcomeEmail(array $customer, string $password = null): bool
+    public function sendWelcomeEmail(array $customer, ??string $password = null): bool
     {
         $data = [
             'subject' => 'Welcome to Nautilus Dive Shop',

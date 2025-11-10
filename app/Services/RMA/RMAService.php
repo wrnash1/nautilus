@@ -105,7 +105,7 @@ class RMAService
     /**
      * Approve an RMA request
      */
-    public function approveRMA(int $rmaId, ?int $approvedBy = null): bool
+    public function approveRMA(int $rmaId, ??int $approvedBy = null): bool
     {
         $result = Database::execute(
             "UPDATE rma_requests
@@ -125,7 +125,7 @@ class RMAService
     /**
      * Reject an RMA request
      */
-    public function rejectRMA(int $rmaId, string $reason, ?int $rejectedBy = null): bool
+    public function rejectRMA(int $rmaId, string $reason, ??int $rejectedBy = null): bool
     {
         $result = Database::execute(
             "UPDATE rma_requests
@@ -178,7 +178,7 @@ class RMAService
     /**
      * Process refund for an RMA
      */
-    public function processRefund(int $rmaId, float $refundAmount, ?int $processedBy = null): bool
+    public function processRefund(int $rmaId, float $refundAmount, ??int $processedBy = null): bool
     {
         $result = Database::execute(
             "UPDATE rma_requests
@@ -450,7 +450,7 @@ class RMAService
     /**
      * Log status change
      */
-    private function logStatusChange(int $rmaId, ?string $oldStatus, string $newStatus, ?int $changedBy, ?string $notes = null): void
+    private function logStatusChange(int $rmaId, ?string $oldStatus, string $newStatus, ?int $changedBy, ??string $notes = null): void
     {
         Database::execute(
             "INSERT INTO rma_status_history (rma_request_id, old_status, new_status, changed_by, notes, changed_at)

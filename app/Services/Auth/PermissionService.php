@@ -144,7 +144,7 @@ class PermissionService
     /**
      * Assign role to user
      */
-    public function assignRole(int $userId, int $roleId, ?int $assignedBy = null, ?string $expiresAt = null): bool
+    public function assignRole(int $userId, int $roleId, ??int $assignedBy = null, ??string $expiresAt = null): bool
     {
         try {
             Database::query(
@@ -195,7 +195,7 @@ class PermissionService
     /**
      * Grant direct permission to user
      */
-    public function grantPermission(int $userId, string $permissionCode, ?int $grantedBy = null, ?string $reason = null, ?string $expiresAt = null): bool
+    public function grantPermission(int $userId, string $permissionCode, ??int $grantedBy = null, ?string $reason = null, ??string $expiresAt = null): bool
     {
         try {
             // Get permission ID
@@ -264,7 +264,7 @@ class PermissionService
     /**
      * Create a new role
      */
-    public function createRole(string $roleName, string $roleCode, ?string $description = null, array $permissions = []): array
+    public function createRole(string $roleName, string $roleCode, ??string $description = null, array $permissions = []): array
     {
         try {
             $tenantId = TenantMiddleware::getCurrentTenantId();
@@ -408,7 +408,7 @@ class PermissionService
     /**
      * Log permission action for audit
      */
-    private function logPermissionAction(string $action, int $userId, ?string $permissionCode = null, ?int $roleId = null, ?int $grantedBy = null): void
+    private function logPermissionAction(string $action, int $userId, ??string $permissionCode = null, ?int $roleId = null, ??int $grantedBy = null): void
     {
         $tenantId = TenantMiddleware::getCurrentTenantId();
 
@@ -433,7 +433,7 @@ class PermissionService
     /**
      * Clear permissions cache for user
      */
-    public static function clearCache(?int $userId = null): void
+    public static function clearCache(??int $userId = null): void
     {
         if ($userId === null) {
             self::$userPermissionsCache = null;

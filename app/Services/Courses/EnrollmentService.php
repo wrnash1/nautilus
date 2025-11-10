@@ -32,7 +32,7 @@ class EnrollmentService
      * @return int Enrollment ID
      * @throws Exception
      */
-    public function enrollFromTransaction(int $customerId, int $scheduleId, float $amountPaid, ?int $transactionId = null): int
+    public function enrollFromTransaction(int $customerId, int $scheduleId, float $amountPaid, ??int $transactionId = null): int
     {
         try {
             $this->db->beginTransaction();

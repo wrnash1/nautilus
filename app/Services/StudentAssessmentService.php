@@ -68,7 +68,7 @@ class StudentAssessmentService
     /**
      * Get all students for an instructor
      */
-    public function getInstructorStudents(int $instructorId, ?string $status = null): array
+    public function getInstructorStudents(int $instructorId, ??string $status = null): array
     {
         $sql = "
             SELECT csr.*,

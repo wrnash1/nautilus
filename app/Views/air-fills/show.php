@@ -9,7 +9,7 @@ ob_start();
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="/air-fills">Air Fills</a></li>
+            <li class="breadcrumb-item"><a href="/store/air-fills">Air Fills</a></li>
             <li class="breadcrumb-item active">Air Fill #<?= $airFill['id'] ?></li>
         </ol>
     </nav>
@@ -20,11 +20,11 @@ ob_start();
         </h1>
         <div>
             <?php if (hasPermission('air_fills.update') && !$airFill['transaction_id']): ?>
-            <a href="/air-fills/<?= $airFill['id'] ?>/edit" class="btn btn-primary">
+            <a href="/store/air-fills/<?= $airFill['id'] ?>/edit" class="btn btn-primary">
                 <i class="bi bi-pencil"></i> Edit
             </a>
             <?php endif; ?>
-            <a href="/air-fills" class="btn btn-secondary">
+            <a href="/store/air-fills" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>
         </div>
@@ -172,7 +172,7 @@ ob_start();
             <div class="card-body">
                 <div class="d-grid gap-2">
                     <?php if (hasPermission('air_fills.update') && !$airFill['transaction_id']): ?>
-                    <a href="/air-fills/<?= $airFill['id'] ?>/edit" class="btn btn-primary">
+                    <a href="/store/air-fills/<?= $airFill['id'] ?>/edit" class="btn btn-primary">
                         <i class="bi bi-pencil"></i> Edit Air Fill
                     </a>
                     <?php endif; ?>
@@ -191,7 +191,7 @@ ob_start();
                     </button>
 
                     <?php if (hasPermission('air_fills.delete') && !$airFill['transaction_id']): ?>
-                    <form method="POST" action="/air-fills/<?= $airFill['id'] ?>"
+                    <form method="POST" action="/store/air-fills/<?= $airFill['id'] ?>"
                           onsubmit="return confirm('Are you sure you want to delete this air fill?')">
                         <input type="hidden" name="_method" value="DELETE">
                         <button type="submit" class="btn btn-danger w-100">

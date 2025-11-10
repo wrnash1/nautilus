@@ -28,7 +28,7 @@ class RateLimitMiddleware
     /**
      * Handle rate limiting
      */
-    public function handle(callable $next, ?int $maxAttempts = null, ?int $decayMinutes = null)
+    public function handle(callable $next, ?int $maxAttempts = null, ??int $decayMinutes = null)
     {
         $maxAttempts = $maxAttempts ?? $this->maxAttempts;
         $decayMinutes = $decayMinutes ?? $this->decayMinutes;

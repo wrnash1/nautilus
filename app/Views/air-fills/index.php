@@ -14,10 +14,10 @@ ob_start();
     </div>
     <div>
         <?php if (hasPermission('air_fills.create')): ?>
-        <a href="/air-fills/quick-fill" class="btn btn-success me-2">
+        <a href="/store/air-fills/quick-fill" class="btn btn-success me-2">
             <i class="bi bi-lightning-fill"></i> Quick Fill
         </a>
-        <a href="/air-fills/create" class="btn btn-primary">
+        <a href="/store/air-fills/create" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> New Air Fill
         </a>
         <?php endif; ?>
@@ -94,7 +94,7 @@ ob_start();
 <!-- Filters -->
 <div class="card mb-4">
     <div class="card-body">
-        <form method="GET" action="/air-fills" class="row g-3">
+        <form method="GET" action="/store/air-fills" class="row g-3">
             <div class="col-md-3">
                 <label class="form-label">Search</label>
                 <input type="text" name="search" class="form-control"
@@ -129,10 +129,10 @@ ob_start();
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-search"></i> Filter
                 </button>
-                <a href="/air-fills" class="btn btn-secondary">
+                <a href="/store/air-fills" class="btn btn-secondary">
                     <i class="bi bi-x-circle"></i> Clear
                 </a>
-                <a href="/air-fills/export?<?= http_build_query($_GET) ?>" class="btn btn-success">
+                <a href="/store/air-fills/export?<?= http_build_query($_GET) ?>" class="btn btn-success">
                     <i class="bi bi-download"></i> Export
                 </a>
             </div>
@@ -204,11 +204,11 @@ ob_start();
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <a href="/air-fills/<?= $fill['id'] ?>" class="btn btn-outline-primary" title="View">
+                                    <a href="/store/air-fills/<?= $fill['id'] ?>" class="btn btn-outline-primary" title="View">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     <?php if (hasPermission('air_fills.update') && !$fill['transaction_id']): ?>
-                                    <a href="/air-fills/<?= $fill['id'] ?>/edit" class="btn btn-outline-secondary" title="Edit">
+                                    <a href="/store/air-fills/<?= $fill['id'] ?>/edit" class="btn btn-outline-secondary" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <?php endif; ?>

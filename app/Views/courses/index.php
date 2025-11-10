@@ -2,7 +2,7 @@
     <h2><i class="bi bi-mortarboard"></i> Courses</h2>
     <div>
         <?php if (hasPermission('courses.create')): ?>
-        <a href="/courses/create" class="btn btn-primary">
+        <a href="/store/courses/create" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Add Course
         </a>
         <?php endif; ?>
@@ -11,7 +11,7 @@
 
 <div class="card mb-4">
     <div class="card-body">
-        <form method="GET" action="/courses" class="row g-3">
+        <form method="GET" action="/store/courses" class="row g-3">
             <div class="col-md-4">
                 <input type="text" name="search" class="form-control" placeholder="Search courses..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
             </div>
@@ -48,11 +48,11 @@
                         <i class="bi bi-currency-dollar"></i> <?= formatCurrency($course['price']) ?>
                     </div>
                     
-                    <a href="/courses/<?= $course['id'] ?>" class="btn btn-sm btn-info me-2">
+                    <a href="/store/courses/<?= $course['id'] ?>" class="btn btn-sm btn-info me-2">
                         <i class="bi bi-eye"></i> View
                     </a>
                     <?php if (hasPermission('courses.edit')): ?>
-                    <a href="/courses/<?= $course['id'] ?>/edit" class="btn btn-sm btn-warning">
+                    <a href="/store/courses/<?= $course['id'] ?>/edit" class="btn btn-sm btn-warning">
                         <i class="bi bi-pencil"></i> Edit
                     </a>
                     <?php endif; ?>

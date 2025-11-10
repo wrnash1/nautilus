@@ -364,7 +364,7 @@ class TenantService
     /**
      * Log tenant activity
      */
-    public function logActivity(int $tenantId, ?int $userId, string $activityType, ?string $entityType = null, ?int $entityId = null, ?string $description = null, ?array $metadata = null): void
+    public function logActivity(int $tenantId, ?int $userId, string $activityType, ?string $entityType = null, ??int $entityId = null, ??string $description = null, ??array $metadata = null): void
     {
         Database::query(
             "INSERT INTO tenant_activity_log (

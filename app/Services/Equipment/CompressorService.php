@@ -359,7 +359,7 @@ class CompressorService
     /**
      * Get active alerts
      */
-    public function getActiveAlerts(int $compressorId = null): array
+    public function getActiveAlerts(?int $compressorId = null): array
     {
         $sql = "SELECT ca.*, c.name as compressor_name
                 FROM compressor_alerts ca

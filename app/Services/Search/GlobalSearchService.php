@@ -22,7 +22,7 @@ class GlobalSearchService
     /**
      * Perform global search
      */
-    public function search(string $query, array $modules = [], int $limit = null): array
+    public function search(string $query, array $modules = [], ?int $limit = null): array
     {
         $limit = $limit ?? $this->maxResults;
         $results = [];

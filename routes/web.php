@@ -647,4 +647,48 @@ $router->post('/incidents/submit', 'IncidentReportController@store', [AuthMiddle
 $router->get('/store/incidents', 'IncidentReportController@index', [AuthMiddleware::class]);
 $router->get('/store/incidents/{id}', 'IncidentReportController@show', [AuthMiddleware::class]);
 
+// ============================================================================
+// COMPANY SETTINGS (Critical - Added Nov 2025)
+// ============================================================================
+
+$router->get('/store/admin/settings/company', 'Admin\CompanySettingsController@index', [AuthMiddleware::class]);
+$router->post('/store/admin/settings/company', 'Admin\CompanySettingsController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/api/settings/company', 'Admin\CompanySettingsController@getSettings', [AuthMiddleware::class]);
+
+// ============================================================================
+// NEWSLETTER SUBSCRIPTION (Critical - Added Nov 2025)
+// ============================================================================
+
+// Public newsletter routes
+$router->get('/newsletter/subscribe', 'NewsletterController@showSubscribe');
+$router->post('/newsletter/subscribe', 'NewsletterController@subscribe', [CsrfMiddleware::class]);
+$router->get('/newsletter/confirm/{token}', 'NewsletterController@confirm');
+$router->get('/newsletter/unsubscribe/{token}', 'NewsletterController@unsubscribe');
+
+// Admin newsletter management
+$router->get('/store/marketing/newsletter', 'NewsletterController@index', [AuthMiddleware::class]);
+$router->get('/store/marketing/newsletter/export', 'NewsletterController@export', [AuthMiddleware::class]);
+
+// ============================================================================
+// HELP CENTER & SUPPORT (Critical - Added Nov 2025)
+// ============================================================================
+
+// Public help routes
+$router->get('/help', 'HelpController@index');
+$router->get('/help/faq', 'HelpController@faq');
+$router->get('/help/article/{slug}', 'HelpController@article');
+$router->get('/help/search', 'HelpController@search');
+$router->get('/help/contact', 'HelpController@contact');
+$router->post('/help/contact', 'HelpController@submitTicket', [CsrfMiddleware::class]);
+
+// Admin help management
+$router->get('/store/admin/help', 'HelpController@admin', [AuthMiddleware::class]);
+
+// ============================================================================
+// SERIAL NUMBER SCANNING (Missing route - Added Nov 2025)
+// ============================================================================
+
+$router->get('/store/serial-numbers/scan', 'SerialNumberController@scan', [AuthMiddleware::class]);
+$router->post('/store/serial-numbers/scan', 'SerialNumberController@processScan', [AuthMiddleware::class, CsrfMiddleware::class]);
+
 return $router;

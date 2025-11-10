@@ -263,7 +263,7 @@ class ExportService
     /**
      * Export data to CSV format
      */
-    private function exportToCsv(array $data, string $filename, ?array $columns = null): string
+    private function exportToCsv(array $data, string $filename, ??array $columns = null): string
     {
         $filepath = $this->exportPath . '/' . $filename;
         $handle = fopen($filepath, 'w');

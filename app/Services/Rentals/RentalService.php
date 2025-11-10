@@ -269,7 +269,7 @@ class RentalService
         return Database::execute($sql, [$status, $id]);
     }
     
-    public function getAvailableEquipment(string $startDate, string $endDate, ?int $categoryId = null): array
+    public function getAvailableEquipment(string $startDate, string $endDate, ??int $categoryId = null): array
     {
         $sql = "SELECT re.*, rc.name as category_name 
                 FROM rental_equipment re

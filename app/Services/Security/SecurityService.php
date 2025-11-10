@@ -62,7 +62,7 @@ class SecurityService
     /**
      * Get recent security events
      */
-    public function getRecentEvents(int $limit = 50, ?string $severity = null): array
+    public function getRecentEvents(int $limit = 50, ??string $severity = null): array
     {
         $sql = "SELECT * FROM security_events";
 

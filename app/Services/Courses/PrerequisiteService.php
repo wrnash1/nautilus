@@ -202,7 +202,7 @@ class PrerequisiteService
     /**
      * Check if customer has required certification
      */
-    private function hasRequiredCertification(array $customerCerts, string $requiredCert, ?int $minLevel = null): bool
+    private function hasRequiredCertification(array $customerCerts, string $requiredCert, ??int $minLevel = null): bool
     {
         foreach ($customerCerts as $cert) {
             // Check by certification name or code

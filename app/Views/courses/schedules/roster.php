@@ -9,15 +9,15 @@ ob_start();
 <div class="mb-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/courses">Courses</a></li>
-            <li class="breadcrumb-item"><a href="/courses/schedules">Schedules</a></li>
-            <li class="breadcrumb-item"><a href="/courses/schedules/<?= $schedule['id'] ?>"><?= htmlspecialchars($schedule['course_name']) ?></a></li>
+            <li class="breadcrumb-item"><a href="/store/courses">Courses</a></li>
+            <li class="breadcrumb-item"><a href="/store/courses/schedules">Schedules</a></li>
+            <li class="breadcrumb-item"><a href="/store/courses/schedules/<?= $schedule['id'] ?>"><?= htmlspecialchars($schedule['course_name']) ?></a></li>
             <li class="breadcrumb-item active">Roster</li>
         </ol>
     </nav>
     <div class="d-flex justify-content-between align-items-center">
         <h2><i class="bi bi-people-fill"></i> Course Roster</h2>
-        <a href="/courses/schedules/<?= $schedule['id'] ?>" class="btn btn-secondary">
+        <a href="/store/courses/schedules/<?= $schedule['id'] ?>" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back to Schedule
         </a>
     </div>
@@ -160,7 +160,7 @@ ob_start();
                                         title="View Requirements">
                                     <i class="bi bi-list-check"></i>
                                 </button>
-                                <a href="/courses/enrollments/<?= $student['enrollment_id'] ?>"
+                                <a href="/store/courses/enrollments/<?= $student['enrollment_id'] ?>"
                                    class="btn btn-outline-secondary"
                                    title="View Details">
                                     <i class="bi bi-eye"></i>

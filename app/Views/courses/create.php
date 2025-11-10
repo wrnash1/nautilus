@@ -1,13 +1,13 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-mortarboard"></i> Create Course</h2>
-    <a href="/courses" class="btn btn-secondary">
+    <a href="/store/courses" class="btn btn-secondary">
         <i class="bi bi-arrow-left"></i> Back
     </a>
 </div>
 
 <div class="card">
     <div class="card-body">
-        <form method="POST" action="/courses">
+        <form method="POST" action="/store/courses">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
             
             <div class="row">
@@ -53,7 +53,7 @@
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check-circle"></i> Create Course
                 </button>
-                <a href="/courses" class="btn btn-secondary">Cancel</a>
+                <a href="/store/courses" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>

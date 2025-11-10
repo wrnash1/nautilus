@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-person-check"></i> Enrollment Details</h2>
-    <a href="/courses/enrollments" class="btn btn-secondary">
+    <a href="/store/courses/enrollments" class="btn btn-secondary">
         <i class="bi bi-arrow-left"></i> Back
     </a>
 </div>
@@ -75,7 +75,7 @@
                 <h5 class="mb-0">Final Grade</h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="/courses/enrollments/<?= $enrollment['id'] ?>/grade">
+                <form method="POST" action="/store/courses/enrollments/<?= $enrollment['id'] ?>/grade">
                     <input type="hidden" name="csrf_token" value="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
                     <div class="mb-3">
                         <label for="grade" class="form-label">Grade</label>
@@ -119,7 +119,7 @@
                 <h5 class="modal-title">Mark Attendance</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="/courses/enrollments/<?= $enrollment['id'] ?>/attendance">
+            <form method="POST" action="/store/courses/enrollments/<?= $enrollment['id'] ?>/attendance">
                 <div class="modal-body">
                     <input type="hidden" name="csrf_token" value="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
                     <div class="mb-3">

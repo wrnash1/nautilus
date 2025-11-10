@@ -231,7 +231,7 @@ class DocumentService
     /**
      * Search documents
      */
-    public function search(string $query, ?string $documentType = null): array
+    public function search(string $query, ??string $documentType = null): array
     {
         $sql = "SELECT d.*,
                        CONCAT(u.first_name, ' ', u.last_name) as uploaded_by_name,

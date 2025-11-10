@@ -46,7 +46,7 @@ class LocationService
     /**
      * Get inventory at location
      */
-    public function getLocationInventory(int $locationId, ?int $productId = null): array
+    public function getLocationInventory(int $locationId, ??int $productId = null): array
     {
         if ($productId) {
             $stmt = $this->db->prepare(
@@ -249,7 +249,7 @@ class LocationService
     /**
      * Get transfer history
      */
-    public function getTransferHistory(int $limit = 50, ?int $locationId = null): array
+    public function getTransferHistory(int $limit = 50, ??int $locationId = null): array
     {
         if ($locationId) {
             $stmt = $this->db->prepare(

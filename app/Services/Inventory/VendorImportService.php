@@ -206,7 +206,7 @@ class VendorImportService
     /**
      * Stage products to vendor_catalog_items table
      */
-    public function stageProducts(int $vendorId, array $data, array $mappings, ?int $userId = null): int
+    public function stageProducts(int $vendorId, array $data, array $mappings, ??int $userId = null): int
     {
         try {
             $this->db->beginTransaction();

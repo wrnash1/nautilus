@@ -1,51 +1,57 @@
-# Development/debugging files
-archive/
-*.bak
-*.old
-*.tmp
-*~
-
-# Environment files
+# Environment & Configuration
 .env
 .env.local
-.env.production
+.env.*.local
+.installed
 
-# Storage directories
-storage/logs/*
-!storage/logs/.gitkeep
-storage/sessions/*
-!storage/sessions/.gitkeep
-storage/cache/*
-!storage/cache/.gitkeep
-storage/uploads/*
-!storage/uploads/.gitkeep
-
-# Temporary files
-/tmp/
-*.log
-
-# IDE files
+# IDE & Editors
 .vscode/
 .idea/
-*.sublime-*
-
-# OS files
+*.sublime-project
+*.sublime-workspace
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
+*~
 
 # Dependencies
 /vendor/
-/node_modules/
+node_modules/
 
-# Build artifacts
-/public/hot
-/public/storage
+# Logs
+storage/logs/*.log
+*.log
 
-# Composer
-composer.phar
-composer.lock
+# Cache
+storage/cache/*
+!storage/cache/.gitkeep
 
-# NPM
-package-lock.json
-npm-debug.log
-yarn-error.log
+# Uploads
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Exports
+storage/exports/*
+!storage/exports/.gitkeep
+
+# Backups
+storage/backups/*
+!storage/backups/.gitkeep
+*.sql
+*.sql.gz
+
+# Testing
+.phpunit.result.cache
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Temporary Files
+*.tmp
+*.bak
+*.old
+
+# Archive
+archive/

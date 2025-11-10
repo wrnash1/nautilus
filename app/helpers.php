@@ -102,7 +102,7 @@ if (!function_exists('generateSku')) {
 }
 
 if (!function_exists('logActivity')) {
-    function logActivity(string $action, string $module, ?int $entityId = null): void
+    function logActivity(string $action, string $module, ??int $entityId = null): void
     {
         if (isset($_SESSION['user_id'])) {
             \App\Core\Database::query(
@@ -167,7 +167,7 @@ if (!function_exists('setSettingValue')) {
      * @param string|null $description Setting description
      * @return bool
      */
-    function setSettingValue(string $key, $value, string $category = 'general', string $type = 'string', ?string $description = null): bool
+    function setSettingValue(string $key, $value, string $category = 'general', string $type = 'string', ??string $description = null): bool
     {
         try {
             $settingsService = new \App\Services\Settings\SettingsService();

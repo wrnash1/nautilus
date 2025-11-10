@@ -22,7 +22,7 @@ class CacheMiddleware
     /**
      * Handle request caching
      */
-    public function handle(callable $next, int $ttl = null)
+    public function handle(callable $next, ?int $ttl = null)
     {
         $ttl = $ttl ?? $this->defaultTTL;
 

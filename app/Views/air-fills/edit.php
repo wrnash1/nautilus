@@ -9,8 +9,8 @@ ob_start();
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="/air-fills">Air Fills</a></li>
-            <li class="breadcrumb-item"><a href="/air-fills/<?= $airFill['id'] ?>">Air Fill #<?= $airFill['id'] ?></a></li>
+            <li class="breadcrumb-item"><a href="/store/air-fills">Air Fills</a></li>
+            <li class="breadcrumb-item"><a href="/store/air-fills/<?= $airFill['id'] ?>">Air Fill #<?= $airFill['id'] ?></a></li>
             <li class="breadcrumb-item active">Edit</li>
         </ol>
     </nav>
@@ -24,7 +24,7 @@ ob_start();
     <div class="col-lg-8">
         <div class="card">
             <div class="card-body">
-                <form method="POST" action="/air-fills/<?= $airFill['id'] ?>">
+                <form method="POST" action="/store/air-fills/<?= $airFill['id'] ?>">
                     <input type="hidden" name="_method" value="PUT">
 
                     <!-- Customer Selection -->
@@ -109,7 +109,7 @@ ob_start();
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle"></i> Update Air Fill
                         </button>
-                        <a href="/air-fills/<?= $airFill['id'] ?>" class="btn btn-secondary">
+                        <a href="/store/air-fills/<?= $airFill['id'] ?>" class="btn btn-secondary">
                             <i class="bi bi-x-circle"></i> Cancel
                         </a>
                     </div>

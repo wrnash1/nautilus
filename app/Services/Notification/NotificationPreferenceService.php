@@ -423,7 +423,7 @@ class NotificationPreferenceService
     /**
      * Update notification status
      */
-    public function updateNotificationStatus(int $notificationId, string $status, ?string $errorMessage = null): array
+    public function updateNotificationStatus(int $notificationId, string $status, ??string $errorMessage = null): array
     {
         try {
             $updateData = [

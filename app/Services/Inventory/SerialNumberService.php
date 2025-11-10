@@ -238,7 +238,7 @@ class SerialNumberService
     /**
      * Update location
      */
-    public function updateLocation(int $serialId, string $newLocation, ?int $userId = null): bool
+    public function updateLocation(int $serialId, string $newLocation, ??int $userId = null): bool
     {
         try {
             // Get current location
@@ -271,7 +271,7 @@ class SerialNumberService
     /**
      * Mark as sold
      */
-    public function markAsSold(int $serialId, int $transactionId, ?int $userId = null): bool
+    public function markAsSold(int $serialId, int $transactionId, ??int $userId = null): bool
     {
         return $this->updateStatus($serialId, 'sold', [
             'transaction_id' => $transactionId,
@@ -283,7 +283,7 @@ class SerialNumberService
     /**
      * Mark as rented
      */
-    public function markAsRented(int $serialId, int $rentalId, ?int $userId = null): bool
+    public function markAsRented(int $serialId, int $rentalId, ??int $userId = null): bool
     {
         return $this->updateStatus($serialId, 'rented', [
             'rental_id' => $rentalId,
@@ -295,7 +295,7 @@ class SerialNumberService
     /**
      * Mark as returned from rental
      */
-    public function markAsReturned(int $serialId, int $rentalId, int $conditionRating, ?int $userId = null): bool
+    public function markAsReturned(int $serialId, int $rentalId, int $conditionRating, ??int $userId = null): bool
     {
         try {
             // Update status to available
@@ -332,7 +332,7 @@ class SerialNumberService
     /**
      * Mark for service
      */
-    public function markForService(int $serialId, int $workOrderId, ?int $userId = null): bool
+    public function markForService(int $serialId, int $workOrderId, ??int $userId = null): bool
     {
         return $this->updateStatus($serialId, 'service', [
             'work_order_id' => $workOrderId,
@@ -344,7 +344,7 @@ class SerialNumberService
     /**
      * Complete service
      */
-    public function completeService(int $serialId, int $workOrderId, ?int $userId = null): bool
+    public function completeService(int $serialId, int $workOrderId, ??int $userId = null): bool
     {
         try {
             // Update status to available
@@ -447,7 +447,7 @@ class SerialNumberService
     /**
      * Log barcode scan
      */
-    private function logBarcodeToken(string $barcode, string $scanType, ?int $userId = null): int
+    private function logBarcodeToken(string $barcode, string $scanType, ??int $userId = null): int
     {
         $sql = "INSERT INTO barcode_scans
                 (barcode, scan_type, scanned_by, scan_location, scanned_at)

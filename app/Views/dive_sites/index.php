@@ -11,7 +11,7 @@ ob_start();
             <h1><i class="bi bi-geo-alt-fill"></i> Dive Sites</h1>
         </div>
         <div class="col-md-6 text-end">
-            <a href="/dive-sites/create" class="btn btn-primary">
+            <a href="/store/dive-sites/create" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Add Dive Site
             </a>
         </div>
@@ -47,7 +47,7 @@ ob_start();
             <?php elseif (empty($diveSites)): ?>
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle"></i> No dive sites found.
-                    <a href="/dive-sites/create">Add your first dive site</a>.
+                    <a href="/store/dive-sites/create">Add your first dive site</a>.
                 </div>
             <?php else: ?>
                 <table class="table table-hover">
@@ -66,7 +66,7 @@ ob_start();
                         <?php foreach ($diveSites as $site): ?>
                         <tr>
                             <td>
-                                <a href="/dive-sites/<?= $site['id'] ?>">
+                                <a href="/store/dive-sites/<?= $site['id'] ?>">
                                     <strong><?= htmlspecialchars($site['name']) ?></strong>
                                 </a>
                             </td>
@@ -86,7 +86,7 @@ ob_start();
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <a href="/dive-sites/<?= $site['id'] ?>" class="btn btn-sm btn-info">
+                                <a href="/store/dive-sites/<?= $site['id'] ?>" class="btn btn-sm btn-info">
                                     <i class="bi bi-eye"></i> View
                                 </a>
                             </td>

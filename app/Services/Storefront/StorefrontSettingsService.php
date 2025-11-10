@@ -132,7 +132,7 @@ class StorefrontSettingsService
     /**
      * Set a setting value
      */
-    public function set(string $key, $value, ?string $type = null): bool
+    public function set(string $key, $value, ??string $type = null): bool
     {
         if ($type === null) {
             $type = $this->detectType($value);
@@ -314,7 +314,7 @@ class StorefrontSettingsService
     /**
      * Build hierarchical menu tree
      */
-    private function buildMenuTree(array $items, ?int $parentId = null): array
+    private function buildMenuTree(array $items, ??int $parentId = null): array
     {
         $branch = [];
 
@@ -405,7 +405,7 @@ class StorefrontSettingsService
     /**
      * Get active promotional banners
      */
-    public function getActiveBanners(?string $bannerType = null, ?string $page = null): array
+    public function getActiveBanners(?string $bannerType = null, ??string $page = null): array
     {
         try {
             $sql = "

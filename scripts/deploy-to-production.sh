@@ -1,266 +1,217 @@
 #!/bin/bash
+#
+# Comprehensive Production Deployment Script
+# Deploys Nautilus from development to production safely
+#
+# Usage: sudo bash scripts/deploy-to-production.sh
+#
 
-################################################################################
-# Nautilus Production Deployment Script
-# Version: 2.0
-# Purpose: Deploy both applications to production web server
-################################################################################
+set -e  # Exit on any error
 
-set -e  # Exit on error
+DEV_DIR="/home/wrnash1/development/nautilus"
+PROD_DIR="/var/www/html/nautilus"
+BACKUP_DIR="/home/wrnash1/backups/nautilus-$(date +%Y%m%d-%H%M%S)"
+LOG_FILE="/tmp/nautilus-deploy-$(date +%Y%m%d-%H%M%S).log"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+echo "════════════════════════════════════════════════════════════" | tee -a "$LOG_FILE"
+echo "  Nautilus Production Deployment" | tee -a "$LOG_FILE"
+echo "  $(date)" | tee -a "$LOG_FILE"
+echo "════════════════════════════════════════════════════════════" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
 
-# Configuration
-SOURCE_CUSTOMER="/home/wrnash1/development/nautilus-customer"
-SOURCE_STAFF="/home/wrnash1/development/nautilus-staff"
-TARGET_CUSTOMER="/var/www/html/nautilus-customer"
-TARGET_STAFF="/var/www/html/nautilus-staff"
-WEB_USER="www-data"
-WEB_GROUP="www-data"
-
-################################################################################
-# Helper Functions
-################################################################################
-
-print_header() {
-    echo -e "${BLUE}========================================${NC}"
-    echo -e "${BLUE}$1${NC}"
-    echo -e "${BLUE}========================================${NC}"
-}
-
-print_success() {
-    echo -e "${GREEN}✓ $1${NC}"
-}
-
-print_error() {
-    echo -e "${RED}✗ $1${NC}"
-}
-
-print_warning() {
-    echo -e "${YELLOW}⚠ $1${NC}"
-}
-
-print_info() {
-    echo -e "${BLUE}ℹ $1${NC}"
-}
-
-################################################################################
-# Pre-flight Checks
-################################################################################
-
-print_header "Nautilus Production Deployment"
-echo ""
-
-# Check if running as root or with sudo
+# Check if running as root
 if [ "$EUID" -ne 0 ]; then
-    print_error "Please run with sudo"
+    echo "❌ Error: Please run as root (use sudo)" | tee -a "$LOG_FILE"
     exit 1
 fi
 
-# Check source directories exist
-if [ ! -d "$SOURCE_CUSTOMER" ]; then
-    print_error "Customer app not found: $SOURCE_CUSTOMER"
-    print_info "Run ./scripts/split-enterprise-apps.sh first"
+# Check if development directory exists
+if [ ! -d "$DEV_DIR" ]; then
+    echo "❌ Error: Development directory not found: $DEV_DIR" | tee -a "$LOG_FILE"
     exit 1
 fi
 
-if [ ! -d "$SOURCE_STAFF" ]; then
-    print_error "Staff app not found: $SOURCE_STAFF"
-    print_info "Run ./scripts/split-enterprise-apps.sh first"
-    exit 1
-fi
-
-# Confirm deployment
-echo "This will deploy:"
-echo "  Customer: $SOURCE_CUSTOMER → $TARGET_CUSTOMER"
-echo "  Staff:    $SOURCE_STAFF → $TARGET_STAFF"
-echo ""
-read -p "Continue with production deployment? (yes/no) " -r
-echo
-if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
-    print_error "Deployment cancelled"
-    exit 1
-fi
-
-################################################################################
-# Backup Existing Installation
-################################################################################
-
-print_header "Step 1: Creating Backups"
-
-BACKUP_DIR="/var/backups/nautilus/$(date +%Y%m%d_%H%M%S)"
+# Create backup directory
+echo "→ Creating backup directory..." | tee -a "$LOG_FILE"
 mkdir -p "$BACKUP_DIR"
+echo "  ✓ Backup directory: $BACKUP_DIR" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
 
-if [ -d "$TARGET_CUSTOMER" ]; then
-    print_info "Backing up customer app..."
-    tar -czf "$BACKUP_DIR/customer-backup.tar.gz" -C /var/www/html nautilus-customer
-    print_success "Customer app backed up"
+# Backup production if it exists
+if [ -d "$PROD_DIR" ]; then
+    echo "→ Backing up current production..." | tee -a "$LOG_FILE"
+
+    # Backup .env file
+    if [ -f "$PROD_DIR/.env" ]; then
+        cp "$PROD_DIR/.env" "$BACKUP_DIR/.env"
+        echo "  ✓ Backed up .env" | tee -a "$LOG_FILE"
+    fi
+
+    # Backup uploads
+    if [ -d "$PROD_DIR/public/uploads" ]; then
+        cp -r "$PROD_DIR/public/uploads" "$BACKUP_DIR/uploads"
+        echo "  ✓ Backed up uploads" | tee -a "$LOG_FILE"
+    fi
+
+    # Backup storage (logs, cache, exports, backups)
+    if [ -d "$PROD_DIR/storage" ]; then
+        mkdir -p "$BACKUP_DIR/storage"
+        for dir in logs exports backups; do
+            if [ -d "$PROD_DIR/storage/$dir" ]; then
+                cp -r "$PROD_DIR/storage/$dir" "$BACKUP_DIR/storage/"
+                echo "  ✓ Backed up storage/$dir" | tee -a "$LOG_FILE"
+            fi
+        done
+    fi
+
+    echo "" | tee -a "$LOG_FILE"
 fi
 
-if [ -d "$TARGET_STAFF" ]; then
-    print_info "Backing up staff app..."
-    tar -czf "$BACKUP_DIR/staff-backup.tar.gz" -C /var/www/html nautilus-staff
-    print_success "Staff app backed up"
-fi
+# Deploy new code
+echo "→ Deploying new code..." | tee -a "$LOG_FILE"
 
-print_success "Backups stored in: $BACKUP_DIR"
+# Create production directory if it doesn't exist
+mkdir -p "$PROD_DIR"
 
-################################################################################
-# Deploy Customer Application
-################################################################################
-
-print_header "Step 2: Deploying Customer Application"
-
-# Create target directory
-mkdir -p "$TARGET_CUSTOMER"
-
-# Sync files (excluding vendor, .git, node_modules)
-print_info "Syncing files..."
+# Sync files (excluding sensitive and generated files)
 rsync -av --delete \
-    --exclude='vendor/' \
-    --exclude='.git/' \
-    --exclude='node_modules/' \
+    --exclude='.git' \
+    --exclude='.gitignore' \
     --exclude='.env' \
-    --exclude='storage/logs/*' \
+    --exclude='.env.local' \
+    --exclude='.installed' \
     --exclude='storage/cache/*' \
-    --exclude='storage/sessions/*' \
-    "$SOURCE_CUSTOMER/" "$TARGET_CUSTOMER/"
+    --exclude='storage/logs/*' \
+    --exclude='public/uploads/*' \
+    --exclude='vendor' \
+    --exclude='node_modules' \
+    --exclude='backups' \
+    --exclude='*.log' \
+    "$DEV_DIR/" "$PROD_DIR/" >> "$LOG_FILE" 2>&1
 
-# Install composer dependencies
-print_info "Installing dependencies..."
-cd "$TARGET_CUSTOMER"
-composer install --no-dev --optimize-autoloader --quiet
+echo "  ✓ Code synced" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
 
-# Create necessary directories
-mkdir -p storage/logs storage/cache storage/sessions storage/backups
-mkdir -p public/uploads
+# Restore .env if it was backed up, otherwise copy example
+echo "→ Configuring environment..." | tee -a "$LOG_FILE"
+if [ -f "$BACKUP_DIR/.env" ]; then
+    cp "$BACKUP_DIR/.env" "$PROD_DIR/.env"
+    echo "  ✓ Restored .env from backup" | tee -a "$LOG_FILE"
+elif [ -f "$PROD_DIR/.env.example" ]; then
+    cp "$PROD_DIR/.env.example" "$PROD_DIR/.env"
+    echo "  ⚠ Created .env from example - Please configure manually" | tee -a "$LOG_FILE"
+fi
+echo "" | tee -a "$LOG_FILE"
+
+# Restore uploads
+echo "→ Restoring uploads..." | tee -a "$LOG_FILE"
+if [ -d "$BACKUP_DIR/uploads" ]; then
+    cp -r "$BACKUP_DIR/uploads/"* "$PROD_DIR/public/uploads/" 2>/dev/null || true
+    echo "  ✓ Uploads restored" | tee -a "$LOG_FILE"
+else
+    echo "  ℹ No uploads to restore" | tee -a "$LOG_FILE"
+fi
+echo "" | tee -a "$LOG_FILE"
+
+# Create required directories
+echo "→ Creating required directories..." | tee -a "$LOG_FILE"
+mkdir -p "$PROD_DIR/storage/cache"
+mkdir -p "$PROD_DIR/storage/logs"
+mkdir -p "$PROD_DIR/storage/exports"
+mkdir -p "$PROD_DIR/storage/backups"
+mkdir -p "$PROD_DIR/public/uploads"
+mkdir -p "$PROD_DIR/public/uploads/logos"
+echo "  ✓ Directories created" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
+
+# Set ownership
+echo "→ Setting ownership..." | tee -a "$LOG_FILE"
+chown -R apache:apache "$PROD_DIR"
+echo "  ✓ Owner set to apache:apache" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
 
 # Set permissions
-chown -R $WEB_USER:$WEB_GROUP "$TARGET_CUSTOMER"
-chmod -R 755 "$TARGET_CUSTOMER"
-chmod -R 775 "$TARGET_CUSTOMER/storage"
-chmod -R 775 "$TARGET_CUSTOMER/public/uploads"
+echo "→ Setting permissions..." | tee -a "$LOG_FILE"
+find "$PROD_DIR" -type f -exec chmod 644 {} \;
+find "$PROD_DIR" -type d -exec chmod 755 {} \;
+chmod -R 775 "$PROD_DIR/storage"
+chmod -R 775 "$PROD_DIR/public/uploads"
+chmod 600 "$PROD_DIR/.env" 2>/dev/null || true
+echo "  ✓ Permissions set" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
 
-print_success "Customer application deployed"
-
-################################################################################
-# Deploy Staff Application
-################################################################################
-
-print_header "Step 3: Deploying Staff Application"
-
-# Create target directory
-mkdir -p "$TARGET_STAFF"
-
-# Sync files
-print_info "Syncing files..."
-rsync -av --delete \
-    --exclude='vendor/' \
-    --exclude='.git/' \
-    --exclude='node_modules/' \
-    --exclude='.env' \
-    --exclude='storage/logs/*' \
-    --exclude='storage/cache/*' \
-    --exclude='storage/sessions/*' \
-    "$SOURCE_STAFF/" "$TARGET_STAFF/"
-
-# Install composer dependencies
-print_info "Installing dependencies..."
-cd "$TARGET_STAFF"
-composer install --no-dev --optimize-autoloader --quiet
-
-# Create necessary directories
-mkdir -p storage/logs storage/cache storage/sessions storage/backups
-mkdir -p public/uploads
-
-# Set permissions
-chown -R $WEB_USER:$WEB_GROUP "$TARGET_STAFF"
-chmod -R 755 "$TARGET_STAFF"
-chmod -R 775 "$TARGET_STAFF/storage"
-chmod -R 775 "$TARGET_STAFF/public/uploads"
-
-print_success "Staff application deployed"
-
-################################################################################
-# Check Configuration
-################################################################################
-
-print_header "Step 4: Checking Configuration"
-
-# Check if .env files exist
-if [ ! -f "$TARGET_CUSTOMER/.env" ]; then
-    print_warning "Customer .env not found - creating from example"
-    cp "$TARGET_CUSTOMER/.env.example" "$TARGET_CUSTOMER/.env"
-    print_warning "IMPORTANT: Edit $TARGET_CUSTOMER/.env with your settings!"
+# Install/update composer dependencies
+echo "→ Installing composer dependencies..." | tee -a "$LOG_FILE"
+cd "$PROD_DIR"
+if [ -f "composer.json" ]; then
+    sudo -u apache composer install --no-dev --optimize-autoloader >> "$LOG_FILE" 2>&1 || \
+    composer install --no-dev --optimize-autoloader >> "$LOG_FILE" 2>&1
+    echo "  ✓ Dependencies installed" | tee -a "$LOG_FILE"
 else
-    print_success "Customer .env exists"
+    echo "  ⚠ No composer.json found" | tee -a "$LOG_FILE"
+fi
+echo "" | tee -a "$LOG_FILE"
+
+# Configure SELinux if enabled
+if command -v setenforce &> /dev/null; then
+    echo "→ Configuring SELinux..." | tee -a "$LOG_FILE"
+    semanage fcontext -a -t httpd_sys_rw_content_t "$PROD_DIR/storage(/.*)?" 2>/dev/null || true
+    semanage fcontext -a -t httpd_sys_rw_content_t "$PROD_DIR/public/uploads(/.*)?" 2>/dev/null || true
+    restorecon -Rv "$PROD_DIR/storage" 2>/dev/null || true
+    restorecon -Rv "$PROD_DIR/public/uploads" 2>/dev/null || true
+    echo "  ✓ SELinux configured" | tee -a "$LOG_FILE"
+    echo "" | tee -a "$LOG_FILE"
 fi
 
-if [ ! -f "$TARGET_STAFF/.env" ]; then
-    print_warning "Staff .env not found - creating from example"
-    cp "$TARGET_STAFF/.env.example" "$TARGET_STAFF/.env"
-    print_warning "IMPORTANT: Edit $TARGET_STAFF/.env with your settings!"
+# Clear cache
+echo "→ Clearing cache..." | tee -a "$LOG_FILE"
+rm -rf "$PROD_DIR/storage/cache/"* 2>/dev/null || true
+echo "  ✓ Cache cleared" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
+
+# Verify deployment
+echo "→ Verifying deployment..." | tee -a "$LOG_FILE"
+VERIFY_ERRORS=0
+
+# Check critical files exist
+for file in "public/index.php" "app/Core/Router.php" "routes/web.php"; do
+    if [ ! -f "$PROD_DIR/$file" ]; then
+        echo "  ✗ Missing: $file" | tee -a "$LOG_FILE"
+        VERIFY_ERRORS=$((VERIFY_ERRORS + 1))
+    fi
+done
+
+# Check critical directories exist
+for dir in "app" "public" "storage" "database"; do
+    if [ ! -d "$PROD_DIR/$dir" ]; then
+        echo "  ✗ Missing: $dir/" | tee -a "$LOG_FILE"
+        VERIFY_ERRORS=$((VERIFY_ERRORS + 1))
+    fi
+done
+
+if [ $VERIFY_ERRORS -eq 0 ]; then
+    echo "  ✓ All critical files present" | tee -a "$LOG_FILE"
 else
-    print_success "Staff .env exists"
+    echo "  ⚠ Found $VERIFY_ERRORS missing critical files/directories" | tee -a "$LOG_FILE"
 fi
+echo "" | tee -a "$LOG_FILE"
 
-################################################################################
-# Clear Caches
-################################################################################
-
-print_header "Step 5: Clearing Caches"
-
-rm -rf "$TARGET_CUSTOMER/storage/cache/*"
-rm -rf "$TARGET_STAFF/storage/cache/*"
-
-print_success "Caches cleared"
-
-################################################################################
-# Restart Services
-################################################################################
-
-print_header "Step 6: Restarting Web Server"
-
-if command -v apache2ctl &> /dev/null; then
-    apache2ctl configtest && systemctl restart apache2
-    print_success "Apache restarted"
-elif command -v nginx &> /dev/null; then
-    nginx -t && systemctl restart nginx
-    print_success "Nginx restarted"
-fi
-
-################################################################################
-# Final Summary
-################################################################################
-
-print_header "Deployment Complete!"
-
-echo ""
-echo -e "${GREEN}✓ Customer App:${NC} $TARGET_CUSTOMER"
-echo -e "${GREEN}✓ Staff App:${NC} $TARGET_STAFF"
-echo -e "${GREEN}✓ Backup:${NC} $BACKUP_DIR"
-echo ""
-echo -e "${YELLOW}Post-Deployment Checklist:${NC}"
-echo ""
-echo "1. Verify .env configuration:"
-echo "   sudo nano $TARGET_CUSTOMER/.env"
-echo "   sudo nano $TARGET_STAFF/.env"
-echo ""
-echo "2. Run database migrations (if needed):"
-echo "   cd $TARGET_CUSTOMER && php scripts/migrate.php"
-echo ""
-echo "3. Test both applications:"
-echo "   Customer: https://yourdomain.com"
-echo "   Staff:    https://yourdomain.com/store"
-echo ""
-echo "4. Monitor error logs:"
-echo "   sudo tail -f /var/log/apache2/error.log"
-echo "   sudo tail -f $TARGET_STAFF/storage/logs/app.log"
-echo ""
-
-exit 0
+# Summary
+echo "════════════════════════════════════════════════════════════" | tee -a "$LOG_FILE"
+echo "✅ Deployment Complete!" | tee -a "$LOG_FILE"
+echo "════════════════════════════════════════════════════════════" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
+echo "Deployment Summary:" | tee -a "$LOG_FILE"
+echo "  Production: $PROD_DIR" | tee -a "$LOG_FILE"
+echo "  Backup: $BACKUP_DIR" | tee -a "$LOG_FILE"
+echo "  Log: $LOG_FILE" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
+echo "Next Steps:" | tee -a "$LOG_FILE"
+echo "  1. Verify .env configuration: nano $PROD_DIR/.env" | tee -a "$LOG_FILE"
+echo "  2. Run new migrations: Visit https://nautilus.local/install.php" | tee -a "$LOG_FILE"
+echo "  3. Test the application: https://nautilus.local" | tee -a "$LOG_FILE"
+echo "  4. Check logs: tail -f $PROD_DIR/storage/logs/*.log" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
+echo "If issues occur, restore from backup:" | tee -a "$LOG_FILE"
+echo "  sudo rsync -av $BACKUP_DIR/ $PROD_DIR/" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
