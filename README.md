@@ -14,6 +14,26 @@
 
 This is a **complete, enterprise-grade SaaS platform** ready for production deployment. All features are fully implemented, tested, and documented.
 
+## ⚡ Quick Installation (3 Steps)
+
+### For Non-Technical Users
+
+1. **Upload files** to your web server (`/var/www/html/nautilus`)
+2. **Run setup script**:
+   ```bash
+   cd /var/www/html/nautilus
+   sudo bash setup.sh
+   ```
+3. **Visit installer**: `https://your-domain.com/check-requirements.php`
+
+📖 **Full installation guide**: See [INSTALL.md](INSTALL.md)
+
+### System Requirements
+
+- PHP 8.1+, MySQL 5.7+, Apache/Nginx
+- Extensions: `pdo`, `pdo_mysql`, `mbstring`, `json`, `openssl`, `curl`, `gd`, `zip`
+- 500MB disk space, 128MB memory
+
 ---
 
 ## ⭐ What's New in v3.0
