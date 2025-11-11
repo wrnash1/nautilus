@@ -310,12 +310,15 @@ class InstallService
                 $progress = 30 + (($current / $totalMigrations) * 40);
                 $this->updateProgress("Running migration: {$filename}", (int)$progress);
 
-                // Disable FK checks BEFORE running migration
-                $mysqli->query("SET FOREIGN_KEY_CHECKS=0");
-                $mysqli->query("SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO'");
-
                 // Read the entire SQL file
                 $sql = file_get_contents($file);
+
+                // Strip out any existing SET commands to avoid conflicts
+                $sql = preg_replace('/^SET\s+FOREIGN_KEY_CHECKS\s*=\s*[01]\s*;/mi', '', $sql);
+
+                // CRITICAL: Prepend FK disable to the SQL content itself
+                // This ensures it runs WITHIN the same multi_query batch
+                $sql = "SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;\n" . $sql . "\nSET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;";
 
                 // Execute using multi_query
                 if (!$mysqli->multi_query($sql)) {
@@ -334,9 +337,6 @@ class InstallService
                 if ($mysqli->error) {
                     error_log("Warning in {$filename}: " . $mysqli->error);
                 }
-
-                // Re-enable FK checks after migration
-                $mysqli->query("SET FOREIGN_KEY_CHECKS=1");
 
                 // Record migration
                 $stmt = $mysqli->prepare("INSERT INTO migrations (migration, batch) VALUES (?, ?)");
