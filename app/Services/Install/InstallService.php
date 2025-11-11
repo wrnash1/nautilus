@@ -313,12 +313,11 @@ class InstallService
                 // Read the entire SQL file
                 $sql = file_get_contents($file);
 
-                // ALWAYS wrap with FK disable - this is safe even if migration already has it
-                // The @OLD_FOREIGN_KEY_CHECKS pattern saves and restores the state
-                // This must be INSIDE the SQL string so it's part of the multi_query batch
-                $sql = "SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;\n" .
-                       $sql .
-                       "\nSET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;";
+                // CRITICAL FIX: Disable FK checks at CONNECTION level BEFORE multi_query
+                // This is the ONLY way that works with mysqli::multi_query()
+                // The SET commands inside multi_query don't apply to subsequent statements in the batch
+                $mysqli->query("SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS");
+                $mysqli->query("SET FOREIGN_KEY_CHECKS=0");
 
                 // Execute using multi_query
                 if (!$mysqli->multi_query($sql)) {
@@ -331,6 +330,9 @@ class InstallService
                         $result->free();
                     }
                 } while ($mysqli->more_results() && $mysqli->next_result());
+
+                // Re-enable FK checks after migration completes
+                $mysqli->query("SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS");
 
                 // Check for errors (but don't fail - just log)
                 // Some foreign key warnings are expected if tables reference each other
