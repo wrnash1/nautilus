@@ -397,6 +397,32 @@ class InstallService
     {
         $pdo = $this->createDatabaseConnection();
 
+        // Create default tenant if it doesn't exist
+        $stmt = $pdo->query("SELECT id FROM tenants WHERE id = 1 LIMIT 1");
+        $defaultTenant = $stmt->fetch();
+        $stmt->closeCursor();
+
+        if (!$defaultTenant) {
+            // Create default tenant
+            $tenantUuid = $this->generateUUID();
+            $subdomain = $this->generateSubdomain($config['app_name'] ?? 'default');
+
+            $stmt = $pdo->prepare("
+                INSERT INTO tenants (id, tenant_uuid, company_name, subdomain, contact_email, status, created_at)
+                VALUES (1, ?, ?, ?, ?, 'active', NOW())
+            ");
+            $stmt->execute([
+                $tenantUuid,
+                $config['app_name'] ?? 'Default Company',
+                $subdomain,
+                $config['admin_email']
+            ]);
+            $stmt->closeCursor();
+            $tenantId = 1;
+        } else {
+            $tenantId = $defaultTenant['id'];
+        }
+
         // Check if admin role exists
         $stmt = $pdo->query("SELECT id FROM roles WHERE name = 'admin' LIMIT 1");
         $adminRole = $stmt->fetch();
@@ -418,7 +444,8 @@ class InstallService
             // Update existing user
             $stmt = $pdo->prepare("
                 UPDATE users
-                SET role_id = ?,
+                SET tenant_id = ?,
+                    role_id = ?,
                     first_name = ?,
                     last_name = ?,
                     password_hash = ?,
@@ -426,6 +453,7 @@ class InstallService
                 WHERE email = ?
             ");
             $stmt->execute([
+                $tenantId,
                 $adminRole['id'],
                 $config['admin_first_name'],
                 $config['admin_last_name'],
@@ -436,10 +464,11 @@ class InstallService
         } else {
             // Insert new user
             $stmt = $pdo->prepare("
-                INSERT INTO users (role_id, email, password_hash, first_name, last_name, is_active, created_at)
-                VALUES (?, ?, ?, ?, ?, 1, NOW())
+                INSERT INTO users (tenant_id, role_id, email, password_hash, first_name, last_name, is_active, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, 1, NOW())
             ");
             $stmt->execute([
+                $tenantId,
                 $adminRole['id'],
                 $config['admin_email'],
                 $passwordHash,
@@ -448,6 +477,34 @@ class InstallService
             ]);
             $stmt->closeCursor();
         }
+    }
+
+    /**
+     * Generate a UUID v4
+     */
+    private function generateUUID(): string
+    {
+        $data = random_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
+    /**
+     * Generate a subdomain from company name
+     */
+    private function generateSubdomain(string $companyName): string
+    {
+        $subdomain = strtolower($companyName);
+        $subdomain = preg_replace('/[^a-z0-9]+/', '-', $subdomain);
+        $subdomain = trim($subdomain, '-');
+        $subdomain = substr($subdomain, 0, 50);
+
+        if (empty($subdomain)) {
+            $subdomain = 'company-' . substr(md5(uniqid()), 0, 8);
+        }
+
+        return $subdomain;
     }
 
     /**
