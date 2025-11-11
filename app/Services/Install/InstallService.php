@@ -313,8 +313,11 @@ class InstallService
                 // Read the entire SQL file
                 $sql = file_get_contents($file);
 
+                // Prepend SET commands to each migration to disable FK checks
+                $sqlWithSettings = "SET FOREIGN_KEY_CHECKS=0;\nSET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n\n" . $sql . "\n\nSET FOREIGN_KEY_CHECKS=1;";
+
                 // Execute using multi_query
-                if (!$mysqli->multi_query($sql)) {
+                if (!$mysqli->multi_query($sqlWithSettings)) {
                     throw new Exception("Error in {$filename}: " . $mysqli->error);
                 }
 
