@@ -3,8 +3,8 @@
 
 -- Roles table
 CREATE TABLE IF NOT EXISTS roles (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT UNSIGNED,
     role_name VARCHAR(100) NOT NULL,
     role_code VARCHAR(50) NOT NULL,
     description TEXT,
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS roles (
 
 -- Permissions table
 CREATE TABLE IF NOT EXISTS permissions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     permission_name VARCHAR(100) NOT NULL,
     permission_code VARCHAR(100) UNIQUE NOT NULL,
     category VARCHAR(50) NOT NULL,
@@ -37,9 +37,9 @@ CREATE TABLE IF NOT EXISTS permissions (
 
 -- Role Permissions (many-to-many)
 CREATE TABLE IF NOT EXISTS role_permissions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    role_id INT NOT NULL,
-    permission_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    role_id INT UNSIGNED NOT NULL,
+    permission_id INT UNSIGNED NOT NULL,
     granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
@@ -51,10 +51,10 @@ CREATE TABLE IF NOT EXISTS role_permissions (
 
 -- User Roles (many-to-many)
 CREATE TABLE IF NOT EXISTS user_roles (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    role_id INT NOT NULL,
-    assigned_by INT,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    role_id INT UNSIGNED NOT NULL,
+    assigned_by INT UNSIGNED,
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NULL,
 
@@ -69,11 +69,11 @@ CREATE TABLE IF NOT EXISTS user_roles (
 
 -- Direct User Permissions (override role permissions)
 CREATE TABLE IF NOT EXISTS user_permissions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    permission_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    permission_id INT UNSIGNED NOT NULL,
     is_granted BOOLEAN DEFAULT TRUE,
-    granted_by INT,
+    granted_by INT UNSIGNED,
     granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NULL,
     reason TEXT,
@@ -90,13 +90,13 @@ CREATE TABLE IF NOT EXISTS user_permissions (
 
 -- Permission Audit Log
 CREATE TABLE IF NOT EXISTS permission_audit_log (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    user_id INT,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT UNSIGNED,
+    user_id INT UNSIGNED,
     action VARCHAR(50) NOT NULL,
     permission_code VARCHAR(100),
-    role_id INT,
-    granted_to_user_id INT,
+    role_id INT UNSIGNED,
+    granted_to_user_id INT UNSIGNED,
     ip_address VARCHAR(45),
     user_agent VARCHAR(500),
     metadata JSON,
