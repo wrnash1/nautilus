@@ -25,15 +25,141 @@ if (file_exists(INSTALLED_FILE)) {
     die('<!DOCTYPE html>
     <html><head><title>Already Installed</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    </head><body class="bg-light"><div class="container mt-5"><div class="alert alert-info">
-    <h4>✓ Nautilus is Already Installed</h4>
-    <p>The application is already set up. <a href="/" class="alert-link">Go to Homepage</a></p>
-    <hr><small>To reinstall, delete the <code>.installed</code> file in the root directory.</small>
-    </div></div></body></html>');
+    </head><body class="bg-light"><div class="container mt-5">
+    <div class="alert alert-success">
+        <h4>🛡️ Installation Already Complete</h4>
+        <p>Nautilus is installed and ready to use.</p>
+        <a href="/" class="btn btn-primary">Go to Dashboard →</a>
+    </div>
+    <div class="alert alert-danger">
+        <h5>⚠️ SECURITY WARNING</h5>
+        <p><strong>Running the installer again will:</strong></p>
+        <ul>
+            <li>Delete ALL existing data</li>
+            <li>Remove all customers, products, and sales</li>
+            <li>Reset admin accounts</li>
+            <li>This action CANNOT be undone</li>
+        </ul>
+        <hr>
+        <p class="mb-0"><strong>If you need to reinstall:</strong></p>
+        <ol>
+            <li>Backup your database first</li>
+            <li>Delete the <code>.installed</code> file in the root directory</li>
+            <li>Refresh this page</li>
+        </ol>
+    </div>
+    </div></body></html>');
 }
 
 // Installation steps
 $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
+
+// Handle Step 3 POST (must be before any HTML output to allow header redirect)
+if ($step == 3 && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_admin'])) {
+    // Validate password confirmation
+    if ($_POST['password'] !== $_POST['password_confirm']) {
+        $_SESSION['step3_error'] = "Passwords don't match. Please make sure both password fields are identical.";
+    } else {
+        try {
+            $config = $_SESSION['db_config'];
+            $dsn = "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']};charset=utf8mb4";
+            $pdo = new PDO($dsn, $config['username'], $config['password'], [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true
+            ]);
+
+            // Create first tenant
+            $tenantUuid = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+                mt_rand(0, 0xffff),
+                mt_rand(0, 0x0fff) | 0x4000,
+                mt_rand(0, 0x3fff) | 0x8000,
+                mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+            );
+
+            $stmt = $pdo->prepare("INSERT INTO tenants (tenant_uuid, company_name, subdomain, contact_email, status, created_at) VALUES (?, ?, ?, ?, 'active', NOW())");
+            $stmt->execute([$tenantUuid, $_POST['company_name'], $_POST['subdomain'], $_POST['email']]);
+            $tenantId = $pdo->lastInsertId();
+
+            // Get admin role
+            $stmt = $pdo->prepare("SELECT id FROM roles WHERE name = 'admin' LIMIT 1");
+            $stmt->execute();
+            $roleResult = $stmt->fetch();
+            $roleId = $roleResult ? $roleResult['id'] : 1;
+
+            // Create admin user
+            $passwordHash = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("INSERT INTO users (tenant_id, role_id, email, password_hash, first_name, last_name, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, NOW())");
+            $stmt->execute([
+                $tenantId,
+                $roleId,
+                $_POST['email'],
+                $passwordHash,
+                $_POST['first_name'],
+                $_POST['last_name']
+            ]);
+            $userId = $pdo->lastInsertId();
+
+            // Assign admin role
+            $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
+            $stmt->execute([$userId, $roleId]);
+
+            // Create .env file
+            $envContent = "# Database Configuration\n";
+            $envContent .= "DB_HOST={$config['host']}\n";
+            $envContent .= "DB_PORT={$config['port']}\n";
+            $envContent .= "DB_DATABASE={$config['database']}\n";
+            $envContent .= "DB_USERNAME={$config['username']}\n";
+            $envContent .= "DB_PASSWORD={$config['password']}\n\n";
+            $envContent .= "# Application\n";
+            $envContent .= "APP_NAME=\"Nautilus Alpha v1\"\n";
+            $envContent .= "APP_ENV=production\n";
+            $envContent .= "APP_DEBUG=true\n";
+            $envContent .= "APP_URL=http://localhost\n";
+            $envContent .= "APP_TIMEZONE=America/Chicago\n\n";
+            $envContent .= "# Security\n";
+            $envContent .= "APP_KEY=base64:" . base64_encode(random_bytes(32)) . "\n";
+            $envContent .= "JWT_SECRET=" . base64_encode(random_bytes(32)) . "\n";
+            $envContent .= "SESSION_LIFETIME=120\n";
+            $envContent .= "PASSWORD_MIN_LENGTH=8\n\n";
+            $envContent .= "# Cache & Session\n";
+            $envContent .= "CACHE_DRIVER=file\n";
+            $envContent .= "SESSION_DRIVER=file\n\n";
+            $envContent .= "# File Storage\n";
+            $envContent .= "UPLOAD_MAX_SIZE=10485760\n";
+            $envContent .= "ALLOWED_FILE_TYPES=jpg,jpeg,png,pdf,doc,docx\n";
+
+            $envWritten = file_put_contents(ROOT_DIR . '/.env', $envContent);
+
+            if ($envWritten === false) {
+                throw new Exception("Could not create .env file. Please check directory permissions.");
+            }
+
+            // Create .installed file
+            $installedWritten = file_put_contents(INSTALLED_FILE, date('Y-m-d H:i:s') . "\nCompany: " . $_POST['company_name'] . "\nAdmin: " . $_POST['email']);
+
+            if ($installedWritten === false) {
+                throw new Exception("Could not create .installed file. Please check directory permissions.");
+            }
+
+            // Save credentials for display
+            $_SESSION['install_complete'] = [
+                'email' => $_POST['email'],
+                'company' => $_POST['company_name']
+            ];
+
+            // Clear session
+            unset($_SESSION['db_config']);
+
+            // Redirect to success page
+            header('Location: ?step=4');
+            exit;
+
+        } catch (Exception $e) {
+            $_SESSION['step3_error'] = "Error creating admin account: " . $e->getMessage();
+        }
+    }
+}
 
 ?>
 <!DOCTYPE html>
@@ -398,6 +524,17 @@ sudo chcon -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?></pre>
                         $database = $_POST['db_name'];
                         $username = $_POST['db_user'];
                         $password = $_POST['db_pass'];
+                        $passwordConfirm = $_POST['db_pass_confirm'];
+
+                        // Validate password confirmation
+                        if ($password !== $passwordConfirm) {
+                            echo "<div class='alert alert-danger'>";
+                            echo "<strong>✗ Passwords Don't Match</strong><br>";
+                            echo "Please make sure both password fields are identical.";
+                            echo "</div>";
+                            echo "<a href='?step=2' class='btn btn-secondary'>← Try Again</a>";
+                            throw new Exception("Password mismatch");
+                        }
 
                         // Test connection
                         $dsn = "mysql:host=$host;port=$port;charset=utf8mb4";
@@ -424,7 +561,17 @@ sudo chcon -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?></pre>
                         ];
 
                         // Run Migrations
-                        echo "<div class='alert alert-info'><strong>Running Database Migrations...</strong></div>";
+                        echo "<div class='alert alert-info'>";
+                        echo "<strong>Running Database Migrations...</strong><br>";
+                        echo "<small>This may take 1-2 minutes. Please wait...</small>";
+                        echo "</div>";
+
+                        // Progress bar
+                        echo "<div class='progress mb-3' style='height: 30px;'>";
+                        echo "<div class='progress-bar progress-bar-striped progress-bar-animated bg-info' id='migration-progress' style='width: 0%; font-size: 16px;'>";
+                        echo "0 of 0";
+                        echo "</div></div>";
+
                         echo "<pre class='console'>";
 
                         // Create migrations tracking table
@@ -441,8 +588,11 @@ sudo chcon -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?></pre>
 
                         $successCount = 0;
                         $errorCount = 0;
+                        $totalMigrations = count($migrationFiles);
+                        $currentMigration = 0;
 
                         foreach ($migrationFiles as $file) {
+                            $currentMigration++;
                             $filename = basename($file);
 
                             // Check if already executed
@@ -521,9 +671,28 @@ sudo chcon -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?></pre>
                                     echo "  <span style='color: #ffc107;'>⚠ Warning: " . htmlspecialchars($statementErrors[0]) . "</span>\n";
                                     $errorCount++;
                                 }
+
+                                // Update progress bar
+                                $percentComplete = round(($currentMigration / $totalMigrations) * 100);
+                                echo "<script>";
+                                echo "document.getElementById('migration-progress').style.width = '{$percentComplete}%';";
+                                echo "document.getElementById('migration-progress').textContent = '{$currentMigration} of {$totalMigrations}';";
+                                echo "</script>";
+                                @ob_flush();
+                                @flush();
+
                             } catch (PDOException $e) {
                                 echo "  <span style='color: #dc3545;'>✗ Error: " . htmlspecialchars($e->getMessage()) . "</span>\n";
                                 $errorCount++;
+
+                                // Update progress bar even on error
+                                $percentComplete = round(($currentMigration / $totalMigrations) * 100);
+                                echo "<script>";
+                                echo "document.getElementById('migration-progress').style.width = '{$percentComplete}%';";
+                                echo "document.getElementById('migration-progress').textContent = '{$currentMigration} of {$totalMigrations}';";
+                                echo "</script>";
+                                @ob_flush();
+                                @flush();
                             }
                         }
 
@@ -635,6 +804,12 @@ sudo chcon -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?></pre>
                             <small class="text-muted">Leave blank if no password</small>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Confirm Database Password</strong></label>
+                            <input type="password" name="db_pass_confirm" class="form-control">
+                            <small class="text-muted">Re-enter password to confirm</small>
+                        </div>
+
                         <button type="submit" class="btn btn-primary btn-lg w-100">Test Connection & Setup Database →</button>
                     </form>
 
@@ -647,122 +822,16 @@ sudo chcon -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?></pre>
                 <!-- STEP 3: Admin Account Creation -->
                 <h3 class="mb-4">Step 3: Create Admin Account</h3>
 
-                <?php if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_admin'])): ?>
-                    <?php
-                    // Validate password confirmation
-                    if ($_POST['password'] !== $_POST['password_confirm']) {
-                        echo "<div class='alert alert-danger'>";
-                        echo "<strong>✗ Passwords Don't Match</strong><br>";
-                        echo "Please make sure both password fields are identical.";
-                        echo "</div>";
-                        echo "<a href='?step=3' class='btn btn-secondary'>← Try Again</a>";
-                    } else {
-                        try {
-                            $config = $_SESSION['db_config'];
-                            $dsn = "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']};charset=utf8mb4";
-                            $pdo = new PDO($dsn, $config['username'], $config['password'], [
-                                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                                PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true
-                            ]);
-
-                            // Create first tenant
-                            $tenantUuid = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-                                mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-                                mt_rand(0, 0xffff),
-                                mt_rand(0, 0x0fff) | 0x4000,
-                                mt_rand(0, 0x3fff) | 0x8000,
-                                mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-                            );
-
-                            $stmt = $pdo->prepare("INSERT INTO tenants (tenant_uuid, company_name, subdomain, contact_email, status, created_at) VALUES (?, ?, ?, ?, 'active', NOW())");
-                            $stmt->execute([$tenantUuid, $_POST['company_name'], $_POST['subdomain'], $_POST['email']]);
-                            $tenantId = $pdo->lastInsertId();
-
-                            // Get admin role
-                            $stmt = $pdo->prepare("SELECT id FROM roles WHERE name = 'admin' LIMIT 1");
-                            $stmt->execute();
-                            $roleResult = $stmt->fetch();
-                            $roleId = $roleResult ? $roleResult['id'] : 1;
-
-                            // Create admin user
-                            $passwordHash = password_hash($_POST['password'], PASSWORD_DEFAULT);
-                            $stmt = $pdo->prepare("INSERT INTO users (tenant_id, role_id, email, password_hash, first_name, last_name, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, NOW())");
-                            $stmt->execute([
-                                $tenantId,
-                                $roleId,
-                                $_POST['email'],
-                                $passwordHash,
-                                $_POST['first_name'],
-                                $_POST['last_name']
-                            ]);
-                            $userId = $pdo->lastInsertId();
-
-                            // Assign admin role
-                            $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
-                            $stmt->execute([$userId, $roleId]);
-
-                            // Create .env file
-                            $envContent = "# Database Configuration\n";
-                            $envContent .= "DB_HOST={$config['host']}\n";
-                            $envContent .= "DB_PORT={$config['port']}\n";
-                            $envContent .= "DB_DATABASE={$config['database']}\n";
-                            $envContent .= "DB_USERNAME={$config['username']}\n";
-                            $envContent .= "DB_PASSWORD={$config['password']}\n\n";
-                            $envContent .= "# Application\n";
-                            $envContent .= "APP_NAME=\"Nautilus Alpha v1\"\n";
-                            $envContent .= "APP_ENV=production\n";
-                            $envContent .= "APP_DEBUG=true\n";
-                            $envContent .= "APP_URL=http://localhost\n";
-                            $envContent .= "APP_TIMEZONE=America/Chicago\n\n";
-                            $envContent .= "# Security\n";
-                            $envContent .= "APP_KEY=base64:" . base64_encode(random_bytes(32)) . "\n";
-                            $envContent .= "JWT_SECRET=" . base64_encode(random_bytes(32)) . "\n";
-                            $envContent .= "SESSION_LIFETIME=120\n";
-                            $envContent .= "PASSWORD_MIN_LENGTH=8\n\n";
-                            $envContent .= "# Cache & Session\n";
-                            $envContent .= "CACHE_DRIVER=file\n";
-                            $envContent .= "SESSION_DRIVER=file\n\n";
-                            $envContent .= "# File Storage\n";
-                            $envContent .= "UPLOAD_MAX_SIZE=10485760\n";
-                            $envContent .= "ALLOWED_FILE_TYPES=jpg,jpeg,png,pdf,doc,docx\n";
-
-                            $envWritten = file_put_contents(ROOT_DIR . '/.env', $envContent);
-
-                            if ($envWritten === false) {
-                                throw new Exception("Could not create .env file. Please check directory permissions.");
-                            }
-
-                            // Create .installed file
-                            $installedWritten = file_put_contents(INSTALLED_FILE, date('Y-m-d H:i:s') . "\nCompany: " . $_POST['company_name'] . "\nAdmin: " . $_POST['email']);
-
-                            if ($installedWritten === false) {
-                                throw new Exception("Could not create .installed file. Please check directory permissions.");
-                            }
-
-                            // Save credentials for display
-                            $_SESSION['install_complete'] = [
-                                'email' => $_POST['email'],
-                                'company' => $_POST['company_name']
-                            ];
-
-                            // Clear session
-                            unset($_SESSION['db_config']);
-
-                            // Redirect to success page
-                            header('Location: ?step=4');
-                            exit;
-
-                        } catch (Exception $e) {
-                            echo "<div class='alert alert-danger'>";
-                            echo "<strong>✗ Error Creating Admin Account</strong><br>";
-                            echo htmlspecialchars($e->getMessage());
-                            echo "</div>";
-                            echo "<a href='?step=3' class='btn btn-secondary'>← Try Again</a>";
-                        }
-                    }
-                    ?>
-
-                <?php else: ?>
+                <?php
+                // Display any errors from POST processing
+                if (isset($_SESSION['step3_error'])) {
+                    echo "<div class='alert alert-danger'>";
+                    echo "<strong>✗ Error</strong><br>";
+                    echo htmlspecialchars($_SESSION['step3_error']);
+                    echo "</div>";
+                    unset($_SESSION['step3_error']);
+                }
+                ?>
                     <!-- Admin Account Form -->
                     <div class="alert alert-info">
                         <strong>👤 Admin Account Setup</strong><br>
@@ -824,7 +893,6 @@ sudo chcon -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?></pre>
                     <div class="mt-3">
                         <a href="?step=2" class="btn btn-link">← Back to Database Setup</a>
                     </div>
-                <?php endif; ?>
 
             <?php elseif ($step == 4): ?>
                 <!-- STEP 4: Installation Complete -->
