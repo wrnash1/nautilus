@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS `travel_packets` (
   `confirmed_at` TIMESTAMP NULL,
   `packet_data` JSON,
   `notes` TEXT,
-  `created_by` INT UNSIGNED NOT NULL,
+  `created_by` INT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`trip_booking_id`) REFERENCES `trip_bookings`(`id`) ON DELETE SET NULL,
