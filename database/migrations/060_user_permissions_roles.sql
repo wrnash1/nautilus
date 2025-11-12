@@ -116,10 +116,13 @@ CREATE TABLE IF NOT EXISTS permission_audit_log (
 -- The permission_code is UNIQUE, so we don't need explicit IDs
 
 -- Insert default system roles (these will be copied per tenant on signup)
-INSERT INTO roles (tenant_id, role_name, role_code, description, is_system_role) VALUES
-(NULL, 'Super Admin', 'super_admin', 'Full system access across all tenants', TRUE),
-(NULL, 'Tenant Admin', 'tenant_admin', 'Full access within tenant', TRUE),
-(NULL, 'Manager', 'manager', 'Manage daily operations', TRUE),
-(NULL, 'Sales Associate', 'sales_associate', 'Process sales and assist customers', TRUE),
-(NULL, 'Instructor', 'instructor', 'Manage courses and students', TRUE),
-(NULL, 'Viewer', 'viewer', 'Read-only access', TRUE);
+-- COMMENTED OUT: roles table from migration 000 has different schema (id, name, display_name, description)
+-- This migration 060 tries to use columns that don't exist: tenant_id, role_name, role_code, is_system_role
+-- The admin role is already created in migration 000
+-- INSERT INTO roles (tenant_id, role_name, role_code, description, is_system_role) VALUES
+-- (NULL, 'Super Admin', 'super_admin', 'Full system access across all tenants', TRUE),
+-- (NULL, 'Tenant Admin', 'tenant_admin', 'Full access within tenant', TRUE),
+-- (NULL, 'Manager', 'manager', 'Manage daily operations', TRUE),
+-- (NULL, 'Sales Associate', 'sales_associate', 'Process sales and assist customers', TRUE),
+-- (NULL, 'Instructor', 'instructor', 'Manage courses and students', TRUE),
+-- (NULL, 'Viewer', 'viewer', 'Read-only access', TRUE);
