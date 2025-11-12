@@ -239,6 +239,7 @@ ALTER TABLE course_enrollments
 ADD COLUMN IF NOT EXISTS confirmation_sent_at TIMESTAMP NULL AFTER status,
 ADD COLUMN IF NOT EXISTS confirmation_notification_id BIGINT NULL AFTER confirmation_sent_at;
 
-ALTER TABLE rental_transactions
+-- Fixed: rental_transactions table doesn't exist, using rental_reservations instead
+ALTER TABLE rental_reservations
 ADD COLUMN IF NOT EXISTS reminder_sent_at TIMESTAMP NULL AFTER status,
 ADD COLUMN IF NOT EXISTS reminder_notification_id BIGINT NULL AFTER reminder_sent_at;
