@@ -50,7 +50,7 @@ class ReportService
         ];
     }
     
-    public function getTopCustomers(int $limit = 20, ?string $startDate = null, ??string $endDate = null): array
+    public function getTopCustomers(int $limit = 20, ?string $startDate = null, ?string $endDate = null): array
     {
         $sql = "SELECT 
                     c.id,
@@ -103,7 +103,7 @@ class ReportService
         return $result ?? [];
     }
     
-    public function getBestSellingProducts(int $limit = 20, ?string $startDate = null, ??string $endDate = null): array
+    public function getBestSellingProducts(int $limit = 20, ?string $startDate = null, ?string $endDate = null): array
     {
         $sql = "SELECT 
                     p.id,
@@ -134,7 +134,7 @@ class ReportService
         return Database::fetchAll($sql, $params) ?? [];
     }
     
-    public function getRevenueByCategory(?string $startDate = null, ??string $endDate = null): array
+    public function getRevenueByCategory(?string $startDate = null, ?string $endDate = null): array
     {
         $sql = "SELECT 
                     COALESCE(pc.name, 'Uncategorized') as category,
@@ -159,7 +159,7 @@ class ReportService
         return Database::fetchAll($sql, $params) ?? [];
     }
     
-    public function getPaymentMethodBreakdown(?string $startDate = null, ??string $endDate = null): array
+    public function getPaymentMethodBreakdown(?string $startDate = null, ?string $endDate = null): array
     {
         $sql = "SELECT 
                     p.payment_method,

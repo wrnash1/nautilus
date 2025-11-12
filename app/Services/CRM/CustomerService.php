@@ -103,7 +103,7 @@ class CustomerService
         ];
     }
     
-    private function validateCustomerData(array $data, ??int $id = null): void
+    private function validateCustomerData(array $data, ?int $id = null): void
     {
         $errors = [];
         

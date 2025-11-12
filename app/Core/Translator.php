@@ -32,7 +32,7 @@ class Translator
     /**
      * Get translation for a key
      */
-    public function get(string $key, array $replacements = [], ??string $locale = null): string
+    public function get(string $key, array $replacements = [], ?string $locale = null): string
     {
         $locale = $locale ?? $this->currentLocale;
 
@@ -73,7 +73,7 @@ class Translator
     /**
      * Check if translation exists
      */
-    public function has(string $key, ??string $locale = null): bool
+    public function has(string $key, ?string $locale = null): bool
     {
         $locale = $locale ?? $this->currentLocale;
 
@@ -333,7 +333,7 @@ class Translator
     /**
      * Format currency according to locale
      */
-    public function formatCurrency(float $amount, ??string $currency = null): string
+    public function formatCurrency(float $amount, ?string $currency = null): string
     {
         $currency = $currency ?? $_ENV['CURRENCY'] ?? 'USD';
 

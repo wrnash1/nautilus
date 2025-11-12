@@ -52,7 +52,7 @@ class SettingsService
     /**
      * Set a setting value
      */
-    public function set(string $key, $value, string $category = 'general', string $type = 'string', ??string $description = null, ??int $updatedBy = null): bool
+    public function set(string $key, $value, string $category = 'general', string $type = 'string', ?string $description = null, ?int $updatedBy = null): bool
     {
         try {
             // Convert value to string for storage
@@ -227,7 +227,7 @@ class SettingsService
     /**
      * Initialize default settings
      */
-    public function initializeDefaults(??int $userId = null): void
+    public function initializeDefaults(?int $userId = null): void
     {
         $defaults = [
             // General

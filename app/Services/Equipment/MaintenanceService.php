@@ -121,7 +121,7 @@ class MaintenanceService
     /**
      * Get scheduled maintenance
      */
-    public function getScheduledMaintenance(??string $status = null, ??int $limit = null): array
+    public function getScheduledMaintenance(?string $status = null, ?int $limit = null): array
     {
         $sql = "SELECT ms.*, re.name as equipment_name, re.equipment_code,
                        u.first_name, u.last_name

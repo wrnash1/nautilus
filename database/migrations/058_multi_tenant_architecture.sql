@@ -271,37 +271,31 @@ CREATE TABLE IF NOT EXISTS tenant_activity_log (
 -- Add tenant_id to existing tables for data isolation
 -- This allows each tenant to have their own data while sharing the same tables
 
-ALTER TABLE users ADD COLUMN tenant_id INT NULL AFTER id;
-ALTER TABLE users ADD CONSTRAINT fk_users_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE;
-ALTER TABLE users ADD INDEX idx_tenant_id (tenant_id);
+-- NOTE: users table already has tenant_id from migration 001
+-- ALTER TABLE users ADD COLUMN tenant_id INT UNSIGNED NULL AFTER id;
+-- ALTER TABLE users ADD CONSTRAINT fk_users_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE;
+-- ALTER TABLE users ADD INDEX idx_tenant_id (tenant_id);
 
-ALTER TABLE customers ADD COLUMN tenant_id INT NULL AFTER id;
-ALTER TABLE customers ADD CONSTRAINT fk_customers_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE;
-ALTER TABLE customers ADD INDEX idx_tenant_id (tenant_id);
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
+ALTER TABLE customers ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
 
-ALTER TABLE products ADD COLUMN tenant_id INT NULL AFTER id;
-ALTER TABLE products ADD CONSTRAINT fk_products_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE;
-ALTER TABLE products ADD INDEX idx_tenant_id (tenant_id);
+ALTER TABLE products ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
+ALTER TABLE products ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
 
-ALTER TABLE product_categories ADD COLUMN tenant_id INT NULL AFTER id;
-ALTER TABLE product_categories ADD CONSTRAINT fk_product_categories_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE;
-ALTER TABLE product_categories ADD INDEX idx_tenant_id (tenant_id);
+ALTER TABLE product_categories ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
+ALTER TABLE product_categories ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
 
-ALTER TABLE pos_transactions ADD COLUMN tenant_id INT NULL AFTER id;
-ALTER TABLE pos_transactions ADD CONSTRAINT fk_pos_transactions_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE;
-ALTER TABLE pos_transactions ADD INDEX idx_tenant_id (tenant_id);
+ALTER TABLE pos_transactions ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
+ALTER TABLE pos_transactions ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
 
-ALTER TABLE courses ADD COLUMN tenant_id INT NULL AFTER id;
-ALTER TABLE courses ADD CONSTRAINT fk_courses_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE;
-ALTER TABLE courses ADD INDEX idx_tenant_id (tenant_id);
+ALTER TABLE courses ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
+ALTER TABLE courses ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
 
-ALTER TABLE equipment ADD COLUMN tenant_id INT NULL AFTER id;
-ALTER TABLE equipment ADD CONSTRAINT fk_equipment_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE;
-ALTER TABLE equipment ADD INDEX idx_tenant_id (tenant_id);
+ALTER TABLE equipment ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
+ALTER TABLE equipment ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
 
-ALTER TABLE equipment_rentals ADD COLUMN tenant_id INT NULL AFTER id;
-ALTER TABLE equipment_rentals ADD CONSTRAINT fk_equipment_rentals_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE;
-ALTER TABLE equipment_rentals ADD INDEX idx_tenant_id (tenant_id);
+ALTER TABLE equipment_rentals ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
+ALTER TABLE equipment_rentals ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
 
 -- Tenant onboarding tracking
 CREATE TABLE IF NOT EXISTS tenant_onboarding (

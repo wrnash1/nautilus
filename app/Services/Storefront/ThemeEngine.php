@@ -242,7 +242,7 @@ class ThemeEngine
     /**
      * Generate CSS variables from theme config
      */
-    public function generateThemeCSS(??array $theme = null): string
+    public function generateThemeCSS(?array $theme = null): string
     {
         if ($theme === null) {
             $theme = $this->getActiveTheme();
@@ -300,7 +300,7 @@ class ThemeEngine
     /**
      * Get theme assets for a specific theme
      */
-    public function getThemeAssets(int $themeId, ??string $assetType = null): array
+    public function getThemeAssets(int $themeId, ?string $assetType = null): array
     {
         $sql = "SELECT * FROM theme_assets WHERE theme_id = ?";
         $params = [$themeId];
@@ -394,7 +394,7 @@ class ThemeEngine
     /**
      * Get homepage sections for active theme
      */
-    public function getHomepageSections(??int $themeId = null): array
+    public function getHomepageSections(?int $themeId = null): array
     {
         if ($themeId === null) {
             $theme = $this->getActiveTheme();

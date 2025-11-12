@@ -134,8 +134,8 @@ CREATE TABLE IF NOT EXISTS sales_trends (
 -- Customer Analytics Table
 -- Stores customer segmentation and analytics
 CREATE TABLE IF NOT EXISTS customer_analytics (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT UNSIGNED NOT NULL,
 
     -- Purchase behavior
     total_purchases INT DEFAULT 0,
@@ -179,8 +179,8 @@ CREATE TABLE IF NOT EXISTS customer_analytics (
 -- Product Performance Table
 -- Tracks product-level analytics
 CREATE TABLE IF NOT EXISTS product_analytics (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    product_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id INT UNSIGNED NOT NULL,
 
     -- Time period
     period_type ENUM('daily', 'weekly', 'monthly') NOT NULL,
@@ -219,8 +219,8 @@ CREATE TABLE IF NOT EXISTS product_analytics (
 -- Dashboard Widgets Table
 -- Stores user-customizable dashboard configurations
 CREATE TABLE IF NOT EXISTS dashboard_widgets (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
 
     -- Widget configuration
     widget_type VARCHAR(50) NOT NULL,
@@ -277,7 +277,7 @@ CREATE TABLE IF NOT EXISTS report_schedules (
     -- Timestamps
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by INT,
+    created_by INT UNSIGNED,
 
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_next_run (next_run_at),

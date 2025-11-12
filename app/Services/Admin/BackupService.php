@@ -40,7 +40,7 @@ class BackupService
     /**
      * Create a new database backup
      */
-    public function createBackup(string $type = 'manual', ??int $userId = null): array
+    public function createBackup(string $type = 'manual', ?int $userId = null): array
     {
         try {
             $timestamp = date('Y-m-d_H-i-s');
@@ -112,7 +112,7 @@ class BackupService
     /**
      * Restore database from backup
      */
-    public function restoreBackup(int $backupId, ??int $userId = null): array
+    public function restoreBackup(int $backupId, ?int $userId = null): array
     {
         try {
             // Get backup details

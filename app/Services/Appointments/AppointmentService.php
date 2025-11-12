@@ -185,7 +185,7 @@ class AppointmentService
     /**
      * Get upcoming appointments
      */
-    public function getUpcoming(int $limit = 10, ??int $assignedTo = null): array
+    public function getUpcoming(int $limit = 10, ?int $assignedTo = null): array
     {
         $sql = "SELECT a.*,
                        CONCAT(c.first_name, ' ', c.last_name) as customer_name,
@@ -216,7 +216,7 @@ class AppointmentService
     /**
      * Get appointments for a specific date
      */
-    public function getByDate(string $date, ??int $assignedTo = null): array
+    public function getByDate(string $date, ?int $assignedTo = null): array
     {
         $sql = "SELECT a.*,
                        CONCAT(c.first_name, ' ', c.last_name) as customer_name,
@@ -245,7 +245,7 @@ class AppointmentService
     /**
      * Check for scheduling conflicts
      */
-    public function hasConflict(string $startTime, string $endTime, ?int $assignedTo = null, ??int $excludeId = null): bool
+    public function hasConflict(string $startTime, string $endTime, ?int $assignedTo = null, ?int $excludeId = null): bool
     {
         $sql = "SELECT COUNT(*) as count
                 FROM appointments

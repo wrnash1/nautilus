@@ -74,7 +74,7 @@ class CustomReportService
     /**
      * Save a custom report definition
      */
-    public function saveReport(array $reportData, ??int $userId = null): int
+    public function saveReport(array $reportData, ?int $userId = null): int
     {
         try {
             $sql = "INSERT INTO custom_reports
@@ -288,7 +288,7 @@ class CustomReportService
     /**
      * Get all reports (optionally filtered by user)
      */
-    public function getAllReports(??int $userId = null, bool $includePublic = true): array
+    public function getAllReports(?int $userId = null, bool $includePublic = true): array
     {
         $sql = "SELECT * FROM custom_reports WHERE 1=1";
 
@@ -317,7 +317,7 @@ class CustomReportService
     /**
      * Delete report
      */
-    public function deleteReport(int $reportId, ??int $userId = null): bool
+    public function deleteReport(int $reportId, ?int $userId = null): bool
     {
         try {
             $sql = "DELETE FROM custom_reports WHERE id = ?";
@@ -345,7 +345,7 @@ class CustomReportService
     /**
      * Update report
      */
-    public function updateReport(int $reportId, array $reportData, ??int $userId = null): bool
+    public function updateReport(int $reportId, array $reportData, ?int $userId = null): bool
     {
         try {
             $sql = "UPDATE custom_reports SET

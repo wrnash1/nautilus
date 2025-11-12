@@ -43,7 +43,7 @@ class FileUploadService
      * @param string|null $customFilename Optional custom filename
      * @return array ['success' => bool, 'path' => string, 'error' => string]
      */
-    public function upload(array $file, string $type = 'other', ??string $customFilename = null): array
+    public function upload(array $file, string $type = 'other', ?string $customFilename = null): array
     {
         // Validate file exists
         if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {

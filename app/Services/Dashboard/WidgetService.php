@@ -285,7 +285,7 @@ class WidgetService
     /**
      * Add widget to user's dashboard
      */
-    public function addWidget(int $userId, string $widgetId, ??int $position = null): bool
+    public function addWidget(int $userId, string $widgetId, ?int $position = null): bool
     {
         $availableWidgets = $this->getAvailableWidgets();
 

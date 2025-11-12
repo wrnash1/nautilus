@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS notification_templates (
     -- Timestamps
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by INT,
+    created_by INT UNSIGNED,
 
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_template_key (template_key),
@@ -169,8 +169,8 @@ CREATE TABLE IF NOT EXISTS scheduled_notifications (
 -- Notification Preferences Table
 -- Stores customer-specific notification preferences
 CREATE TABLE IF NOT EXISTS customer_notification_preferences (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT UNSIGNED NOT NULL,
 
     -- Communication preferences
     email_enabled BOOLEAN DEFAULT TRUE,

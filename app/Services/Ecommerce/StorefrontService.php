@@ -135,7 +135,7 @@ class StorefrontService
     /**
      * Get single product details
      */
-    public function getProduct(int $productId, ??int $customerId = null): array
+    public function getProduct(int $productId, ?int $customerId = null): array
     {
         try {
             $product = TenantDatabase::fetchOneTenant(
@@ -218,7 +218,7 @@ class StorefrontService
     /**
      * Add item to shopping cart
      */
-    public function addToCart(string $sessionId, int $productId, int $quantity = 1, ??int $customerId = null): array
+    public function addToCart(string $sessionId, int $productId, int $quantity = 1, ?int $customerId = null): array
     {
         try {
             // Verify product availability
@@ -427,7 +427,7 @@ class StorefrontService
     /**
      * Get checkout information
      */
-    public function getCheckout(string $sessionId, ??int $customerId = null): array
+    public function getCheckout(string $sessionId, ?int $customerId = null): array
     {
         try {
             $cart = $this->getCart($sessionId);

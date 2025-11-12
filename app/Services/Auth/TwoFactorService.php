@@ -183,7 +183,7 @@ class TwoFactorService
     /**
      * Generate TOTP code
      */
-    private function generateTOTP(string $secret, ??int $timestamp = null): string
+    private function generateTOTP(string $secret, ?int $timestamp = null): string
     {
         $timestamp = $timestamp ?? time();
         $timeCounter = floor($timestamp / $this->period);
@@ -212,7 +212,7 @@ class TwoFactorService
     /**
      * Get QR code URL for Google Authenticator
      */
-    public function getQRCodeUrl(string $username, string $secret, ??string $issuer = null): string
+    public function getQRCodeUrl(string $username, string $secret, ?string $issuer = null): string
     {
         $issuer = $issuer ?? ($_ENV['APP_NAME'] ?? 'Nautilus');
         $label = urlencode($issuer . ':' . $username);

@@ -51,7 +51,7 @@ class ProductService
         return Product::getLowStock();
     }
     
-    private function validateProductData(array $data, ??int $id = null): void
+    private function validateProductData(array $data, ?int $id = null): void
     {
         $errors = [];
         

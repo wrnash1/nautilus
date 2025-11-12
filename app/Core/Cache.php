@@ -99,7 +99,7 @@ class Cache
     /**
      * Set value in cache
      */
-    public function set(string $key, mixed $value, ??int $ttl = null): bool
+    public function set(string $key, mixed $value, ?int $ttl = null): bool
     {
         $key = $this->prefix . $key;
         $ttl = $ttl ?? $this->defaultTTL;
@@ -204,7 +204,7 @@ class Cache
     /**
      * Get or set cache value
      */
-    public function remember(string $key, callable $callback, ??int $ttl = null): mixed
+    public function remember(string $key, callable $callback, ?int $ttl = null): mixed
     {
         if ($this->has($key)) {
             return $this->get($key);

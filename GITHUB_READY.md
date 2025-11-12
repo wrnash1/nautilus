@@ -14,13 +14,16 @@
 **Features:**
 - ✅ Automatic requirements checking
 - ✅ Auto-creates directories
-- ✅ Auto-fixes permissions
+- ✅ Auto-fixes permissions (chmod 775)
+- ✅ **Auto-detects and fixes SELinux** (Fedora/RHEL/CentOS)
+- ✅ **Auto-sets ownership** (apache/www-data/nginx)
 - ✅ Beautiful step-by-step wizard
 - ✅ Real-time migration feedback
 - ✅ Error handling with clear messages
 - ✅ Password confirmation validation
 - ✅ Writes to correct locations (.env, .installed)
 - ✅ Generates secure random keys
+- ✅ **Enterprise-ready for non-technical users**
 
 **File:** `public/install.php` (completely rewritten)
 

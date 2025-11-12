@@ -46,7 +46,7 @@ class CommunicationService
     /**
      * Send SMS to a customer
      */
-    public function sendSMS(int $customerId, string $message, ??int $campaignId = null): bool
+    public function sendSMS(int $customerId, string $message, ?int $campaignId = null): bool
     {
         if (!$this->config['sms_enabled']) {
             error_log("SMS not enabled");

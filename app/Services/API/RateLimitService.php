@@ -211,7 +211,7 @@ class RateLimitService
     /**
      * Reset rate limit for tenant (emergency use)
      */
-    public function resetLimit(int $tenantId, ??string $endpoint = null): bool
+    public function resetLimit(int $tenantId, ?string $endpoint = null): bool
     {
         $key = "rate_limit:{$tenantId}";
         if ($endpoint) {
@@ -260,7 +260,7 @@ class RateLimitService
     /**
      * Get rate limit headers for response
      */
-    public function getRateLimitHeaders(int $tenantId, ??string $endpoint = null): array
+    public function getRateLimitHeaders(int $tenantId, ?string $endpoint = null): array
     {
         $check = $this->checkLimit($tenantId, $endpoint);
 

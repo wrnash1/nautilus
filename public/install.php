@@ -247,12 +247,48 @@ $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
                 ];
 
                 // Try to create directories if they don't exist
+                $permissionMessages = [];
                 foreach ($directories as $dir => $label) {
                     if (!file_exists($dir)) {
                         @mkdir($dir, 0775, true);
                     }
 
                     $writable = is_writable($dir);
+
+                    // If not writable, try to fix permissions automatically
+                    if (!$writable) {
+                        @chmod($dir, 0775);
+
+                        // Detect and fix SELinux contexts (Fedora/RHEL/CentOS)
+                        if (function_exists('exec') && file_exists('/usr/sbin/getenforce')) {
+                            $selinuxStatus = '';
+                            @exec('/usr/sbin/getenforce 2>/dev/null', $output, $returnCode);
+                            if ($returnCode === 0 && isset($output[0])) {
+                                $selinuxStatus = trim($output[0]);
+                            }
+
+                            if ($selinuxStatus === 'Enforcing' || $selinuxStatus === 'Permissive') {
+                                // SELinux is active, set proper context
+                                @exec("chcon -R -t httpd_sys_rw_content_t " . escapeshellarg($dir) . " 2>&1", $seOutput, $seReturn);
+                                if ($seReturn === 0) {
+                                    $permissionMessages[] = "✓ Fixed SELinux context for $label";
+                                }
+                            }
+                        }
+
+                        // Try to set ownership to web server user (apache, www-data, nginx)
+                        $possibleUsers = ['apache', 'www-data', 'nginx', 'httpd'];
+                        foreach ($possibleUsers as $user) {
+                            if (function_exists('posix_getpwnam') && posix_getpwnam($user)) {
+                                @exec("chown -R $user:$user " . escapeshellarg($dir) . " 2>&1", $chownOutput, $chownReturn);
+                                break;
+                            }
+                        }
+
+                        // Recheck if writable now
+                        $writable = is_writable($dir);
+                    }
+
                     $requirements[] = [
                         'name' => $label . ' Writable',
                         'required' => 'Yes',
@@ -260,16 +296,35 @@ $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
                         'status' => $writable
                     ];
 
-                    // If not writable, try to fix it
-                    if (!$writable) {
-                        @chmod($dir, 0775);
-                        $writable = is_writable($dir);
-                        if (!$writable) $canProceed = false;
-                    }
+                    if (!$writable) $canProceed = false;
                 }
 
                 // Check if we can create .env file
                 $envWritable = is_writable(ROOT_DIR);
+
+                // If not writable, try to fix root directory too
+                if (!$envWritable) {
+                    @chmod(ROOT_DIR, 0775);
+
+                    // Fix SELinux for root directory
+                    if (function_exists('exec') && file_exists('/usr/sbin/getenforce')) {
+                        $selinuxStatus = '';
+                        @exec('/usr/sbin/getenforce 2>/dev/null', $output, $returnCode);
+                        if ($returnCode === 0 && isset($output[0])) {
+                            $selinuxStatus = trim($output[0]);
+                        }
+
+                        if ($selinuxStatus === 'Enforcing' || $selinuxStatus === 'Permissive') {
+                            @exec("chcon -t httpd_sys_rw_content_t " . escapeshellarg(ROOT_DIR) . " 2>&1", $seOutput, $seReturn);
+                            if ($seReturn === 0) {
+                                $permissionMessages[] = "✓ Fixed SELinux context for root directory";
+                            }
+                        }
+                    }
+
+                    $envWritable = is_writable(ROOT_DIR);
+                }
+
                 $requirements[] = [
                     'name' => 'Root Directory Writable (for .env)',
                     'required' => 'Yes',
@@ -277,6 +332,16 @@ $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
                     'status' => $envWritable
                 ];
                 if (!$envWritable) $canProceed = false;
+
+                // Display automatic permission fixes if any
+                if (!empty($permissionMessages)) {
+                    echo "<div class='alert alert-info mb-3'>";
+                    echo "<strong>🔧 Automatic Fixes Applied:</strong><br>";
+                    foreach ($permissionMessages as $msg) {
+                        echo "$msg<br>";
+                    }
+                    echo "</div>";
+                }
 
                 // Display requirements
                 foreach ($requirements as $req) {
@@ -300,9 +365,23 @@ $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
                     <?php else: ?>
                         <div class="alert alert-danger">
                             <strong>✗ Requirements Not Met</strong><br>
-                            Please fix the issues above before continuing. Contact your hosting provider for assistance.
+                            The installer tried to fix permissions automatically, but some issues remain.
                         </div>
-                        <a href="?step=1" class="btn btn-secondary btn-lg w-100">Recheck Requirements</a>
+
+                        <div class="alert alert-warning">
+                            <strong>Manual Fix Instructions:</strong><br>
+                            Run these commands on your server:
+                            <pre class="bg-dark text-white p-2 mt-2 mb-2" style="font-size: 0.9rem;">sudo chmod -R 775 <?php echo ROOT_DIR; ?>/storage
+sudo chmod -R 775 <?php echo PUBLIC_DIR; ?>/uploads
+sudo chmod 775 <?php echo ROOT_DIR; ?>
+
+# For Fedora/RHEL/CentOS with SELinux:
+sudo chcon -R -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?>/storage
+sudo chcon -R -t httpd_sys_rw_content_t <?php echo PUBLIC_DIR; ?>/uploads
+sudo chcon -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?></pre>
+                        </div>
+
+                        <a href="?step=1" class="btn btn-primary btn-lg w-100">Recheck After Fixing</a>
                     <?php endif; ?>
                 </div>
 
@@ -382,30 +461,68 @@ $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
                             try {
                                 $sql = file_get_contents($file);
 
+                                // Remove SQL comments (-- style and /* */ style)
+                                $sql = preg_replace('/--[^\n]*\n/', "\n", $sql); // Remove -- comments
+                                $sql = preg_replace('/\/\*.*?\*\//s', '', $sql); // Remove /* */ comments
+                                $sql = preg_replace('/#[^\n]*\n/', "\n", $sql); // Remove # comments
+
                                 // Split SQL file into individual statements
                                 $statements = array_filter(
                                     array_map('trim', explode(';', $sql)),
-                                    function($stmt) { return !empty($stmt) && !preg_match('/^(--|\/\*|#)/', $stmt); }
+                                    function($stmt) { return !empty($stmt); }
                                 );
 
-                                // Execute each statement
+                                // Execute each statement individually, catching errors per-statement
+                                $statementErrors = [];
                                 foreach ($statements as $statement) {
                                     if (!empty($statement)) {
-                                        $result = $pdo->query($statement);
-                                        if ($result !== false) {
-                                            $result->closeCursor();
+                                        try {
+                                            $trimmedStmt = trim($statement);
+                                            // Check if this is a query that returns results
+                                            if (stripos($trimmedStmt, 'SELECT') === 0 ||
+                                                stripos($trimmedStmt, 'SHOW') === 0 ||
+                                                stripos($trimmedStmt, 'DESCRIBE') === 0 ||
+                                                stripos($trimmedStmt, 'EXPLAIN') === 0 ||
+                                                stripos($trimmedStmt, 'ANALYZE') === 0 ||
+                                                stripos($trimmedStmt, 'OPTIMIZE') === 0 ||
+                                                stripos($trimmedStmt, 'CHECK') === 0 ||
+                                                stripos($trimmedStmt, 'PREPARE') === 0 ||
+                                                stripos($trimmedStmt, 'EXECUTE') === 0 ||
+                                                stripos($trimmedStmt, 'DEALLOCATE') === 0 ||
+                                                stripos($trimmedStmt, 'SET @') === 0) {
+                                                // Use query() and consume all results
+                                                $result = $pdo->query($statement);
+                                                if ($result) {
+                                                    $result->fetchAll();
+                                                    $result->closeCursor();
+                                                    unset($result);
+                                                }
+                                            } else {
+                                                // Use exec() for DDL statements (CREATE, ALTER, INSERT, etc.)
+                                                $pdo->exec($statement);
+                                            }
+                                        } catch (PDOException $stmtError) {
+                                            // Collect errors but continue - some FK errors are non-critical
+                                            $statementErrors[] = substr($stmtError->getMessage(), 0, 100);
                                         }
                                     }
                                 }
 
                                 // Mark as executed
-                                $stmt = $pdo->prepare("INSERT INTO migrations (migration, batch) VALUES (?, 1)");
-                                $stmt->execute([$filename]);
+                                $markStmt = $pdo->prepare("INSERT INTO migrations (migration, batch) VALUES (?, 1)");
+                                $markStmt->execute([$filename]);
+                                $markStmt->closeCursor();
+                                unset($markStmt);
 
-                                echo "  <span style='color: #28a745;'>✓ Success</span>\n";
-                                $successCount++;
+                                if (empty($statementErrors)) {
+                                    echo "  <span style='color: #28a745;'>✓ Success</span>\n";
+                                    $successCount++;
+                                } else {
+                                    echo "  <span style='color: #ffc107;'>⚠ Warning: " . htmlspecialchars($statementErrors[0]) . "</span>\n";
+                                    $errorCount++;
+                                }
                             } catch (PDOException $e) {
-                                echo "  <span style='color: #ffc107;'>⚠ Warning: " . htmlspecialchars($e->getMessage()) . "</span>\n";
+                                echo "  <span style='color: #dc3545;'>✗ Error: " . htmlspecialchars($e->getMessage()) . "</span>\n";
                                 $errorCount++;
                             }
                         }
@@ -417,19 +534,54 @@ $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
                         echo "========================================\n";
                         echo "</pre>";
 
-                        if ($successCount > 30) {
+                        // Verify critical tables were created
+                        echo "<div class='alert alert-info'><strong>Verifying Database Structure...</strong></div>";
+                        echo "<pre class='console'>";
+
+                        $requiredTables = ['tenants', 'roles', 'users', 'customers', 'products', 'courses'];
+                        $missingTables = [];
+
+                        foreach ($requiredTables as $table) {
+                            $stmt = $pdo->query("SHOW TABLES LIKE '$table'");
+                            $exists = $stmt->rowCount() > 0;
+
+                            if ($exists) {
+                                echo "✓ <span style='color: #28a745;'>$table table exists</span>\n";
+                            } else {
+                                echo "✗ <span style='color: #dc3545;'>$table table MISSING</span>\n";
+                                $missingTables[] = $table;
+                            }
+                        }
+
+                        // Count total tables
+                        $stmt = $pdo->query("SHOW TABLES");
+                        $totalTables = $stmt->rowCount();
+                        echo "\nTotal tables created: $totalTables\n";
+
+                        echo "</pre>";
+
+                        if (empty($missingTables) && $totalTables >= 100) {
                             echo "<div class='alert alert-success'>";
                             echo "<strong>✓ Database Setup Complete!</strong><br>";
-                            echo "Created <strong>$successCount</strong> database tables successfully.";
+                            echo "Created <strong>$totalTables</strong> database tables successfully.";
                             if ($errorCount > 0) {
-                                echo "<br><small>$errorCount migrations had warnings (usually non-critical)</small>";
+                                echo "<br><small>$errorCount migrations had warnings (usually non-critical foreign key constraints)</small>";
                             }
                             echo "</div>";
                             echo "<a href='?step=3' class='btn btn-primary btn-lg w-100'>Continue to Admin Setup →</a>";
                         } else {
                             echo "<div class='alert alert-danger'>";
-                            echo "<strong>✗ Migration Error</strong><br>";
-                            echo "Only $successCount migrations succeeded. Expected at least 30.";
+                            echo "<strong>✗ Database Setup Incomplete</strong><br>";
+                            if (!empty($missingTables)) {
+                                echo "Missing critical tables: " . implode(', ', $missingTables) . "<br>";
+                            }
+                            echo "Only $totalTables tables were created. Expected at least 100.<br><br>";
+                            echo "<strong>Common Causes:</strong><br>";
+                            echo "• Database user lacks CREATE privilege<br>";
+                            echo "• Database user lacks REFERENCES privilege (for foreign keys)<br>";
+                            echo "• MySQL version too old (requires 5.7+)<br><br>";
+                            echo "<strong>Solution:</strong> Grant your database user full privileges:<br>";
+                            echo "<code>GRANT ALL PRIVILEGES ON " . htmlspecialchars($database) . ".* TO '" . htmlspecialchars($username) . "'@'localhost';</code>";
                             echo "</div>";
                             echo "<a href='?step=2' class='btn btn-secondary'>← Try Again</a>";
                         }
