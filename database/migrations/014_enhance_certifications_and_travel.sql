@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `dive_site_conditions` (
   `reported_by` INT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`dive_site_id`) REFERENCES `dive_sites`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`reported_by`) REFERENCES `users`(`id`),
+  FOREIGN KEY (`reported_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
   INDEX `idx_dive_site_date` (`dive_site_id`, `date`),
   INDEX `idx_date` (`date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `trip_dive_sites` (
   `dive_number` INT,
   `notes` TEXT,
   FOREIGN KEY (`trip_schedule_id`) REFERENCES `trip_schedules`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`dive_site_id`) REFERENCES `dive_sites`(`id`),
+  FOREIGN KEY (`dive_site_id`) REFERENCES `dive_sites`(`id`) ON DELETE CASCADE,
   INDEX `idx_trip_schedule` (`trip_schedule_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -159,8 +159,8 @@ CREATE TABLE IF NOT EXISTS `travel_packets` (
   `created_by` INT UNSIGNED NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (`trip_booking_id`) REFERENCES `trip_bookings`(`id`),
-  FOREIGN KEY (`created_by`) REFERENCES `users`(`id`),
+  FOREIGN KEY (`trip_booking_id`) REFERENCES `trip_bookings`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
   INDEX `idx_departure_date` (`departure_date`),
   INDEX `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS `travel_packet_participants` (
   `departure_time` DATETIME,
   `special_requests` TEXT,
   FOREIGN KEY (`travel_packet_id`) REFERENCES `travel_packets`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`),
+  FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
   INDEX `idx_travel_packet` (`travel_packet_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS `service_reminders` (
   `completed_at` TIMESTAMP NULL,
   `notes` TEXT,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`template_id`) REFERENCES `service_reminder_templates`(`id`),
+  FOREIGN KEY (`template_id`) REFERENCES `service_reminder_templates`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
   INDEX `idx_scheduled_send` (`scheduled_send_date`, `status`),
   INDEX `idx_customer` (`customer_id`),
@@ -242,8 +242,8 @@ CREATE TABLE IF NOT EXISTS `equipment_service_history` (
   `cost` DECIMAL(10, 2),
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE SET NULL,
-  FOREIGN KEY (`work_order_id`) REFERENCES `work_orders`(`id`),
-  FOREIGN KEY (`serviced_by`) REFERENCES `users`(`id`),
+  FOREIGN KEY (`work_order_id`) REFERENCES `work_orders`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`serviced_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
   INDEX `idx_customer` (`customer_id`),
   INDEX `idx_next_service_due` (`next_service_due`),
   INDEX `idx_equipment_serial` (`equipment_serial`)
@@ -291,7 +291,7 @@ CREATE TABLE IF NOT EXISTS `vendor_catalog_items` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`vendor_catalog_id`) REFERENCES `vendor_catalogs`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`imported_to_product_id`) REFERENCES `products`(`id`),
+  FOREIGN KEY (`imported_to_product_id`) REFERENCES `products`(`id`) ON DELETE SET NULL,
   INDEX `idx_vendor_catalog` (`vendor_catalog_id`),
   INDEX `idx_vendor_sku` (`vendor_sku`),
   INDEX `idx_import_status` (`import_status`)

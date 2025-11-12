@@ -98,3 +98,76 @@ CREATE TABLE IF NOT EXISTS `user_roles` (
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_role_id` (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Insert default permissions
+INSERT INTO permissions (name, display_name, module, description) VALUES
+-- Dashboard
+('dashboard.view', 'View Dashboard', 'dashboard', 'Access main dashboard'),
+('analytics.view', 'View Analytics', 'dashboard', 'View analytics and reports'),
+
+-- Point of Sale
+('pos.view', 'View POS', 'pos', 'Access point of sale system'),
+('pos.access', 'Access POS', 'pos', 'Process sales transactions'),
+
+-- Products & Inventory
+('products.view', 'View Products', 'products', 'View product list and details'),
+('products.create', 'Create Products', 'products', 'Create new products'),
+('products.edit', 'Edit Products', 'products', 'Edit existing products'),
+('products.delete', 'Delete Products', 'products', 'Delete products'),
+('products.inventory', 'Manage Inventory', 'products', 'Adjust stock levels'),
+
+-- Categories
+('categories.view', 'View Categories', 'products', 'View product categories'),
+('categories.manage', 'Manage Categories', 'products', 'Create and edit categories'),
+
+-- Customers
+('customers.view', 'View Customers', 'customers', 'View customer list and details'),
+('customers.create', 'Create Customers', 'customers', 'Create new customers'),
+('customers.edit', 'Edit Customers', 'customers', 'Edit existing customers'),
+('customers.delete', 'Delete Customers', 'customers', 'Delete customers'),
+
+-- Transactions
+('transactions.view', 'View Transactions', 'transactions', 'View transaction history'),
+('transactions.create', 'Create Transactions', 'transactions', 'Process sales'),
+('transactions.void', 'Void Transactions', 'transactions', 'Void/cancel transactions'),
+('transactions.refund', 'Process Refunds', 'transactions', 'Process refunds'),
+
+-- Courses
+('courses.view', 'View Courses', 'courses', 'View course list and details'),
+('courses.create', 'Create Courses', 'courses', 'Create new courses'),
+('courses.edit', 'Edit Courses', 'courses', 'Edit existing courses'),
+('courses.delete', 'Delete Courses', 'courses', 'Delete courses'),
+('enrollments.manage', 'Manage Enrollments', 'courses', 'Manage course enrollments'),
+
+-- Trips
+('trips.view', 'View Trips', 'trips', 'View trip list and details'),
+('trips.manage', 'Manage Trips', 'trips', 'Create and edit trips'),
+
+-- Equipment/Rentals
+('rentals.view', 'View Rentals', 'rentals', 'View equipment rentals'),
+('rentals.manage', 'Manage Rentals', 'rentals', 'Process equipment rentals'),
+
+-- Air Fills
+('air_fills.view', 'View Air Fills', 'air_fills', 'View air fill records'),
+('air_fills.manage', 'Manage Air Fills', 'air_fills', 'Process air fills'),
+
+-- Reports
+('reports.view', 'View Reports', 'reports', 'Access reports'),
+('reports.export', 'Export Data', 'reports', 'Export data to CSV/Excel'),
+('reports.advanced', 'Advanced Reports', 'reports', 'Access advanced analytics'),
+
+-- Settings
+('settings.view', 'View Settings', 'settings', 'View application settings'),
+('settings.edit', 'Edit Settings', 'settings', 'Modify application settings'),
+('users.manage', 'Manage Users', 'settings', 'Manage user accounts'),
+('roles.manage', 'Manage Roles', 'settings', 'Manage roles and permissions'),
+('audit.view', 'View Audit Log', 'settings', 'View audit logs'),
+
+-- System
+('system.admin', 'System Admin', 'system', 'Full system access')
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+-- Assign all permissions to admin role (role_id = 1)
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 1, id FROM permissions
+ON DUPLICATE KEY UPDATE role_id=VALUES(role_id);

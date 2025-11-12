@@ -57,9 +57,6 @@ CREATE TABLE IF NOT EXISTS compressors (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     updated_by INT UNSIGNED,
 
-    FOREIGN KEY (created_by) REFERENCES users(id),
-    FOREIGN KEY (updated_by) REFERENCES users(id),
-
     INDEX idx_active (is_active),
     INDEX idx_operational (is_operational),
     INDEX idx_location (location)
@@ -100,7 +97,6 @@ CREATE TABLE IF NOT EXISTS compressor_logs (
     notes TEXT,
 
     FOREIGN KEY (compressor_id) REFERENCES compressors(id) ON DELETE CASCADE,
-    FOREIGN KEY (logged_by) REFERENCES users(id),
 
     INDEX idx_compressor (compressor_id),
     INDEX idx_log_type (log_type),
@@ -147,9 +143,6 @@ CREATE TABLE IF NOT EXISTS compressor_maintenance_schedule (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (compressor_id) REFERENCES compressors(id) ON DELETE CASCADE,
-    FOREIGN KEY (assigned_to) REFERENCES users(id),
-    FOREIGN KEY (completed_by) REFERENCES users(id),
-    FOREIGN KEY (created_by) REFERENCES users(id),
 
     INDEX idx_compressor (compressor_id),
     INDEX idx_scheduled_date (scheduled_date),
@@ -180,7 +173,6 @@ CREATE TABLE IF NOT EXISTS compressor_alerts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (compressor_id) REFERENCES compressors(id) ON DELETE CASCADE,
-    FOREIGN KEY (acknowledged_by) REFERENCES users(id),
 
     INDEX idx_compressor (compressor_id),
     INDEX idx_active (is_active),
@@ -232,7 +224,6 @@ CREATE TABLE IF NOT EXISTS compressor_log_parts (
     quantity_used INT NOT NULL DEFAULT 1,
 
     FOREIGN KEY (log_id) REFERENCES compressor_logs(id) ON DELETE CASCADE,
-    FOREIGN KEY (part_id) REFERENCES compressor_parts(id),
 
     INDEX idx_log (log_id),
     INDEX idx_part (part_id)

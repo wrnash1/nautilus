@@ -6,7 +6,7 @@
 -- Notification Settings Table
 -- Stores global notification configuration
 CREATE TABLE IF NOT EXISTS notification_settings (
-    id INT PRIMARY KEY DEFAULT 1,
+    id INT UNSIGNED PRIMARY KEY DEFAULT 1,
 
     -- Feature toggles
     low_stock_enabled BOOLEAN DEFAULT TRUE,
@@ -44,7 +44,7 @@ INSERT IGNORE INTO notification_settings (id) VALUES (1);
 -- Notification Log Table
 -- Tracks all sent notifications for auditing and analytics
 CREATE TABLE IF NOT EXISTS notification_log (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     -- Notification details
     notification_type VARCHAR(50) NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS notification_log (
 -- Notification Templates Table
 -- Stores customizable email templates
 CREATE TABLE IF NOT EXISTS notification_templates (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     -- Template identification
     template_key VARCHAR(50) UNIQUE NOT NULL,
@@ -132,7 +132,7 @@ INSERT INTO notification_templates (template_key, name, subject, body_html, cate
 -- Scheduled Notifications Table
 -- Manages queued notifications to be sent
 CREATE TABLE IF NOT EXISTS scheduled_notifications (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     -- Notification details
     notification_type VARCHAR(50) NOT NULL,
@@ -202,7 +202,7 @@ CREATE TABLE IF NOT EXISTS customer_notification_preferences (
 -- Notification Statistics Table
 -- Tracks notification metrics for analytics
 CREATE TABLE IF NOT EXISTS notification_statistics (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     -- Date and type
     stat_date DATE NOT NULL,

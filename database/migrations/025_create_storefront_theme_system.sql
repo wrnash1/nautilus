@@ -101,8 +101,7 @@ CREATE TABLE IF NOT EXISTS theme_config (
     created_by INT UNSIGNED,
 
     INDEX idx_active (is_active),
-    INDEX idx_default (is_default),
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    INDEX idx_default (is_default)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Homepage Sections (Drag-and-drop homepage builder)
@@ -197,8 +196,7 @@ CREATE TABLE IF NOT EXISTS promotional_banners (
 
     INDEX idx_active (is_active),
     INDEX idx_dates (start_date, end_date),
-    INDEX idx_type (banner_type),
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    INDEX idx_type (banner_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Theme Assets (Images, fonts, files associated with themes)
@@ -218,9 +216,7 @@ CREATE TABLE IF NOT EXISTS theme_assets (
     uploaded_by INT UNSIGNED,
 
     INDEX idx_theme (theme_id),
-    INDEX idx_type (asset_type),
-    FOREIGN KEY (theme_id) REFERENCES theme_config(id) ON DELETE CASCADE,
-    FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
+    INDEX idx_type (asset_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert default theme configuration (Ascuba-inspired)

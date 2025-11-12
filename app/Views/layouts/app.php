@@ -223,7 +223,7 @@
                     <?= htmlspecialchars($user['first_name'] ?? 'User') ?>
                     <small class="text-muted">(<?= htmlspecialchars($user['role_name'] ?? 'Unknown') ?>)</small>
                 </span>
-                <form method="POST" action="/logout" class="d-inline">
+                <form method="POST" action="/store/logout" class="d-inline">
                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                     <button type="submit" class="btn btn-outline-danger btn-sm">
                         <i class="bi bi-box-arrow-right"></i> Logout

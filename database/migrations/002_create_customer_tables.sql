@@ -34,8 +34,7 @@ CREATE TABLE IF NOT EXISTS `customers` (
   INDEX `idx_email` (`email`),
   INDEX `idx_phone` (`phone`),
   INDEX `idx_last_purchase_date` (`last_purchase_date`),
-  INDEX `idx_is_active` (`is_active`),
-  FULLTEXT `idx_search` (`first_name`, `last_name`, `company_name`, `email`)
+  INDEX `idx_is_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `customer_addresses` (

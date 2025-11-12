@@ -124,56 +124,56 @@ CREATE TABLE IF NOT EXISTS `waiver_templates` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Seed standard PADI waiver templates
-INSERT INTO `waiver_templates` (`waiver_type`, `template_name`, `padi_form_number`, `version`, `waiver_title`, `waiver_text`, `acknowledgment_items`, `requires_witness`, `validity_days`, `is_active`, `effective_date`) VALUES
-('general_training', 'PADI General Training Liability Release', '10072', 'Rev. 01/21',
+INSERT INTO `waiver_templates` (`id`, `waiver_type`, `template_name`, `padi_form_number`, `version`, `waiver_title`, `waiver_text`, `acknowledgment_items`, `requires_witness`, `validity_days`, `is_active`, `effective_date`) VALUES
+(1, 'general_training', 'PADI General Training Liability Release', '10072', 'Rev. 01/21',
 'Release of Liability, Assumption of Risk, and Non-Agency Acknowledgment Agreement',
 '[Full PADI Form 10072 text - to be filled in by administrator]',
 '["I understand that scuba diving involves certain inherent risks", "I affirm that I do not have any medical conditions that would prevent me from diving", "I agree to follow all safety rules and instructions", "I release and hold harmless the dive center, instructors, and PADI from all liability"]',
 FALSE, 365, TRUE, '2021-01-01'),
 
-('nitrox', 'PADI Enriched Air (Nitrox) Training Release', '10078', 'Rev. 01/19',
+(2, 'nitrox', 'PADI Enriched Air (Nitrox) Training Release', '10078', 'Rev. 01/19',
 'Enriched Air (Nitrox) Diver Training Release of Liability',
 '[Full PADI Form 10078 text - to be filled in by administrator]',
 '["I understand the risks of oxygen exposure", "I will analyze all gas mixtures before use", "I understand maximum operating depths for nitrox", "I will not exceed depth limits for my gas mixture"]',
 FALSE, 365, TRUE, '2019-01-01'),
 
-('travel', 'PADI Travel and Excursions Release', '10079', 'Rev. 01/22',
+(3, 'travel', 'PADI Travel and Excursions Release', '10079', 'Rev. 01/22',
 'Travel and Excursions Liability Release',
 '[Full PADI Form 10079 text - to be filled in by administrator]',
 '["I understand travel involves additional risks", "I have appropriate insurance coverage", "I am physically fit to dive", "I accept all travel-related risks"]',
 FALSE, NULL, TRUE, '2022-01-01'),
 
-('diver_activities', 'PADI Diver Activities Release', '10086', 'Rev. 01/22',
+(4, 'diver_activities', 'PADI Diver Activities Release', '10086', 'Rev. 01/22',
 'Release of Liability for Diver Activities',
 '[Full PADI Form 10086 text - to be filled in by administrator]',
 '["I am a certified diver", "I understand the risks of recreational diving", "I will dive within my certification limits", "I accept responsibility for my own safety"]',
 FALSE, 365, TRUE, '2022-01-01'),
 
-('equipment_rental', 'PADI Equipment Rental Agreement', '10087', 'Rev. 01/20',
+(5, 'equipment_rental', 'PADI Equipment Rental Agreement', '10087', 'Rev. 01/20',
 'Equipment Rental Agreement',
 '[Full PADI Form 10087 text - to be filled in by administrator]',
 '["I am certified to use this equipment", "I will inspect all equipment before use", "I am responsible for loss or damage", "I will return equipment in good condition"]',
 TRUE, NULL, TRUE, '2020-01-01'),
 
-('minor', 'Florida Minor Child Parent Agreement', '10348', 'Rev. 01/18',
+(6, 'minor', 'Florida Minor Child Parent Agreement', '10348', 'Rev. 01/18',
 'Florida Minor Child Parent Agreement',
 '[Full PADI Form 10348 text - to be filled in by administrator]',
 '["I am the parent/guardian of the minor", "I understand the risks to my child", "I authorize my child to participate", "I assume all risks on behalf of my child"]',
 FALSE, 365, TRUE, '2018-01-01'),
 
-('non_agency', 'Non-Agency Disclosure', '10334', 'Rev. 01/15',
+(7, 'non_agency', 'Non-Agency Disclosure', '10334', 'Rev. 01/15',
 'Non-Agency Disclosure and Acknowledgment Agreement',
 '[Full PADI Form 10334 text - to be filled in by administrator]',
 '["I understand PADI is not the dive center operator", "PADI does not supervise, monitor or control the dive center", "The dive center is independent", "PADI is not liable for the dive center actions"]',
 FALSE, NULL, TRUE, '2015-01-01'),
 
-('youth_diving', 'Youth Diving Responsibility', '10615', 'Rev. 01/17',
+(8, 'youth_diving', 'Youth Diving Responsibility', '10615', 'Rev. 01/17',
 'Youth Diving: Responsibility and Risks Acknowledgment',
 '[Full PADI Form 10615 text - to be filled in by administrator]',
 '["I understand youth diving restrictions", "I will supervise the minor diver appropriately", "I accept the risks of youth diving", "I will ensure proper supervision"]',
 FALSE, 365, TRUE, '2017-01-01'),
 
-('safe_diving_practices', 'Standard Safe Diving Practices', '10060', 'Rev. 01/19',
+(9, 'safe_diving_practices', 'Standard Safe Diving Practices', '10060', 'Rev. 01/19',
 'Standard Safe Diving Practices Statement of Understanding',
 '[Full PADI Form 10060 text - to be filled in by administrator]',
 '["I will dive with a buddy", "I will monitor depth and time", "I will make safety stops", "I will not dive beyond my training", "I will maintain my equipment"]',

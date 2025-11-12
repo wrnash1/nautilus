@@ -28,8 +28,7 @@ CREATE TABLE IF NOT EXISTS communication_campaigns (
     total_cost DECIMAL(10,2) DEFAULT 0.00,
     created_by INT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_communication_campaigns_status ON communication_campaigns(status);
@@ -54,9 +53,7 @@ CREATE TABLE IF NOT EXISTS communication_log (
     failed_reason TEXT,
     cost DECIMAL(10,4),  -- Cost per message
     metadata TEXT,  -- JSON for additional data
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
-    FOREIGN KEY (campaign_id) REFERENCES communication_campaigns(id) ON DELETE SET NULL
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_communication_log_customer ON communication_log(customer_id);
@@ -77,8 +74,7 @@ CREATE TABLE IF NOT EXISTS customer_devices (
     is_active TINYINT(1) DEFAULT 1,
     last_used_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_customer_devices_customer ON customer_devices(customer_id);
@@ -97,7 +93,7 @@ CREATE TABLE IF NOT EXISTS communication_templates (
     is_active TINYINT(1) DEFAULT 1,
     usage_count INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_communication_templates_type ON communication_templates(template_type);
@@ -122,8 +118,7 @@ CREATE TABLE IF NOT EXISTS customer_communication_preferences (
     quiet_hours_start TIME,  -- Don't send between these hours
     quiet_hours_end TIME,
     timezone VARCHAR(50) DEFAULT 'America/New_York',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE(customer_id)
 );
 

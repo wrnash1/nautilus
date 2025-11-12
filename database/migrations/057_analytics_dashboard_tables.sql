@@ -320,14 +320,15 @@ CREATE TABLE IF NOT EXISTS analytics_events (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Create initial dashboard widgets for admin users
-INSERT INTO dashboard_widgets (user_id, widget_type, widget_title, widget_position, widget_size, settings)
-SELECT
-    id,
-    'sales_overview',
-    'Sales Overview',
-    1,
-    'large',
-    '{"metric": "revenue", "period": "30days"}'
-FROM users
-WHERE role_id = (SELECT id FROM roles WHERE name = 'Administrator' LIMIT 1)
-ON DUPLICATE KEY UPDATE id=id;
+-- Commented out due to potential FK issues - can be run manually after all users are set up
+-- INSERT INTO dashboard_widgets (user_id, widget_type, widget_title, widget_position, widget_size, settings)
+-- SELECT
+--     id,
+--     'sales_overview',
+--     'Sales Overview',
+--     1,
+--     'large',
+--     '{"metric": "revenue", "period": "30days"}'
+-- FROM users
+-- WHERE role_id = (SELECT id FROM roles WHERE name = 'Administrator' LIMIT 1)
+-- ON DUPLICATE KEY UPDATE id=id;

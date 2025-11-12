@@ -3,8 +3,8 @@
 
 -- SSO Configuration
 CREATE TABLE IF NOT EXISTS sso_configurations (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT UNSIGNED NOT NULL,
     provider VARCHAR(50) NOT NULL COMMENT 'saml, azure, google, okta, onelogin',
     enabled BOOLEAN DEFAULT TRUE,
     configuration TEXT COMMENT 'JSON configuration',
@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS sso_configurations (
 
 -- SAML Requests
 CREATE TABLE IF NOT EXISTS saml_requests (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT UNSIGNED NOT NULL,
     request_id VARCHAR(255) NOT NULL UNIQUE,
     issued_at DATETIME NOT NULL,
     expires_at DATETIME NOT NULL,
@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS saml_requests (
 
 -- OAuth States
 CREATE TABLE IF NOT EXISTS oauth_states (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT UNSIGNED NOT NULL,
     state VARCHAR(255) NOT NULL UNIQUE,
     nonce VARCHAR(255) NOT NULL,
     provider VARCHAR(50) NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS oauth_states (
 
 -- Exchange Rates
 CREATE TABLE IF NOT EXISTS exchange_rates (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     from_currency VARCHAR(3) NOT NULL,
     to_currency VARCHAR(3) NOT NULL,
     rate DECIMAL(18, 8) NOT NULL,

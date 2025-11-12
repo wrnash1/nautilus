@@ -3,9 +3,9 @@
 
 -- Customer Portal Access (login credentials)
 CREATE TABLE IF NOT EXISTS customer_portal_access (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NOT NULL,
     email VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,

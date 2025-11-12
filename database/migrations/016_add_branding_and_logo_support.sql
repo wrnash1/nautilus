@@ -37,8 +37,7 @@ CREATE TABLE IF NOT EXISTS `file_uploads` (
   `is_public` BOOLEAN DEFAULT TRUE COMMENT 'Whether file is publicly accessible',
   INDEX `idx_file_type` (`file_type`),
   INDEX `idx_uploaded_by` (`uploaded_by`),
-  INDEX `idx_uploaded_at` (`uploaded_at`),
-  FOREIGN KEY (`uploaded_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
+  INDEX `idx_uploaded_at` (`uploaded_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Tracks all file uploads in the system';
 

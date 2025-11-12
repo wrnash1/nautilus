@@ -138,9 +138,10 @@ CREATE TABLE IF NOT EXISTS vendors (
     INDEX idx_is_active (is_active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Add vendor_id to purchase_orders if not exists
+-- Add vendor_id foreign key to purchase_orders if not exists
+-- Note: This FK is added after both tables are created
 ALTER TABLE purchase_orders
-ADD CONSTRAINT fk_vendor
+ADD CONSTRAINT IF NOT EXISTS fk_vendor
 FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE SET NULL;
 
 -- Stock Locations/Warehouses

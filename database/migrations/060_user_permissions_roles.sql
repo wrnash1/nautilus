@@ -112,63 +112,8 @@ CREATE TABLE IF NOT EXISTS permission_audit_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert default permissions
-INSERT INTO permissions (permission_name, permission_code, category, description) VALUES
--- Dashboard
-('View Dashboard', 'dashboard.view', 'dashboard', 'Access main dashboard'),
-('View Analytics', 'analytics.view', 'dashboard', 'View analytics and reports'),
-
--- Products
-('View Products', 'products.view', 'products', 'View product list and details'),
-('Create Products', 'products.create', 'products', 'Create new products'),
-('Edit Products', 'products.edit', 'products', 'Edit existing products'),
-('Delete Products', 'products.delete', 'products', 'Delete products'),
-('Manage Inventory', 'products.inventory', 'products', 'Adjust stock levels'),
-
--- Customers
-('View Customers', 'customers.view', 'customers', 'View customer list and details'),
-('Create Customers', 'customers.create', 'customers', 'Create new customers'),
-('Edit Customers', 'customers.edit', 'customers', 'Edit existing customers'),
-('Delete Customers', 'customers.delete', 'customers', 'Delete customers'),
-
--- Transactions/POS
-('View Transactions', 'transactions.view', 'transactions', 'View transaction history'),
-('Create Transactions', 'transactions.create', 'transactions', 'Process sales'),
-('Void Transactions', 'transactions.void', 'transactions', 'Void/cancel transactions'),
-('Process Refunds', 'transactions.refund', 'transactions', 'Process refunds'),
-
--- Courses
-('View Courses', 'courses.view', 'courses', 'View course list and details'),
-('Create Courses', 'courses.create', 'courses', 'Create new courses'),
-('Edit Courses', 'courses.edit', 'courses', 'Edit existing courses'),
-('Delete Courses', 'courses.delete', 'courses', 'Delete courses'),
-('Manage Enrollments', 'enrollments.manage', 'courses', 'Manage course enrollments'),
-
--- Equipment/Rentals
-('View Equipment', 'equipment.view', 'equipment', 'View equipment list'),
-('Create Equipment', 'equipment.create', 'equipment', 'Add new equipment'),
-('Edit Equipment', 'equipment.edit', 'equipment', 'Edit equipment details'),
-('Delete Equipment', 'equipment.delete', 'equipment', 'Delete equipment'),
-('Manage Rentals', 'rentals.manage', 'equipment', 'Process equipment rentals'),
-
--- Reports
-('View Reports', 'reports.view', 'reports', 'Access reports'),
-('Export Data', 'reports.export', 'reports', 'Export data to CSV/Excel'),
-('Advanced Reports', 'reports.advanced', 'reports', 'Access advanced analytics'),
-
--- Settings
-('View Settings', 'settings.view', 'settings', 'View application settings'),
-('Edit Settings', 'settings.edit', 'settings', 'Modify application settings'),
-('Manage Users', 'users.manage', 'settings', 'Manage user accounts'),
-('Manage Roles', 'roles.manage', 'settings', 'Manage roles and permissions'),
-('View Audit Log', 'audit.view', 'settings', 'View audit logs'),
-
--- API
-('API Access', 'api.access', 'api', 'Access REST API'),
-('API Keys Manage', 'api.keys', 'api', 'Manage API keys'),
-
--- Advanced
-('System Admin', 'system.admin', 'system', 'Full system access'),
-('Tenant Admin', 'tenant.admin', 'system', 'Full tenant admin access');
+-- Commented out - permissions will be created when first tenant/user is set up
+-- The permission_code is UNIQUE, so we don't need explicit IDs
 
 -- Insert default system roles (these will be copied per tenant on signup)
 INSERT INTO roles (tenant_id, role_name, role_code, description, is_system_role) VALUES
