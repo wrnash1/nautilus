@@ -22,10 +22,32 @@ $router->get('/deploy', 'Install\DeploymentController@run');
 // ============================================================================
 
 // Homepage - Public storefront
-$router->get('/', 'HomeController@index');
+$router->get('/', 'Storefront\ModernStorefrontController@index');
 $router->get('/about', 'HomeController@about');
 $router->get('/contact', 'HomeController@contact');
 $router->post('/contact', 'HomeController@submitContact', [CsrfMiddleware::class]);
+
+// Shop & Products
+$router->get('/shop', 'Storefront\ModernStorefrontController@shop');
+$router->get('/product/{id}', 'Storefront\ModernStorefrontController@product');
+
+// Shopping Cart
+$router->get('/cart', 'Storefront\ModernStorefrontController@cart');
+$router->get('/checkout', 'Storefront\ModernStorefrontController@checkout');
+$router->post('/checkout/process', 'Storefront\ModernStorefrontController@processCheckout');
+$router->get('/checkout/success', 'Storefront\ModernStorefrontController@checkoutSuccess');
+
+// Courses & Trips
+$router->get('/courses', 'Storefront\ModernStorefrontController@courses');
+$router->get('/course/{id}', 'Storefront\ModernStorefrontController@courseDetail');
+
+// API Endpoints - Cart (Public)
+$router->post('/api/cart/add', 'API\CartController@add');
+$router->get('/api/cart/count', 'API\CartController@count');
+$router->get('/api/cart', 'API\CartController@get');
+$router->post('/api/cart/update', 'API\CartController@update');
+$router->post('/api/cart/remove', 'API\CartController@remove');
+$router->post('/api/cart/clear', 'API\CartController@clear');
 
 // ============================================================================
 // STORE/STAFF ROUTES (Employee backend - Internal Application)
