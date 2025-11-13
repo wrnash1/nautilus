@@ -69,6 +69,8 @@ $router->post('/store/logout', 'Auth\AuthController@logout', [AuthMiddleware::cl
 
 // Storefront Configuration (Manager only)
 $router->get('/store/storefront', 'Admin\Storefront\StorefrontController@index', [AuthMiddleware::class]);
+$router->get('/store/storefront/builder', 'Admin\Storefront\StorefrontController@visualBuilder', [AuthMiddleware::class]);
+$router->post('/store/storefront/save-builder', 'Admin\Storefront\StorefrontController@saveBuilder', [AuthMiddleware::class]);
 $router->get('/store/storefront/theme-designer', 'Admin\Storefront\StorefrontController@themeDesigner', [AuthMiddleware::class]);
 $router->get('/store/storefront/theme', 'Admin\Storefront\StorefrontController@getTheme', [AuthMiddleware::class]);
 $router->post('/store/storefront/theme', 'Admin\Storefront\StorefrontController@updateTheme', [AuthMiddleware::class, CsrfMiddleware::class]);

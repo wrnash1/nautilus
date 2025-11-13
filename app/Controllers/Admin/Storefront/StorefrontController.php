@@ -198,6 +198,45 @@ class StorefrontController
     }
 
     /**
+     * Visual page builder (Craft CMS style)
+     */
+    public function visualBuilder()
+    {
+        require __DIR__ . '/../../../Views/admin/storefront/builder.php';
+    }
+
+    /**
+     * Save builder data
+     */
+    public function saveBuilder()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!$data) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data']);
+            return;
+        }
+
+        // Save to database or file
+        $savedData = json_encode($data, JSON_PRETTY_PRINT);
+        $savePath = __DIR__ . '/../../../../storage/storefront-builder.json';
+
+        $success = file_put_contents($savePath, $savedData) !== false;
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => $success,
+            'message' => $success ? 'Storefront saved successfully' : 'Failed to save storefront'
+        ]);
+    }
+
+    /**
      * Update homepage section
      */
     public function updateSection()
