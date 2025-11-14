@@ -346,6 +346,11 @@ $router->get('/store/admin/demo-data', 'Admin\DemoDataController@index', [AuthMi
 $router->post('/store/admin/demo-data/load', 'Admin\DemoDataController@load', [AuthMiddleware::class]);
 $router->post('/store/admin/demo-data/clear', 'Admin\DemoDataController@clear', [AuthMiddleware::class]);
 
+// Error Logs
+$router->get('/store/admin/errors', 'Admin\ErrorLogController@index', [AuthMiddleware::class]);
+$router->get('/store/admin/errors/{id}', 'Admin\ErrorLogController@show', [AuthMiddleware::class]);
+$router->post('/store/admin/errors/{id}/resolve', 'Admin\ErrorLogController@resolve', [AuthMiddleware::class]);
+
 $router->get('/store/admin/settings/general', 'Admin\SettingsController@general', [AuthMiddleware::class]);
 $router->get('/store/admin/settings/tax', 'Admin\SettingsController@tax', [AuthMiddleware::class]);
 $router->get('/store/admin/settings/email', 'Admin\SettingsController@email', [AuthMiddleware::class]);

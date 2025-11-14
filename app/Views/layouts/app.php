@@ -448,10 +448,24 @@
             </a>
             <?php endif; ?>
 
-            <?php if (hasPermission('admin.settings')): ?>
-            <a class="nav-link <?= $activeMenu === 'settings' ? 'active' : '' ?>" href="<?= url('/store/admin/settings') ?>">
-                <i class="bi bi-gear"></i><span>Settings</span>
+            <?php if (hasPermission('settings.view') || hasPermission('settings.edit')): ?>
+            <a class="nav-link <?= $activeMenu === 'settings' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#settingsMenu" role="button" aria-expanded="false">
+                <i class="bi bi-gear"></i><span>Settings</span> <i class="bi bi-chevron-down ms-auto"></i>
             </a>
+            <div class="collapse" id="settingsMenu">
+                <a class="nav-link ps-5" href="<?= url('/store/admin/settings/general') ?>">
+                    <i class="bi bi-building"></i><span>General Settings</span>
+                </a>
+                <a class="nav-link ps-5" href="<?= url('/store/admin/settings/integrations') ?>">
+                    <i class="bi bi-plugin"></i><span>Integrations & AI</span>
+                </a>
+                <a class="nav-link ps-5" href="<?= url('/store/admin/demo-data') ?>">
+                    <i class="bi bi-database-add"></i><span>Demo Data</span>
+                </a>
+                <a class="nav-link ps-5" href="<?= url('/store/admin/settings/tax') ?>">
+                    <i class="bi bi-receipt"></i><span>Tax Settings</span>
+                </a>
+            </div>
             <?php endif; ?>
 
             <?php if (hasPermission('admin.users')): ?>
@@ -463,6 +477,18 @@
             <?php if (hasPermission('admin.roles')): ?>
             <a class="nav-link <?= $activeMenu === 'roles' ? 'active' : '' ?>" href="<?= url('/store/admin/roles') ?>">
                 <i class="bi bi-shield-lock"></i><span>Roles & Permissions</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('errors.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'errors' ? 'active' : '' ?>" href="<?= url('/store/admin/errors') ?>">
+                <i class="bi bi-exclamation-triangle"></i><span>Error Logs</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('feedback.submit')): ?>
+            <a class="nav-link <?= $activeMenu === 'feedback' ? 'active' : '' ?>" href="<?= url('/store/feedback') ?>">
+                <i class="bi bi-chat-left-text"></i><span>Staff Feedback</span>
             </a>
             <?php endif; ?>
         </nav>

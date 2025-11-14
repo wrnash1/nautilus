@@ -9,7 +9,7 @@ class DemoDataController extends Controller
 {
     public function index()
     {
-        $this->checkPermission('manage_settings');
+        $this->checkPermission('settings.edit');
 
         // Check if demo data is already loaded
         $tenantId = $_SESSION['tenant_id'] ?? 1;
@@ -39,7 +39,7 @@ class DemoDataController extends Controller
 
     public function load()
     {
-        $this->requirePermission('manage_settings');
+        $this->checkPermission('settings.edit');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/store/admin/demo-data');
@@ -99,7 +99,7 @@ class DemoDataController extends Controller
 
     public function clear()
     {
-        $this->requirePermission('manage_settings');
+        $this->checkPermission('settings.edit');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/store/admin/demo-data');

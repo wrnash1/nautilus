@@ -3,382 +3,248 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
-use App\Core\Database;
+use App\Services\FeedbackService;
 
 /**
- * Feedback & Support Ticket Controller
- * Handles feedback submission, ticket management, and voting
+ * Feedback Controller
+ * Staff feedback, bug reports, and feature requests
  */
 class FeedbackController extends Controller
 {
     /**
-     * Show feedback submission form
+     * View all feedback
      */
-    public function create(): void
+    public function index()
     {
-        // Get current page URL if provided
-        $pageUrl = $_GET['page'] ?? '';
+        $this->checkPermission('feedback.submit');
 
-        // Get user info if logged in
-        $user = $_SESSION['user'] ?? null;
+        $filters = [
+            'status' => $_GET['status'] ?? null,
+            'type' => $_GET['type'] ?? null,
+            'priority' => $_GET['priority'] ?? null,
+            'category' => $_GET['category'] ?? null
+        ];
 
-        // Auto-detect browser and OS
-        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-        $browser = $this->detectBrowser($userAgent);
-        $os = $this->detectOS($userAgent);
+        $feedback = FeedbackService::getAll($filters);
+        $stats = FeedbackService::getStats();
 
-        // Get system info
-        $nautilus_version = 'Beta 1';
-        $php_version = PHP_VERSION;
+        // Check if user can manage feedback
+        $canManage = hasPermission('feedback.manage');
 
-        $db = Database::getInstance()->getConnection();
-        $mysql_version = $db->query('SELECT VERSION()')->fetchColumn();
+        $data = [
+            'feedback' => $feedback,
+            'stats' => $stats,
+            'filters' => $filters,
+            'can_manage' => $canManage,
+            'pageTitle' => 'Staff Feedback',
+            'activeMenu' => 'feedback'
+        ];
 
-        $this->view('feedback/create', [
-            'pageUrl' => $pageUrl,
-            'user' => $user,
-            'browser' => $browser,
-            'os' => $os,
-            'nautilus_version' => $nautilus_version,
-            'php_version' => $php_version,
-            'mysql_version' => $mysql_version,
-            'page_title' => 'Submit Feedback'
-        ]);
+        $this->view('feedback/index', $data);
     }
 
     /**
-     * Submit feedback ticket
+     * Show feedback details
      */
-    public function store(): void
+    public function show(int $id)
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/feedback/create');
+        $this->checkPermission('feedback.submit');
+
+        $feedback = FeedbackService::getById($id);
+
+        if (!$feedback) {
+            $_SESSION['flash_error'] = 'Feedback not found';
+            $this->redirect('/store/feedback');
             return;
         }
 
-        try {
-            $db = Database::getInstance()->getConnection();
+        $comments = FeedbackService::getComments($id);
+        $canManage = hasPermission('feedback.manage');
 
-            // Generate unique ticket number
-            $ticketNumber = $this->generateTicketNumber();
-
-            // Get submitter info
-            $userId = $_SESSION['user']['id'] ?? null;
-            $submitterName = $_POST['submitter_name'] ?? '';
-            $submitterEmail = $_POST['submitter_email'] ?? '';
-            $submitterPhone = $_POST['submitter_phone'] ?? null;
-            $diveShopName = $_POST['dive_shop_name'] ?? null;
-            $diveShopLocation = $_POST['dive_shop_location'] ?? null;
-
-            // Ticket details
-            $ticketType = $_POST['ticket_type'] ?? 'bug';
-            $severity = $_POST['severity'] ?? 'medium';
-            $title = $_POST['title'] ?? '';
-            $description = $_POST['description'] ?? '';
-
-            // Context
-            $pageUrl = $_POST['page_url'] ?? null;
-            $browser = $_POST['browser'] ?? null;
-            $os = $_POST['operating_system'] ?? null;
-            $screenResolution = $_POST['screen_resolution'] ?? null;
-            $nautilusVersion = $_POST['nautilus_version'] ?? 'Beta 1';
-            $phpVersion = $_POST['php_version'] ?? null;
-            $mysqlVersion = $_POST['mysql_version'] ?? null;
-
-            // Reproduction info
-            $stepsToReproduce = $_POST['steps_to_reproduce'] ?? null;
-            $expectedBehavior = $_POST['expected_behavior'] ?? null;
-            $actualBehavior = $_POST['actual_behavior'] ?? null;
-            $errorLogs = $_POST['error_logs'] ?? null;
-
-            // Validate required fields
-            if (empty($submitterName) || empty($submitterEmail) || empty($title) || empty($description)) {
-                $_SESSION['error'] = 'Please fill in all required fields';
-                $this->redirect('/feedback/create');
-                return;
-            }
-
-            // Insert ticket
-            $stmt = $db->prepare("
-                INSERT INTO feedback_tickets (
-                    ticket_number, submitted_by_user_id, submitted_by_name, submitted_by_email,
-                    submitted_by_phone, dive_shop_name, dive_shop_location,
-                    ticket_type, severity, title, description,
-                    page_url, browser, operating_system, screen_resolution,
-                    nautilus_version, php_version, mysql_version,
-                    steps_to_reproduce, expected_behavior, actual_behavior, error_logs,
-                    status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')
-            ");
-
-            $stmt->execute([
-                $ticketNumber,
-                $userId,
-                $submitterName,
-                $submitterEmail,
-                $submitterPhone,
-                $diveShopName,
-                $diveShopLocation,
-                $ticketType,
-                $severity,
-                $title,
-                $description,
-                $pageUrl,
-                $browser,
-                $os,
-                $screenResolution,
-                $nautilusVersion,
-                $phpVersion,
-                $mysqlVersion,
-                $stepsToReproduce,
-                $expectedBehavior,
-                $actualBehavior,
-                $errorLogs
-            ]);
-
-            $ticketId = $db->lastInsertId();
-
-            // Handle categories
-            if (!empty($_POST['categories'])) {
-                $categories = $_POST['categories'];
-                foreach ($categories as $categoryId) {
-                    $stmt = $db->prepare("
-                        INSERT INTO feedback_ticket_categories (ticket_id, category_id)
-                        VALUES (?, ?)
-                    ");
-                    $stmt->execute([$ticketId, $categoryId]);
-                }
-            }
-
-            // Handle screenshot uploads
-            if (!empty($_FILES['screenshots']['name'][0])) {
-                $screenshots = $this->handleScreenshotUploads($ticketId);
-                if (!empty($screenshots)) {
-                    $stmt = $db->prepare("UPDATE feedback_tickets SET screenshots = ? WHERE id = ?");
-                    $stmt->execute([json_encode($screenshots), $ticketId]);
-                }
-            }
-
-            // Send notification email to development team
-            $this->sendNewTicketNotification($ticketId);
-
-            $_SESSION['success'] = "Thank you! Your feedback ticket #{$ticketNumber} has been submitted. You'll receive updates at {$submitterEmail}";
-            $this->redirect('/feedback/success?ticket=' . $ticketNumber);
-
-        } catch (\Exception $e) {
-            error_log('Feedback submission error: ' . $e->getMessage());
-            $_SESSION['error'] = 'Failed to submit feedback. Please try again.';
-            $this->redirect('/feedback/create');
-        }
-    }
-
-    /**
-     * Show ticket details
-     */
-    public function show(string $ticketNumber): void
-    {
-        $db = Database::getInstance()->getConnection();
-
-        $stmt = $db->prepare("
-            SELECT ft.*, u.first_name, u.last_name
-            FROM feedback_tickets ft
-            LEFT JOIN users u ON ft.submitted_by_user_id = u.id
-            WHERE ft.ticket_number = ?
-        ");
-        $stmt->execute([$ticketNumber]);
-        $ticket = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if (!$ticket) {
-            $_SESSION['error'] = 'Ticket not found';
-            $this->redirect('/feedback/list');
-            return;
-        }
-
-        // Get comments
-        $stmt = $db->prepare("
-            SELECT * FROM feedback_ticket_comments
-            WHERE ticket_id = ?
-            ORDER BY created_at ASC
-        ");
-        $stmt->execute([$ticket['id']]);
-        $comments = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        // Get categories
-        $stmt = $db->prepare("
-            SELECT fc.* FROM feedback_categories fc
-            JOIN feedback_ticket_categories ftc ON fc.id = ftc.category_id
-            WHERE ftc.ticket_id = ?
-        ");
-        $stmt->execute([$ticket['id']]);
-        $categories = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        // Get votes count
-        $stmt = $db->prepare("SELECT COUNT(*) FROM feedback_ticket_votes WHERE ticket_id = ?");
-        $stmt->execute([$ticket['id']]);
-        $votesCount = $stmt->fetchColumn();
-
-        $this->view('feedback/show', [
-            'ticket' => $ticket,
+        $data = [
+            'feedback' => $feedback,
             'comments' => $comments,
-            'categories' => $categories,
-            'votes_count' => $votesCount,
-            'page_title' => 'Ticket #' . $ticketNumber
-        ]);
+            'can_manage' => $canManage,
+            'pageTitle' => $feedback['title'],
+            'activeMenu' => 'feedback'
+        ];
+
+        $this->view('feedback/show', $data);
     }
 
     /**
-     * List all tickets (admin view)
+     * Show submission form
      */
-    public function index(): void
+    public function create()
     {
-        $this->requireAuth();
-        $this->requireRole(['admin']);
+        $this->checkPermission('feedback.submit');
 
-        $db = Database::getInstance()->getConnection();
+        $data = [
+            'pageTitle' => 'Submit Feedback',
+            'activeMenu' => 'feedback'
+        ];
 
-        $status = $_GET['status'] ?? null;
-        $type = $_GET['type'] ?? null;
-        $search = $_GET['search'] ?? null;
+        $this->view('feedback/create', $data);
+    }
 
-        $sql = "
-            SELECT ft.*, u.first_name, u.last_name,
-                   (SELECT COUNT(*) FROM feedback_ticket_comments WHERE ticket_id = ft.id) as comment_count
-            FROM feedback_tickets ft
-            LEFT JOIN users u ON ft.submitted_by_user_id = u.id
-            WHERE 1=1
-        ";
-        $params = [];
+    /**
+     * Submit new feedback
+     */
+    public function store()
+    {
+        $this->checkPermission('feedback.submit');
 
-        if ($status) {
-            $sql .= " AND ft.status = ?";
-            $params[] = $status;
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/store/feedback/create');
+            return;
         }
 
-        if ($type) {
-            $sql .= " AND ft.ticket_type = ?";
-            $params[] = $type;
+        $data = [
+            'feedback_type' => $_POST['feedback_type'] ?? 'feature_request',
+            'priority' => $_POST['priority'] ?? 'medium',
+            'category' => $_POST['category'] ?? null,
+            'title' => $_POST['title'] ?? '',
+            'description' => $_POST['description'] ?? '',
+            'steps_to_reproduce' => $_POST['steps_to_reproduce'] ?? null,
+            'expected_behavior' => $_POST['expected_behavior'] ?? null,
+            'actual_behavior' => $_POST['actual_behavior'] ?? null
+        ];
+
+        // Validate
+        if (empty($data['title']) || empty($data['description'])) {
+            $_SESSION['flash_error'] = 'Title and description are required';
+            $this->redirect('/store/feedback/create');
+            return;
         }
 
-        if ($search) {
-            $sql .= " AND (ft.title LIKE ? OR ft.description LIKE ? OR ft.ticket_number LIKE ?)";
-            $params[] = "%$search%";
-            $params[] = "%$search%";
-            $params[] = "%$search%";
+        $feedbackId = FeedbackService::submit($data);
+
+        if ($feedbackId) {
+            $_SESSION['flash_success'] = 'Thank you! Your feedback has been submitted.';
+            $this->redirect('/store/feedback/' . $feedbackId);
+        } else {
+            $_SESSION['flash_error'] = 'Failed to submit feedback';
+            $this->redirect('/store/feedback/create');
+        }
+    }
+
+    /**
+     * Vote on feedback
+     */
+    public function vote(int $id)
+    {
+        $this->checkPermission('feedback.vote');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/store/feedback');
+            return;
         }
 
-        $sql .= " ORDER BY
-            CASE
-                WHEN ft.severity = 'critical' THEN 1
-                WHEN ft.severity = 'high' THEN 2
-                WHEN ft.severity = 'medium' THEN 3
-                WHEN ft.severity = 'low' THEN 4
-            END,
-            ft.submitted_at DESC
-        ";
-
-        $stmt = $db->prepare($sql);
-        $stmt->execute($params);
-        $tickets = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        $this->view('feedback/index', [
-            'tickets' => $tickets,
-            'page_title' => 'Feedback Tickets'
-        ]);
-    }
-
-    /**
-     * Success page after submission
-     */
-    public function success(): void
-    {
-        $ticketNumber = $_GET['ticket'] ?? '';
-
-        $this->view('feedback/success', [
-            'ticket_number' => $ticketNumber,
-            'page_title' => 'Feedback Submitted'
-        ]);
-    }
-
-    /**
-     * Generate unique ticket number
-     */
-    private function generateTicketNumber(): string
-    {
-        $year = date('Y');
-        $db = Database::getInstance()->getConnection();
-
-        // Get count of tickets this year
-        $stmt = $db->prepare("
-            SELECT COUNT(*) FROM feedback_tickets
-            WHERE ticket_number LIKE ?
-        ");
-        $stmt->execute(["TICKET-{$year}-%"]);
-        $count = $stmt->fetchColumn() + 1;
-
-        return sprintf("TICKET-%s-%04d", $year, $count);
-    }
-
-    /**
-     * Handle screenshot uploads
-     */
-    private function handleScreenshotUploads(int $ticketId): array
-    {
-        $uploadDir = "public/uploads/feedback/{$ticketId}/";
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0775, true);
+        if (FeedbackService::vote($id)) {
+            $_SESSION['flash_success'] = 'Vote recorded';
+        } else {
+            $_SESSION['flash_error'] = 'Failed to vote';
         }
 
-        $screenshots = [];
-        $files = $_FILES['screenshots'];
+        $this->redirect('/store/feedback/' . $id);
+    }
 
-        for ($i = 0; $i < count($files['name']); $i++) {
-            if ($files['error'][$i] === UPLOAD_ERR_OK) {
-                $filename = uniqid() . '_' . basename($files['name'][$i]);
-                $filepath = $uploadDir . $filename;
+    /**
+     * Remove vote
+     */
+    public function unvote(int $id)
+    {
+        $this->checkPermission('feedback.vote');
 
-                if (move_uploaded_file($files['tmp_name'][$i], $filepath)) {
-                    $screenshots[] = $filepath;
-                }
-            }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/store/feedback');
+            return;
         }
 
-        return $screenshots;
+        if (FeedbackService::unvote($id)) {
+            $_SESSION['flash_success'] = 'Vote removed';
+        } else {
+            $_SESSION['flash_error'] = 'Failed to remove vote';
+        }
+
+        $this->redirect('/store/feedback/' . $id);
     }
 
     /**
-     * Send notification email
+     * Add comment
      */
-    private function sendNewTicketNotification(int $ticketId): void
+    public function comment(int $id)
     {
-        // TODO: Implement email notification
-        // For now, just log it
-        error_log("New ticket submitted: ID {$ticketId}");
+        $this->checkPermission('feedback.submit');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/store/feedback/' . $id);
+            return;
+        }
+
+        $comment = $_POST['comment'] ?? '';
+
+        if (empty($comment)) {
+            $_SESSION['flash_error'] = 'Comment cannot be empty';
+            $this->redirect('/store/feedback/' . $id);
+            return;
+        }
+
+        if (FeedbackService::addComment($id, $comment)) {
+            $_SESSION['flash_success'] = 'Comment added';
+        } else {
+            $_SESSION['flash_error'] = 'Failed to add comment';
+        }
+
+        $this->redirect('/store/feedback/' . $id);
     }
 
     /**
-     * Detect browser from user agent
+     * Update status (admin only)
      */
-    private function detectBrowser(string $userAgent): string
+    public function updateStatus(int $id)
     {
-        if (strpos($userAgent, 'Firefox') !== false) return 'Firefox';
-        if (strpos($userAgent, 'Chrome') !== false) return 'Chrome';
-        if (strpos($userAgent, 'Safari') !== false) return 'Safari';
-        if (strpos($userAgent, 'Edge') !== false) return 'Edge';
-        if (strpos($userAgent, 'Opera') !== false) return 'Opera';
-        return 'Unknown';
+        $this->checkPermission('feedback.manage');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/store/feedback/' . $id);
+            return;
+        }
+
+        $status = $_POST['status'] ?? '';
+        $adminNotes = $_POST['admin_notes'] ?? null;
+
+        if (FeedbackService::updateStatus($id, $status, $adminNotes)) {
+            $_SESSION['flash_success'] = 'Status updated';
+        } else {
+            $_SESSION['flash_error'] = 'Failed to update status';
+        }
+
+        $this->redirect('/store/feedback/' . $id);
     }
 
     /**
-     * Detect OS from user agent
+     * My feedback
      */
-    private function detectOS(string $userAgent): string
+    public function myFeedback()
     {
-        if (strpos($userAgent, 'Windows') !== false) return 'Windows';
-        if (strpos($userAgent, 'Mac') !== false) return 'macOS';
-        if (strpos($userAgent, 'Linux') !== false) return 'Linux';
-        if (strpos($userAgent, 'iPhone') !== false) return 'iOS';
-        if (strpos($userAgent, 'iPad') !== false) return 'iPadOS';
-        if (strpos($userAgent, 'Android') !== false) return 'Android';
-        return 'Unknown';
+        $this->checkPermission('feedback.submit');
+
+        $userId = $_SESSION['user_id'] ?? null;
+
+        if (!$userId) {
+            $this->redirect('/store/feedback');
+            return;
+        }
+
+        $feedback = FeedbackService::getUserFeedback($userId);
+
+        $data = [
+            'feedback' => $feedback,
+            'pageTitle' => 'My Feedback',
+            'activeMenu' => 'feedback'
+        ];
+
+        $this->view('feedback/my-feedback', $data);
     }
 }
