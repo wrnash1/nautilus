@@ -24,7 +24,7 @@ class HealthCheckService
     public function __construct()
     {
         $this->db = new Database();
-        $this->cache = new Cache();
+        $this->cache = Cache::getInstance();
     }
 
     /**

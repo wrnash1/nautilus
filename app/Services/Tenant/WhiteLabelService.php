@@ -23,7 +23,7 @@ class WhiteLabelService
 
     public function __construct()
     {
-        $this->cache = new Cache();
+        $this->cache = Cache::getInstance();
     }
 
     /**
@@ -32,28 +32,46 @@ class WhiteLabelService
     public function getBranding(int $tenantId): array
     {
         $cacheKey = "branding_{$tenantId}";
-        $cached = $this->cache->get($cacheKey);
 
-        if ($cached !== false) {
-            return json_decode($cached, true);
+        try {
+            $cached = $this->cache->get($cacheKey);
+
+            if ($cached !== false) {
+                $decoded = json_decode($cached, true);
+                if (is_array($decoded)) {
+                    return $decoded;
+                }
+            }
+        } catch (\Exception $e) {
+            // Cache error - continue to fetch from database
         }
 
-        $branding = TenantDatabase::fetchOneTenant(
-            "SELECT * FROM tenant_branding WHERE tenant_id = ?",
-            [$tenantId]
-        );
+        try {
+            $branding = TenantDatabase::fetchOneTenant(
+                "SELECT * FROM tenant_branding WHERE tenant_id = ?",
+                [$tenantId]
+            );
 
-        if (!$branding) {
-            $branding = $this->getDefaultBranding($tenantId);
-        } else {
-            $branding['theme_settings'] = json_decode($branding['theme_settings'] ?? '{}', true);
-            $branding['email_settings'] = json_decode($branding['email_settings'] ?? '{}', true);
-            $branding['custom_terminology'] = json_decode($branding['custom_terminology'] ?? '{}', true);
+            if (!$branding) {
+                $branding = $this->getDefaultBranding($tenantId);
+            } else {
+                $branding['theme_settings'] = json_decode($branding['theme_settings'] ?? '{}', true) ?? [];
+                $branding['email_settings'] = json_decode($branding['email_settings'] ?? '{}', true) ?? [];
+                $branding['custom_terminology'] = json_decode($branding['custom_terminology'] ?? '{}', true) ?? [];
+            }
+
+            try {
+                $this->cache->set($cacheKey, json_encode($branding), 3600);
+            } catch (\Exception $e) {
+                // Cache set failed - not critical, continue
+            }
+
+            return $branding;
+
+        } catch (\Exception $e) {
+            // Database error - return default branding
+            return $this->getDefaultBranding($tenantId);
         }
-
-        $this->cache->set($cacheKey, json_encode($branding), 3600);
-
-        return $branding;
     }
 
     /**

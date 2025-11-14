@@ -24,7 +24,7 @@ class RateLimitService
 
     public function __construct()
     {
-        $this->cache = new Cache();
+        $this->cache = Cache::getInstance();
     }
 
     /**

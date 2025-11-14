@@ -249,6 +249,11 @@ class TenantMiddleware
             return CURRENT_TENANT_ID;
         }
 
+        // Check session first (set during login)
+        if (isset($_SESSION['tenant_id'])) {
+            return (int)$_SESSION['tenant_id'];
+        }
+
         $tenant = self::getCurrentTenant();
         return $tenant['id'] ?? null;
     }

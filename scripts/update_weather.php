@@ -5,7 +5,7 @@
  * Run this via cron for automatic weather updates
  *
  * Example cron (every 6 hours):
- * 0 */6 * * * cd /path/to/nautilus-v6 && php scripts/update_weather.php
+ * 0 *\/6 * * * cd /path/to/nautilus-v6 && php scripts/update_weather.php
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';

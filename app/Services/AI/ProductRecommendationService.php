@@ -23,7 +23,7 @@ class ProductRecommendationService
     /**
      * Get personalized product recommendations for customer
      */
-    public function getRecommendationsFor Customer(int $customerId, int $limit = 10): array
+    public function getRecommendationsForCustomer(int $customerId, int $limit = 10): array
     {
         try {
             // Get customer's purchase history

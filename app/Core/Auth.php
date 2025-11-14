@@ -31,8 +31,9 @@ class Auth
     {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_role'] = $user['role_id'];
+        $_SESSION['tenant_id'] = $user['tenant_id'] ?? null;
         self::$user = $user;
-        
+
         User::updateLastLogin($user['id']);
     }
     

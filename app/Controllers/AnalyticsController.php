@@ -92,7 +92,7 @@ class AnalyticsController
 
         $productMetrics = $this->analyticsService->getProductMetrics($startDate, $endDate);
 
-        require __DIR__ . '/../Views/analytics/products.php');
+        require __DIR__ . '/../Views/analytics/products.php';
     }
 
     /**

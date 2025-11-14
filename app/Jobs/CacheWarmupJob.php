@@ -12,7 +12,7 @@ use App\Services\Analytics\AdvancedDashboardService;
  * Pre-calculates and caches frequently accessed metrics
  * Run every 6 hours for optimal performance
  *
- * Cron: 0 */6 * * * php /path/to/nautilus/app/Jobs/CacheWarmupJob.php
+ * Cron: 0 *\/6 * * * php /path/to/nautilus/app/Jobs/CacheWarmupJob.php
  */
 class CacheWarmupJob
 {

@@ -39,7 +39,7 @@ class InventoryForecastingService
             }
 
             // Prepare data for analysis
-            $dataPoints = $this->prepareDat aPoints($salesData);
+            $dataPoints = $this->prepareDataPoints($salesData);
 
             // Calculate trend using linear regression
             $trend = $this->calculateLinearRegression($dataPoints);
