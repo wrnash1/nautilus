@@ -60,6 +60,12 @@ $router->get('/login', function() {
 $router->get('/logout', function() {
     redirect('/store/logout');
 });
+$router->get('/dashboard', function() {
+    redirect('/store');
+});
+$router->get('/waivers', function() {
+    redirect('/store/waivers');
+});
 
 // Store Dashboard & Auth
 $router->get('/store', 'Admin\DashboardController@index', [AuthMiddleware::class]);
@@ -334,6 +340,12 @@ $router->get('/store/staff/commissions/reports', 'Staff\CommissionController@rep
 
 // Admin Settings
 $router->get('/store/admin/settings', 'Admin\SettingsController@index', [AuthMiddleware::class]);
+
+// Demo Data Management
+$router->get('/store/admin/demo-data', 'Admin\DemoDataController@index', [AuthMiddleware::class]);
+$router->post('/store/admin/demo-data/load', 'Admin\DemoDataController@load', [AuthMiddleware::class]);
+$router->post('/store/admin/demo-data/clear', 'Admin\DemoDataController@clear', [AuthMiddleware::class]);
+
 $router->get('/store/admin/settings/general', 'Admin\SettingsController@general', [AuthMiddleware::class]);
 $router->get('/store/admin/settings/tax', 'Admin\SettingsController@tax', [AuthMiddleware::class]);
 $router->get('/store/admin/settings/email', 'Admin\SettingsController@email', [AuthMiddleware::class]);
@@ -342,6 +354,7 @@ $router->get('/store/admin/settings/rental', 'Admin\SettingsController@rental', 
 $router->get('/store/admin/settings/air-fills', 'Admin\SettingsController@airFills', [AuthMiddleware::class]);
 $router->get('/store/admin/settings/integrations', 'Admin\SettingsController@integrations', [AuthMiddleware::class]);
 $router->post('/store/admin/settings/update', 'Admin\SettingsController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/admin/settings/update-integrations', 'Admin\SettingsController@updateIntegrations', [AuthMiddleware::class]);
 $router->post('/store/admin/settings/upload-logo', 'Admin\SettingsController@uploadLogo', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/admin/settings/tax/rates', 'Admin\SettingsController@storeTaxRate', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/admin/settings/tax/rates/{id}', 'Admin\SettingsController@updateTaxRate', [AuthMiddleware::class, CsrfMiddleware::class]);

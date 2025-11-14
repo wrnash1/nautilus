@@ -27,13 +27,13 @@ class ModernStorefrontController extends Controller
      */
     public function index(): void
     {
-        $tenantId = $_SESSION['tenant_id'] ?? 1;
+        $tenantId = $this->getDefaultTenantId();
 
         // Get branding
         $branding = $this->whiteLabel->getBranding($tenantId);
 
         // Get store settings
-        $storeSettings = $this->getStoreSettings();
+        $storeSettings = $this->getStoreSettings($tenantId);
 
         // Get featured products
         $featuredProducts = $this->getFeaturedProducts(8);
@@ -65,7 +65,7 @@ class ModernStorefrontController extends Controller
      */
     public function shop(): void
     {
-        $tenantId = $_SESSION['tenant_id'] ?? 1;
+        $tenantId = $this->getDefaultTenantId();
 
         // Get filters
         $categoryId = $_GET['category'] ?? null;
@@ -102,7 +102,7 @@ class ModernStorefrontController extends Controller
      */
     public function product(int $productId): void
     {
-        $tenantId = $_SESSION['tenant_id'] ?? 1;
+        $tenantId = $this->getDefaultTenantId();
 
         // Get product details
         $product = TenantDatabase::fetchOneTenant("
@@ -150,7 +150,7 @@ class ModernStorefrontController extends Controller
         $customerId = $_SESSION['customer_id'] ?? null;
 
         $cart = $this->storefront->getCart($sessionId, $customerId);
-        $branding = $this->whiteLabel->getBranding($_SESSION['tenant_id'] ?? 1);
+        $branding = $this->whiteLabel->getBranding($this->getDefaultTenantId());
 
         $data = [
             'branding' => $branding,
@@ -222,7 +222,7 @@ class ModernStorefrontController extends Controller
             return;
         }
 
-        $branding = $this->whiteLabel->getBranding($_SESSION['tenant_id'] ?? 1);
+        $branding = $this->whiteLabel->getBranding($this->getDefaultTenantId());
 
         // Get customer info if logged in
         $customer = null;
@@ -295,7 +295,7 @@ class ModernStorefrontController extends Controller
             return;
         }
 
-        $branding = $this->whiteLabel->getBranding($_SESSION['tenant_id'] ?? 1);
+        $branding = $this->whiteLabel->getBranding($this->getDefaultTenantId());
 
         $data = [
             'branding' => $branding,
@@ -311,7 +311,7 @@ class ModernStorefrontController extends Controller
      */
     public function courses(): void
     {
-        $tenantId = $_SESSION['tenant_id'] ?? 1;
+        $tenantId = $this->getDefaultTenantId();
 
         $courses = TenantDatabase::fetchAllTenant("
             SELECT c.*,
@@ -346,7 +346,7 @@ class ModernStorefrontController extends Controller
             return;
         }
 
-        $branding = $this->whiteLabel->getBranding($_SESSION['tenant_id'] ?? 1);
+        $branding = $this->whiteLabel->getBranding($this->getDefaultTenantId());
 
         $data = [
             'branding' => $branding,
@@ -359,55 +359,80 @@ class ModernStorefrontController extends Controller
 
     // Private helper methods
 
-    private function getStoreSettings(): array
+    private function getStoreSettings(int $tenantId): array
     {
-        $settings = TenantDatabase::fetchAllTenant(
-            "SELECT * FROM storefront_settings WHERE tenant_id = ?",
-            [$_SESSION['tenant_id'] ?? 1]
-        ) ?? [];
+        try {
+            // Set tenant context temporarily for this query
+            $_SESSION['tenant_id'] = $tenantId;
 
-        $settingsArray = [];
-        foreach ($settings as $setting) {
-            $settingsArray[$setting['setting_key']] = $setting['setting_value'];
+            $settings = TenantDatabase::fetchAllTenant(
+                "SELECT * FROM storefront_settings WHERE tenant_id = ?",
+                [$tenantId]
+            ) ?? [];
+
+            $settingsArray = [];
+            foreach ($settings as $setting) {
+                $settingsArray[$setting['setting_key']] = $setting['setting_value'];
+            }
+
+            return $settingsArray;
+        } catch (\Exception $e) {
+            // Return defaults if storefront_settings table doesn't exist yet
+            return [
+                'store_name' => 'Nautilus Dive Shop',
+                'store_description' => 'Your premier dive shop',
+                'contact_email' => 'info@diveshop.com',
+                'contact_phone' => '555-0100'
+            ];
         }
-
-        return $settingsArray;
     }
 
     private function getFeaturedProducts(int $limit = 8): array
     {
-        return TenantDatabase::fetchAllTenant("
-            SELECT p.*,
-                   (SELECT image_url FROM product_images WHERE product_id = p.id LIMIT 1) as image
-            FROM products p
-            WHERE p.is_active = 1
-            AND p.is_web_visible = 1
-            AND p.is_featured = 1
-            ORDER BY p.created_at DESC
-            LIMIT ?
-        ", [$limit]) ?? [];
+        try {
+            return TenantDatabase::fetchAllTenant("
+                SELECT p.*,
+                       (SELECT image_url FROM product_images WHERE product_id = p.id LIMIT 1) as image
+                FROM products p
+                WHERE p.is_active = 1
+                AND p.is_web_visible = 1
+                AND p.is_featured = 1
+                ORDER BY p.created_at DESC
+                LIMIT ?
+            ", [$limit]) ?? [];
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     private function getCategories(): array
     {
-        return TenantDatabase::fetchAllTenant("
-            SELECT c.*, COUNT(p.id) as product_count
-            FROM categories c
-            LEFT JOIN products p ON c.id = p.category_id AND p.is_active = 1 AND p.is_web_visible = 1
-            WHERE c.type = 'product'
-            GROUP BY c.id
-            ORDER BY c.name ASC
-        ") ?? [];
+        try {
+            return TenantDatabase::fetchAllTenant("
+                SELECT c.*, COUNT(p.id) as product_count
+                FROM categories c
+                LEFT JOIN products p ON c.id = p.category_id AND p.is_active = 1 AND p.is_web_visible = 1
+                WHERE c.type = 'product'
+                GROUP BY c.id
+                ORDER BY c.name ASC
+            ") ?? [];
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     private function getHeroBanners(): array
     {
-        return TenantDatabase::fetchAllTenant("
-            SELECT * FROM hero_banners
-            WHERE is_active = 1
-            ORDER BY display_order ASC
-            LIMIT 3
-        ") ?? [];
+        try {
+            return TenantDatabase::fetchAllTenant("
+                SELECT * FROM hero_banners
+                WHERE is_active = 1
+                ORDER BY display_order ASC
+                LIMIT 3
+            ") ?? [];
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     private function getProducts(?int $categoryId, ?string $search, string $sortBy, int $page, int $perPage): array
@@ -488,5 +513,28 @@ class ModernStorefrontController extends Controller
             ORDER BY r.created_at DESC
             LIMIT 10
         ", [$productId]) ?? [];
+    }
+
+    /**
+     * Get default tenant ID for public storefront access
+     * Uses session tenant_id if available, otherwise gets first tenant
+     */
+    private function getDefaultTenantId(): int
+    {
+        if (isset($_SESSION['tenant_id'])) {
+            return (int)$_SESSION['tenant_id'];
+        }
+
+        // For public access, get the first tenant
+        try {
+            $tenant = \App\Core\Database::fetchOne("SELECT id FROM tenants ORDER BY id ASC LIMIT 1");
+            if ($tenant && isset($tenant['id'])) {
+                return (int)$tenant['id'];
+            }
+        } catch (\Exception $e) {
+            // If no tenants exist, return 1 (will be created during install)
+        }
+
+        return 1;
     }
 }

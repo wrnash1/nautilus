@@ -373,33 +373,41 @@ class ProductRecommendationService
     /**
      * Get trending products
      */
-    private function getTrendingProducts(): array
+    /**
+     * Get trending products based on recent sales
+     */
+    public function getTrendingProducts(int $limit = 10): array
     {
-        $recommendations = TenantDatabase::fetchAllTenant(
-            "SELECT p.id, p.name, p.price, p.image_url,
-                    COUNT(ti.id) as sales_count
-             FROM products p
-             JOIN pos_transaction_items ti ON p.id = ti.product_id
-             JOIN pos_transactions t ON ti.transaction_id = t.id
-             WHERE t.transaction_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-             AND t.status = 'completed'
-             AND p.is_active = 1
-             GROUP BY p.id
-             ORDER BY sales_count DESC
-             LIMIT 10",
-            []
-        ) ?? [];
+        try {
+            $recommendations = TenantDatabase::fetchAllTenant(
+                "SELECT p.id, p.name, p.price, p.image_url,
+                        COUNT(ti.id) as sales_count
+                 FROM products p
+                 JOIN pos_transaction_items ti ON p.id = ti.product_id
+                 JOIN pos_transactions t ON ti.transaction_id = t.id
+                 WHERE t.transaction_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                 AND t.status = 'completed'
+                 AND p.is_active = 1
+                 GROUP BY p.id
+                 ORDER BY sales_count DESC
+                 LIMIT ?",
+                [$limit]
+            ) ?? [];
 
-        return array_map(function($rec) {
-            return [
-                'product_id' => $rec['id'],
-                'name' => $rec['name'],
-                'price' => $rec['price'],
-                'image' => $rec['image_url'],
-                'score' => 0.6,
-                'reason' => 'Trending this week'
-            ];
-        }, $recommendations);
+            return array_map(function($rec) {
+                return [
+                    'product_id' => $rec['id'],
+                    'name' => $rec['name'],
+                    'price' => $rec['price'],
+                    'image' => $rec['image_url'],
+                    'score' => 0.6,
+                    'reason' => 'Trending this week'
+                ];
+            }, $recommendations);
+        } catch (\Exception $e) {
+            // If tables don't exist yet or other error, return empty array
+            return [];
+        }
     }
 
     /**

@@ -297,13 +297,71 @@ class SettingsController
     }
 
     /**
-     * Integration settings
+     * Integration settings (Wave Apps, AI, etc.)
      */
     public function integrations()
     {
-        $settings = $this->service->getSettingsByCategory('integrations');
+        // Get all integration settings from system_settings table
+        $tenantId = $_SESSION['tenant_id'] ?? 1;
+
+        $integrationSettings = Database::fetchAll(
+            "SELECT * FROM system_settings WHERE tenant_id = ? AND category IN ('integrations', 'ai') ORDER BY category, display_order",
+            [$tenantId]
+        );
+
+        // Organize by category
+        $settings = [
+            'integrations' => [],
+            'ai' => []
+        ];
+
+        foreach ($integrationSettings as $setting) {
+            $settings[$setting['category']][$setting['setting_key']] = $setting;
+        }
 
         require __DIR__ . '/../../Views/admin/settings/integrations.php';
+    }
+
+    /**
+     * Update integration settings (Wave, AI, etc.)
+     */
+    public function updateIntegrations()
+    {
+        try {
+            $tenantId = $_SESSION['tenant_id'] ?? 1;
+
+            foreach ($_POST as $key => $value) {
+                if ($key === 'csrf_token') continue;
+
+                // Update or insert setting
+                Database::query(
+                    "INSERT INTO system_settings (tenant_id, category, setting_key, setting_value)
+                     VALUES (?, ?, ?, ?)
+                     ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)",
+                    [$tenantId, $this->getSettingCategory($key), $key, $value]
+                );
+            }
+
+            $_SESSION['flash_success'] = 'Integration settings updated successfully!';
+            header('Location: /store/admin/settings/integrations');
+            exit;
+
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Failed to update settings: ' . $e->getMessage();
+            header('Location: /store/admin/settings/integrations');
+            exit;
+        }
+    }
+
+    /**
+     * Determine setting category from key name
+     */
+    private function getSettingCategory(string $key): string
+    {
+        if (strpos($key, 'wave_') === 0) return 'integrations';
+        if (strpos($key, 'ai_') === 0) return 'ai';
+        if (strpos($key, 'email_') === 0 || strpos($key, 'smtp_') === 0) return 'email';
+        return 'general';
     }
 
     /**

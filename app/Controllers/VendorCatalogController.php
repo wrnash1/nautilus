@@ -253,7 +253,7 @@ class VendorCatalogController extends Controller
     /**
      * Get vendors list
      */
-    private function getVendors(): array
+    protected function getVendors(): array
     {
         $sql = "SELECT id, name FROM vendors WHERE is_active = 1 ORDER BY name";
         $stmt = $this->db->query($sql);
