@@ -14,11 +14,27 @@
     <meta name="csrf-token" content="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
     <title><?= $pageTitle ?? 'Dashboard' ?> - <?= htmlspecialchars($companyName) ?></title>
 
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Complete dive shop management system with POS, inventory, courses, and more">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Nautilus">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Favicons -->
     <?php if ($favicon): ?>
     <link rel="icon" type="image/x-icon" href="<?= htmlspecialchars($favicon) ?>">
     <?php else: ?>
     <link rel="icon" type="image/svg+xml" href="/favicon.ico">
     <?php endif; ?>
+    <link rel="apple-touch-icon" href="/assets/images/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/assets/images/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/assets/images/icon-167x167.png">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -538,6 +554,17 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
+    <!-- Alpine.js for interactive components -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Nautilus Core JavaScript -->
+    <script src="/assets/js/notifications.js"></script>
+    <script src="/assets/js/keyboard-shortcuts.js"></script>
+    <script src="/assets/js/accessibility.js"></script>
+    <script src="/assets/js/form-validation.js"></script>
+    <script src="/assets/js/alpine-components.js"></script>
+    <script src="/assets/js/pwa-installer.js"></script>
+    
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
@@ -587,6 +614,25 @@
                     }
                 });
             }
+            
+            // Convert flash messages to toast notifications
+            <?php if (isset($_SESSION['flash_success'])): ?>
+                if (window.toast) {
+                    toast.success('<?= addslashes($_SESSION['flash_success']) ?>');
+                }
+            <?php endif; ?>
+            
+            <?php if (isset($_SESSION['flash_error'])): ?>
+                if (window.toast) {
+                    toast.error('<?= addslashes($_SESSION['flash_error']) ?>');
+                }
+            <?php endif; ?>
+            
+            <?php if (isset($_SESSION['flash_warning'])): ?>
+                if (window.toast) {
+                    toast.warning('<?= addslashes($_SESSION['flash_warning']) ?>');
+                }
+            <?php endif; ?>
         });
     </script>
 
