@@ -202,32 +202,109 @@ done
 if [ ${#MISSING_EXTENSIONS[@]} -gt 0 ]; then
     echo ""
     print_error "Missing required PHP extensions!"
-    print_info "Install missing extensions:"
 
-    case "$OS" in
-        ubuntu|debian|pop)
+    # Ask if user wants to auto-install
+    if [ "$EUID" -eq 0 ]; then
+        read -p "Would you like to install missing extensions automatically? (y/n) " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            print_info "Installing missing extensions..."
+
+            case "$OS" in
+                ubuntu|debian|pop)
+                    apt update
+                    for ext in "${MISSING_EXTENSIONS[@]}"; do
+                        if [ "$ext" = "pdo_mysql" ]; then
+                            apt install -y php-mysql
+                        else
+                            apt install -y php-$ext
+                        fi
+                    done
+                    systemctl restart apache2 2>/dev/null || systemctl restart php-fpm 2>/dev/null || true
+                    print_success "Extensions installed. Restart complete."
+                    ;;
+                fedora|rhel|centos)
+                    dnf install -y $(for ext in "${MISSING_EXTENSIONS[@]}"; do
+                        if [ "$ext" = "pdo_mysql" ]; then
+                            echo "php-mysqlnd"
+                        else
+                            echo "php-$ext"
+                        fi
+                    done)
+                    systemctl restart httpd 2>/dev/null || systemctl restart php-fpm 2>/dev/null || true
+                    print_success "Extensions installed. Restart complete."
+                    ;;
+                *)
+                    print_error "Automatic installation not supported for this distribution"
+                    echo "  Please install the missing PHP extensions manually"
+                    exit 1
+                    ;;
+            esac
+
+            # Re-check extensions
+            MISSING_AFTER_INSTALL=()
             for ext in "${MISSING_EXTENSIONS[@]}"; do
-                if [ "$ext" = "pdo_mysql" ]; then
-                    echo "  sudo apt install php-mysql"
-                else
-                    echo "  sudo apt install php-$ext"
+                if ! php -r "exit(extension_loaded('$ext') ? 0 : 1);"; then
+                    MISSING_AFTER_INSTALL+=("$ext")
                 fi
             done
-            ;;
-        fedora|rhel|centos)
-            for ext in "${MISSING_EXTENSIONS[@]}"; do
-                if [ "$ext" = "pdo_mysql" ]; then
-                    echo "  sudo dnf install php-mysqlnd"
-                else
-                    echo "  sudo dnf install php-$ext"
-                fi
-            done
-            ;;
-        *)
-            echo "  Please install the missing PHP extensions for your distribution"
-            ;;
-    esac
-    exit 1
+
+            if [ ${#MISSING_AFTER_INSTALL[@]} -gt 0 ]; then
+                print_error "Some extensions still missing after installation: ${MISSING_AFTER_INSTALL[*]}"
+                exit 1
+            fi
+        else
+            print_info "Manual installation required. Run these commands:"
+            case "$OS" in
+                ubuntu|debian|pop)
+                    for ext in "${MISSING_EXTENSIONS[@]}"; do
+                        if [ "$ext" = "pdo_mysql" ]; then
+                            echo "  sudo apt install php-mysql"
+                        else
+                            echo "  sudo apt install php-$ext"
+                        fi
+                    done
+                    ;;
+                fedora|rhel|centos)
+                    for ext in "${MISSING_EXTENSIONS[@]}"; do
+                        if [ "$ext" = "pdo_mysql" ]; then
+                            echo "  sudo dnf install php-mysqlnd"
+                        else
+                            echo "  sudo dnf install php-$ext"
+                        fi
+                    done
+                    ;;
+            esac
+            exit 1
+        fi
+    else
+        print_info "Install missing extensions with these commands:"
+        case "$OS" in
+            ubuntu|debian|pop)
+                for ext in "${MISSING_EXTENSIONS[@]}"; do
+                    if [ "$ext" = "pdo_mysql" ]; then
+                        echo "  sudo apt install php-mysql"
+                    else
+                        echo "  sudo apt install php-$ext"
+                    fi
+                done
+                ;;
+            fedora|rhel|centos)
+                for ext in "${MISSING_EXTENSIONS[@]}"; do
+                    if [ "$ext" = "pdo_mysql" ]; then
+                        echo "  sudo dnf install php-mysqlnd"
+                    else
+                        echo "  sudo dnf install php-$ext"
+                    fi
+                done
+                ;;
+            *)
+                echo "  Please install the missing PHP extensions for your distribution"
+                ;;
+        esac
+        print_info "Then re-run this script with: sudo $0"
+        exit 1
+    fi
 fi
 
 # Step 8: Test database connection (optional)
@@ -271,9 +348,83 @@ else
     print_success "Security keys are configured"
 fi
 
-# Step 10: Final checks
+# Step 10: Configure Apache Virtual Host
 echo ""
-print_info "Step 10: Final verification..."
+print_info "Step 10: Configuring Apache Virtual Host..."
+
+# Detect web server
+WEB_SERVER=""
+if systemctl is-active --quiet httpd 2>/dev/null; then
+    WEB_SERVER="httpd"
+    VHOST_DIR="/etc/httpd/conf.d"
+elif systemctl is-active --quiet apache2 2>/dev/null; then
+    WEB_SERVER="apache2"
+    VHOST_DIR="/etc/apache2/sites-available"
+fi
+
+if [ -n "$WEB_SERVER" ] && [ "$EUID" -eq 0 ]; then
+    if [ -f "apache-config/nautilus.conf" ]; then
+        # Update paths in config file
+        INSTALL_PATH="$(cd "$(dirname "$SCRIPT_DIR")" && pwd)"
+
+        read -p "Configure Apache virtual host? (y/n) " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            # Create temporary config with correct path
+            sed "s|/var/www/html/nautilus|$INSTALL_PATH|g" apache-config/nautilus.conf > /tmp/nautilus.conf
+
+            if [ "$WEB_SERVER" = "httpd" ]; then
+                cp /tmp/nautilus.conf $VHOST_DIR/nautilus.conf
+                print_success "Copied virtual host configuration to $VHOST_DIR/nautilus.conf"
+
+                # Enable mod_rewrite if not already enabled
+                if ! httpd -M 2>/dev/null | grep -q rewrite_module; then
+                    print_warning "mod_rewrite may not be enabled"
+                fi
+
+                systemctl restart httpd
+                print_success "Apache (httpd) restarted"
+
+            elif [ "$WEB_SERVER" = "apache2" ]; then
+                cp /tmp/nautilus.conf $VHOST_DIR/nautilus.conf
+                a2ensite nautilus.conf 2>/dev/null || true
+                a2enmod rewrite 2>/dev/null || true
+                systemctl restart apache2
+                print_success "Apache virtual host configured and enabled"
+            fi
+
+            rm /tmp/nautilus.conf
+
+            # Add to /etc/hosts if not present
+            if ! grep -q "nautilus.local" /etc/hosts 2>/dev/null; then
+                read -p "Add 'nautilus.local' to /etc/hosts for local development? (y/n) " -n 1 -r
+                echo ""
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    echo "127.0.0.1    nautilus.local" >> /etc/hosts
+                    print_success "Added nautilus.local to /etc/hosts"
+                fi
+            fi
+
+            print_success "Apache configuration complete!"
+            print_info "You can now access Nautilus at: http://nautilus.local"
+        else
+            print_warning "Skipped Apache configuration"
+            print_info "To configure manually, copy apache-config/nautilus.conf to $VHOST_DIR/"
+        fi
+    else
+        print_warning "apache-config/nautilus.conf not found"
+    fi
+elif [ "$EUID" -ne 0 ]; then
+    print_warning "Not running as root - skipping Apache configuration"
+    print_info "To configure Apache, run: sudo cp apache-config/nautilus.conf /etc/httpd/conf.d/"
+    print_info "Then restart Apache: sudo systemctl restart httpd"
+else
+    print_warning "No active Apache/httpd service detected"
+fi
+
+# Step 11: Final checks
+echo ""
+print_info "Step 11: Final verification..."
 
 ISSUES=0
 
@@ -303,8 +454,11 @@ if [ $ISSUES -eq 0 ]; then
     echo ""
     print_info "Next steps:"
     echo "  1. Edit .env and configure your database settings"
-    echo "  2. Open your browser and go to: http://your-domain.com/check-requirements.php"
-    echo "  3. If all checks pass, proceed to: http://your-domain.com/simple-install.php"
+    echo "  2. Open your browser and go to: http://nautilus.local/install.php"
+    echo "     (or http://localhost/install.php if you didn't configure the virtual host)"
+    echo ""
+    print_info "Default installation will be at:"
+    echo "  http://nautilus.local"
     echo ""
 else
     print_error "Setup incomplete. Please fix the $ISSUES issue(s) above."

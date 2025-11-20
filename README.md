@@ -14,28 +14,23 @@ Nautilus is an enterprise-grade, all-in-one management system designed specifica
 
 ## 🚀 Quick Start
 
-### Installation is Easy!
+### Installation is Easy! No Technical Knowledge Required
 
-1. **Upload files** to your web server
-2. **Visit** `https://yourdomain.com/install.php`
+1. **Upload files** to your web server (via cPanel or FTP)
+2. **Visit** `http://yourwebsite.com/nautilus/install.php` in your browser
 3. **Follow** the 4-step wizard
-4. **Done!** - Takes 5-10 minutes
+4. **Done!** Start managing your dive shop in 10 minutes
 
-**📖 For detailed instructions, see [SIMPLE_INSTALL_GUIDE.md](SIMPLE_INSTALL_GUIDE.md)**
+### 📖 Installation Guides
 
-## ⚡ Quick Installation (3 Steps)
+**For Dive Shop Owners** (Recommended for most users):
+- **[Simple Installation Guide](INSTALL_SIMPLE.md)** ← Start here! Browser-based, no command line
 
-### For Non-Technical Users
+**For System Administrators** (VPS/Dedicated servers):
+- **[Advanced Installation](docs/installation/INSTALL_ADVANCED.md)** - Command-line installation with automation
 
-1. **Upload files** to your web server (`/var/www/html/nautilus`)
-2. **Run setup script**:
-   ```bash
-   cd /var/www/html/nautilus
-   sudo bash setup.sh
-   ```
-3. **Visit installer**: `https://your-domain.com/check-requirements.php`
-
-📖 **Full installation guide**: See [INSTALL.md](INSTALL.md)
+**All Documentation**:
+- **[Documentation Index](docs/README.md)** - Complete guide to all documentation
 
 ### System Requirements
 
