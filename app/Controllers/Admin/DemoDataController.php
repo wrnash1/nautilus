@@ -14,19 +14,39 @@ class DemoDataController extends Controller
         // Check if demo data is already loaded
         $tenantId = $_SESSION['tenant_id'] ?? 1;
 
-        $demoDataLoaded = Database::fetchOne(
-            "SELECT setting_value FROM system_settings WHERE tenant_id = ? AND setting_key = 'demo_data_loaded'",
-            [$tenantId]
-        );
+        // Try system_settings first, fall back to settings table
+        $isLoaded = false;
+        try {
+            $demoDataLoaded = Database::fetchOne(
+                "SELECT setting_value FROM system_settings WHERE setting_key = 'demo_data_loaded' LIMIT 1"
+            );
+            $isLoaded = ($demoDataLoaded['setting_value'] ?? 'false') === 'true';
+        } catch (\Exception $e) {
+            // Try settings table instead
+            try {
+                $demoDataLoaded = Database::fetchOne(
+                    "SELECT setting_value FROM settings WHERE setting_key = 'demo_data_loaded' LIMIT 1"
+                );
+                $isLoaded = ($demoDataLoaded['setting_value'] ?? 'false') === 'true';
+            } catch (\Exception $e2) {
+                $isLoaded = false;
+            }
+        }
 
-        $isLoaded = ($demoDataLoaded['setting_value'] ?? 'false') === 'true';
-
-        // Get counts
+        // Get counts - handle missing tenant_id column gracefully
         $counts = [
-            'customers' => Database::fetchOne("SELECT COUNT(*) as count FROM customers WHERE tenant_id = ?", [$tenantId])['count'] ?? 0,
-            'products' => Database::fetchOne("SELECT COUNT(*) as count FROM products WHERE tenant_id = ?", [$tenantId])['count'] ?? 0,
-            'courses' => Database::fetchOne("SELECT COUNT(*) as count FROM courses WHERE tenant_id = ?", [$tenantId])['count'] ?? 0,
+            'customers' => 0,
+            'products' => 0,
+            'courses' => 0,
         ];
+
+        try {
+            $counts['customers'] = Database::fetchOne("SELECT COUNT(*) as count FROM customers")['count'] ?? 0;
+            $counts['products'] = Database::fetchOne("SELECT COUNT(*) as count FROM products")['count'] ?? 0;
+            $counts['courses'] = Database::fetchOne("SELECT COUNT(*) as count FROM courses")['count'] ?? 0;
+        } catch (\Exception $e) {
+            // Tables might not exist yet
+        }
 
         $data = [
             'demo_data_loaded' => $isLoaded,
@@ -49,44 +69,47 @@ class DemoDataController extends Controller
         try {
             $tenantId = $_SESSION['tenant_id'] ?? 1;
 
-            // Check if already loaded
-            $alreadyLoaded = Database::fetchOne(
-                "SELECT setting_value FROM system_settings WHERE tenant_id = ? AND setting_key = 'demo_data_loaded'",
-                [$tenantId]
-            );
-
-            if (($alreadyLoaded['setting_value'] ?? 'false') === 'true') {
-                $_SESSION['flash_warning'] = 'Demo data has already been loaded!';
-                $this->redirect('/store/admin/demo-data');
-                return;
-            }
-
             // Load the demo data SQL script
-            $sqlFile = __DIR__ . '/../../../database/demo-data.sql';
+            $sqlFile = __DIR__ . '/../../../database/seeds/002_seed_demo_data.sql';
 
             if (!file_exists($sqlFile)) {
-                throw new \Exception('Demo data SQL file not found');
+                // Try alternate location
+                $sqlFile = __DIR__ . '/../../../database/demo-data.sql';
+                if (!file_exists($sqlFile)) {
+                    throw new \Exception('Demo data SQL file not found');
+                }
             }
 
             // Read and execute SQL file
             $sql = file_get_contents($sqlFile);
 
-            // Execute the SQL
-            Database::query("USE nautilus");
+            // Remove comments
+            $sql = preg_replace('/--[^\n]*\n/', "\n", $sql);
+            $sql = preg_replace('/\/\*.*?\*\//s', '', $sql);
 
             // Split by semicolon and execute each statement
             $statements = array_filter(array_map('trim', explode(';', $sql)));
 
             foreach ($statements as $statement) {
-                if (empty($statement) || strpos($statement, '--') === 0) continue;
-                Database::query($statement);
+                if (empty($statement)) continue;
+                try {
+                    Database::query($statement);
+                } catch (\Exception $e) {
+                    // Continue on errors (duplicates, etc.)
+                }
             }
 
-            // Mark as loaded
-            Database::query(
-                "UPDATE system_settings SET setting_value = 'true' WHERE tenant_id = ? AND setting_key = 'demo_data_loaded'",
-                [$tenantId]
-            );
+            // Mark as loaded in system_settings
+            try {
+                Database::query(
+                    "INSERT INTO system_settings (setting_key, setting_value) VALUES ('demo_data_loaded', 'true') ON DUPLICATE KEY UPDATE setting_value = 'true'"
+                );
+            } catch (\Exception $e) {
+                // Try settings table instead
+                Database::query(
+                    "INSERT INTO settings (setting_key, setting_value, setting_group) VALUES ('demo_data_loaded', 'true', 'system') ON DUPLICATE KEY UPDATE setting_value = 'true'"
+                );
+            }
 
             $_SESSION['flash_success'] = 'Demo data loaded successfully! Check your customers, products, and courses.';
 
@@ -110,16 +133,21 @@ class DemoDataController extends Controller
             $tenantId = $_SESSION['tenant_id'] ?? 1;
 
             // Only delete demo data (customers with IDs 1-8, products with specific demo SKUs)
-            Database::query("DELETE FROM customer_tag_assignments WHERE customer_id BETWEEN 1 AND 8");
-            Database::query("DELETE FROM customers WHERE id BETWEEN 1 AND 8 AND tenant_id = ?", [$tenantId]);
-            Database::query("DELETE FROM products WHERE sku LIKE 'REG-%' OR sku LIKE 'BCD-%' OR sku LIKE 'WET-%' OR sku LIKE 'FIN-%' OR sku LIKE 'MSK-%' OR sku LIKE 'COM-%'");
-            Database::query("DELETE FROM courses WHERE price IN (399.99, 349.99, 450.00, 850.00, 200.00)");
+            try { Database::query("DELETE FROM customer_tag_assignments WHERE customer_id BETWEEN 1 AND 8"); } catch (\Exception $e) {}
+            try { Database::query("DELETE FROM customers WHERE id BETWEEN 1 AND 8"); } catch (\Exception $e) {}
+            try { Database::query("DELETE FROM products WHERE sku LIKE 'REG-%' OR sku LIKE 'BCD-%' OR sku LIKE 'WET-%' OR sku LIKE 'FIN-%' OR sku LIKE 'MSK-%' OR sku LIKE 'COM-%'"); } catch (\Exception $e) {}
+            try { Database::query("DELETE FROM courses WHERE price IN (399.99, 349.99, 450.00, 850.00, 200.00)"); } catch (\Exception $e) {}
 
             // Mark as not loaded
-            Database::query(
-                "UPDATE system_settings SET setting_value = 'false' WHERE tenant_id = ? AND setting_key = 'demo_data_loaded'",
-                [$tenantId]
-            );
+            try {
+                Database::query(
+                    "UPDATE system_settings SET setting_value = 'false' WHERE setting_key = 'demo_data_loaded'"
+                );
+            } catch (\Exception $e) {
+                Database::query(
+                    "UPDATE settings SET setting_value = 'false' WHERE setting_key = 'demo_data_loaded'"
+                );
+            }
 
             $_SESSION['flash_success'] = 'Demo data cleared successfully!';
 

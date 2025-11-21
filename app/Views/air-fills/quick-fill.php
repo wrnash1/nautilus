@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         searchTimeout = setTimeout(() => {
-            fetch(`/api/customers/search?q=${encodeURIComponent(query)}`)
+            fetch(`/store/customers/search?q=${encodeURIComponent(query)}`)
                 .then(r => r.json())
                 .then(customers => {
                     if (customers.length === 0) {

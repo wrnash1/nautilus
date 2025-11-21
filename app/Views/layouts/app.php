@@ -323,6 +323,7 @@
                 <div class="collapse" id="rentalsMenu">
                     <a class="nav-link ps-5" href="<?= url('/store/rentals') ?>">Equipment</a>
                     <a class="nav-link ps-5" href="<?= url('/store/rentals/reservations') ?>">Reservations</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/maintenance') ?>">Maintenance</a>
                 </div>
             </div>
             <?php endif; ?>
@@ -401,7 +402,36 @@
             </a>
             <?php endif; ?>
 
+            <?php if (hasPermission('sales.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'layaway' ? 'active' : '' ?>" href="<?= url('/store/layaway') ?>">
+                <i class="bi bi-calendar2-check"></i><span>Layaway</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('transactions.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'gift-cards' ? 'active' : '' ?>" href="<?= url('/store/gift-cards') ?>">
+                <i class="bi bi-gift"></i><span>Gift Cards</span>
+            </a>
+            <?php endif; ?>
+
             <hr class="my-2 text-white-50">
+
+            <?php if (hasPermission('customers.view')): ?>
+            <div class="nav-item">
+                <a class="nav-link <?= $activeMenu === 'community' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#communityMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-people-fill"></i><span>Community</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="communityMenu">
+                    <a class="nav-link ps-5" href="<?= url('/store/clubs') ?>">Diving Clubs</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/buddies') ?>">Buddy Pairs</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/conservation') ?>">Conservation</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/insurance') ?>">Insurance</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/dive-logs') ?>">Dive Logs</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/safety-checks') ?>">Safety Checks</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/incidents') ?>">Incident Reports</a>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <?php if (hasPermission('dashboard.view')): ?>
             <div class="nav-item">

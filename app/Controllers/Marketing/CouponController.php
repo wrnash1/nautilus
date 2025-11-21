@@ -20,7 +20,7 @@ class CouponController
     public function index()
     {
         if (!Auth::hasPermission('marketing.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -39,7 +39,7 @@ class CouponController
     public function create()
     {
         if (!Auth::hasPermission('marketing.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -57,7 +57,7 @@ class CouponController
     public function store()
     {
         if (!Auth::hasPermission('marketing.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -79,10 +79,10 @@ class CouponController
 
         if ($couponId) {
             $_SESSION['success'] = 'Coupon created successfully.';
-            redirect('/marketing/coupons/' . $couponId);
+            redirect('/store/marketing/coupons/' . $couponId);
         } else {
             $_SESSION['error'] = 'Failed to create coupon.';
-            redirect('/marketing/coupons/create');
+            redirect('/store/marketing/coupons/create');
         }
     }
 
@@ -92,14 +92,14 @@ class CouponController
     public function show($id)
     {
         if (!Auth::hasPermission('marketing.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
         $coupon = $this->couponService->getCouponById($id);
         if (!$coupon) {
             $_SESSION['error'] = 'Coupon not found.';
-            redirect('/marketing/coupons');
+            redirect('/store/marketing/coupons');
             return;
         }
 
@@ -118,14 +118,14 @@ class CouponController
     public function edit($id)
     {
         if (!Auth::hasPermission('marketing.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
         $coupon = $this->couponService->getCouponById($id);
         if (!$coupon) {
             $_SESSION['error'] = 'Coupon not found.';
-            redirect('/marketing/coupons');
+            redirect('/store/marketing/coupons');
             return;
         }
 
@@ -143,7 +143,7 @@ class CouponController
     public function update($id)
     {
         if (!Auth::hasPermission('marketing.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -169,7 +169,7 @@ class CouponController
             $_SESSION['error'] = 'Failed to update coupon.';
         }
 
-        redirect('/marketing/coupons/' . $id);
+        redirect('/store/marketing/coupons/' . $id);
     }
 
     /**
@@ -178,7 +178,7 @@ class CouponController
     public function delete($id)
     {
         if (!Auth::hasPermission('marketing.delete')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -190,7 +190,7 @@ class CouponController
             $_SESSION['error'] = 'Failed to delete coupon.';
         }
 
-        redirect('/marketing/coupons');
+        redirect('/store/marketing/coupons');
     }
 
     /**

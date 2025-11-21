@@ -123,8 +123,13 @@ class ThemeEngine
      */
     public function getAllThemes(): array
     {
-        $stmt = $this->db->query("SELECT * FROM theme_config ORDER BY is_default DESC, theme_name ASC");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("SELECT * FROM theme_config ORDER BY is_default DESC, theme_name ASC");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Return default theme if table doesn't exist
+            return [$this->getDefaultTheme()];
+        }
     }
 
     /**

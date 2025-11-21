@@ -104,6 +104,46 @@ if ($step == 3 && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_
             $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
             $stmt->execute([$userId, $roleId]);
 
+            // Save company settings to the settings table for use in storefront
+            $companySettings = [
+                'business_name' => $_POST['company_name'],
+                'business_email' => $_POST['email'],
+                'business_subdomain' => $_POST['subdomain'],
+            ];
+
+            $settingsStmt = $pdo->prepare("INSERT INTO settings (tenant_id, setting_key, setting_value, setting_group) VALUES (?, ?, ?, 'company') ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+            foreach ($companySettings as $key => $value) {
+                $settingsStmt->execute([$tenantId, $key, $value]);
+            }
+
+            // Also save to company_settings table if it exists
+            try {
+                $companyStmt = $pdo->prepare("INSERT INTO company_settings (tenant_id, setting_key, setting_value) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+                foreach ($companySettings as $key => $value) {
+                    $companyStmt->execute([$tenantId, $key, $value]);
+                }
+            } catch (Exception $e) {
+                // Table might not exist, ignore
+            }
+
+            // Run seed data files automatically
+            $seedFiles = glob(ROOT_DIR . '/database/seeds/*.sql');
+            sort($seedFiles);
+            foreach ($seedFiles as $seedFile) {
+                $seedSql = file_get_contents($seedFile);
+                // Remove comments
+                $seedSql = preg_replace('/--[^\n]*\n/', "\n", $seedSql);
+                $seedSql = preg_replace('/\/\*.*?\*\//s', '', $seedSql);
+                $seedStatements = array_filter(array_map('trim', explode(';', $seedSql)), function($s) { return !empty($s); });
+                foreach ($seedStatements as $seedStmt) {
+                    try {
+                        $pdo->exec($seedStmt);
+                    } catch (PDOException $e) {
+                        // Ignore seed errors (duplicates, etc.)
+                    }
+                }
+            }
+
             // Create .env file
             $envContent = "# Database Configuration\n";
             $envContent .= "DB_HOST={$config['host']}\n";
@@ -800,13 +840,20 @@ sudo chcon -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?></pre>
 
                         <div class="mb-3">
                             <label class="form-label"><strong>Database Password</strong></label>
-                            <input type="password" name="db_pass" class="form-control">
+                            <div class="input-group">
+                                <input type="password" name="db_pass" id="db_pass" class="form-control">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('db_pass', 'db_pass_confirm')">
+                                    <span id="db_pass_icon">👁️</span> Show
+                                </button>
+                            </div>
                             <small class="text-muted">Leave blank if no password</small>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label"><strong>Confirm Database Password</strong></label>
-                            <input type="password" name="db_pass_confirm" class="form-control">
+                            <div class="input-group">
+                                <input type="password" name="db_pass_confirm" id="db_pass_confirm" class="form-control">
+                            </div>
                             <small class="text-muted">Re-enter password to confirm</small>
                         </div>
 
@@ -877,13 +924,20 @@ sudo chcon -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?></pre>
 
                         <div class="mb-3">
                             <label class="form-label"><strong>Password</strong></label>
-                            <input type="password" name="password" class="form-control" required minlength="8">
+                            <div class="input-group">
+                                <input type="password" name="password" id="admin_pass" class="form-control" required minlength="8">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('admin_pass', 'admin_pass_confirm')">
+                                    <span id="admin_pass_icon">👁️</span> Show
+                                </button>
+                            </div>
                             <small class="text-muted">Minimum 8 characters</small>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label"><strong>Confirm Password</strong></label>
-                            <input type="password" name="password_confirm" class="form-control" required minlength="8">
+                            <div class="input-group">
+                                <input type="password" name="password_confirm" id="admin_pass_confirm" class="form-control" required minlength="8">
+                            </div>
                             <small class="text-muted">Re-enter your password</small>
                         </div>
 
@@ -1114,5 +1168,26 @@ sudo chcon -t httpd_sys_rw_content_t <?php echo ROOT_DIR; ?></pre>
     <div class="text-center mt-4">
         <small class="text-white">Nautilus Dive Shop Management System - Alpha Version 1 © <?php echo date('Y'); ?></small>
     </div>
+
+    <script>
+    function togglePassword(fieldId, confirmFieldId) {
+        var field = document.getElementById(fieldId);
+        var confirmField = document.getElementById(confirmFieldId);
+        var icon = document.getElementById(fieldId + '_icon');
+        var btn = field.nextElementSibling;
+
+        if (field.type === 'password') {
+            field.type = 'text';
+            if (confirmField) confirmField.type = 'text';
+            if (icon) icon.textContent = '🙈';
+            if (btn) btn.innerHTML = '<span id="' + fieldId + '_icon">🙈</span> Hide';
+        } else {
+            field.type = 'password';
+            if (confirmField) confirmField.type = 'password';
+            if (icon) icon.textContent = '👁️';
+            if (btn) btn.innerHTML = '<span id="' + fieldId + '_icon">👁️</span> Show';
+        }
+    }
+    </script>
 </body>
 </html>

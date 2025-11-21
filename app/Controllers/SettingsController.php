@@ -77,7 +77,7 @@ class SettingsController extends Controller
 
         if (!$user) {
             $_SESSION['error'] = __('error.not_found', ['item' => 'User']);
-            $this->redirect('/dashboard');
+            $this->redirect('/store');
             return;
         }
 

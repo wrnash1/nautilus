@@ -20,7 +20,7 @@ class VendorCatalogController extends Controller
      */
     public function index(): void
     {
-        $this->checkPermission('products.import');
+        $this->checkPermission('products.create');
 
         $vendors = $this->getVendors();
         $templates = $this->importService->getVendorTemplates();
@@ -37,10 +37,10 @@ class VendorCatalogController extends Controller
      */
     public function upload(): void
     {
-        $this->checkPermission('products.import');
+        $this->checkPermission('products.create');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/vendors/import');
+            $this->redirect('/store/vendor-catalog/import');
             return;
         }
 
@@ -86,11 +86,11 @@ class VendorCatalogController extends Controller
                 'detected_mappings' => $mappings
             ];
 
-            $this->redirect('/vendors/import/map');
+            $this->redirect('/store/vendor-catalog/import/map');
 
         } catch (\Exception $e) {
             $_SESSION['error'] = $e->getMessage();
-            $this->redirect('/vendors/import');
+            $this->redirect('/store/vendor-catalog/import');
         }
     }
 
@@ -99,10 +99,10 @@ class VendorCatalogController extends Controller
      */
     public function map(): void
     {
-        $this->checkPermission('products.import');
+        $this->checkPermission('products.create');
 
         if (!isset($_SESSION['import_data'])) {
-            $this->redirect('/vendors/import');
+            $this->redirect('/store/vendor-catalog/import');
             return;
         }
 
@@ -122,10 +122,10 @@ class VendorCatalogController extends Controller
      */
     public function preview(): void
     {
-        $this->checkPermission('products.import');
+        $this->checkPermission('products.create');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['import_data'])) {
-            $this->redirect('/vendors/import');
+            $this->redirect('/store/vendor-catalog/import');
             return;
         }
 
@@ -139,7 +139,7 @@ class VendorCatalogController extends Controller
             if (!$validation['valid']) {
                 $_SESSION['error'] = 'Validation failed: ' . implode(', ', array_slice($validation['errors'], 0, 5));
                 $_SESSION['import_mappings'] = $mappings;
-                $this->redirect('/vendors/import/map');
+                $this->redirect('/store/vendor-catalog/import/map');
                 return;
             }
 
@@ -155,11 +155,11 @@ class VendorCatalogController extends Controller
             $_SESSION['import_catalog_id'] = $catalogId;
             $_SESSION['import_mappings'] = $mappings;
 
-            $this->redirect('/vendors/import/preview/' . $catalogId);
+            $this->redirect('/store/vendor-catalog/import/preview/' . $catalogId);
 
         } catch (\Exception $e) {
             $_SESSION['error'] = $e->getMessage();
-            $this->redirect('/vendors/import/map');
+            $this->redirect('/store/vendor-catalog/import/map');
         }
     }
 
@@ -168,7 +168,7 @@ class VendorCatalogController extends Controller
      */
     public function showPreview(int $catalogId): void
     {
-        $this->checkPermission('products.import');
+        $this->checkPermission('products.create');
 
         $stagedProducts = $this->importService->getStagedProducts($catalogId, 50);
         $totalCount = $this->importService->getStagedCount($catalogId);
@@ -187,10 +187,10 @@ class VendorCatalogController extends Controller
      */
     public function commit(): void
     {
-        $this->checkPermission('products.import');
+        $this->checkPermission('products.create');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/vendors/import');
+            $this->redirect('/store/vendor-catalog/import');
             return;
         }
 
@@ -219,14 +219,14 @@ class VendorCatalogController extends Controller
                 unset($_SESSION['import_catalog_id']);
                 unset($_SESSION['import_mappings']);
 
-                $this->redirect('/products');
+                $this->redirect('/store/products');
             } else {
                 throw new \Exception($result['error'] ?? 'Import failed');
             }
 
         } catch (\Exception $e) {
             $_SESSION['error'] = $e->getMessage();
-            $this->redirect('/vendors/import');
+            $this->redirect('/store/vendor-catalog/import');
         }
     }
 
@@ -235,7 +235,7 @@ class VendorCatalogController extends Controller
      */
     public function cancel(): void
     {
-        $this->checkPermission('products.import');
+        $this->checkPermission('products.create');
 
         if (isset($_SESSION['import_catalog_id'])) {
             $this->importService->deleteCatalog($_SESSION['import_catalog_id']);
@@ -247,7 +247,7 @@ class VendorCatalogController extends Controller
         unset($_SESSION['import_mappings']);
 
         $_SESSION['info'] = 'Import cancelled';
-        $this->redirect('/vendors/import');
+        $this->redirect('/store/vendor-catalog/import');
     }
 
     /**

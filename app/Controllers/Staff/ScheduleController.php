@@ -20,7 +20,7 @@ class ScheduleController
     public function index()
     {
         if (!Auth::hasPermission('staff.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -45,7 +45,7 @@ class ScheduleController
     public function create()
     {
         if (!Auth::hasPermission('staff.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -63,7 +63,7 @@ class ScheduleController
     public function store()
     {
         if (!Auth::hasPermission('staff.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -80,10 +80,10 @@ class ScheduleController
 
         if ($scheduleId) {
             $_SESSION['success'] = 'Schedule created successfully.';
-            redirect('/staff/schedules');
+            redirect('/store/staff/schedules');
         } else {
             $_SESSION['error'] = 'Failed to create schedule.';
-            redirect('/staff/schedules/create');
+            redirect('/store/staff/schedules/create');
         }
     }
 
@@ -93,7 +93,7 @@ class ScheduleController
     public function delete($id)
     {
         if (!Auth::hasPermission('staff.delete')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -105,6 +105,6 @@ class ScheduleController
             $_SESSION['error'] = 'Failed to delete schedule.';
         }
 
-        redirect('/staff/schedules');
+        redirect('/store/staff/schedules');
     }
 }

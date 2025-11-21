@@ -20,7 +20,7 @@ class ReferralController
     public function index()
     {
         if (!Auth::hasPermission('marketing.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -40,7 +40,7 @@ class ReferralController
     public function history()
     {
         if (!Auth::hasPermission('marketing.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -59,7 +59,7 @@ class ReferralController
     public function customerReferrals($customerId)
     {
         if (!Auth::hasPermission('marketing.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -101,7 +101,7 @@ class ReferralController
     public function settings()
     {
         if (!Auth::hasPermission('marketing.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -120,7 +120,7 @@ class ReferralController
     public function updateSettings()
     {
         if (!Auth::hasPermission('marketing.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -140,6 +140,6 @@ class ReferralController
             $_SESSION['error'] = 'Failed to update settings.';
         }
 
-        redirect('/marketing/referrals/settings');
+        redirect('/store/marketing/referrals/settings');
     }
 }

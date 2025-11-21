@@ -15,21 +15,25 @@ class CouponService
 
     /**
      * Get all coupons
-     * 
+     *
      * @return array
      */
     public function getAllCoupons()
     {
-        $stmt = $this->db->query("
-            SELECT c.*, 
-                   COUNT(cu.id) as times_used,
-                   SUM(cu.discount_amount) as total_discount
-            FROM coupons c
-            LEFT JOIN coupon_usage cu ON c.id = cu.coupon_id
-            GROUP BY c.id
-            ORDER BY c.created_at DESC
-        ");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("
+                SELECT c.*,
+                       COUNT(cu.id) as times_used,
+                       SUM(cu.discount_amount) as total_discount
+                FROM coupons c
+                LEFT JOIN coupon_usage cu ON c.id = cu.coupon_id
+                GROUP BY c.id
+                ORDER BY c.created_at DESC
+            ");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            return [];
+        }
     }
 
     /**

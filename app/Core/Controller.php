@@ -22,9 +22,16 @@ class Controller
      */
     protected function checkPermission(string $permission): void
     {
+        // First check if user is logged in
+        if (Auth::guest()) {
+            $_SESSION['flash_error'] = 'Please login to continue';
+            redirect('/store/login');
+            exit;
+        }
+
         if (!hasPermission($permission)) {
-            $_SESSION['flash_error'] = 'Access denied';
-            redirect('/');
+            $_SESSION['flash_error'] = 'Access denied: You do not have permission to access this page';
+            redirect('/store');
             exit;
         }
     }

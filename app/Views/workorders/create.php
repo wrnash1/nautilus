@@ -83,7 +83,7 @@ $(document).ready(function() {
             return;
         }
         
-        $.get('/customers/search', { q: query }, function(data) {
+        $.get('/store/customers/search', { q: query }, function(data) {
             if (data.length > 0) {
                 let html = '';
                 data.forEach(customer => {

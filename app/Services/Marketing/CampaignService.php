@@ -15,23 +15,28 @@ class CampaignService
 
     /**
      * Get all campaigns
-     * 
+     *
      * @return array
      */
     public function getAllCampaigns()
     {
-        $stmt = $this->db->query("
-            SELECT c.*, 
-                   COUNT(cr.id) as recipient_count,
-                   SUM(CASE WHEN cr.status = 'sent' THEN 1 ELSE 0 END) as sent_count,
-                   SUM(CASE WHEN cr.opened_at IS NOT NULL THEN 1 ELSE 0 END) as opened_count,
-                   SUM(CASE WHEN cr.clicked_at IS NOT NULL THEN 1 ELSE 0 END) as clicked_count
-            FROM email_campaigns c
-            LEFT JOIN email_campaign_recipients cr ON c.id = cr.campaign_id
-            GROUP BY c.id
-            ORDER BY c.created_at DESC
-        ");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("
+                SELECT c.*,
+                       COUNT(cr.id) as recipient_count,
+                       SUM(CASE WHEN cr.status = 'sent' THEN 1 ELSE 0 END) as sent_count,
+                       SUM(CASE WHEN cr.opened_at IS NOT NULL THEN 1 ELSE 0 END) as opened_count,
+                       SUM(CASE WHEN cr.clicked_at IS NOT NULL THEN 1 ELSE 0 END) as clicked_count
+                FROM email_campaigns c
+                LEFT JOIN email_campaign_recipients cr ON c.id = cr.campaign_id
+                GROUP BY c.id
+                ORDER BY c.created_at DESC
+            ");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Table might not exist yet
+            return [];
+        }
     }
 
     /**
@@ -245,12 +250,17 @@ class CampaignService
      */
     public function getAllTemplates()
     {
-        $stmt = $this->db->query("
-            SELECT * FROM email_templates 
-            WHERE is_active = 1 
-            ORDER BY name ASC
-        ");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("
+                SELECT * FROM email_templates
+                WHERE is_active = 1
+                ORDER BY name ASC
+            ");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Table might not exist yet
+            return [];
+        }
     }
 
     /**

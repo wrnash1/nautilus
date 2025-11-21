@@ -15,23 +15,27 @@ class BlogService
 
     /**
      * Get all blog posts
-     * 
+     *
      * @return array
      */
     public function getAllPosts()
     {
-        $stmt = $this->db->query("
-            SELECT bp.*, u.first_name, u.last_name,
-                   COUNT(DISTINCT bpc.category_id) as category_count,
-                   COUNT(DISTINCT bpt.tag_id) as tag_count
-            FROM blog_posts bp
-            LEFT JOIN users u ON bp.author_id = u.id
-            LEFT JOIN blog_post_categories bpc ON bp.id = bpc.post_id
-            LEFT JOIN blog_post_tags bpt ON bp.id = bpt.post_id
-            GROUP BY bp.id
-            ORDER BY bp.created_at DESC
-        ");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("
+                SELECT bp.*, u.first_name, u.last_name,
+                       COUNT(DISTINCT bpc.category_id) as category_count,
+                       COUNT(DISTINCT bpt.tag_id) as tag_count
+                FROM blog_posts bp
+                LEFT JOIN users u ON bp.author_id = u.id
+                LEFT JOIN blog_post_categories bpc ON bp.id = bpc.post_id
+                LEFT JOIN blog_post_tags bpt ON bp.id = bpt.post_id
+                GROUP BY bp.id
+                ORDER BY bp.created_at DESC
+            ");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            return [];
+        }
     }
 
     /**
@@ -249,19 +253,27 @@ class BlogService
      */
     public function getAllCategories()
     {
-        $stmt = $this->db->query("SELECT * FROM blog_categories ORDER BY name ASC");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("SELECT * FROM blog_categories ORDER BY name ASC");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            return [];
+        }
     }
 
     /**
      * Get all tags
-     * 
+     *
      * @return array
      */
     public function getAllTags()
     {
-        $stmt = $this->db->query("SELECT * FROM blog_tags ORDER BY name ASC");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("SELECT * FROM blog_tags ORDER BY name ASC");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            return [];
+        }
     }
 
     /**

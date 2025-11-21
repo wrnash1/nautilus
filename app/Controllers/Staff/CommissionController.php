@@ -20,7 +20,7 @@ class CommissionController
     public function index()
     {
         if (!Auth::hasPermission('staff.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -39,7 +39,7 @@ class CommissionController
     public function staff($staffId)
     {
         if (!Auth::hasPermission('staff.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -59,7 +59,7 @@ class CommissionController
     public function reports()
     {
         if (!Auth::hasPermission('staff.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 

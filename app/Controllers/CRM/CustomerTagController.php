@@ -18,14 +18,24 @@ class CustomerTagController
         }
 
         $db = Database::getInstance();
-        $stmt = $db->query("SELECT * FROM customer_tags ORDER BY display_order, name");
-        $tags = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $tags = [];
 
-        // Get tag usage counts
-        foreach ($tags as &$tag) {
-            $stmt = $db->prepare("SELECT COUNT(*) as count FROM customer_tag_assignments WHERE tag_id = ?");
-            $stmt->execute([$tag['id']]);
-            $tag['customer_count'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+        try {
+            $stmt = $db->query("SELECT * FROM customer_tags ORDER BY display_order, name");
+            $tags = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Get tag usage counts
+            foreach ($tags as &$tag) {
+                try {
+                    $stmt = $db->prepare("SELECT COUNT(*) as count FROM customer_tag_assignments WHERE tag_id = ?");
+                    $stmt->execute([$tag['id']]);
+                    $tag['customer_count'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+                } catch (\PDOException $e) {
+                    $tag['customer_count'] = 0;
+                }
+            }
+        } catch (\PDOException $e) {
+            // Table might not exist yet
         }
 
         // Set variables for layout

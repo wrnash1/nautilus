@@ -20,12 +20,29 @@ class CashDrawerController
         $db = Database::getInstance();
 
         // Get all drawers
-        $stmt = $db->query("SELECT * FROM cash_drawers ORDER BY location, name");
-        $drawers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $drawers = [];
+        try {
+            $stmt = $db->query("SELECT * FROM cash_drawers ORDER BY location, name");
+            $drawers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Table might not exist
+        }
 
-        // Get open sessions
-        $stmt = $db->query("SELECT * FROM cash_drawer_sessions_open");
-        $openSessions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Get open sessions - use query instead of view
+        $openSessions = [];
+        try {
+            $stmt = $db->query("
+                SELECT cds.*, cd.name as drawer_name, cd.location as drawer_location,
+                       u.first_name, u.last_name, CONCAT(u.first_name, ' ', u.last_name) as user_name
+                FROM cash_drawer_sessions cds
+                LEFT JOIN cash_drawers cd ON cds.drawer_id = cd.id
+                LEFT JOIN users u ON cds.user_id = u.id
+                WHERE cds.status = 'open'
+            ");
+            $openSessions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Table might not exist
+        }
 
         $pageTitle = 'Cash Drawer Management';
         $activeMenu = 'cash-drawer';

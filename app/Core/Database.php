@@ -9,7 +9,21 @@ class Database
 {
     private static ?PDO $instance = null;
     
-    public static function getInstance(): PDO
+    public static function getInstance(): self
+    {
+        static $selfInstance = null;
+        if ($selfInstance === null) {
+            $selfInstance = new self();
+        }
+        return $selfInstance;
+    }
+
+    public function getConnection(): PDO
+    {
+        return self::getPdo();
+    }
+
+    public static function getPdo(): PDO
     {
         if (self::$instance === null) {
             try {
@@ -35,30 +49,42 @@ class Database
         
         return self::$instance;
     }
-    
+
     public static function query(string $sql, array $params = []): \PDOStatement
     {
-        $db = self::getInstance();
+        $db = self::getPdo();
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
         return $stmt;
     }
-    
+
     public static function fetchOne(string $sql, array $params = []): ?array
     {
-        $stmt = self::query($sql, $params);
-        $result = $stmt->fetch();
-        return $result !== false ? $result : null;
+        try {
+            $stmt = self::query($sql, $params);
+            $result = $stmt->fetch();
+            return $result !== false ? $result : null;
+        } catch (PDOException $e) {
+            // Log error but return null to prevent crashes
+            error_log("Database fetchOne error: " . $e->getMessage() . " SQL: " . substr($sql, 0, 100));
+            return null;
+        }
     }
-    
+
     public static function fetchAll(string $sql, array $params = []): array
     {
-        $stmt = self::query($sql, $params);
-        return $stmt->fetchAll();
+        try {
+            $stmt = self::query($sql, $params);
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            // Log error but return empty array to prevent crashes
+            error_log("Database fetchAll error: " . $e->getMessage() . " SQL: " . substr($sql, 0, 100));
+            return [];
+        }
     }
     
     public static function lastInsertId(): string
     {
-        return self::getInstance()->lastInsertId();
+        return self::getPdo()->lastInsertId();
     }
 }

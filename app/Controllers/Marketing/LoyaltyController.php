@@ -20,7 +20,7 @@ class LoyaltyController
     public function index()
     {
         if (!Auth::hasPermission('marketing.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -39,7 +39,7 @@ class LoyaltyController
     public function create()
     {
         if (!Auth::hasPermission('marketing.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -57,7 +57,7 @@ class LoyaltyController
     public function store()
     {
         if (!Auth::hasPermission('marketing.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -73,10 +73,10 @@ class LoyaltyController
 
         if ($programId) {
             $_SESSION['success'] = 'Loyalty program created successfully.';
-            redirect('/marketing/loyalty/' . $programId);
+            redirect('/store/marketing/loyalty/' . $programId);
         } else {
             $_SESSION['error'] = 'Failed to create loyalty program.';
-            redirect('/marketing/loyalty/create');
+            redirect('/store/marketing/loyalty/create');
         }
     }
 
@@ -86,14 +86,14 @@ class LoyaltyController
     public function show($id)
     {
         if (!Auth::hasPermission('marketing.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
         $program = $this->loyaltyService->getProgramById($id);
         if (!$program) {
             $_SESSION['error'] = 'Loyalty program not found.';
-            redirect('/marketing/loyalty');
+            redirect('/store/marketing/loyalty');
             return;
         }
 
@@ -112,14 +112,14 @@ class LoyaltyController
     public function edit($id)
     {
         if (!Auth::hasPermission('marketing.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
         $program = $this->loyaltyService->getProgramById($id);
         if (!$program) {
             $_SESSION['error'] = 'Loyalty program not found.';
-            redirect('/marketing/loyalty');
+            redirect('/store/marketing/loyalty');
             return;
         }
 
@@ -137,7 +137,7 @@ class LoyaltyController
     public function update($id)
     {
         if (!Auth::hasPermission('marketing.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -157,7 +157,7 @@ class LoyaltyController
             $_SESSION['error'] = 'Failed to update loyalty program.';
         }
 
-        redirect('/marketing/loyalty/' . $id);
+        redirect('/store/marketing/loyalty/' . $id);
     }
 
     /**
@@ -166,7 +166,7 @@ class LoyaltyController
     public function delete($id)
     {
         if (!Auth::hasPermission('marketing.delete')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -178,7 +178,7 @@ class LoyaltyController
             $_SESSION['error'] = 'Failed to delete loyalty program.';
         }
 
-        redirect('/marketing/loyalty');
+        redirect('/store/marketing/loyalty');
     }
 
     /**
@@ -187,7 +187,7 @@ class LoyaltyController
     public function customerPoints($customerId)
     {
         if (!Auth::hasPermission('marketing.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 

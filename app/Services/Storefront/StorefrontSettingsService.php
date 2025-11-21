@@ -106,27 +106,32 @@ class StorefrontSettingsService
      */
     public function getAll(): array
     {
-        $stmt = $this->db->query("
-            SELECT setting_key, setting_value, setting_type, category, description
-            FROM storefront_settings
-            ORDER BY category, setting_key
-        ");
-        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("
+                SELECT setting_key, setting_value, setting_type, category, description
+                FROM storefront_settings
+                ORDER BY category, setting_key
+            ");
+            $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        $settings = [];
-        foreach ($results as $row) {
-            if (!isset($settings[$row['category']])) {
-                $settings[$row['category']] = [];
+            $settings = [];
+            foreach ($results as $row) {
+                if (!isset($settings[$row['category']])) {
+                    $settings[$row['category']] = [];
+                }
+
+                $settings[$row['category']][$row['setting_key']] = [
+                    'value' => $this->castValue($row['setting_value'], $row['setting_type']),
+                    'type' => $row['setting_type'],
+                    'description' => $row['description']
+                ];
             }
 
-            $settings[$row['category']][$row['setting_key']] = [
-                'value' => $this->castValue($row['setting_value'], $row['setting_type']),
-                'type' => $row['setting_type'],
-                'description' => $row['description']
-            ];
+            return $settings;
+        } catch (\PDOException $e) {
+            // Table might not exist yet
+            return [];
         }
-
-        return $settings;
     }
 
     /**

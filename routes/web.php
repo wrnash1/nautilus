@@ -75,10 +75,11 @@ $router->get('/store/login', 'Auth\AuthController@showLogin');
 $router->post('/store/login', 'Auth\AuthController@login');
 $router->post('/store/logout', 'Auth\AuthController@logout', [AuthMiddleware::class]);
 
-// Customer Portal (Public - Authentication will be added later)
-$router->get('/portal', 'Portal\PortalController@index');
-$router->get('/portal/certifications', 'Portal\PortalController@certifications');
-$router->get('/portal/bookings', 'Portal\PortalController@bookings');
+// Customer Portal - Requires customer authentication
+// If not logged in, redirects to customer login page
+$router->get('/portal', 'Portal\PortalController@index', [\App\Middleware\CustomerAuthMiddleware::class]);
+$router->get('/portal/certifications', 'Portal\PortalController@certifications', [\App\Middleware\CustomerAuthMiddleware::class]);
+$router->get('/portal/bookings', 'Portal\PortalController@bookings', [\App\Middleware\CustomerAuthMiddleware::class]);
 
 // Storefront Configuration (Manager only)
 $router->get('/store/storefront', 'Admin\Storefront\StorefrontController@index', [AuthMiddleware::class]);
@@ -433,10 +434,10 @@ $router->get('/store/serial-numbers/search', 'SerialNumberController@search', [A
 $router->get('/store/serial-numbers/{id}/history', 'SerialNumberController@history', [AuthMiddleware::class]);
 
 // Vendor Catalog Import
-$router->get('/store/vendor-catalog/import', 'VendorCatalogController@import', [AuthMiddleware::class]);
+$router->get('/store/vendor-catalog/import', 'VendorCatalogController@index', [AuthMiddleware::class]);
 $router->post('/store/vendor-catalog/upload', 'VendorCatalogController@upload', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/vendor-catalog/preview', 'VendorCatalogController@preview', [AuthMiddleware::class, CsrfMiddleware::class]);
-$router->post('/store/vendor-catalog/process', 'VendorCatalogController@process', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/vendor-catalog/process', 'VendorCatalogController@commit', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/vendor-catalog/templates', 'VendorCatalogController@templates', [AuthMiddleware::class]);
 $router->get('/store/vendor-catalog/download-template/{vendor}', 'VendorCatalogController@downloadTemplate', [AuthMiddleware::class]);
 
@@ -568,14 +569,14 @@ $router->post('/store/communication/preferences/{customerId}', 'CommunicationCon
 
 // Equipment Maintenance
 $router->get('/store/maintenance', 'MaintenanceController@index', [AuthMiddleware::class]);
-$router->get('/store/maintenance/equipment/{id}', 'MaintenanceController@equipment', [AuthMiddleware::class]);
-$router->post('/store/maintenance/record', 'MaintenanceController@record', [AuthMiddleware::class, CsrfMiddleware::class]);
-$router->post('/store/maintenance/schedule', 'MaintenanceController@schedule', [AuthMiddleware::class, CsrfMiddleware::class]);
-$router->get('/store/maintenance/due', 'MaintenanceController@getDue', [AuthMiddleware::class]);
-$router->get('/store/maintenance/overdue', 'MaintenanceController@getOverdue', [AuthMiddleware::class]);
-$router->get('/store/maintenance/history/{equipmentId}', 'MaintenanceController@history', [AuthMiddleware::class]);
-$router->get('/store/maintenance/statistics', 'MaintenanceController@statistics', [AuthMiddleware::class]);
-$router->post('/store/maintenance/{id}/complete', 'MaintenanceController@complete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/maintenance/create', 'MaintenanceController@create', [AuthMiddleware::class]);
+$router->post('/store/maintenance/record', 'MaintenanceController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/maintenance/schedule', 'MaintenanceController@schedule', [AuthMiddleware::class]);
+$router->post('/store/maintenance/schedule', 'MaintenanceController@storeSchedule', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/maintenance/cost-analysis', 'MaintenanceController@costAnalysis', [AuthMiddleware::class]);
+$router->get('/store/maintenance/equipment/{id}/history', 'MaintenanceController@equipmentHistory', [AuthMiddleware::class]);
+$router->post('/store/maintenance/schedule/{id}/complete', 'MaintenanceController@completeSchedule', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/maintenance/schedule/{id}/cancel', 'MaintenanceController@cancelSchedule', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 // Advanced Inventory Management
 $router->get('/store/inventory/advanced', 'Inventory\AdvancedInventoryController@index', [AuthMiddleware::class]);
@@ -739,5 +740,102 @@ $router->get('/store/admin/help', 'HelpController@admin', [AuthMiddleware::class
 
 $router->get('/store/serial-numbers/scan', 'SerialNumberController@scan', [AuthMiddleware::class]);
 $router->post('/store/serial-numbers/scan', 'SerialNumberController@processScan', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// ============================================================================
+// LAYAWAY SYSTEM (Payment Plans)
+// ============================================================================
+
+$router->get('/store/layaway', 'Financial\LayawayController@index', [AuthMiddleware::class]);
+$router->get('/store/layaway/create', 'Financial\LayawayController@create', [AuthMiddleware::class]);
+$router->post('/store/layaway', 'Financial\LayawayController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/layaway/plans', 'Financial\LayawayController@plans', [AuthMiddleware::class]);
+$router->post('/store/layaway/plans', 'Financial\LayawayController@savePlan', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/layaway/upcoming', 'Financial\LayawayController@upcomingPayments', [AuthMiddleware::class]);
+$router->get('/store/layaway/{id}', 'Financial\LayawayController@show', [AuthMiddleware::class]);
+$router->post('/store/layaway/{id}/payment', 'Financial\LayawayController@recordPayment', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/layaway/{id}/cancel', 'Financial\LayawayController@cancel', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// ============================================================================
+// DIVING CLUBS
+// ============================================================================
+
+$router->get('/store/clubs', 'Club\ClubController@index', [AuthMiddleware::class]);
+$router->get('/store/clubs/dashboard', 'Club\ClubController@dashboard', [AuthMiddleware::class]);
+$router->get('/store/clubs/create', 'Club\ClubController@create', [AuthMiddleware::class]);
+$router->post('/store/clubs', 'Club\ClubController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/clubs/{id}', 'Club\ClubController@show', [AuthMiddleware::class]);
+$router->post('/store/clubs/{id}/member', 'Club\ClubController@addMember', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/clubs/{id}/events', 'Club\ClubController@events', [AuthMiddleware::class]);
+$router->post('/store/clubs/{id}/events', 'Club\ClubController@createEvent', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// ============================================================================
+// BUDDY SYSTEM (Dive Partner Management)
+// ============================================================================
+
+$router->get('/store/buddies', 'Buddy\BuddyController@index', [AuthMiddleware::class]);
+$router->get('/store/buddies/create', 'Buddy\BuddyController@create', [AuthMiddleware::class]);
+$router->get('/store/buddies/find-match', 'Buddy\BuddyController@findMatch', [AuthMiddleware::class]);
+$router->post('/store/buddies', 'Buddy\BuddyController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/buddies/{id}', 'Buddy\BuddyController@show', [AuthMiddleware::class]);
+$router->post('/store/buddies/{id}/status', 'Buddy\BuddyController@updateStatus', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/buddies/{id}/dive', 'Buddy\BuddyController@recordDive', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// ============================================================================
+// CONSERVATION TRACKING
+// ============================================================================
+
+$router->get('/store/conservation', 'Conservation\ConservationController@index', [AuthMiddleware::class]);
+$router->get('/store/conservation/dashboard', 'Conservation\ConservationController@dashboard', [AuthMiddleware::class]);
+$router->get('/store/conservation/create', 'Conservation\ConservationController@create', [AuthMiddleware::class]);
+$router->post('/store/conservation', 'Conservation\ConservationController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/conservation/{id}', 'Conservation\ConservationController@show', [AuthMiddleware::class]);
+$router->post('/store/conservation/{id}/participant', 'Conservation\ConservationController@addParticipant', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/conservation/{id}/hours', 'Conservation\ConservationController@logHours', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// ============================================================================
+// INSURANCE MANAGEMENT
+// ============================================================================
+
+$router->get('/store/insurance', 'Insurance\InsuranceController@index', [AuthMiddleware::class]);
+$router->get('/store/insurance/dashboard', 'Insurance\InsuranceController@dashboard', [AuthMiddleware::class]);
+$router->get('/store/insurance/expiring', 'Insurance\InsuranceController@expiring', [AuthMiddleware::class]);
+$router->get('/store/insurance/create', 'Insurance\InsuranceController@create', [AuthMiddleware::class]);
+$router->post('/store/insurance', 'Insurance\InsuranceController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/insurance/{id}', 'Insurance\InsuranceController@show', [AuthMiddleware::class]);
+$router->get('/store/insurance/{id}/edit', 'Insurance\InsuranceController@edit', [AuthMiddleware::class]);
+$router->post('/store/insurance/{id}', 'Insurance\InsuranceController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// ============================================================================
+// DIVE LOGS
+// ============================================================================
+
+$router->get('/store/dive-logs', 'DiveLog\DiveLogController@index', [AuthMiddleware::class]);
+$router->get('/store/dive-logs/dashboard', 'DiveLog\DiveLogController@dashboard', [AuthMiddleware::class]);
+$router->get('/store/dive-logs/create', 'DiveLog\DiveLogController@create', [AuthMiddleware::class]);
+$router->post('/store/dive-logs', 'DiveLog\DiveLogController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/dive-logs/customer/{id}', 'DiveLog\DiveLogController@customerLogs', [AuthMiddleware::class]);
+$router->get('/store/dive-logs/{id}', 'DiveLog\DiveLogController@show', [AuthMiddleware::class]);
+
+// ============================================================================
+// GIFT CARDS
+// ============================================================================
+
+$router->get('/store/gift-cards', 'GiftCard\GiftCardController@index', [AuthMiddleware::class]);
+$router->get('/store/gift-cards/create', 'GiftCard\GiftCardController@create', [AuthMiddleware::class]);
+$router->get('/store/gift-cards/check-balance', 'GiftCard\GiftCardController@checkBalance', [AuthMiddleware::class]);
+$router->post('/store/gift-cards', 'GiftCard\GiftCardController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/gift-cards/{id}', 'GiftCard\GiftCardController@show', [AuthMiddleware::class]);
+$router->post('/store/gift-cards/{id}/reload', 'GiftCard\GiftCardController@reload', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/gift-cards/{id}/deactivate', 'GiftCard\GiftCardController@deactivate', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// ============================================================================
+// PRE-DIVE SAFETY CHECKS
+// ============================================================================
+
+$router->get('/store/safety-checks', 'Safety\SafetyCheckController@index', [AuthMiddleware::class]);
+$router->get('/store/safety-checks/dashboard', 'Safety\SafetyCheckController@dashboard', [AuthMiddleware::class]);
+$router->get('/store/safety-checks/create', 'Safety\SafetyCheckController@create', [AuthMiddleware::class]);
+$router->post('/store/safety-checks', 'Safety\SafetyCheckController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/safety-checks/{id}', 'Safety\SafetyCheckController@show', [AuthMiddleware::class]);
 
 return $router;

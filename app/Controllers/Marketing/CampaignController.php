@@ -20,7 +20,7 @@ class CampaignController
     public function index()
     {
         if (!Auth::hasPermission('marketing.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -39,7 +39,7 @@ class CampaignController
     public function create()
     {
         if (!Auth::hasPermission('marketing.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -58,7 +58,7 @@ class CampaignController
     public function store()
     {
         if (!Auth::hasPermission('marketing.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -76,10 +76,10 @@ class CampaignController
 
         if ($campaignId) {
             $_SESSION['success'] = 'Campaign created successfully.';
-            redirect('/marketing/campaigns/' . $campaignId);
+            redirect('/store/marketing/campaigns/' . $campaignId);
         } else {
             $_SESSION['error'] = 'Failed to create campaign.';
-            redirect('/marketing/campaigns/create');
+            redirect('/store/marketing/campaigns/create');
         }
     }
 
@@ -89,14 +89,14 @@ class CampaignController
     public function show($id)
     {
         if (!Auth::hasPermission('marketing.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
         $campaign = $this->campaignService->getCampaignById($id);
         if (!$campaign) {
             $_SESSION['error'] = 'Campaign not found.';
-            redirect('/marketing/campaigns');
+            redirect('/store/marketing/campaigns');
             return;
         }
 
@@ -115,20 +115,20 @@ class CampaignController
     public function edit($id)
     {
         if (!Auth::hasPermission('marketing.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
         $campaign = $this->campaignService->getCampaignById($id);
         if (!$campaign) {
             $_SESSION['error'] = 'Campaign not found.';
-            redirect('/marketing/campaigns');
+            redirect('/store/marketing/campaigns');
             return;
         }
 
         if ($campaign['status'] !== 'draft') {
             $_SESSION['error'] = 'Only draft campaigns can be edited.';
-            redirect('/marketing/campaigns/' . $id);
+            redirect('/store/marketing/campaigns/' . $id);
             return;
         }
 
@@ -147,7 +147,7 @@ class CampaignController
     public function update($id)
     {
         if (!Auth::hasPermission('marketing.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -168,7 +168,7 @@ class CampaignController
             $_SESSION['error'] = 'Failed to update campaign.';
         }
 
-        redirect('/marketing/campaigns/' . $id);
+        redirect('/store/marketing/campaigns/' . $id);
     }
 
     /**
@@ -177,7 +177,7 @@ class CampaignController
     public function delete($id)
     {
         if (!Auth::hasPermission('marketing.delete')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -189,7 +189,7 @@ class CampaignController
             $_SESSION['error'] = 'Failed to delete campaign.';
         }
 
-        redirect('/marketing/campaigns');
+        redirect('/store/marketing/campaigns');
     }
 
     /**
@@ -198,7 +198,7 @@ class CampaignController
     public function send($id)
     {
         if (!Auth::hasPermission('marketing.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -210,7 +210,7 @@ class CampaignController
             $_SESSION['error'] = 'Failed to send campaign.';
         }
 
-        redirect('/marketing/campaigns/' . $id);
+        redirect('/store/marketing/campaigns/' . $id);
     }
 
     /**
@@ -219,7 +219,7 @@ class CampaignController
     public function templates()
     {
         if (!Auth::hasPermission('marketing.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 

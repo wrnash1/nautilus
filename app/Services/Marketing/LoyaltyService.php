@@ -15,16 +15,20 @@ class LoyaltyService
 
     /**
      * Get all loyalty programs
-     * 
+     *
      * @return array
      */
     public function getAllPrograms()
     {
-        $stmt = $this->db->query("
-            SELECT * FROM loyalty_programs 
-            ORDER BY created_at DESC
-        ");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("
+                SELECT * FROM loyalty_programs
+                ORDER BY created_at DESC
+            ");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            return [];
+        }
     }
 
     /**

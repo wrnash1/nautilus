@@ -134,8 +134,8 @@
                         <a class="nav-link" href="/contact">Contact</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a class="btn btn-outline-primary btn-sm" href="/portal">
-                            <i class="bi bi-person"></i> Customer Portal
+                        <a class="btn btn-outline-primary btn-sm" href="/account/login">
+                            <i class="bi bi-person"></i> Customer Login
                         </a>
                     </li>
                     <li class="nav-item ms-2">
@@ -228,9 +228,9 @@
                 <div class="col-md-2 mb-4">
                     <h6>Account</h6>
                     <ul class="list-unstyled">
-                        <li><a href="/portal">Customer Portal</a></li>
-                        <li><a href="/portal/certifications">My Certifications</a></li>
-                        <li><a href="/portal/bookings">My Bookings</a></li>
+                        <li><a href="/account/login">Customer Login</a></li>
+                        <li><a href="/account/register">Register</a></li>
+                        <li><a href="/account">My Account</a></li>
                         <li><a href="/store/login">Staff Login</a></li>
                     </ul>
                 </div>

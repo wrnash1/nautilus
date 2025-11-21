@@ -20,7 +20,7 @@ class TimeClockController
     public function index()
     {
         if (!Auth::hasPermission('staff.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -49,7 +49,7 @@ class TimeClockController
             $_SESSION['error'] = 'Failed to clock in. You may already be clocked in.';
         }
 
-        redirect('/staff/timeclock');
+        redirect('/store/staff/timeclock');
     }
 
     /**
@@ -66,7 +66,7 @@ class TimeClockController
             $_SESSION['error'] = 'Failed to clock out. You may not be clocked in.';
         }
 
-        redirect('/staff/timeclock');
+        redirect('/store/staff/timeclock');
     }
 
     /**
@@ -75,7 +75,7 @@ class TimeClockController
     public function reports()
     {
         if (!Auth::hasPermission('staff.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 

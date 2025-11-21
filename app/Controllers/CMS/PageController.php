@@ -20,7 +20,7 @@ class PageController
     public function index()
     {
         if (!Auth::hasPermission('cms.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -39,7 +39,7 @@ class PageController
     public function create()
     {
         if (!Auth::hasPermission('cms.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -57,7 +57,7 @@ class PageController
     public function store()
     {
         if (!Auth::hasPermission('cms.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -76,10 +76,10 @@ class PageController
 
         if ($pageId) {
             $_SESSION['success'] = 'Page created successfully.';
-            redirect('/cms/pages/' . $pageId);
+            redirect('/store/cms/pages/' . $pageId);
         } else {
             $_SESSION['error'] = 'Failed to create page.';
-            redirect('/cms/pages/create');
+            redirect('/store/cms/pages/create');
         }
     }
 
@@ -89,14 +89,14 @@ class PageController
     public function show($id)
     {
         if (!Auth::hasPermission('cms.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
         $page = $this->pageService->getPageById($id);
         if (!$page) {
             $_SESSION['error'] = 'Page not found.';
-            redirect('/cms/pages');
+            redirect('/store/cms/pages');
             return;
         }
 
@@ -114,14 +114,14 @@ class PageController
     public function edit($id)
     {
         if (!Auth::hasPermission('cms.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
         $page = $this->pageService->getPageById($id);
         if (!$page) {
             $_SESSION['error'] = 'Page not found.';
-            redirect('/cms/pages');
+            redirect('/store/cms/pages');
             return;
         }
 
@@ -139,7 +139,7 @@ class PageController
     public function update($id)
     {
         if (!Auth::hasPermission('cms.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -161,7 +161,7 @@ class PageController
             $_SESSION['error'] = 'Failed to update page.';
         }
 
-        redirect('/cms/pages/' . $id);
+        redirect('/store/cms/pages/' . $id);
     }
 
     /**
@@ -170,7 +170,7 @@ class PageController
     public function delete($id)
     {
         if (!Auth::hasPermission('cms.delete')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -182,7 +182,7 @@ class PageController
             $_SESSION['error'] = 'Failed to delete page.';
         }
 
-        redirect('/cms/pages');
+        redirect('/store/cms/pages');
     }
 
     /**
@@ -191,7 +191,7 @@ class PageController
     public function publish($id)
     {
         if (!Auth::hasPermission('cms.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -203,6 +203,6 @@ class PageController
             $_SESSION['error'] = 'Failed to publish page.';
         }
 
-        redirect('/cms/pages/' . $id);
+        redirect('/store/cms/pages/' . $id);
     }
 }

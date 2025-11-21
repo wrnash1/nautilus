@@ -25,41 +25,70 @@ class PublicController
     public function index()
     {
         $company = getCompanyInfo();
-        
-        // Get featured products
-        $stmt = $this->db->query("
-            SELECT p.*, c.name as category_name
-            FROM products p
-            LEFT JOIN product_categories c ON p.category_id = c.id
-            WHERE p.is_active = 1 AND p.is_featured = 1
-            ORDER BY p.created_at DESC
-            LIMIT 8
-        ");
-        $featuredProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Get featured products - with error handling for missing columns/tables
+        $featuredProducts = [];
+        try {
+            // Try with is_featured column first
+            $stmt = $this->db->query("
+                SELECT p.*, c.name as category_name
+                FROM products p
+                LEFT JOIN product_categories c ON p.category_id = c.id
+                WHERE p.is_active = 1 AND p.is_featured = 1
+                ORDER BY p.created_at DESC
+                LIMIT 8
+            ");
+            $featuredProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Fall back to just active products
+            try {
+                $stmt = $this->db->query("
+                    SELECT p.*, c.name as category_name
+                    FROM products p
+                    LEFT JOIN product_categories c ON p.category_id = c.id
+                    WHERE p.is_active = 1
+                    ORDER BY p.created_at DESC
+                    LIMIT 8
+                ");
+                $featuredProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (\PDOException $e2) {
+                // Tables might not exist yet
+            }
+        }
 
         // Get upcoming courses
-        $stmt = $this->db->query("
-            SELECT cs.*, c.name as course_name, c.description
-            FROM course_schedules cs
-            JOIN courses c ON cs.course_id = c.id
-            WHERE cs.start_date >= CURDATE()
-            AND cs.status = 'scheduled'
-            ORDER BY cs.start_date ASC
-            LIMIT 6
-        ");
-        $upcomingCourses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $upcomingCourses = [];
+        try {
+            $stmt = $this->db->query("
+                SELECT cs.*, c.name as course_name, c.description
+                FROM course_schedules cs
+                JOIN courses c ON cs.course_id = c.id
+                WHERE cs.start_date >= CURDATE()
+                AND cs.status = 'scheduled'
+                ORDER BY cs.start_date ASC
+                LIMIT 6
+            ");
+            $upcomingCourses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Table might not exist
+        }
 
         // Get upcoming trips
-        $stmt = $this->db->query("
-            SELECT ts.*, t.name as trip_name, t.description, t.destination
-            FROM trip_schedules ts
-            JOIN trips t ON ts.trip_id = t.id
-            WHERE ts.departure_date >= CURDATE()
-            AND ts.status IN ('scheduled', 'confirmed')
-            ORDER BY ts.departure_date ASC
-            LIMIT 6
-        ");
-        $upcomingTrips = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $upcomingTrips = [];
+        try {
+            $stmt = $this->db->query("
+                SELECT ts.*, t.name as trip_name, t.description, t.destination
+                FROM trip_schedules ts
+                JOIN trips t ON ts.trip_id = t.id
+                WHERE ts.departure_date >= CURDATE()
+                AND ts.status IN ('scheduled', 'confirmed')
+                ORDER BY ts.departure_date ASC
+                LIMIT 6
+            ");
+            $upcomingTrips = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Table might not exist
+        }
 
         require BASE_PATH . '/app/Views/public/index.php';
     }
@@ -70,36 +99,44 @@ class PublicController
     public function shop()
     {
         $company = getCompanyInfo();
-        
+
         // Get all active products with pagination
         $page = $_GET['page'] ?? 1;
         $perPage = 24;
         $offset = ($page - 1) * $perPage;
+        $products = [];
+        $totalProducts = 0;
+        $totalPages = 1;
+        $categories = [];
 
-        $stmt = $this->db->prepare("
-            SELECT p.*, c.name as category_name
-            FROM products p
-            LEFT JOIN product_categories c ON p.category_id = c.id
-            WHERE p.is_active = 1
-            ORDER BY p.name ASC
-            LIMIT ? OFFSET ?
-        ");
-        $stmt->execute([$perPage, $offset]);
-        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare("
+                SELECT p.*, c.name as category_name
+                FROM products p
+                LEFT JOIN product_categories c ON p.category_id = c.id
+                WHERE p.is_active = 1
+                ORDER BY p.name ASC
+                LIMIT ? OFFSET ?
+            ");
+            $stmt->execute([$perPage, $offset]);
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Get total count
-        $stmt = $this->db->query("SELECT COUNT(*) FROM products WHERE is_active = 1");
-        $totalProducts = $stmt->fetchColumn();
-        $totalPages = ceil($totalProducts / $perPage);
+            // Get total count
+            $stmt = $this->db->query("SELECT COUNT(*) FROM products WHERE is_active = 1");
+            $totalProducts = $stmt->fetchColumn();
+            $totalPages = ceil($totalProducts / $perPage) ?: 1;
 
-        // Get categories for filter
-        $stmt = $this->db->query("
-            SELECT id, name, (SELECT COUNT(*) FROM products WHERE category_id = product_categories.id AND is_active = 1) as product_count
-            FROM product_categories
-            WHERE is_active = 1
-            ORDER BY name ASC
-        ");
-        $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Get categories for filter
+            $stmt = $this->db->query("
+                SELECT id, name, (SELECT COUNT(*) FROM products WHERE category_id = product_categories.id AND is_active = 1) as product_count
+                FROM product_categories
+                WHERE is_active = 1
+                ORDER BY name ASC
+            ");
+            $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Tables might not exist yet
+        }
 
         require BASE_PATH . '/app/Views/public/shop.php';
     }
@@ -110,16 +147,20 @@ class PublicController
     public function courses()
     {
         $company = getCompanyInfo();
-        
-        // Get all active courses
-        $stmt = $this->db->query("
-            SELECT c.*, 
-                   (SELECT COUNT(*) FROM course_schedules WHERE course_id = c.id AND start_date >= CURDATE()) as upcoming_count
-            FROM courses c
-            WHERE c.is_active = 1
-            ORDER BY c.name ASC
-        ");
-        $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $courses = [];
+
+        try {
+            $stmt = $this->db->query("
+                SELECT c.*,
+                       (SELECT COUNT(*) FROM course_schedules WHERE course_id = c.id AND start_date >= CURDATE()) as upcoming_count
+                FROM courses c
+                WHERE c.is_active = 1
+                ORDER BY c.name ASC
+            ");
+            $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Tables might not exist yet
+        }
 
         require BASE_PATH . '/app/Views/public/courses.php';
     }
@@ -130,16 +171,20 @@ class PublicController
     public function trips()
     {
         $company = getCompanyInfo();
-        
-        // Get all active trips
-        $stmt = $this->db->query("
-            SELECT t.*,
-                   (SELECT COUNT(*) FROM trip_schedules WHERE trip_id = t.id AND departure_date >= CURDATE()) as upcoming_count
-            FROM trips t
-            WHERE t.is_active = 1
-            ORDER BY t.destination ASC
-        ");
-        $trips = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $trips = [];
+
+        try {
+            $stmt = $this->db->query("
+                SELECT t.*,
+                       (SELECT COUNT(*) FROM trip_schedules WHERE trip_id = t.id AND departure_date >= CURDATE()) as upcoming_count
+                FROM trips t
+                WHERE t.is_active = 1
+                ORDER BY t.destination ASC
+            ");
+            $trips = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Tables might not exist yet
+        }
 
         require BASE_PATH . '/app/Views/public/trips.php';
     }

@@ -15,18 +15,23 @@ class PageService
 
     /**
      * Get all pages
-     * 
+     *
      * @return array
      */
     public function getAllPages()
     {
-        $stmt = $this->db->query("
-            SELECT p.*, u.first_name, u.last_name 
-            FROM pages p
-            LEFT JOIN users u ON p.created_by = u.id
-            ORDER BY p.created_at DESC
-        ");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("
+                SELECT p.*, u.first_name, u.last_name
+                FROM pages p
+                LEFT JOIN users u ON p.created_by = u.id
+                ORDER BY p.created_at DESC
+            ");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Table might not exist yet
+            return [];
+        }
     }
 
     /**

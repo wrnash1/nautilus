@@ -15,21 +15,26 @@ class ReferralService
 
     /**
      * Get all referrals
-     * 
+     *
      * @return array
      */
     public function getAllReferrals()
     {
-        $stmt = $this->db->query("
-            SELECT rp.*, 
-                   c1.first_name as referrer_first_name, c1.last_name as referrer_last_name,
-                   c2.first_name as referred_first_name, c2.last_name as referred_last_name
-            FROM referral_program rp
-            JOIN customers c1 ON rp.referrer_customer_id = c1.id
-            JOIN customers c2 ON rp.referred_customer_id = c2.id
-            ORDER BY rp.created_at DESC
-        ");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("
+                SELECT rp.*,
+                       c1.first_name as referrer_first_name, c1.last_name as referrer_last_name,
+                       c2.first_name as referred_first_name, c2.last_name as referred_last_name
+                FROM referral_program rp
+                JOIN customers c1 ON rp.referrer_customer_id = c1.id
+                JOIN customers c2 ON rp.referred_customer_id = c2.id
+                ORDER BY rp.created_at DESC
+            ");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Table might not exist yet
+            return [];
+        }
     }
 
     /**
@@ -79,40 +84,60 @@ class ReferralService
      */
     public function getReferralStats()
     {
-        $stmt = $this->db->query("
-            SELECT 
-                COUNT(*) as total_referrals,
-                COUNT(DISTINCT referrer_customer_id) as total_referrers,
-                SUM(CASE WHEN reward_status = 'completed' THEN 1 ELSE 0 END) as completed_referrals,
-                SUM(referrer_reward_amount) as total_referrer_rewards,
-                SUM(referred_reward_amount) as total_referred_rewards
-            FROM referral_program
-        ");
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->query("
+                SELECT
+                    COUNT(*) as total_referrals,
+                    COUNT(DISTINCT referrer_customer_id) as total_referrers,
+                    SUM(CASE WHEN reward_status = 'completed' THEN 1 ELSE 0 END) as completed_referrals,
+                    SUM(referrer_reward_amount) as total_referrer_rewards,
+                    SUM(referred_reward_amount) as total_referred_rewards
+                FROM referral_program
+            ");
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: [
+                'total_referrals' => 0,
+                'total_referrers' => 0,
+                'completed_referrals' => 0,
+                'total_referrer_rewards' => 0,
+                'total_referred_rewards' => 0
+            ];
+        } catch (\PDOException $e) {
+            return [
+                'total_referrals' => 0,
+                'total_referrers' => 0,
+                'completed_referrals' => 0,
+                'total_referrer_rewards' => 0,
+                'total_referred_rewards' => 0
+            ];
+        }
     }
 
     /**
      * Get top referrers
-     * 
+     *
      * @param int $limit
      * @return array
      */
     public function getTopReferrers($limit = 10)
     {
-        $stmt = $this->db->prepare("
-            SELECT 
-                c.id, c.first_name, c.last_name, c.email,
-                COUNT(rp.id) as referral_count,
-                SUM(rp.referrer_reward_amount) as total_rewards
-            FROM customers c
-            JOIN referral_program rp ON c.id = rp.referrer_customer_id
-            WHERE rp.reward_status = 'completed'
-            GROUP BY c.id
-            ORDER BY referral_count DESC
-            LIMIT ?
-        ");
-        $stmt->execute([$limit]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    c.id, c.first_name, c.last_name, c.email,
+                    COUNT(rp.id) as referral_count,
+                    SUM(rp.referrer_reward_amount) as total_rewards
+                FROM customers c
+                JOIN referral_program rp ON c.id = rp.referrer_customer_id
+                WHERE rp.reward_status = 'completed'
+                GROUP BY c.id
+                ORDER BY referral_count DESC
+                LIMIT ?
+            ");
+            $stmt->execute([$limit]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            return [];
+        }
     }
 
     /**

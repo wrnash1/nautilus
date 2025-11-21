@@ -20,7 +20,7 @@ class StaffController
     public function index()
     {
         if (!Auth::hasPermission('staff.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -39,7 +39,7 @@ class StaffController
     public function show($id)
     {
         if (!Auth::hasPermission('staff.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -94,7 +94,7 @@ class StaffController
         foreach ($required as $field) {
             if (empty($_POST[$field])) {
                 $_SESSION['error'] = 'Please fill in all required fields.';
-                redirect('/staff/create');
+                redirect('/store/staff/create');
                 return;
             }
         }
@@ -102,14 +102,14 @@ class StaffController
         // Validate email format
         if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
             $_SESSION['error'] = 'Please enter a valid email address.';
-            redirect('/staff/create');
+            redirect('/store/staff/create');
             return;
         }
 
         // Validate password length
         if (strlen($_POST['password']) < 8) {
             $_SESSION['error'] = 'Password must be at least 8 characters long.';
-            redirect('/staff/create');
+            redirect('/store/staff/create');
             return;
         }
 
@@ -118,10 +118,10 @@ class StaffController
 
         if ($staffId) {
             $_SESSION['success'] = 'Staff member created successfully.';
-            redirect('/staff/' . $staffId);
+            redirect('/store/staff/' . $staffId);
         } else {
             $_SESSION['error'] = 'Failed to create staff member. Email may already be in use.';
-            redirect('/staff/create');
+            redirect('/store/staff/create');
         }
     }
 
@@ -131,7 +131,7 @@ class StaffController
     public function performance($id)
     {
         if (!Auth::hasPermission('staff.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 

@@ -20,7 +20,7 @@ class BlogController
     public function index()
     {
         if (!Auth::hasPermission('cms.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -39,7 +39,7 @@ class BlogController
     public function create()
     {
         if (!Auth::hasPermission('cms.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -59,7 +59,7 @@ class BlogController
     public function store()
     {
         if (!Auth::hasPermission('cms.create')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -82,10 +82,10 @@ class BlogController
 
         if ($postId) {
             $_SESSION['success'] = 'Blog post created successfully.';
-            redirect('/cms/blog/' . $postId);
+            redirect('/store/cms/blog/' . $postId);
         } else {
             $_SESSION['error'] = 'Failed to create blog post.';
-            redirect('/cms/blog/create');
+            redirect('/store/cms/blog/create');
         }
     }
 
@@ -95,14 +95,14 @@ class BlogController
     public function show($id)
     {
         if (!Auth::hasPermission('cms.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
         $post = $this->blogService->getPostById($id);
         if (!$post) {
             $_SESSION['error'] = 'Blog post not found.';
-            redirect('/cms/blog');
+            redirect('/store/cms/blog');
             return;
         }
 
@@ -122,14 +122,14 @@ class BlogController
     public function edit($id)
     {
         if (!Auth::hasPermission('cms.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
         $post = $this->blogService->getPostById($id);
         if (!$post) {
             $_SESSION['error'] = 'Blog post not found.';
-            redirect('/cms/blog');
+            redirect('/store/cms/blog');
             return;
         }
 
@@ -151,7 +151,7 @@ class BlogController
     public function update($id)
     {
         if (!Auth::hasPermission('cms.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -177,7 +177,7 @@ class BlogController
             $_SESSION['error'] = 'Failed to update blog post.';
         }
 
-        redirect('/cms/blog/' . $id);
+        redirect('/store/cms/blog/' . $id);
     }
 
     /**
@@ -186,7 +186,7 @@ class BlogController
     public function delete($id)
     {
         if (!Auth::hasPermission('cms.delete')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -198,7 +198,7 @@ class BlogController
             $_SESSION['error'] = 'Failed to delete blog post.';
         }
 
-        redirect('/cms/blog');
+        redirect('/store/cms/blog');
     }
 
     /**
@@ -207,7 +207,7 @@ class BlogController
     public function publish($id)
     {
         if (!Auth::hasPermission('cms.edit')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -219,7 +219,7 @@ class BlogController
             $_SESSION['error'] = 'Failed to publish blog post.';
         }
 
-        redirect('/cms/blog/' . $id);
+        redirect('/store/cms/blog/' . $id);
     }
 
     /**
@@ -228,7 +228,7 @@ class BlogController
     public function categories()
     {
         if (!Auth::hasPermission('cms.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 
@@ -247,7 +247,7 @@ class BlogController
     public function tags()
     {
         if (!Auth::hasPermission('cms.view')) {
-            redirect('/dashboard');
+            redirect('/store');
             return;
         }
 

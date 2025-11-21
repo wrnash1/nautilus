@@ -74,7 +74,7 @@ customerSearchInput.addEventListener('input', function() {
     }
     
     customerSearchTimeout = setTimeout(() => {
-        fetch(`/customers/search?q=${encodeURIComponent(query)}`)
+        fetch(`/store/customers/search?q=${encodeURIComponent(query)}`)
             .then(response => response.json())
             .then(customers => {
                 if (customers.length === 0) {
