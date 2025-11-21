@@ -156,7 +156,13 @@
 
                         <div class="mb-3">
                             <label for="db_password" class="form-label">Database Password</label>
-                            <input type="password" class="form-control" id="db_password" name="db_password">
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="db_password" name="db_password">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleDbPassword">
+                                    <i class="bi bi-eye" id="dbPasswordIcon"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">Leave empty if no password is set</small>
                         </div>
 
                         <button type="button" class="btn btn-outline-primary" id="testDbBtn">
@@ -189,16 +195,26 @@
 
                         <div class="mb-3">
                             <label for="admin_password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="admin_password" name="admin_password"
-                                   minlength="8" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="admin_password" name="admin_password"
+                                       minlength="8" required>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleAdminPassword">
+                                    <i class="bi bi-eye" id="adminPasswordIcon"></i>
+                                </button>
+                            </div>
                             <div class="password-strength" id="passwordStrength"></div>
                             <small class="text-muted">Minimum 8 characters</small>
                         </div>
 
                         <div class="mb-3">
                             <label for="admin_password_confirm" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="admin_password_confirm"
-                                   name="admin_password_confirm" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="admin_password_confirm"
+                                       name="admin_password_confirm" required>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleAdminPasswordConfirm">
+                                    <i class="bi bi-eye" id="adminPasswordConfirmIcon"></i>
+                                </button>
+                            </div>
                             <div id="passwordMatch" class="mt-1"></div>
                         </div>
                     </div>
@@ -257,6 +273,54 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Toggle database password visibility
+        document.getElementById('toggleDbPassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('db_password');
+            const icon = document.getElementById('dbPasswordIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
+        
+        // Toggle admin password visibility
+        document.getElementById('toggleAdminPassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('admin_password');
+            const icon = document.getElementById('adminPasswordIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
+        
+        // Toggle admin password confirm visibility
+        document.getElementById('toggleAdminPasswordConfirm').addEventListener('click', function() {
+            const passwordInput = document.getElementById('admin_password_confirm');
+            const icon = document.getElementById('adminPasswordConfirmIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
+        
         // Test database connection
         document.getElementById('testDbBtn').addEventListener('click', async function() {
             const btn = this;

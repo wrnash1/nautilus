@@ -186,6 +186,17 @@
                         <i class="bi bi-telephone"></i> <?= htmlspecialchars($company['phone']) ?><br>
                         <i class="bi bi-envelope"></i> <?= htmlspecialchars($company['email']) ?>
                     </p>
+                    
+                    <!-- Social Media Links -->
+                    <h6 class="mt-4">Follow Us</h6>
+                    <div class="social-links">
+                        <a href="#" class="text-white me-3" title="Facebook"><i class="bi bi-facebook fs-4"></i></a>
+                        <a href="#" class="text-white me-3" title="Instagram"><i class="bi bi-instagram fs-4"></i></a>
+                        <a href="#" class="text-white me-3" title="Twitter"><i class="bi bi-twitter fs-4"></i></a>
+                        <a href="#" class="text-white me-3" title="YouTube"><i class="bi bi-youtube fs-4"></i></a>
+                        <a href="#" class="text-white" title="LinkedIn"><i class="bi bi-linkedin fs-4"></i></a>
+                    </div>
+                    <small class="text-muted d-block mt-2">Social links can be configured in admin settings</small>
                 </div>
                 <div class="col-md-2 mb-4">
                     <h6>Shop</h6>

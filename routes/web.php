@@ -75,6 +75,11 @@ $router->get('/store/login', 'Auth\AuthController@showLogin');
 $router->post('/store/login', 'Auth\AuthController@login');
 $router->post('/store/logout', 'Auth\AuthController@logout', [AuthMiddleware::class]);
 
+// Customer Portal (Public - Authentication will be added later)
+$router->get('/portal', 'Portal\PortalController@index');
+$router->get('/portal/certifications', 'Portal\PortalController@certifications');
+$router->get('/portal/bookings', 'Portal\PortalController@bookings');
+
 // Storefront Configuration (Manager only)
 $router->get('/store/storefront', 'Admin\Storefront\StorefrontController@index', [AuthMiddleware::class]);
 $router->get('/store/storefront/builder', 'Admin\Storefront\StorefrontController@visualBuilder', [AuthMiddleware::class]);

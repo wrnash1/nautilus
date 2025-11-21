@@ -3,28 +3,107 @@ $pageTitle = 'Welcome';
 ob_start();
 ?>
 
-<!-- Hero Section -->
-<div class="hero-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1>Explore the Underwater World</h1>
-                <p class="lead">Your gateway to scuba diving adventures, professional training, and quality dive gear.</p>
-                <div class="mt-4">
-                    <a href="/courses" class="btn btn-light btn-lg me-2">
-                        <i class="bi bi-mortarboard"></i> Browse Courses
-                    </a>
-                    <a href="/shop" class="btn btn-outline-light btn-lg">
-                        <i class="bi bi-cart"></i> Shop Gear
-                    </a>
+<!-- Hero Carousel Section -->
+<div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+    </div>
+    
+    <div class="carousel-inner">
+        <!-- Slide 1: Ocean Adventure -->
+        <div class="carousel-item active">
+            <div class="hero-section" style="background: linear-gradient(135deg, rgba(0,102,204,0.9), rgba(0,51,102,0.9)), url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1200 600\"><defs><linearGradient id=\"water\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"><stop offset=\"0%\" style=\"stop-color:%230066cc;stop-opacity:1\" /><stop offset=\"100%\" style=\"stop-color:%23003366;stop-opacity:1\" /></linearGradient></defs><rect fill=\"url(%23water)\" width=\"1200\" height=\"600\"/><circle cx=\"200\" cy=\"150\" r=\"80\" fill=\"%23ffffff\" opacity=\"0.1\"/><circle cx=\"800\" cy=\"400\" r=\"120\" fill=\"%23ffffff\" opacity=\"0.08\"/><circle cx=\"1000\" cy=\"200\" r=\"60\" fill=\"%23ffffff\" opacity=\"0.12\"/></svg>'); background-size: cover; background-position: center;">
+                <div class=\"container\">
+                    <div class=\"row align-items-center\">
+                        <div class=\"col-lg-8 text-white\">
+                            <h1 class=\"display-3 fw-bold mb-4\">Explore the Underwater World</h1>
+                            <p class=\"lead fs-4 mb-4\">Discover the beauty beneath the waves. Professional training, quality gear, and unforgettable adventures await.</p>
+                            <div class=\"mt-4\">
+                                <a href=\"/courses\" class=\"btn btn-light btn-lg me-2 mb-2\">
+                                    <i class=\"bi bi-mortarboard\"></i> Browse Courses
+                                </a>
+                                <a href=\"/shop\" class=\"btn btn-outline-light btn-lg mb-2\">
+                                    <i class=\"bi bi-cart\"></i> Shop Gear
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-lg-6 text-center">
-                <i class="bi bi-water" style="font-size: 15rem; opacity: 0.2;"></i>
+        </div>
+        
+        <!-- Slide 2: Travel Destinations -->
+        <div class=\"carousel-item\">
+            <div class=\"hero-section\" style=\"background: linear-gradient(135deg, rgba(0,153,153,0.9), rgba(0,102,102,0.9)), url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1200 600\"><defs><linearGradient id=\"tropical\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"><stop offset=\"0%\" style=\"stop-color:%23009999;stop-opacity:1\" /><stop offset=\"100%\" style=\"stop-color:%23006666;stop-opacity:1\" /></linearGradient></defs><rect fill=\"url(%23tropical)\" width=\"1200\" height=\"600\"/><path d=\"M 100,500 Q 300,400 500,500 T 900,500\" stroke=\"%23ffffff\" stroke-width=\"3\" fill=\"none\" opacity=\"0.2\"/><circle cx=\"300\" cy=\"100\" r=\"40\" fill=\"%23ffcc00\" opacity=\"0.3\"/></svg>'); background-size: cover; background-position: center;">
+                <div class=\"container\">
+                    <div class=\"row align-items-center\">
+                        <div class=\"col-lg-8 text-white\">
+                            <h1 class=\"display-3 fw-bold mb-4\">Dive Exotic Destinations</h1>
+                            <p class=\"lead fs-4 mb-4\">Join us on incredible dive trips to the world's most beautiful underwater locations.</p>
+                            <div class=\"mt-4\">
+                                <a href=\"/trips\" class=\"btn btn-light btn-lg me-2 mb-2\">
+                                    <i class=\"bi bi-airplane\"></i> View Trips
+                                </a>
+                                <a href=\"/contact\" class=\"btn btn-outline-light btn-lg mb-2\">
+                                    <i class=\"bi bi-envelope\"></i> Contact Us
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 3: Professional Training -->
+        <div class=\"carousel-item\">
+            <div class=\"hero-section\" style=\"background: linear-gradient(135deg, rgba(51,102,204,0.9), rgba(25,51,153,0.9)), url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1200 600\"><defs><linearGradient id=\"deep\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"><stop offset=\"0%\" style=\"stop-color:%233366cc;stop-opacity:1\" /><stop offset=\"100%\" style=\"stop-color:%23193399;stop-opacity:1\" /></linearGradient></defs><rect fill=\"url(%23deep)\" width=\"1200\" height=\"600\"/><ellipse cx=\"600\" cy=\"300\" rx=\"400\" ry=\"200\" fill=\"%23ffffff\" opacity=\"0.05\"/><path d=\"M 200,300 L 400,200 L 600,300 L 800,200 L 1000,300\" stroke=\"%23ffffff\" stroke-width=\"2\" fill=\"none\" opacity=\"0.15\"/></svg>'); background-size: cover; background-position: center;">
+                <div class=\"container\">
+                    <div class=\"row align-items-center\">
+                        <div class=\"col-lg-8 text-white\">
+                            <h1 class=\"display-3 fw-bold mb-4\">Professional Dive Training</h1>
+                            <p class=\"lead fs-4 mb-4\">Learn from PADI-certified instructors. From beginner to advanced, we'll guide your journey.</p>
+                            <div class=\"mt-4\">
+                                <a href=\"/courses\" class=\"btn btn-light btn-lg me-2 mb-2\">
+                                    <i class=\"bi bi-award\"></i> Get Certified
+                                </a>
+                                <a href=\"/about\" class=\"btn btn-outline-light btn-lg mb-2\">
+                                    <i class=\"bi bi-info-circle\"></i> Learn More
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    
+    <button class=\"carousel-control-prev\" type=\"button\" data-bs-target=\"#heroCarousel\" data-bs-slide=\"prev\">
+        <span class=\"carousel-control-prev-icon\" aria-hidden=\"true\"></span>
+        <span class=\"visually-hidden\">Previous</span>
+    </button>
+    <button class=\"carousel-control-next\" type=\"button\" data-bs-target=\"#heroCarousel\" data-bs-slide=\"next\">
+        <span class=\"carousel-control-next-icon\" aria-hidden=\"true\"></span>
+        <span class=\"visually-hidden\">Next</span>
+    </button>
 </div>
+
+<style>
+.carousel-fade .carousel-item {
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+.carousel-fade .carousel-item.active {
+    opacity: 1;
+}
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: rgba(0,0,0,0.3);
+    border-radius: 50%;
+    padding: 20px;
+}
+</style>
 
 <!-- Featured Products -->
 <?php if (!empty($featuredProducts)): ?>
