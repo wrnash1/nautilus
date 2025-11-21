@@ -571,28 +571,32 @@ class InstallService
     {
         $pdo = $this->createDatabaseConnection();
 
-        // Save business/company name to settings
-        $stmt = $pdo->prepare("
-            INSERT INTO settings (category, `key`, `value`, type, description, updated_at)
-            VALUES ('general', 'business_name', ?, 'string', 'Company/Business Name', NOW())
-            ON DUPLICATE KEY UPDATE `value` = ?, updated_at = NOW()
-        ");
-        $stmt->execute([$config['app_name'], $config['app_name']]);
-        $stmt->closeCursor();
-
-        // Save other initial settings if needed
-        $defaultSettings = [
-            ['general', 'timezone', $config['app_timezone'] ?? 'America/New_York', 'string', 'System Timezone'],
-            ['general', 'currency', 'USD', 'string', 'Default Currency'],
-            ['general', 'date_format', 'Y-m-d', 'string', 'Date Format'],
-            ['general', 'time_format', 'H:i:s', 'string', 'Time Format'],
+        // Company settings to save
+        $companySettings = [
+            ['business_name', $config['company_name'] ?? $config['app_name'] ?? 'Nautilus Dive Shop', 'string', 'Business/Company Name'],
+            ['business_email', $config['company_email'] ?? '', 'string', 'Business Email'],
+            ['business_phone', $config['company_phone'] ?? '', 'string', 'Business Phone'],
+            ['business_address', $config['company_address'] ?? '', 'string', 'Business Address'],
+            ['business_city', $config['company_city'] ?? '', 'string', 'Business City'],
+            ['business_state', $config['company_state'] ?? '', 'string', 'Business State'],
+            ['business_zip', $config['company_zip'] ?? '', 'string', 'Business ZIP Code'],
+            ['business_country', $config['company_country'] ?? 'US', 'string', 'Business Country'],
+            ['brand_primary_color', '#0066cc', 'string', 'Primary Brand Color'],
+            ['brand_secondary_color', '#003366', 'string', 'Secondary Brand Color'],
+            ['company_logo_path', '', 'string', 'Company Logo Path'],
+            ['company_logo_small_path', '', 'string', 'Company Small Logo Path'],
+            ['company_favicon_path', '', 'string', 'Company Favicon Path'],
+            ['tax_rate', '0.07', 'float', 'Default Tax Rate'],
+            ['currency', 'USD', 'string', 'Currency Code'],
+            ['timezone', $config['app_timezone'] ?? 'America/New_York', 'string', 'Timezone'],
+            ['setup_complete', '1', 'boolean', 'Whether initial setup is complete'],
         ];
 
-        foreach ($defaultSettings as $setting) {
+        foreach ($companySettings as $setting) {
             $stmt = $pdo->prepare("
-                INSERT INTO settings (category, `key`, `value`, type, description, updated_at)
-                VALUES (?, ?, ?, ?, ?, NOW())
-                ON DUPLICATE KEY UPDATE updated_at = NOW()
+                INSERT INTO system_settings (setting_key, setting_value, setting_type, description, updated_at)
+                VALUES (?, ?, ?, ?, NOW())
+                ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW()
             ");
             $stmt->execute($setting);
             $stmt->closeCursor();

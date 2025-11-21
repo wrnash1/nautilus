@@ -97,6 +97,98 @@
                 </ul>
 
                 <h3 class="mb-3">System Requirements</h3>
+                
+                <?php
+                // Check server configuration
+                $serverName = $_SERVER['SERVER_NAME'] ?? 'localhost';
+                $serverAddr = $_SERVER['SERVER_ADDR'] ?? '';
+                $httpHost = $_SERVER['HTTP_HOST'] ?? '';
+                $isLocalhost = in_array($serverName, ['localhost', '127.0.0.1', '::1']);
+                $isFQDN = !$isLocalhost && strpos($serverName, '.') !== false;
+                $isApache = strpos($_SERVER['SERVER_SOFTWARE'] ?? '', 'Apache') !== false;
+                $isNginx = strpos($_SERVER['SERVER_SOFTWARE'] ?? '', 'nginx') !== false;
+                
+                // Check if using IP address vs domain
+                $isIPAddress = filter_var($serverName, FILTER_VALIDATE_IP) !== false;
+                
+                // Check IPv6 support
+                $hasIPv6 = defined('AF_INET6');
+                
+                // Check URL rewriting
+                $hasModRewrite = function_exists('apache_get_modules') ? in_array('mod_rewrite', apache_get_modules()) : true;
+                ?>
+                
+                <div class="alert alert-warning mb-3">
+                    <strong><i class="bi bi-exclamation-triangle-fill"></i> Important:</strong>
+                    For production use, ensure you have a proper domain name and SSL certificate configured.
+                </div>
+                
+                <h5 class="mt-4 mb-3">Server Configuration</h5>
+                
+                <div class="requirement <?= $isFQDN ? 'met' : 'not-met' ?>">
+                    <strong>
+                        <i class="bi bi-<?= $isFQDN ? 'check-circle-fill text-success' : 'exclamation-triangle-fill text-warning' ?>"></i>
+                        Domain Name:
+                    </strong>
+                    <?= htmlspecialchars($serverName) ?>
+                    <?php if (!$isFQDN && !$isLocalhost): ?>
+                        <br><small class="text-warning">⚠️ Recommended: Use a fully qualified domain name (FQDN) like "diveshop.com" instead of IP address</small>
+                    <?php elseif ($isLocalhost): ?>
+                        <br><small class="text-muted">ℹ️ Local development environment detected</small>
+                    <?php endif; ?>
+                </div>
+                
+                <div class="requirement <?= ($isApache || $isNginx) ? 'met' : 'not-met' ?>">
+                    <strong>
+                        <i class="bi bi-<?= ($isApache || $isNginx) ? 'check-circle-fill text-success' : 'x-circle-fill text-danger' ?>"></i>
+                        Web Server:
+                    </strong>
+                    <?= htmlspecialchars($_SERVER['SERVER_SOFTWARE'] ?? 'Unknown') ?>
+                    <?php if (!$isApache && !$isNginx): ?>
+                        <br><small class="text-warning">⚠️ Apache or Nginx recommended</small>
+                    <?php endif; ?>
+                </div>
+                
+                <div class="requirement <?= !$isIPAddress || $isLocalhost ? 'met' : 'not-met' ?>">
+                    <strong>
+                        <i class="bi bi-<?= !$isIPAddress || $isLocalhost ? 'check-circle-fill text-success' : 'exclamation-triangle-fill text-warning' ?>"></i>
+                        IP Address Type:
+                    </strong>
+                    <?php if ($isIPAddress && !$isLocalhost): ?>
+                        Using IP Address (<?= htmlspecialchars($serverName) ?>)
+                        <br><small class="text-warning">⚠️ Recommended: Configure a domain name instead of using IP address directly</small>
+                        <br><small class="text-muted">💡 Tip: Set up a static IP and configure DNS A/AAAA records</small>
+                    <?php elseif ($isLocalhost): ?>
+                        Local Development
+                    <?php else: ?>
+                        Domain Name Configured
+                    <?php endif; ?>
+                </div>
+                
+                <div class="requirement <?= $hasIPv6 ? 'met' : 'not-met' ?>">
+                    <strong>
+                        <i class="bi bi-<?= $hasIPv6 ? 'check-circle-fill text-success' : 'exclamation-triangle-fill text-warning' ?>"></i>
+                        IPv6 Support:
+                    </strong>
+                    <?= $hasIPv6 ? 'Available' : 'Not Available' ?>
+                    <?php if (!$hasIPv6): ?>
+                        <br><small class="text-muted">ℹ️ IPv6 is optional but recommended for future compatibility</small>
+                    <?php endif; ?>
+                </div>
+                
+                <div class="requirement <?= $hasModRewrite ? 'met' : 'not-met' ?>">
+                    <strong>
+                        <i class="bi bi-<?= $hasModRewrite ? 'check-circle-fill text-success' : 'exclamation-triangle-fill text-warning' ?>"></i>
+                        URL Rewriting:
+                    </strong>
+                    <?= $hasModRewrite ? 'Enabled' : 'Unknown' ?>
+                    <?php if (!$hasModRewrite && $isApache): ?>
+                        <br><small class="text-warning">⚠️ Enable mod_rewrite in Apache for clean URLs</small>
+                    <?php endif; ?>
+                </div>
+                
+                <h5 class="mt-4 mb-3">PHP Requirements</h5>
+                
                 <div class="requirement met">
                     <strong><i class="bi bi-check-circle-fill text-success"></i> PHP Version:</strong>
                     PHP <?= PHP_VERSION ?> (Requires PHP 8.2+)
@@ -115,6 +207,9 @@
                     </strong>
                     <?= extension_loaded('mbstring') ? 'Installed' : 'Not Installed' ?>
                 </div>
+                
+                <h5 class="mt-4 mb-3">File Permissions</h5>
+                
                 <div class="requirement <?= is_writable(__DIR__ . '/../../../storage') ? 'met' : 'not-met' ?>">
                     <strong>
                         <i class="bi bi-<?= is_writable(__DIR__ . '/../../../storage') ? 'check-circle-fill text-success' : 'x-circle-fill text-danger' ?>"></i>

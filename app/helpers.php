@@ -178,3 +178,35 @@ if (!function_exists('setSettingValue')) {
         }
     }
 }
+
+if (!function_exists('getCompanyInfo')) {
+    /**
+     * Get company/business information
+     *
+     * @return array Company information array
+     */
+    function getCompanyInfo(): array
+    {
+        try {
+            $settings = \App\Core\Settings::getInstance();
+            return $settings->getCompanyInfo();
+        } catch (\Exception $e) {
+            // Return defaults if database not available
+            return [
+                'name' => 'Nautilus Dive Shop',
+                'email' => '',
+                'phone' => '',
+                'address' => '',
+                'city' => '',
+                'state' => '',
+                'zip' => '',
+                'country' => 'US',
+                'logo' => '',
+                'logo_small' => '',
+                'favicon' => '',
+                'primary_color' => '#0066cc',
+                'secondary_color' => '#003366',
+            ];
+        }
+    }
+}

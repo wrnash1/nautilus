@@ -21,25 +21,27 @@ $router->get('/deploy', 'Install\DeploymentController@run');
 // PUBLIC STOREFRONT ROUTES (Customer-facing website)
 // ============================================================================
 
-// Homepage - Public storefront
-$router->get('/', 'Storefront\ModernStorefrontController@index');
-$router->get('/about', 'HomeController@about');
-$router->get('/contact', 'HomeController@contact');
-$router->post('/contact', 'HomeController@submitContact', [CsrfMiddleware::class]);
+// Homepage - Public storefront (NO SIDEBAR - Public facing)
+$router->get('/', 'PublicController@index');
+$router->get('/about', 'PublicController@about');
+$router->get('/contact', 'PublicController@contact');
+$router->post('/contact', 'PublicController@submitContact', [CsrfMiddleware::class]);
 
-// Shop & Products
-$router->get('/shop', 'Storefront\ModernStorefrontController@shop');
-$router->get('/product/{id}', 'Storefront\ModernStorefrontController@product');
+// Shop & Products (Public)
+$router->get('/shop', 'PublicController@shop');
+$router->get('/product/{id}', 'PublicController@productDetail');
 
-// Shopping Cart
+// Courses & Trips (Public)
+$router->get('/courses', 'PublicController@courses');
+$router->get('/course/{id}', 'PublicController@courseDetail');
+$router->get('/trips', 'PublicController@trips');
+$router->get('/trip/{id}', 'PublicController@tripDetail');
+
+// Shopping Cart (Public)
 $router->get('/cart', 'Storefront\ModernStorefrontController@cart');
 $router->get('/checkout', 'Storefront\ModernStorefrontController@checkout');
 $router->post('/checkout/process', 'Storefront\ModernStorefrontController@processCheckout');
 $router->get('/checkout/success', 'Storefront\ModernStorefrontController@checkoutSuccess');
-
-// Courses & Trips
-$router->get('/courses', 'Storefront\ModernStorefrontController@courses');
-$router->get('/course/{id}', 'Storefront\ModernStorefrontController@courseDetail');
 
 // API Endpoints - Cart (Public)
 $router->post('/api/cart/add', 'API\CartController@add');
