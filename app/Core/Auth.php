@@ -29,9 +29,17 @@ class Auth
     
     public static function login(array $user): void
     {
+        // Regenerate session ID to prevent session fixation attacks
+        session_regenerate_id(true);
+
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_role'] = $user['role_id'];
         $_SESSION['tenant_id'] = $user['tenant_id'] ?? null;
+        $_SESSION['login_time'] = time();
+        $_SESSION['last_activity'] = time();
+        $_SESSION['login_ip'] = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $_SESSION['login_user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+
         self::$user = $user;
 
         User::updateLastLogin($user['id']);

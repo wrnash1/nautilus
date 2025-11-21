@@ -87,4 +87,59 @@ class Database
     {
         return self::getPdo()->lastInsertId();
     }
+
+    /**
+     * Begin a database transaction
+     */
+    public static function beginTransaction(): bool
+    {
+        return self::getPdo()->beginTransaction();
+    }
+
+    /**
+     * Commit the active database transaction
+     */
+    public static function commit(): bool
+    {
+        return self::getPdo()->commit();
+    }
+
+    /**
+     * Rollback the active database transaction
+     */
+    public static function rollBack(): bool
+    {
+        return self::getPdo()->rollBack();
+    }
+
+    /**
+     * Check if currently in a transaction
+     */
+    public static function inTransaction(): bool
+    {
+        return self::getPdo()->inTransaction();
+    }
+
+    /**
+     * Execute a callback within a database transaction
+     * Automatically commits on success or rolls back on exception
+     *
+     * @param callable $callback The callback to execute
+     * @return mixed The callback's return value
+     * @throws \Exception If the callback throws an exception
+     */
+    public static function transaction(callable $callback)
+    {
+        self::beginTransaction();
+
+        try {
+            $result = $callback();
+            self::commit();
+            return $result;
+        } catch (\Exception $e) {
+            self::rollBack();
+            error_log("Transaction failed: " . $e->getMessage());
+            throw $e;
+        }
+    }
 }

@@ -74,8 +74,8 @@ ob_start();
                             <input type="tel" class="form-control" id="mobile" name="mobile">
                         </div>
                         <div class="col-md-6 mb-3" id="birthDateField">
-                            <label for="birth_date" class="form-label">Date of Birth</label>
-                            <input type="date" class="form-control" id="birth_date" name="birth_date">
+                            <label for="birth_date" class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="birth_date" name="birth_date" required>
                         </div>
                     </div>
                     
@@ -139,12 +139,34 @@ ob_start();
                             <input type="text" class="form-control" id="city" name="city">
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label for="state" class="form-label">State</label>
-                            <input type="text" class="form-control" id="state" name="state">
+                            <label for="state" class="form-label">State <span class="text-danger">*</span></label>
+                            <select class="form-select" id="state" name="state" required>
+                                <option value="">Select State</option>
+                                <?php
+                                $states = [
+                                    'AL' => 'Alabama', 'AK' => 'Alaska', 'AZ' => 'Arizona', 'AR' => 'Arkansas',
+                                    'CA' => 'California', 'CO' => 'Colorado', 'CT' => 'Connecticut', 'DE' => 'Delaware',
+                                    'FL' => 'Florida', 'GA' => 'Georgia', 'HI' => 'Hawaii', 'ID' => 'Idaho',
+                                    'IL' => 'Illinois', 'IN' => 'Indiana', 'IA' => 'Iowa', 'KS' => 'Kansas',
+                                    'KY' => 'Kentucky', 'LA' => 'Louisiana', 'ME' => 'Maine', 'MD' => 'Maryland',
+                                    'MA' => 'Massachusetts', 'MI' => 'Michigan', 'MN' => 'Minnesota', 'MS' => 'Mississippi',
+                                    'MO' => 'Missouri', 'MT' => 'Montana', 'NE' => 'Nebraska', 'NV' => 'Nevada',
+                                    'NH' => 'New Hampshire', 'NJ' => 'New Jersey', 'NM' => 'New Mexico', 'NY' => 'New York',
+                                    'NC' => 'North Carolina', 'ND' => 'North Dakota', 'OH' => 'Ohio', 'OK' => 'Oklahoma',
+                                    'OR' => 'Oregon', 'PA' => 'Pennsylvania', 'RI' => 'Rhode Island', 'SC' => 'South Carolina',
+                                    'SD' => 'South Dakota', 'TN' => 'Tennessee', 'TX' => 'Texas', 'UT' => 'Utah',
+                                    'VT' => 'Vermont', 'VA' => 'Virginia', 'WA' => 'Washington', 'WV' => 'West Virginia',
+                                    'WI' => 'Wisconsin', 'WY' => 'Wyoming', 'DC' => 'District of Columbia'
+                                ];
+                                foreach ($states as $code => $name):
+                                ?>
+                                <option value="<?= $code ?>"><?= $name ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="postal_code" class="form-label">Postal Code</label>
-                            <input type="text" class="form-control" id="postal_code" name="postal_code">
+                            <label for="postal_code" class="form-label">Postal Code <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="postal_code" name="postal_code" required>
                         </div>
                     </div>
                     

@@ -18,6 +18,14 @@ $router->get('/install/complete', 'Install\InstallController@complete');
 $router->get('/deploy', 'Install\DeploymentController@run');
 
 // ============================================================================
+// HEALTH CHECK ROUTES (for load balancers and monitoring)
+// ============================================================================
+$router->get('/health', 'HealthCheckController@index');
+$router->get('/health/detailed', 'HealthCheckController@detailed');
+$router->get('/health/ready', 'HealthCheckController@ready');
+$router->get('/health/alive', 'HealthCheckController@alive');
+
+// ============================================================================
 // PUBLIC STOREFRONT ROUTES (Customer-facing website)
 // ============================================================================
 

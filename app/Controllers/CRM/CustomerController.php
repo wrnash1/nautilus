@@ -56,6 +56,8 @@ class CustomerController
         }
         
         try {
+            $birthDate = sanitizeInput($_POST['birth_date'] ?? '');
+
             $data = [
                 'customer_type' => sanitizeInput($_POST['customer_type'] ?? 'B2C'),
                 'first_name' => sanitizeInput($_POST['first_name'] ?? ''),
@@ -64,7 +66,7 @@ class CustomerController
                 'phone' => sanitizeInput($_POST['phone'] ?? ''),
                 'mobile' => sanitizeInput($_POST['mobile'] ?? ''),
                 'company_name' => sanitizeInput($_POST['company_name'] ?? ''),
-                'birth_date' => sanitizeInput($_POST['birth_date'] ?? ''),
+                'birth_date' => !empty($birthDate) ? $birthDate : null,
                 'emergency_contact_name' => sanitizeInput($_POST['emergency_contact_name'] ?? ''),
                 'emergency_contact_phone' => sanitizeInput($_POST['emergency_contact_phone'] ?? ''),
                 'tax_exempt' => isset($_POST['tax_exempt']) ? 1 : 0,
@@ -79,7 +81,7 @@ class CustomerController
                 'country' => sanitizeInput($_POST['country'] ?? 'US'),
                 'notes' => sanitizeInput($_POST['notes'] ?? '')
             ];
-            
+
             $customerId = $this->customerService->createCustomer($data);
             
             $_SESSION['flash_success'] = 'Customer created successfully';
@@ -116,15 +118,27 @@ class CustomerController
             $_SESSION['flash_error'] = 'Access denied';
             redirect('/customers');
         }
-        
+
         $customer = Customer::find($id);
         $address = Customer::getDefaultAddress($id);
-        
+
         if (!$customer) {
             $_SESSION['flash_error'] = 'Customer not found';
             redirect('/customers');
         }
-        
+
+        // Load certification agencies
+        $certificationAgencies = \App\Core\Database::fetchAll("SELECT id, name, code FROM certification_agencies WHERE is_active = 1 ORDER BY name");
+
+        // Load customer certifications
+        $certifications = \App\Core\Database::fetchAll("
+            SELECT cc.*, ca.name as agency_name, ca.code as agency_code
+            FROM customer_certifications cc
+            LEFT JOIN certification_agencies ca ON cc.certification_agency_id = ca.id
+            WHERE cc.customer_id = ?
+            ORDER BY cc.issue_date DESC
+        ", [$id]);
+
         require __DIR__ . '/../../Views/customers/edit.php';
     }
     
@@ -135,6 +149,8 @@ class CustomerController
         }
         
         try {
+            $birthDate = sanitizeInput($_POST['birth_date'] ?? '');
+
             $data = [
                 'customer_type' => sanitizeInput($_POST['customer_type'] ?? 'B2C'),
                 'first_name' => sanitizeInput($_POST['first_name'] ?? ''),
@@ -143,7 +159,7 @@ class CustomerController
                 'phone' => sanitizeInput($_POST['phone'] ?? ''),
                 'mobile' => sanitizeInput($_POST['mobile'] ?? ''),
                 'company_name' => sanitizeInput($_POST['company_name'] ?? ''),
-                'birth_date' => sanitizeInput($_POST['birth_date'] ?? ''),
+                'birth_date' => !empty($birthDate) ? $birthDate : null,
                 'emergency_contact_name' => sanitizeInput($_POST['emergency_contact_name'] ?? ''),
                 'emergency_contact_phone' => sanitizeInput($_POST['emergency_contact_phone'] ?? ''),
                 'tax_exempt' => isset($_POST['tax_exempt']) ? 1 : 0,
@@ -158,7 +174,7 @@ class CustomerController
                 'country' => sanitizeInput($_POST['country'] ?? 'US'),
                 'notes' => sanitizeInput($_POST['notes'] ?? '')
             ];
-            
+
             $this->customerService->updateCustomer($id, $data);
             
             $_SESSION['flash_success'] = 'Customer updated successfully';

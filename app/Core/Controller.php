@@ -14,7 +14,7 @@ class Controller
 
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        $this->db = Database::getInstance()->getConnection();
     }
 
     /**
@@ -41,9 +41,6 @@ class Controller
      */
     protected function view(string $view, array $data = []): void
     {
-        // Use EXTR_SKIP to prevent overwriting existing variables (security measure)
-        extract($data, EXTR_SKIP);
-
         // Convert view path to file path
         $viewPath = str_replace('.', '/', $view);
         $file = BASE_PATH . '/app/Views/' . $viewPath . '.php';
@@ -52,16 +49,9 @@ class Controller
             throw new \Exception("View not found: {$view}");
         }
 
-        // Set page title if provided
-        $pageTitle = $data['title'] ?? 'Page';
-
-        // Start output buffering for the view
-        ob_start();
-        require $file;
-        $content = ob_get_clean();
-
-        // Load layout
-        require BASE_PATH . '/app/Views/layouts/app.php';
+        // Create view instance and render
+        $viewInstance = new View();
+        $viewInstance->renderWithLayout($file, $data);
     }
 
     /**
