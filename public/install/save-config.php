@@ -23,12 +23,16 @@ try {
     }
 
     // Validate required fields
-    $required = ['app_url', 'business_name', 'admin_email', 'timezone', 'db_host', 'db_name', 'db_user', 'db_password'];
+    $required = ['admin_email', 'timezone', 'db_host', 'db_name', 'db_user'];
     foreach ($required as $field) {
         if (empty($input[$field]) && $input[$field] !== '0') {
             throw new Exception("Missing required field: {$field}");
         }
     }
+
+    // Set defaults for removed fields
+    $input['business_name'] = 'Nautilus Dive Shop';
+    $input['app_url'] = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
 
     // Validate email
     if (!filter_var($input['admin_email'], FILTER_VALIDATE_EMAIL)) {
@@ -149,6 +153,6 @@ ENV;
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'error' => $e->getMessage()
+        'message' => $e->getMessage()
     ]);
 }

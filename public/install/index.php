@@ -344,6 +344,39 @@
             margin-bottom: 1.5rem;
             display: none;
         }
+
+        .fix-command {
+            margin-top: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-muted);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text);
+        }
     </style>
 </head>
 <body>
@@ -395,16 +428,6 @@
                     <p style="color: var(--text-muted); margin-bottom: 2rem;">Set up your dive shop details.</p>
 
                     <form id="configForm">
-                        <div class="form-group">
-                            <label class="form-label">Application URL</label>
-                            <input type="url" class="form-control" name="app_url" required placeholder="https://your-domain.com">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Business Name</label>
-                            <input type="text" class="form-control" name="business_name" required placeholder="e.g. Blue Ocean Divers">
-                        </div>
-
                         <div class="form-group">
                             <label class="form-label">Admin Email</label>
                             <input type="email" class="form-control" name="admin_email" required placeholder="admin@your-domain.com">
@@ -580,9 +603,45 @@
                     }
 
                     div.innerHTML = `
-                        <span class="check-name">${check.name}</span>
-                        <span class="check-status ${statusClass}">${icon}</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
+                            <span class="check-name">${check.name}</span>
+                            <span class="check-status ${statusClass}">${icon}</span>
+                        </div>
                     `;
+                    
+                    if (check.status !== 'success') {
+                        div.style.flexDirection = 'column';
+                        div.style.alignItems = 'flex-start';
+                        
+                        if (check.fix_command) {
+                            const fixDiv = document.createElement('div');
+                            fixDiv.className = 'fix-command';
+                            fixDiv.textContent = check.fix_command;
+                            
+                            const copyBtn = document.createElement('button');
+                            copyBtn.className = 'copy-btn';
+                            copyBtn.textContent = 'Copy';
+                            copyBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(check.fix_command).then(() => {
+                                    copyBtn.textContent = 'Copied!';
+                                    setTimeout(() => copyBtn.textContent = 'Copy', 2000);
+                                });
+                            };
+                            
+                            fixDiv.appendChild(copyBtn);
+                            div.appendChild(fixDiv);
+                        }
+                        
+                        if (check.help_text) {
+                             const helpDiv = document.createElement('div');
+                             helpDiv.style.marginTop = '0.5rem';
+                             helpDiv.style.fontSize = '0.85rem';
+                             helpDiv.style.color = 'var(--text-muted)';
+                             helpDiv.textContent = check.help_text;
+                             div.appendChild(helpDiv);
+                        }
+                    }
                     
                     if (check.status !== 'success' && check.message) {
                          div.title = check.message; // Simple tooltip

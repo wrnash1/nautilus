@@ -26,6 +26,18 @@ $checks['web_server'] = [
     'critical' => true
 ];
 
+// 2.1 Dependencies Check
+$autoloadFile = dirname(__DIR__, 2) . '/vendor/autoload.php';
+$hasDependencies = file_exists($autoloadFile);
+$checks['dependencies'] = [
+    'name' => 'Dependencies Installed',
+    'status' => $hasDependencies,
+    'message' => $hasDependencies ? 'Installed ✓' : 'Missing vendor directory',
+    'fix_command' => $hasDependencies ? '' : 'composer install',
+    'help_text' => 'The application dependencies are missing. You need to run "composer install" in the root directory.',
+    'critical' => true
+];
+
 // 3. MySQL/MariaDB Server Check
 $mysqlRunning = false;
 $mysqlMessage = 'Not accessible';
@@ -152,6 +164,8 @@ if ($storageWritable) {
 } else {
     $storageMessage = 'Not writable';
     $storageFixCmd = 'sudo chmod -R 775 ' . realpath(dirname(__DIR__, 2)) . '/storage && sudo chown -R apache:apache ' . realpath(dirname(__DIR__, 2)) . '/storage';
+    // Add SELinux fix
+    $storageFixCmd .= "\n# If SELinux is enabled (Fedora/RHEL):\nsudo chcon -R -t httpd_sys_rw_content_t " . realpath(dirname(__DIR__, 2)) . '/storage';
 }
 
 $checks['storage_writable'] = [
@@ -191,6 +205,8 @@ if ($uploadsWritable) {
 } else {
     $uploadsMessage = 'Not writable';
     $uploadsFixCmd = 'sudo chmod -R 775 ' . realpath(dirname(__DIR__)) . '/uploads && sudo chown -R apache:apache ' . realpath(dirname(__DIR__)) . '/uploads';
+    // Add SELinux fix
+    $uploadsFixCmd .= "\n# If SELinux is enabled (Fedora/RHEL):\nsudo chcon -R -t httpd_sys_rw_content_t " . realpath(dirname(__DIR__)) . '/uploads';
 }
 
 $checks['uploads_writable'] = [
@@ -316,7 +332,38 @@ $checks['selinux'] = [
     'critical' => false  // Warning only
 ];
 
-// 16. Firewall Status
+// 16. Configuration File Writable
+$envFile = dirname(__DIR__, 2) . '/.env';
+$rootDir = dirname(__DIR__, 2);
+$configWritable = false;
+$configMessage = '';
+$configFixCmd = '';
+
+if (file_exists($envFile)) {
+    $configWritable = is_writable($envFile);
+    $configMessage = $configWritable ? 'Writable ✓' : 'Not writable';
+    if (!$configWritable) {
+         $configFixCmd = 'sudo chmod 664 ' . $envFile . ' && sudo chown apache:apache ' . $envFile;
+         $configFixCmd .= "\n# SELinux:\nsudo chcon -t httpd_sys_rw_content_t " . $envFile;
+    }
+} else {
+    $configWritable = is_writable($rootDir);
+    $configMessage = $configWritable ? 'Writable (Directory) ✓' : 'Directory not writable';
+    if (!$configWritable) {
+        $configFixCmd = 'sudo chmod 775 ' . $rootDir . ' && sudo chown apache:apache ' . $rootDir;
+        $configFixCmd .= "\n# SELinux:\nsudo chcon -t httpd_sys_rw_content_t " . $rootDir;
+    }
+}
+
+$checks['config_writable'] = [
+    'name' => 'Configuration Writable',
+    'status' => $configWritable,
+    'message' => $configMessage,
+    'fix_command' => $configFixCmd,
+    'critical' => true
+];
+
+// 17. Firewall Status
 $firewallStatus = 'Unknown';
 $firewallOk = true;
 $firewallFixCmd = '';

@@ -59,9 +59,9 @@ try {
         }
     }
 
-    // Update company_settings with business name and email
-    $stmt = $pdo->prepare("UPDATE company_settings SET business_name = ?, business_email = ? WHERE tenant_id = 1");
-    $stmt->execute([$config['business_name'], $config['admin_email']]);
+    // Update company_settings with business email (Business Name set via Setup Wizard later)
+    $stmt = $pdo->prepare("UPDATE company_settings SET business_email = ? WHERE tenant_id = 1");
+    $stmt->execute([$config['admin_email']]);
     $stmt->closeCursor();
 
     // Update or Insert timezone in settings table
