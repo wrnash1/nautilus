@@ -413,12 +413,12 @@
                         <div class="form-group">
                             <label class="form-label">Timezone</label>
                             <select class="form-control" name="timezone">
-                                <option value="UTC">UTC</option>
-                                <option value="America/New_York">New York</option>
-                                <option value="America/Los_Angeles">Los Angeles</option>
-                                <option value="Europe/London">London</option>
-                                <option value="Asia/Tokyo">Tokyo</option>
-                                <option value="Australia/Sydney">Sydney</option>
+                                <?php
+                                $timezones = DateTimeZone::listIdentifiers();
+                                foreach ($timezones as $tz) {
+                                    echo '<option value="' . $tz . '"' . ($tz === 'UTC' ? ' selected' : '') . '>' . $tz . '</option>';
+                                }
+                                ?>
                             </select>
                         </div>
 

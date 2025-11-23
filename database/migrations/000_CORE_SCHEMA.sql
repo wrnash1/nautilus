@@ -10,7 +10,7 @@
 -- MULTI-TENANT & AUTHENTICATION
 -- ============================================================================
 
-CREATE TABLE `tenants` (
+CREATE TABLE IF NOT EXISTS `tenants` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(255) NOT NULL,
     `subdomain` VARCHAR(100) UNIQUE,
@@ -26,7 +26,7 @@ CREATE TABLE `tenants` (
 -- Insert default tenant
 INSERT INTO `tenants` (`id`, `name`, `subdomain`, `status`) VALUES (1, 'Default Tenant', 'default', 'active');
 
-CREATE TABLE `roles` (
+CREATE TABLE IF NOT EXISTS `roles` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(100) NOT NULL UNIQUE,
     `description` TEXT,
@@ -42,7 +42,7 @@ INSERT INTO `roles` (`name`, `description`) VALUES
 ('Staff', 'Store staff'),
 ('Instructor', 'Diving instructor');
 
-CREATE TABLE `permissions` (
+CREATE TABLE IF NOT EXISTS `permissions` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(100) NOT NULL UNIQUE,
     `description` TEXT,
@@ -69,9 +69,10 @@ INSERT INTO `permissions` (`name`, `description`, `category`) VALUES
 ('admin.users', 'Manage users', 'Admin'),
 ('admin.roles', 'Manage roles', 'Admin');
 
-CREATE TABLE `role_permissions` (
+CREATE TABLE IF NOT EXISTS `role_permissions` (
     `role_id` INT UNSIGNED NOT NULL,
     `permission_id` INT UNSIGNED NOT NULL,
+    `permission_code` VARCHAR(100),
     PRIMARY KEY (`role_id`, `permission_id`),
     FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`permission_id`) REFERENCES `permissions`(`id`) ON DELETE CASCADE
@@ -81,10 +82,9 @@ CREATE TABLE `role_permissions` (
 INSERT INTO `role_permissions` (`role_id`, `permission_id`)
 SELECT 1, id FROM `permissions`;
 
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED DEFAULT 1,
-    `role_id` INT UNSIGNED NOT NULL DEFAULT 4,
     `username` VARCHAR(100) UNIQUE,
     `email` VARCHAR(255) NOT NULL UNIQUE,
     `password_hash` VARCHAR(255) NOT NULL,
@@ -100,15 +100,29 @@ CREATE TABLE `users` (
     INDEX `idx_tenant_id` (`tenant_id`),
     INDEX `idx_email` (`email`),
     INDEX `idx_is_active` (`is_active`),
-    FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE RESTRICT,
     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Create default admin user (password: admin123)
-INSERT INTO `users` (`tenant_id`, `role_id`, `username`, `email`, `password_hash`, `first_name`, `last_name`) VALUES
-(1, 1, 'admin', 'admin@nautilus.local', '$2y$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5Bf/6H/T3CQLC', 'Admin', 'User');
+CREATE TABLE IF NOT EXISTS `user_roles` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT UNSIGNED NOT NULL,
+    `role_id` INT UNSIGNED NOT NULL,
+    `assigned_by` INT UNSIGNED,
+    `expires_at` TIMESTAMP NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `unique_user_role` (`user_id`, `role_id`),
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `sessions` (
+-- Create default admin user (password: admin123)
+INSERT INTO `users` (`tenant_id`, `username`, `email`, `password_hash`, `first_name`, `last_name`) VALUES
+(1, 'admin', 'admin@nautilus.local', '$2y$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5Bf/6H/T3CQLC', 'Admin', 'User');
+
+-- Assign Super Admin role to default user
+INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES (1, 1);
+
+CREATE TABLE IF NOT EXISTS `sessions` (
     `id` VARCHAR(255) PRIMARY KEY,
     `user_id` INT UNSIGNED,
     `payload` TEXT,
@@ -119,7 +133,7 @@ CREATE TABLE `sessions` (
     INDEX `idx_last_activity` (`last_activity`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `password_resets` (
+CREATE TABLE IF NOT EXISTS `password_resets` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `email` VARCHAR(255) NOT NULL,
     `token` VARCHAR(255) NOT NULL,
@@ -134,7 +148,7 @@ CREATE TABLE `password_resets` (
 -- CUSTOMERS & CRM
 -- ============================================================================
 
-CREATE TABLE `customers` (
+CREATE TABLE IF NOT EXISTS `customers` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED DEFAULT 1,
     `customer_type` ENUM('B2C', 'B2B') DEFAULT 'B2C',
@@ -165,7 +179,7 @@ CREATE TABLE `customers` (
     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `customer_addresses` (
+CREATE TABLE IF NOT EXISTS `customer_addresses` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `customer_id` INT UNSIGNED NOT NULL,
     `address_type` ENUM('billing', 'shipping', 'both') DEFAULT 'both',
@@ -182,7 +196,7 @@ CREATE TABLE `customer_addresses` (
     FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `customer_tags` (
+CREATE TABLE IF NOT EXISTS `customer_tags` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED DEFAULT 1,
     `name` VARCHAR(100) NOT NULL,
@@ -197,7 +211,7 @@ CREATE TABLE `customer_tags` (
     UNIQUE KEY `unique_name_tenant` (`name`, `tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `customer_tag_assignments` (
+CREATE TABLE IF NOT EXISTS `customer_tag_assignments` (
     `customer_id` INT UNSIGNED NOT NULL,
     `tag_id` INT UNSIGNED NOT NULL,
     `assigned_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -206,11 +220,75 @@ CREATE TABLE `customer_tag_assignments` (
     FOREIGN KEY (`tag_id`) REFERENCES `customer_tags`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `customer_notes` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` INT UNSIGNED NOT NULL,
+  `user_id` INT UNSIGNED,
+  `note_type` ENUM('general', 'important', 'interaction', 'issue') DEFAULT 'general',
+  `content` TEXT NOT NULL,
+  `is_pinned` BOOLEAN DEFAULT FALSE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+  INDEX `idx_customer_id` (`customer_id`),
+  INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `customer_documents` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` INT UNSIGNED NOT NULL,
+  `document_type` ENUM('c-card', 'id', 'insurance', 'medical', 'waiver', 'other') NOT NULL,
+  `file_path` VARCHAR(255) NOT NULL,
+  `file_name` VARCHAR(255) NOT NULL,
+  `file_size` INT UNSIGNED,
+  `mime_type` VARCHAR(100),
+  `ocr_data` JSON,
+  `expiry_date` DATE,
+  `uploaded_by` INT UNSIGNED,
+  `uploaded_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`uploaded_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+  INDEX `idx_customer_id` (`customer_id`),
+  INDEX `idx_document_type` (`document_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `customer_communications` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` INT UNSIGNED NOT NULL,
+  `communication_type` ENUM('email', 'sms', 'phone', 'in-person') NOT NULL,
+  `direction` ENUM('inbound', 'outbound') NOT NULL,
+  `subject` VARCHAR(255),
+  `content` TEXT,
+  `status` ENUM('sent', 'delivered', 'failed', 'bounced') DEFAULT 'sent',
+  `user_id` INT UNSIGNED,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+  INDEX `idx_customer_id` (`customer_id`),
+  INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `b2b_contacts` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` INT UNSIGNED NOT NULL,
+  `first_name` VARCHAR(100) NOT NULL,
+  `last_name` VARCHAR(100) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `phone` VARCHAR(20),
+  `title` VARCHAR(100),
+  `is_primary` BOOLEAN DEFAULT FALSE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
+  INDEX `idx_customer_id` (`customer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================================================
 -- PRODUCTS & INVENTORY
 -- ============================================================================
 
-CREATE TABLE `categories` (
+CREATE TABLE IF NOT EXISTS `categories` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED DEFAULT 1,
     `parent_id` INT UNSIGNED,
@@ -227,7 +305,7 @@ CREATE TABLE `categories` (
     FOREIGN KEY (`parent_id`) REFERENCES `categories`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `vendors` (
+CREATE TABLE IF NOT EXISTS `vendors` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED DEFAULT 1,
     `name` VARCHAR(255) NOT NULL,
@@ -243,7 +321,7 @@ CREATE TABLE `vendors` (
     INDEX `idx_code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `products` (
+CREATE TABLE IF NOT EXISTS `products` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED DEFAULT 1,
     `category_id` INT UNSIGNED,
@@ -274,7 +352,7 @@ CREATE TABLE `products` (
 -- POS & TRANSACTIONS
 -- ============================================================================
 
-CREATE TABLE `transactions` (
+CREATE TABLE IF NOT EXISTS `transactions` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED DEFAULT 1,
     `customer_id` INT UNSIGNED,
@@ -301,7 +379,7 @@ CREATE TABLE `transactions` (
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `transaction_items` (
+CREATE TABLE IF NOT EXISTS `transaction_items` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `transaction_id` BIGINT UNSIGNED NOT NULL,
     `product_id` INT UNSIGNED,
@@ -321,7 +399,7 @@ CREATE TABLE `transaction_items` (
 -- CERTIFICATIONS
 -- ============================================================================
 
-CREATE TABLE `certification_agencies` (
+CREATE TABLE IF NOT EXISTS `certification_agencies` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(200) NOT NULL,
     `code` VARCHAR(50) UNIQUE,
@@ -342,7 +420,7 @@ INSERT INTO `certification_agencies` (`name`, `code`, `primary_color`) VALUES
 ('SDI', 'SDI', '#CC0000'),
 ('TDI', 'TDI', '#990000');
 
-CREATE TABLE `customer_certifications` (
+CREATE TABLE IF NOT EXISTS `customer_certifications` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `customer_id` INT UNSIGNED NOT NULL,
     `certification_agency_id` INT UNSIGNED,
@@ -362,7 +440,7 @@ CREATE TABLE `customer_certifications` (
 -- SETTINGS & CONFIGURATION
 -- ============================================================================
 
-CREATE TABLE `settings` (
+CREATE TABLE IF NOT EXISTS `settings` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `category` VARCHAR(100) NOT NULL,
     `setting_key` VARCHAR(150) NOT NULL,
@@ -382,7 +460,7 @@ INSERT INTO `settings` (`category`, `setting_key`, `setting_value`, `type`, `des
 ('general', 'currency', 'USD', 'string', 'Default currency'),
 ('tax', 'default_tax_rate', '7.5', 'number', 'Default sales tax rate');
 
-CREATE TABLE `company_settings` (
+CREATE TABLE IF NOT EXISTS `company_settings` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED DEFAULT 1,
     `business_name` VARCHAR(255),
@@ -407,7 +485,7 @@ INSERT INTO `company_settings` (`tenant_id`, `business_name`) VALUES (1, 'Nautil
 -- AUDIT & LOGGING
 -- ============================================================================
 
-CREATE TABLE `audit_logs` (
+CREATE TABLE IF NOT EXISTS `audit_logs` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `user_id` INT UNSIGNED,
     `action` VARCHAR(100),
@@ -427,7 +505,7 @@ CREATE TABLE `audit_logs` (
 -- STOREFRONT CONFIGURATION
 -- ============================================================================
 
-CREATE TABLE `storefront_carousel_slides` (
+CREATE TABLE IF NOT EXISTS `storefront_carousel_slides` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED DEFAULT 1,
     `title` VARCHAR(255) NOT NULL,
@@ -445,7 +523,7 @@ CREATE TABLE `storefront_carousel_slides` (
     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `storefront_service_boxes` (
+CREATE TABLE IF NOT EXISTS `storefront_service_boxes` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED DEFAULT 1,
     `icon` VARCHAR(100) NOT NULL COMMENT 'FontAwesome icon class',
@@ -467,7 +545,7 @@ CREATE TABLE `storefront_service_boxes` (
 -- FEEDBACK & FEATURE REQUESTS
 -- ============================================================================
 
-CREATE TABLE `feedback` (
+CREATE TABLE IF NOT EXISTS `feedback` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED DEFAULT 1,
     `type` ENUM('bug', 'feature', 'improvement', 'question', 'other') DEFAULT 'feature',
@@ -497,7 +575,7 @@ CREATE TABLE `feedback` (
     FOREIGN KEY (`assigned_to`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `feedback_attachments` (
+CREATE TABLE IF NOT EXISTS `feedback_attachments` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `feedback_id` INT UNSIGNED NOT NULL,
     `filename` VARCHAR(255) NOT NULL,
@@ -509,7 +587,7 @@ CREATE TABLE `feedback_attachments` (
     FOREIGN KEY (`feedback_id`) REFERENCES `feedback`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `feedback_comments` (
+CREATE TABLE IF NOT EXISTS `feedback_comments` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `feedback_id` INT UNSIGNED NOT NULL,
     `user_id` INT UNSIGNED,
@@ -526,7 +604,7 @@ CREATE TABLE `feedback_comments` (
 -- MIGRATIONS TRACKING
 -- ============================================================================
 
-CREATE TABLE `migrations` (
+CREATE TABLE IF NOT EXISTS `migrations` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `migration` VARCHAR(255) NOT NULL UNIQUE,
     `batch` INT NOT NULL,

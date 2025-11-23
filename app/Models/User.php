@@ -9,10 +9,12 @@ class User
     public static function find(int $id): ?array
     {
         return Database::fetchOne(
-            "SELECT u.*, r.display_name as role_name 
+            "SELECT u.*, r.id as role_id, r.name as role_name 
              FROM users u
-             LEFT JOIN roles r ON u.role_id = r.id
-             WHERE u.id = ? AND u.is_active = 1",
+             LEFT JOIN user_roles ur ON u.id = ur.user_id
+             LEFT JOIN roles r ON ur.role_id = r.id
+             WHERE u.id = ? AND u.is_active = 1
+             LIMIT 1",
             [$id]
         );
     }
@@ -20,10 +22,12 @@ class User
     public static function findByEmail(string $email): ?array
     {
         return Database::fetchOne(
-            "SELECT u.*, r.display_name as role_name 
+            "SELECT u.*, r.id as role_id, r.name as role_name 
              FROM users u
-             LEFT JOIN roles r ON u.role_id = r.id
-             WHERE u.email = ? AND u.is_active = 1",
+             LEFT JOIN user_roles ur ON u.id = ur.user_id
+             LEFT JOIN roles r ON ur.role_id = r.id
+             WHERE u.email = ? AND u.is_active = 1
+             LIMIT 1",
             [$email]
         );
     }
@@ -32,8 +36,8 @@ class User
     {
         $sql = "SELECT COUNT(*) as count FROM role_permissions rp
                 INNER JOIN permissions p ON rp.permission_id = p.id
-                INNER JOIN users u ON u.role_id = rp.role_id
-                WHERE u.id = ? AND p.name = ?";
+                INNER JOIN user_roles ur ON ur.role_id = rp.role_id
+                WHERE ur.user_id = ? AND p.name = ?";
         
         $result = Database::fetchOne($sql, [$userId, $permission]);
         return $result['count'] > 0;

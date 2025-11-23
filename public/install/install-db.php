@@ -19,10 +19,12 @@ try {
     // Connect to database
     $dsn = "mysql:host={$config['db_host']};charset=utf8mb4";
     $pdo = new PDO($dsn, $config['db_user'], $config['db_password'], [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
     ]);
 
     // Create database if it doesn't exist
+    $pdo->exec("DROP DATABASE IF EXISTS `{$config['db_name']}`");
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$config['db_name']}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
 
     // Connect to the database
@@ -50,29 +52,50 @@ try {
     $executedStatements = 0;
     foreach ($statements as $statement) {
         if (!empty($statement)) {
-            $pdo->exec($statement);
+            $stmt = $pdo->prepare($statement);
+            $stmt->execute();
+            $stmt->closeCursor();
             $executedStatements++;
         }
     }
 
-    // Update company_settings with business name
-    $stmt = $pdo->prepare("UPDATE company_settings SET setting_value = ? WHERE setting_key = 'business_name'");
-    $stmt->execute([$config['business_name']]);
+    // Update company_settings with business name and email
+    $stmt = $pdo->prepare("UPDATE company_settings SET business_name = ?, business_email = ? WHERE tenant_id = 1");
+    $stmt->execute([$config['business_name'], $config['admin_email']]);
+    $stmt->closeCursor();
 
-    $stmt = $pdo->prepare("UPDATE company_settings SET setting_value = ? WHERE setting_key = 'admin_email'");
-    $stmt->execute([$config['admin_email']]);
+    // Update or Insert timezone in settings table
+    $stmt = $pdo->prepare("SELECT id FROM settings WHERE setting_key = 'timezone'");
+    $stmt->execute();
+    $timezoneExists = $stmt->fetch();
+    $stmt->closeCursor();
 
-    $stmt = $pdo->prepare("UPDATE company_settings SET setting_value = ? WHERE setting_key = 'timezone'");
-    $stmt->execute([$config['timezone']]);
+    if ($timezoneExists) {
+        $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'timezone'");
+        $stmt->execute([$config['timezone']]);
+    } else {
+        $stmt = $pdo->prepare("INSERT INTO settings (category, setting_key, setting_value, type, description) VALUES ('general', 'timezone', ?, 'string', 'System Timezone')");
+        $stmt->execute([$config['timezone']]);
+    }
+    $stmt->closeCursor();
 
     // Get table count
     $stmt = $pdo->query("SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = '{$config['db_name']}'");
     $tableCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+    $stmt->closeCursor();
 
     // Get record counts
-    $userCount = $pdo->query("SELECT COUNT(*) as count FROM users")->fetch(PDO::FETCH_ASSOC)['count'];
-    $roleCount = $pdo->query("SELECT COUNT(*) as count FROM roles")->fetch(PDO::FETCH_ASSOC)['count'];
-    $certAgencyCount = $pdo->query("SELECT COUNT(*) as count FROM certification_agencies")->fetch(PDO::FETCH_ASSOC)['count'];
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM users");
+    $userCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+    $stmt->closeCursor();
+
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM roles");
+    $roleCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+    $stmt->closeCursor();
+
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM certification_agencies");
+    $certAgencyCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+    $stmt->closeCursor();
 
     // Install Demo Data if requested
     $demoInstalled = false;
