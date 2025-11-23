@@ -3,248 +3,178 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
-use App\Services\FeedbackService;
+use App\Core\Database;
 
-/**
- * Feedback Controller
- * Staff feedback, bug reports, and feature requests
- */
 class FeedbackController extends Controller
 {
     /**
-     * View all feedback
+     * Public feedback form (accessible without login)
      */
-    public function index()
+    public function create(): void
     {
-        $this->checkPermission('feedback.submit');
-
-        $filters = [
-            'status' => $_GET['status'] ?? null,
-            'type' => $_GET['type'] ?? null,
-            'priority' => $_GET['priority'] ?? null,
-            'category' => $_GET['category'] ?? null
-        ];
-
-        $feedback = FeedbackService::getAll($filters);
-        $stats = FeedbackService::getStats();
-
-        // Check if user can manage feedback
-        $canManage = hasPermission('feedback.manage');
-
         $data = [
-            'feedback' => $feedback,
-            'stats' => $stats,
-            'filters' => $filters,
-            'can_manage' => $canManage,
-            'pageTitle' => 'Staff Feedback',
-            'activeMenu' => 'feedback'
-        ];
-
-        $this->view('feedback/index', $data);
-    }
-
-    /**
-     * Show feedback details
-     */
-    public function show(int $id)
-    {
-        $this->checkPermission('feedback.submit');
-
-        $feedback = FeedbackService::getById($id);
-
-        if (!$feedback) {
-            $_SESSION['flash_error'] = 'Feedback not found';
-            $this->redirect('/store/feedback');
-            return;
-        }
-
-        $comments = FeedbackService::getComments($id);
-        $canManage = hasPermission('feedback.manage');
-
-        $data = [
-            'feedback' => $feedback,
-            'comments' => $comments,
-            'can_manage' => $canManage,
-            'pageTitle' => $feedback['title'],
-            'activeMenu' => 'feedback'
-        ];
-
-        $this->view('feedback/show', $data);
-    }
-
-    /**
-     * Show submission form
-     */
-    public function create()
-    {
-        $this->checkPermission('feedback.submit');
-
-        $data = [
-            'pageTitle' => 'Submit Feedback',
-            'activeMenu' => 'feedback'
+            'page_title' => 'Submit Feedback'
         ];
 
         $this->view('feedback/create', $data);
     }
 
     /**
-     * Submit new feedback
+     * Submit feedback (public)
      */
-    public function store()
+    public function store(): void
     {
-        $this->checkPermission('feedback.submit');
+        // Get submitted data
+        $type = $_POST['type'] ?? 'other';
+        $title = trim($_POST['title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $category = $_POST['category'] ?? '';
+        $name = trim($_POST['name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/store/feedback/create');
-            return;
+        // Validation
+        if (empty($title) || empty($description)) {
+            $_SESSION['error'] = 'Title and description are required';
+            header('Location: /feedback/create');
+            exit;
         }
 
+        // Determine submitted_by_type and ID
+        $submittedByType = 'customer';
+        $submittedById = null;
+
+        // If user is logged in as customer
+        if (isset($_SESSION['customer_id'])) {
+            $submittedByType = 'customer';
+            $submittedById = $_SESSION['customer_id'];
+
+            // Get customer info
+            $customer = Database::fetchOne("SELECT first_name, last_name, email FROM customers WHERE id = ?", [$submittedById]);
+            $name = ($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '');
+            $email = $customer['email'] ?? $email;
+        }
+        // If user is logged in as staff
+        elseif (isset($_SESSION['user_id'])) {
+            $submittedByType = 'staff';
+            $submittedById = $_SESSION['user_id'];
+
+            // Get staff info
+            $user = Database::fetchOne("SELECT first_name, last_name, email FROM users WHERE id = ?", [$submittedById]);
+            $name = ($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '');
+            $email = $user['email'] ?? $email;
+        }
+
+        // Get browser info
+        $browserInfo = json_encode([
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+            'referer' => $_SERVER['HTTP_REFERER'] ?? ''
+        ]);
+
+        $url = $_POST['url'] ?? $_SERVER['HTTP_REFERER'] ?? '';
+
+        // Insert feedback
+        Database::query("
+            INSERT INTO feedback (
+                tenant_id, type, title, description, submitted_by_type, submitted_by_id,
+                submitted_by_name, submitted_by_email, category, browser_info, url
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ", [
+            $_SESSION['tenant_id'] ?? 1,
+            $type,
+            $title,
+            $description,
+            $submittedByType,
+            $submittedById,
+            $name,
+            $email,
+            $category,
+            $browserInfo,
+            $url
+        ]);
+
+        $feedbackId = Database::lastInsertId();
+
+        // Handle file uploads
+        if (!empty($_FILES['attachments']['name'][0])) {
+            $this->handleAttachments($feedbackId, $_FILES['attachments']);
+        }
+
+        $_SESSION['success'] = 'Thank you! Your feedback has been submitted successfully.';
+        header('Location: /feedback/success');
+        exit;
+    }
+
+    /**
+     * Success page after submission
+     */
+    public function success(): void
+    {
         $data = [
-            'feedback_type' => $_POST['feedback_type'] ?? 'feature_request',
-            'priority' => $_POST['priority'] ?? 'medium',
-            'category' => $_POST['category'] ?? null,
-            'title' => $_POST['title'] ?? '',
-            'description' => $_POST['description'] ?? '',
-            'steps_to_reproduce' => $_POST['steps_to_reproduce'] ?? null,
-            'expected_behavior' => $_POST['expected_behavior'] ?? null,
-            'actual_behavior' => $_POST['actual_behavior'] ?? null
+            'page_title' => 'Feedback Submitted'
         ];
 
-        // Validate
-        if (empty($data['title']) || empty($data['description'])) {
-            $_SESSION['flash_error'] = 'Title and description are required';
-            $this->redirect('/store/feedback/create');
-            return;
-        }
-
-        $feedbackId = FeedbackService::submit($data);
-
-        if ($feedbackId) {
-            $_SESSION['flash_success'] = 'Thank you! Your feedback has been submitted.';
-            $this->redirect('/store/feedback/' . $feedbackId);
-        } else {
-            $_SESSION['flash_error'] = 'Failed to submit feedback';
-            $this->redirect('/store/feedback/create');
-        }
+        $this->view('feedback/success', $data);
     }
 
     /**
-     * Vote on feedback
+     * My feedback (for customers and staff)
      */
-    public function vote(int $id)
+    public function myFeedback(): void
     {
-        $this->checkPermission('feedback.vote');
+        $submittedByType = isset($_SESSION['customer_id']) ? 'customer' : 'staff';
+        $submittedById = $_SESSION['customer_id'] ?? $_SESSION['user_id'] ?? null;
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/store/feedback');
-            return;
+        if (!$submittedById) {
+            header('Location: /feedback/create');
+            exit;
         }
 
-        if (FeedbackService::vote($id)) {
-            $_SESSION['flash_success'] = 'Vote recorded';
-        } else {
-            $_SESSION['flash_error'] = 'Failed to vote';
-        }
-
-        $this->redirect('/store/feedback/' . $id);
-    }
-
-    /**
-     * Remove vote
-     */
-    public function unvote(int $id)
-    {
-        $this->checkPermission('feedback.vote');
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/store/feedback');
-            return;
-        }
-
-        if (FeedbackService::unvote($id)) {
-            $_SESSION['flash_success'] = 'Vote removed';
-        } else {
-            $_SESSION['flash_error'] = 'Failed to remove vote';
-        }
-
-        $this->redirect('/store/feedback/' . $id);
-    }
-
-    /**
-     * Add comment
-     */
-    public function comment(int $id)
-    {
-        $this->checkPermission('feedback.submit');
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/store/feedback/' . $id);
-            return;
-        }
-
-        $comment = $_POST['comment'] ?? '';
-
-        if (empty($comment)) {
-            $_SESSION['flash_error'] = 'Comment cannot be empty';
-            $this->redirect('/store/feedback/' . $id);
-            return;
-        }
-
-        if (FeedbackService::addComment($id, $comment)) {
-            $_SESSION['flash_success'] = 'Comment added';
-        } else {
-            $_SESSION['flash_error'] = 'Failed to add comment';
-        }
-
-        $this->redirect('/store/feedback/' . $id);
-    }
-
-    /**
-     * Update status (admin only)
-     */
-    public function updateStatus(int $id)
-    {
-        $this->checkPermission('feedback.manage');
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/store/feedback/' . $id);
-            return;
-        }
-
-        $status = $_POST['status'] ?? '';
-        $adminNotes = $_POST['admin_notes'] ?? null;
-
-        if (FeedbackService::updateStatus($id, $status, $adminNotes)) {
-            $_SESSION['flash_success'] = 'Status updated';
-        } else {
-            $_SESSION['flash_error'] = 'Failed to update status';
-        }
-
-        $this->redirect('/store/feedback/' . $id);
-    }
-
-    /**
-     * My feedback
-     */
-    public function myFeedback()
-    {
-        $this->checkPermission('feedback.submit');
-
-        $userId = $_SESSION['user_id'] ?? null;
-
-        if (!$userId) {
-            $this->redirect('/store/feedback');
-            return;
-        }
-
-        $feedback = FeedbackService::getUserFeedback($userId);
+        $feedback = Database::fetchAll("
+            SELECT * FROM feedback
+            WHERE submitted_by_type = ? AND submitted_by_id = ?
+            ORDER BY created_at DESC
+        ", [$submittedByType, $submittedById]) ?? [];
 
         $data = [
             'feedback' => $feedback,
-            'pageTitle' => 'My Feedback',
-            'activeMenu' => 'feedback'
+            'page_title' => 'My Feedback'
         ];
 
         $this->view('feedback/my-feedback', $data);
+    }
+
+    /**
+     * Handle file attachments
+     */
+    private function handleAttachments(int $feedbackId, array $files): void
+    {
+        $uploadDir = dirname(__DIR__, 2) . '/public/uploads/feedback/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $fileCount = count($files['name']);
+
+        for ($i = 0; $i < $fileCount; $i++) {
+            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                $filename = $files['name'][$i];
+                $tmpName = $files['tmp_name'][$i];
+                $filesize = $files['size'][$i];
+                $mimeType = $files['type'][$i];
+
+                // Generate unique filename
+                $ext = pathinfo($filename, PATHINFO_EXTENSION);
+                $uniqueName = uniqid() . '_' . time() . '.' . $ext;
+                $filepath = $uploadDir . $uniqueName;
+
+                if (move_uploaded_file($tmpName, $filepath)) {
+                    Database::query("
+                        INSERT INTO feedback_attachments (feedback_id, filename, filepath, filesize, mime_type)
+                        VALUES (?, ?, ?, ?, ?)
+                    ", [$feedbackId, $filename, '/uploads/feedback/' . $uniqueName, $filesize, $mimeType]);
+                }
+            }
+        }
     }
 }

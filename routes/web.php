@@ -29,21 +29,21 @@ $router->get('/health/alive', 'HealthCheckController@alive');
 // PUBLIC STOREFRONT ROUTES (Customer-facing website)
 // ============================================================================
 
-// Homepage - Public storefront (NO SIDEBAR - Public facing)
-$router->get('/', 'PublicController@index');
-$router->get('/about', 'PublicController@about');
-$router->get('/contact', 'PublicController@contact');
-$router->post('/contact', 'PublicController@submitContact', [CsrfMiddleware::class]);
+// Homepage - Modern Public Storefront (NO SIDEBAR - Public facing)
+$router->get('/', 'Storefront\StorefrontController@index');
+$router->get('/about', 'Storefront\StorefrontController@about');
+$router->get('/contact', 'Storefront\StorefrontController@contact');
+$router->post('/contact', 'Storefront\StorefrontController@submitContact', [CsrfMiddleware::class]);
 
 // Shop & Products (Public)
-$router->get('/shop', 'PublicController@shop');
-$router->get('/product/{id}', 'PublicController@productDetail');
+$router->get('/shop', 'Storefront\StorefrontController@shop');
+$router->get('/product/{id}', 'Storefront\StorefrontController@productDetail');
 
 // Courses & Trips (Public)
-$router->get('/courses', 'PublicController@courses');
-$router->get('/course/{id}', 'PublicController@courseDetail');
-$router->get('/trips', 'PublicController@trips');
-$router->get('/trip/{id}', 'PublicController@tripDetail');
+$router->get('/courses', 'Storefront\StorefrontController@courses');
+$router->get('/course/{id}', 'Storefront\StorefrontController@courseDetail');
+$router->get('/trips', 'Storefront\StorefrontController@trips');
+$router->get('/trip/{id}', 'Storefront\StorefrontController@tripDetail');
 
 // Shopping Cart (Public)
 $router->get('/cart', 'Storefront\ModernStorefrontController@cart');

@@ -10,8 +10,9 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Installer Route - redirect /install to /install.php
-    RewriteRule ^install$ install.php [L]
+    # Installer Route - redirect /install to new installer
+    RewriteRule ^install$ /install/index.php [L]
+    RewriteRule ^install/$ /install/index.php [L]
 
     # Redirect Trailing Slashes
     RewriteCond %{REQUEST_FILENAME} !-d
