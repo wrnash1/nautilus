@@ -1,0 +1,26 @@
+Failed to save configuration: undefined
+Professional Dive Shop Management System
+
+1
+System Check
+2
+Configuration
+3
+Database
+4
+Complete
+Application Configuration
+Basic configuration will be set now. Everything else can be configured in the admin panel after installation.
+
+Application URL
+https://nautilus.local
+Your application's URL
+Business Name
+Ascubadiving
+Admin Email
+bill@ascubadiving.com
+Timezone
+Central Time
+
+The installer is still broken and may not complete successfully. Please report any issues on GitHub.
+

@@ -3,497 +3,658 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nautilus Dive Shop - Installation Wizard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Nautilus - Setup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --nautilus-blue: #0066CC;
-            --nautilus-dark: #004D99;
-            --nautilus-light: #E6F2FF;
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-light: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
         }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(239, 68, 68, 0.15) 0px, transparent 50%);
         }
-        .installer-container {
+
+        .installer-wrapper {
+            width: 100%;
             max-width: 900px;
-            margin: 40px auto;
+            padding: 2rem;
         }
-        .installer-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
         }
-        .installer-header {
-            background: linear-gradient(135deg, var(--nautilus-blue) 0%, var(--nautilus-dark) 100%);
-            color: white;
-            padding: 30px;
+
+        .header {
+            padding: 2.5rem;
+            border-bottom: 1px solid var(--border);
             text-align: center;
         }
-        .installer-header h1 {
-            font-size: 2.5rem;
+
+        .logo {
+            font-size: 2rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            display: inline-block;
         }
-        .installer-header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
         }
-        .installer-body {
-            padding: 40px;
-        }
-        .step-indicator {
+
+        .progress-bar {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 40px;
+            padding: 0 4rem;
+            margin-top: 2rem;
             position: relative;
         }
-        .step-indicator::before {
-            content: '';
+
+        .progress-line {
             position: absolute;
-            top: 20px;
-            left: 0;
-            right: 0;
+            top: 50%;
+            left: 4rem;
+            right: 4rem;
             height: 2px;
-            background: #e0e0e0;
+            background: var(--surface-light);
             z-index: 0;
+            transform: translateY(-50%);
         }
-        .step {
-            flex: 1;
-            text-align: center;
-            position: relative;
-            z-index: 1;
+
+        .progress-line-fill {
+            position: absolute;
+            top: 50%;
+            left: 4rem;
+            height: 2px;
+            background: var(--primary);
+            z-index: 0;
+            transform: translateY(-50%);
+            width: 0%;
+            transition: width 0.5s ease;
         }
-        .step-circle {
-            width: 40px;
-            height: 40px;
+
+        .step-dot {
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            background: #e0e0e0;
-            margin: 0 auto 10px;
+            background: var(--surface);
+            border: 2px solid var(--surface-light);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            transition: all 0.3s;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
         }
-        .step.active .step-circle {
-            background: var(--nautilus-blue);
+
+        .step-dot.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+
+        .step-dot.completed {
+            background: var(--primary);
+            border-color: var(--primary);
             color: white;
-            transform: scale(1.1);
         }
-        .step.completed .step-circle {
-            background: #28a745;
-            color: white;
+
+        .content {
+            flex: 1;
+            padding: 3rem;
+            position: relative;
         }
+
+        .step-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .checks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
         .check-item {
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
+
         .check-item:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.05);
         }
+
+        .check-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
         .check-status {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
         }
-        .check-status.checking {
-            color: #ffc107;
+
+        .status-loading { color: var(--text-muted); animation: spin 1s linear infinite; }
+        .status-success { color: var(--success); }
+        .status-error { color: var(--error); }
+        .status-warning { color: var(--warning); }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .form-group {
+            margin-bottom: 1.5rem;
         }
-        .check-status.success {
-            color: #28a745;
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
         }
-        .check-status.error {
-            color: #dc3545;
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s;
         }
-        .check-status.warning {
-            color: #ff9800;
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
-        .btn-primary {
-            background: var(--nautilus-blue);
-            border: none;
-            padding: 12px 30px;
+
+        .btn {
+            padding: 0.75rem 1.5rem;
             border-radius: 8px;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
         .btn-primary:hover {
-            background: var(--nautilus-dark);
+            background: var(--primary-dark);
+            transform: translateY(-1px);
         }
-        .progress-container {
-            margin: 30px 0;
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
-        .alert {
-            border-radius: 10px;
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
         }
-        #loadingSpinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .console-log {
+            background: #000;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #0f0;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .success-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: var(--success);
+            margin-bottom: 1.5rem;
+        }
+
+        .credentials-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        input[type="checkbox"] {
+            width: 1.2rem;
+            height: 1.2rem;
+            accent-color: var(--primary);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="installer-container">
-        <div class="installer-card">
-            <div class="installer-header">
-                <h1><i class="bi bi-water"></i> Nautilus Dive Shop</h1>
-                <p>Professional Dive Shop Management System</p>
+    <div class="installer-wrapper">
+        <div class="card">
+            <div class="header">
+                <div class="logo">NAUTILUS</div>
+                <div class="subtitle">Enterprise Dive Shop Management</div>
+                
+                <div class="progress-bar">
+                    <div class="progress-line"></div>
+                    <div class="progress-line-fill" id="progressFill"></div>
+                    <div class="step-dot active" data-step="1">1</div>
+                    <div class="step-dot" data-step="2">2</div>
+                    <div class="step-dot" data-step="3">3</div>
+                    <div class="step-dot" data-step="4">4</div>
+                </div>
             </div>
 
-            <div class="installer-body">
-                <div class="step-indicator">
-                    <div class="step active" id="step1">
-                        <div class="step-circle">1</div>
-                        <small>System Check</small>
+            <div class="content">
+                <!-- Step 1: System Check -->
+                <div class="step-content active" id="step1">
+                    <h2>System Check</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Checking your server environment for compatibility.</p>
+                    
+                    <div class="checks-grid" id="checksContainer">
+                        <!-- Checks injected here -->
                     </div>
-                    <div class="step" id="step2">
-                        <div class="step-circle">2</div>
-                        <small>Configuration</small>
+
+                    <div class="error-message" id="systemCheckError">
+                        Some system requirements are not met. Please fix the issues marked in red.
                     </div>
-                    <div class="step" id="step3">
-                        <div class="step-circle">3</div>
-                        <small>Database</small>
-                    </div>
-                    <div class="step" id="step4">
-                        <div class="step-circle">4</div>
-                        <small>Complete</small>
+
+                    <div class="actions">
+                        <button class="btn btn-primary" id="btnCheckAgain" onclick="runSystemChecks()">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            Re-check
+                        </button>
+                        <button class="btn btn-primary" id="btnStep1Next" onclick="nextStep(2)" disabled>
+                            Continue
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                        </button>
                     </div>
                 </div>
 
-                <div id="stepContent">
-                    <!-- Step 1: System Requirements Check -->
-                    <div class="step-content" id="step1Content">
-                        <h3 class="mb-4">System Requirements Check</h3>
-                        <p class="text-muted mb-4">Checking your server configuration...</p>
+                <!-- Step 2: Configuration -->
+                <div class="step-content" id="step2">
+                    <h2>Configuration</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Set up your dive shop details.</p>
 
-                        <div id="checksContainer">
-                            <!-- Checks will be dynamically added here -->
+                    <form id="configForm">
+                        <div class="form-group">
+                            <label class="form-label">Application URL</label>
+                            <input type="url" class="form-control" name="app_url" required placeholder="https://your-domain.com">
                         </div>
 
-                        <div class="mt-4 text-center">
-                            <button class="btn btn-primary btn-lg" onclick="performChecks()" id="checkButton">
-                                <i class="bi bi-play-circle"></i> Run System Check
-                            </button>
+                        <div class="form-group">
+                            <label class="form-label">Business Name</label>
+                            <input type="text" class="form-control" name="business_name" required placeholder="e.g. Blue Ocean Divers">
                         </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Admin Email</label>
+                            <input type="email" class="form-control" name="admin_email" required placeholder="admin@your-domain.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Timezone</label>
+                            <select class="form-control" name="timezone">
+                                <option value="UTC">UTC</option>
+                                <option value="America/New_York">New York</option>
+                                <option value="America/Los_Angeles">Los Angeles</option>
+                                <option value="Europe/London">London</option>
+                                <option value="Asia/Tokyo">Tokyo</option>
+                                <option value="Australia/Sydney">Sydney</option>
+                            </select>
+                        </div>
+
+                        <h3 style="font-size: 1.1rem; margin: 2rem 0 1rem; color: var(--text-muted);">Database Connection</h3>
+
+                        <div class="form-group">
+                            <label class="form-label">Database Host</label>
+                            <input type="text" class="form-control" name="db_host" required value="localhost" placeholder="localhost">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Database Name</label>
+                            <input type="text" class="form-control" name="db_name" required placeholder="nautilus">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Database User</label>
+                            <input type="text" class="form-control" name="db_user" required placeholder="root">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Database Password</label>
+                            <input type="password" class="form-control" name="db_password" placeholder="password">
+                        </div>
+
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="installDemoData" name="install_demo_data">
+                            <div>
+                                <div style="font-weight: 500;">Install Demo Data</div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">Populate with sample products, customers, and bookings.</div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="actions">
+                        <button class="btn btn-outline" onclick="prevStep(1)">Back</button>
+                        <button class="btn btn-primary" onclick="submitConfig()">
+                            Continue
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Installation -->
+                <div class="step-content" id="step3">
+                    <h2>Installing</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Please wait while we set up your database and configure the system.</p>
+
+                    <div class="console-log" id="installLog">
+                        > Initializing installation...<br>
                     </div>
 
-                    <!-- Step 2: Configuration will be added dynamically -->
-                    <div class="step-content" id="step2Content" style="display:none;">
-                        <!-- Configuration form -->
+                    <div class="actions">
+                        <button class="btn btn-primary" id="btnStep3Next" onclick="nextStep(4)" disabled>
+                            Complete
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </button>
                     </div>
+                </div>
 
-                    <!-- Step 3: Database will be added dynamically -->
-                    <div class="step-content" id="step3Content" style="display:none;">
-                        <!-- Database setup -->
-                    </div>
+                <!-- Step 4: Complete -->
+                <div class="step-content" id="step4">
+                    <div class="success-card">
+                        <div class="success-icon">
+                            <svg width="80" height="80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <h2>Installation Complete!</h2>
+                        <p style="color: var(--text-muted);">Nautilus has been successfully installed.</p>
 
-                    <!-- Step 4: Complete will be added dynamically -->
-                    <div class="step-content" id="step4Content" style="display:none;">
-                        <!-- Success message -->
+                        <div class="credentials-box">
+                            <h3 style="margin-bottom: 1rem; color: var(--success);">Admin Credentials</h3>
+                            <p><strong>Email:</strong> <span id="finalEmail">admin@example.com</span></p>
+                            <p><strong>Password:</strong> admin123</p>
+                            <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">* Please change your password immediately after logging in.</p>
+                        </div>
+
+                        <div class="actions" style="justify-content: center;">
+                            <a href="/" class="btn btn-outline">View Storefront</a>
+                            <a href="/store" class="btn btn-primary">Go to Dashboard</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const checks = [
-            { name: 'PHP Version (≥ 8.1)', check: 'php_version' },
-            { name: 'Apache/Nginx Web Server', check: 'web_server' },
-            { name: 'MySQL/MariaDB Server', check: 'mysql_server' },
-            { name: 'PHP Extension: PDO', check: 'pdo' },
-            { name: 'PHP Extension: PDO_MySQL', check: 'pdo_mysql' },
-            { name: 'PHP Extension: OpenSSL', check: 'openssl' },
-            { name: 'PHP Extension: MBString', check: 'mbstring' },
-            { name: 'PHP Extension: JSON', check: 'json' },
-            { name: 'PHP Extension: Curl', check: 'curl' },
-            { name: 'PHP Extension: GD/Imagick', check: 'gd' },
-            { name: 'PHP Extension: Zip', check: 'zip' },
-            { name: 'File Permissions: storage/', check: 'storage_writable' },
-            { name: 'File Permissions: public/uploads/', check: 'uploads_writable' },
-            { name: '.htaccess Present', check: 'htaccess' },
-            { name: 'Apache mod_rewrite', check: 'mod_rewrite' },
-            { name: 'SELinux Status', check: 'selinux' },
-            { name: 'Firewall Status', check: 'firewall' },
-            { name: 'PHP Memory Limit', check: 'memory_limit' }
-        ];
+        let currentStep = 1;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            runSystemChecks();
+            
+            // Auto-fill URL
+            document.querySelector('input[name="app_url"]').value = window.location.origin;
+        });
 
-        function createCheckItem(check) {
-            return `
-                <div class="check-item" id="check_${check.check}">
-                    <div>
-                        <strong>${check.name}</strong>
-                        <div class="check-details" style="font-size: 0.9rem; color: #666; margin-top: 5px;"></div>
-                    </div>
-                    <div class="check-status checking">
-                        <i class="bi bi-hourglass-split"></i>
-                    </div>
-                </div>
-            `;
-        }
-
-        function performChecks() {
-            const container = document.getElementById('checksContainer');
-            container.innerHTML = checks.map(createCheckItem).join('');
-
-            document.getElementById('checkButton').disabled = true;
-            document.getElementById('checkButton').innerHTML = '<div id="loadingSpinner"></div> Checking...';
-
-            // Perform checks via AJAX
-            fetch('check.php')
-                .then(response => response.json())
-                .then(results => {
-                    let criticalError = false;
-
-                    Object.keys(results).forEach(key => {
-                        const result = results[key];
-                        const checkElem = document.getElementById(`check_${key}`);
-                        if (!checkElem) return;
-
-                        const statusElem = checkElem.querySelector('.check-status');
-                        const detailsElem = checkElem.querySelector('.check-details');
-
-                        statusElem.className = 'check-status ' + result.status;
-
-                        if (result.status === 'success') {
-                            statusElem.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
-                        } else if (result.status === 'error') {
-                            statusElem.innerHTML = '<i class="bi bi-x-circle-fill"></i>';
-                            criticalError = true; // Only errors block continuation
-                        } else if (result.status === 'warning') {
-                            statusElem.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i>';
-                            // Warnings don't block continuation
-                        }
-
-                        // Display message
-                        let detailsHtml = '';
-                        if (result.message) {
-                            detailsHtml = result.message;
-                        }
-
-                        // Add help text if available
-                        if (result.help_text) {
-                            detailsHtml += '<br><small class="text-muted"><i class="bi bi-info-circle"></i> ' + result.help_text + '</small>';
-                        }
-
-                        // Add fix command if available and check failed
-                        if (result.fix_command && result.status !== 'success') {
-                            detailsHtml += '<br><div class="fix-command mt-2"><strong>How to fix:</strong><br><code style="display:block; background:#f8f9fa; padding:8px; border-radius:4px; margin-top:4px; white-space:pre-wrap; font-size:0.85em;">' + result.fix_command + '</code></div>';
-                        }
-
-                        detailsElem.innerHTML = detailsHtml;
-                    });
-
-                    document.getElementById('checkButton').disabled = false;
-
-                    if (!criticalError) {
-                        document.getElementById('checkButton').innerHTML = '<i class="bi bi-arrow-right-circle"></i> Continue to Configuration';
-                        document.getElementById('checkButton').onclick = () => goToStep(2);
-                    } else {
-                        document.getElementById('checkButton').innerHTML = '<i class="bi bi-arrow-clockwise"></i> Retry Checks';
-                        document.getElementById('checkButton').onclick = performChecks;
-                    }
-                })
-                .catch(error => {
-                    console.error('Check failed:', error);
-                    alert('Failed to perform system checks. Please try again.');
-                    document.getElementById('checkButton').disabled = false;
-                    document.getElementById('checkButton').innerHTML = '<i class="bi bi-arrow-clockwise"></i> Retry Checks';
-                });
-        }
-
-        function goToStep(stepNum) {
-            // Hide all steps
-            for (let i = 1; i <= 4; i++) {
-                document.getElementById(`step${i}Content`).style.display = 'none';
-                document.getElementById(`step${i}`).classList.remove('active');
-                if (i < stepNum) {
-                    document.getElementById(`step${i}`).classList.add('completed');
+        function updateProgress(step) {
+            // Update dots
+            document.querySelectorAll('.step-dot').forEach(dot => {
+                const dotStep = parseInt(dot.dataset.step);
+                if (dotStep < step) {
+                    dot.className = 'step-dot completed';
+                    dot.innerHTML = '✓';
+                } else if (dotStep === step) {
+                    dot.className = 'step-dot active';
+                    dot.innerHTML = step;
+                } else {
+                    dot.className = 'step-dot';
+                    dot.innerHTML = dotStep;
                 }
-            }
+            });
 
-            // Show current step
-            document.getElementById(`step${stepNum}Content`).style.display = 'block';
-            document.getElementById(`step${stepNum}`).classList.add('active');
+            // Update line fill
+            const fill = document.getElementById('progressFill');
+            const percentage = ((step - 1) / 3) * 100;
+            fill.style.width = `${percentage}%`;
+        }
 
-            // Load step content if needed
-            if (stepNum === 2) {
-                loadConfigurationStep();
-            } else if (stepNum === 3) {
-                loadDatabaseStep();
-            } else if (stepNum === 4) {
-                loadCompleteStep();
+        function nextStep(step) {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            document.getElementById(`step${step}`).classList.add('active');
+            currentStep = step;
+            updateProgress(step);
+        }
+
+        function prevStep(step) {
+            nextStep(step);
+        }
+
+        async function runSystemChecks() {
+            const container = document.getElementById('checksContainer');
+            container.innerHTML = ''; // Clear
+            document.getElementById('btnCheckAgain').disabled = true;
+            document.getElementById('systemCheckError').style.display = 'none';
+
+            try {
+                const response = await fetch('check.php');
+                const checks = await response.json();
+                let allPassed = true;
+
+                Object.values(checks).forEach(check => {
+                    const div = document.createElement('div');
+                    div.className = 'check-item';
+                    
+                    let icon = '';
+                    let statusClass = '';
+                    
+                    if (check.status === 'success') {
+                        icon = '✓';
+                        statusClass = 'status-success';
+                    } else if (check.status === 'warning') {
+                        icon = '!';
+                        statusClass = 'status-warning';
+                    } else {
+                        icon = '✕';
+                        statusClass = 'status-error';
+                        allPassed = false;
+                    }
+
+                    div.innerHTML = `
+                        <span class="check-name">${check.name}</span>
+                        <span class="check-status ${statusClass}">${icon}</span>
+                    `;
+                    
+                    if (check.status !== 'success' && check.message) {
+                         div.title = check.message; // Simple tooltip
+                    }
+                    
+                    container.appendChild(div);
+                });
+
+                if (allPassed) {
+                    document.getElementById('btnStep1Next').disabled = false;
+                } else {
+                    document.getElementById('systemCheckError').style.display = 'block';
+                }
+
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = '<div style="color:var(--error)">Failed to load system checks.</div>';
+            } finally {
+                document.getElementById('btnCheckAgain').disabled = false;
             }
         }
 
-        function loadConfigurationStep() {
-            document.getElementById('step2Content').innerHTML = `
-                <h3 class="mb-4">Application Configuration</h3>
-                <p class="text-muted mb-4">Basic configuration will be set now. Everything else can be configured in the admin panel after installation.</p>
-
-                <form id="configForm">
-                    <div class="mb-3">
-                        <label class="form-label"><strong>Application URL</strong></label>
-                        <input type="url" class="form-control" name="app_url" value="https://nautilus.local" required>
-                        <small class="text-muted">Your application's URL</small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label"><strong>Business Name</strong></label>
-                        <input type="text" class="form-control" name="business_name" placeholder="My Dive Shop" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label"><strong>Admin Email</strong></label>
-                        <input type="email" class="form-control" name="admin_email" placeholder="admin@yourdomain.com" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label"><strong>Timezone</strong></label>
-                        <select class="form-control" name="timezone" required>
-                            <option value="America/New_York">Eastern Time</option>
-                            <option value="America/Chicago">Central Time</option>
-                            <option value="America/Denver">Mountain Time</option>
-                            <option value="America/Los_Angeles">Pacific Time</option>
-                            <option value="America/Anchorage">Alaska Time</option>
-                            <option value="Pacific/Honolulu">Hawaii Time</option>
-                        </select>
-                    </div>
-
-                    <div class="text-center mt-4">
-                        <button type="button" class="btn btn-secondary me-2" onclick="goToStep(1)">
-                            <i class="bi bi-arrow-left"></i> Back
-                        </button>
-                        <button type="button" class="btn btn-primary" onclick="saveConfigAndContinue()">
-                            <i class="bi bi-arrow-right"></i> Continue
-                        </button>
-                    </div>
-                </form>
-            `;
-        }
-
-        function saveConfigAndContinue() {
-            // Save configuration via AJAX
+        async function submitConfig() {
             const form = document.getElementById('configForm');
             const formData = new FormData(form);
+            
+            // Store email for final step
+            document.getElementById('finalEmail').textContent = formData.get('admin_email');
 
-            fetch('save-config.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    goToStep(3);
-                } else {
-                    alert('Failed to save configuration: ' + result.message);
-                }
-            })
-            .catch(error => {
-                console.error('Save failed:', error);
-                alert('Failed to save configuration. Please try again.');
-            });
-        }
-
-        function loadDatabaseStep() {
-            document.getElementById('step3Content').innerHTML = `
-                <h3 class="mb-4">Database Setup</h3>
-                <p class="text-muted mb-4">Installing database schema...</p>
-
-                <div class="progress-container">
-                    <div class="progress" style="height: 30px;">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="dbProgress">0%</div>
-                    </div>
-                </div>
-
-                <div id="dbLog" class="mt-4" style="max-height: 300px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9rem;">
-                    Starting database installation...<br>
-                </div>
-
-                <div class="text-center mt-4" id="dbButtons" style="display:none;">
-                    <button class="btn btn-success btn-lg" onclick="goToStep(4)">
-                        <i class="bi bi-check-circle"></i> Complete Installation
-                    </button>
-                </div>
-            `;
-
-            installDatabase();
-        }
-
-        function installDatabase() {
-            const log = document.getElementById('dbLog');
-            const progress = document.getElementById('dbProgress');
-
-            fetch('install-db.php')
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        progress.style.width = '100%';
-                        progress.textContent = '100%';
-                        progress.classList.remove('progress-bar-animated');
-                        progress.classList.add('bg-success');
-
-                        log.innerHTML += '<br><strong style="color: green;">✓ Database installed successfully!</strong><br>';
-                        log.innerHTML += `<br>Tables created: ${result.tables}<br>`;
-                        log.innerHTML += `Admin credentials:<br>`;
-                        log.innerHTML += `Email: admin@nautilus.local<br>`;
-                        log.innerHTML += `Password: admin123<br>`;
-                        log.innerHTML += `<br><em>Please change the default password after logging in.</em>`;
-
-                        document.getElementById('dbButtons').style.display = 'block';
-                    } else {
-                        progress.classList.add('bg-danger');
-                        log.innerHTML += `<br><strong style="color: red;">✗ Installation failed:</strong><br>${result.error}`;
-                    }
-                })
-                .catch(error => {
-                    console.error('Installation failed:', error);
-                    progress.classList.add('bg-danger');
-                    log.innerHTML += `<br><strong style="color: red;">✗ Installation failed:</strong><br>${error.message}`;
+            try {
+                const response = await fetch('save-config.php', {
+                    method: 'POST',
+                    body: formData
                 });
+                const result = await response.json();
+
+                if (result.success) {
+                    nextStep(3);
+                    startInstallation(formData.get('install_demo_data') === 'on');
+                } else {
+                    alert('Configuration Error: ' + result.message);
+                }
+            } catch (e) {
+                alert('Failed to save configuration.');
+            }
         }
 
-        function loadCompleteStep() {
-            document.getElementById('step4Content').innerHTML = `
-                <div class="text-center py-5">
-                    <div class="mb-4">
-                        <i class="bi bi-check-circle" style="font-size: 5rem; color: #28a745;"></i>
-                    </div>
-                    <h2 class="mb-3">Installation Complete!</h2>
-                    <p class="lead mb-4">Your Nautilus Dive Shop system is ready to use.</p>
+        async function startInstallation(installDemo) {
+            const log = document.getElementById('installLog');
+            const logLine = (msg) => log.innerHTML += `> ${msg}<br>`;
+            
+            logLine('Creating database tables...');
+            
+            try {
+                const response = await fetch(`install-db.php?demo=${installDemo ? 1 : 0}`);
+                const result = await response.json();
 
-                    <div class="alert alert-info text-start mb-4">
-                        <h5><i class="bi bi-info-circle"></i> Default Admin Credentials</h5>
-                        <p class="mb-0"><strong>Email:</strong> admin@nautilus.local<br>
-                        <strong>Password:</strong> admin123</p>
-                        <small class="text-muted">Please change these credentials after logging in.</small>
-                    </div>
-
-                    <div class="d-grid gap-3">
-                        <a href="/store" class="btn btn-primary btn-lg">
-                            <i class="bi bi-box-arrow-in-right"></i> Go to Admin Dashboard
-                        </a>
-                        <a href="/" class="btn btn-outline-primary">
-                            <i class="bi bi-house-door"></i> View Storefront
-                        </a>
-                    </div>
-                </div>
-            `;
+                if (result.success) {
+                    logLine('<span style="color:var(--success)">Database installed successfully!</span>');
+                    logLine(`Created ${result.tables} tables.`);
+                    if (installDemo) logLine('Demo data installed.');
+                    
+                    document.getElementById('btnStep3Next').disabled = false;
+                    
+                    // Auto advance after 1s
+                    setTimeout(() => nextStep(4), 1000);
+                } else {
+                    logLine(`<span style="color:var(--error)">Error: ${result.error}</span>`);
+                }
+            } catch (e) {
+                logLine(`<span style="color:var(--error)">Fatal Error: ${e.message}</span>`);
+            }
         }
     </script>
 </body>

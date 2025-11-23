@@ -37,10 +37,14 @@ try {
 
     $sql = file_get_contents($schemaFile);
 
+    // Remove comments
+    $sql = preg_replace('/--.*$/m', '', $sql);
+    $sql = preg_replace('/\/\*.*?\*\//s', '', $sql);
+
     // Split by semicolons and execute each statement
     $statements = array_filter(
         array_map('trim', explode(';', $sql)),
-        fn($stmt) => !empty($stmt) && !preg_match('/^--/', $stmt)
+        fn($stmt) => !empty($stmt)
     );
 
     $executedStatements = 0;
@@ -70,6 +74,30 @@ try {
     $roleCount = $pdo->query("SELECT COUNT(*) as count FROM roles")->fetch(PDO::FETCH_ASSOC)['count'];
     $certAgencyCount = $pdo->query("SELECT COUNT(*) as count FROM certification_agencies")->fetch(PDO::FETCH_ASSOC)['count'];
 
+    // Install Demo Data if requested
+    $demoInstalled = false;
+    if (isset($_GET['demo']) && $_GET['demo'] == '1') {
+        $demoFile = dirname(__DIR__, 2) . '/database/seeders/demo_data.sql';
+        if (file_exists($demoFile)) {
+            $demoSql = file_get_contents($demoFile);
+            $demoStatements = array_filter(
+                array_map('trim', explode(';', $demoSql)),
+                fn($stmt) => !empty($stmt) && !preg_match('/^--/', $stmt)
+            );
+            
+            foreach ($demoStatements as $statement) {
+                if (!empty($statement)) {
+                    try {
+                        $pdo->exec($statement);
+                    } catch (PDOException $e) {
+                        // Ignore errors for demo data (e.g. duplicates)
+                    }
+                }
+            }
+            $demoInstalled = true;
+        }
+    }
+
     // Create installation complete marker (matches what index.php checks)
     $installMarker = dirname(__DIR__, 2) . '/.installed';
     file_put_contents($installMarker, date('Y-m-d H:i:s'));
@@ -85,7 +113,8 @@ try {
             'tables_created' => $tableCount,
             'users_created' => $userCount,
             'roles_created' => $roleCount,
-            'certification_agencies' => $certAgencyCount
+            'certification_agencies' => $certAgencyCount,
+            'demo_data_installed' => $demoInstalled
         ],
         'default_credentials' => [
             'email' => 'admin@nautilus.local',

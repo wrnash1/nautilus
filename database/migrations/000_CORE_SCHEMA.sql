@@ -4,10 +4,7 @@
 -- This replaces the complex 100+ migration files for initial setup
 -- ============================================================================
 
--- Drop and recreate database
-DROP DATABASE IF EXISTS nautilus_dev;
-CREATE DATABASE nautilus_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE nautilus_dev;
+-- Database creation is handled by the installer or setup script
 
 -- ============================================================================
 -- MULTI-TENANT & AUTHENTICATION

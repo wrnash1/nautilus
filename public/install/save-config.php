@@ -8,9 +8,17 @@ header('Content-Type: application/json');
 
 try {
     // Get POST data
-    $input = json_decode(file_get_contents('php://input'), true);
+    $input = $_POST;
 
-    if (!$input) {
+    if (empty($input)) {
+        // Fallback to JSON if $_POST is empty (in case we switch back to JSON later)
+        $jsonInput = json_decode(file_get_contents('php://input'), true);
+        if ($jsonInput) {
+            $input = $jsonInput;
+        }
+    }
+
+    if (empty($input)) {
         throw new Exception('Invalid input data');
     }
 
