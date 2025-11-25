@@ -23,7 +23,7 @@ class BackupService
 
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        $this->db = Database::getPdo();
         $this->logger = new Logger();
         $this->backupPath = BASE_PATH . '/storage/backups';
         $this->dbHost = $_ENV['DB_HOST'] ?? 'localhost';

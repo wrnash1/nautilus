@@ -1,2 +1,0 @@
-Parsed 32 tables.
-No obvious FK type mismatches found.

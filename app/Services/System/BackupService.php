@@ -18,7 +18,7 @@ class BackupService
 
     public function __construct()
     {
-        $this->db = \App\Core\Database::getInstance()->getConnection();
+        $this->db = \App\Core\Database::getPdo()->getConnection();
         $this->backupPath = dirname(__DIR__, 3) . '/storage/backups';
         $this->databasePath = dirname(__DIR__, 3) . '/database/nautilus.db';
 
@@ -107,7 +107,7 @@ class BackupService
 
             // Close all database connections
             $this->db = null;
-            \App\Core\Database::getInstance()->disconnect();
+            \App\Core\Database::getPdo()->disconnect();
 
             // Replace database file
             $restoredDbPath = $tempPath . '/database/nautilus.db';
@@ -128,7 +128,7 @@ class BackupService
             $this->deleteDirectory($tempPath);
 
             // Reconnect to database
-            $this->db = \App\Core\Database::getInstance()->getConnection();
+            $this->db = \App\Core\Database::getPdo()->getConnection();
 
             // Log restoration
             $this->logRestoration($filename);

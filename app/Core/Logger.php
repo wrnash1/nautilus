@@ -182,13 +182,10 @@ class Logger
     private function logToDatabase(string $level, string $message, array $context): void
     {
         try {
-            $db = Database::getInstance();
-
             $sql = "INSERT INTO error_logs (level, message, context, url, ip_address, user_id, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, NOW())";
 
-            $stmt = $db->prepare($sql);
-            $stmt->execute([
+            Database::query($sql, [
                 strtolower($level),
                 $message,
                 json_encode($context),

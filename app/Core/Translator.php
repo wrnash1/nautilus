@@ -199,11 +199,8 @@ class Translator
     private function getUserLocale(int $userId): ?string
     {
         try {
-            $db = Database::getInstance();
             $sql = "SELECT locale FROM users WHERE id = ?";
-            $stmt = $db->prepare($sql);
-            $stmt->execute([$userId]);
-            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $result = Database::fetchOne($sql, [$userId]);
 
             return $result['locale'] ?? null;
         } catch (\Exception $e) {

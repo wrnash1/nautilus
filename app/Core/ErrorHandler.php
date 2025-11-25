@@ -102,9 +102,11 @@ class ErrorHandler
             ob_end_clean();
         }
 
-        // Set HTTP status code
+        // Set HTTP status code only if headers haven't been sent yet
         $statusCode = $this->getHttpStatusCode($exception);
-        http_response_code($statusCode);
+        if (!headers_sent()) {
+            http_response_code($statusCode);
+        }
 
         // Check if AJAX request
         if ($this->isAjaxRequest()) {
@@ -140,7 +142,9 @@ class ErrorHandler
      */
     private function sendJsonErrorResponse(Throwable $exception, int $statusCode): void
     {
-        header('Content-Type: application/json');
+        if (!headers_sent()) {
+            header('Content-Type: application/json');
+        }
 
         $response = [
             'success' => false,

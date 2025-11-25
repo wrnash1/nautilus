@@ -390,7 +390,8 @@ class DashboardController
              AND (certification_number IS NULL OR certification_number = '')"
         );
 
-        if ($pendingCerts['count'] > 0) {
+
+        if ($pendingCerts && isset($pendingCerts['count']) && $pendingCerts['count'] > 0) {
             $alerts[] = [
                 'type' => 'warning',
                 'title' => 'Pending Certifications',
@@ -407,7 +408,7 @@ class DashboardController
              AND is_active = 1"
         );
 
-        if ($lowStock['count'] > 0) {
+        if ($lowStock && isset($lowStock['count']) && $lowStock['count'] > 0) {
             $alerts[] = [
                 'type' => 'warning',
                 'title' => 'Low Stock Alert',

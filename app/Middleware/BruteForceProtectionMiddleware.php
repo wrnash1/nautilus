@@ -20,7 +20,7 @@ class BruteForceProtectionMiddleware
     public function __construct()
     {
         $this->cache = Cache::getInstance();
-        $this->db = Database::getInstance();
+        $this->db = Database::getPdo();
     }
 
     /**

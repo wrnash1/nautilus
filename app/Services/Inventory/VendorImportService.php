@@ -18,7 +18,7 @@ class VendorImportService
 
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        $this->db = Database::getPdo();
         $this->logger = new Logger();
     }
 

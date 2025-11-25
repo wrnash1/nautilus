@@ -20,7 +20,7 @@ class RateLimitMiddleware
     public function __construct(int $maxAttempts = 60, int $decayMinutes = 1)
     {
         $this->cache = Cache::getInstance();
-        $this->db = Database::getInstance();
+        $this->db = Database::getPdo();
         $this->maxAttempts = $maxAttempts;
         $this->decayMinutes = $decayMinutes;
     }

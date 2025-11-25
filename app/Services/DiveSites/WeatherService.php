@@ -22,7 +22,7 @@ class WeatherService
 
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        $this->db = Database::getPdo();
         $this->logger = new Logger();
         $this->cache = Cache::getInstance();
         $this->apiKey = $_ENV['OPENWEATHER_API_KEY'] ?? '';

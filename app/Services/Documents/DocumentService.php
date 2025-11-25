@@ -18,7 +18,7 @@ class DocumentService
 
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        $this->db = Database::getPdo();
         $this->logger = new Logger();
         $this->uploadPath = $_SERVER['DOCUMENT_ROOT'] . '/../storage/documents';
 

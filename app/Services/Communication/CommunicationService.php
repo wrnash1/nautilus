@@ -16,7 +16,7 @@ class CommunicationService
 
     public function __construct()
     {
-        $this->db = \App\Core\Database::getInstance()->getConnection();
+        $this->db = \App\Core\Database::getPdo()->getConnection();
         $this->loadConfig();
     }
 
