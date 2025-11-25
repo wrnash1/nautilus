@@ -27,7 +27,7 @@ class ProductImportService
      */
     public function createImportJob(array $fileData, array $settings = []): int
     {
-        $jobId = Database::insert(
+        Database::query(
             "INSERT INTO product_import_jobs (
                 job_name, import_type, source_file, vendor_id, status,
                 file_size, update_existing, match_field, skip_duplicates,
@@ -39,14 +39,15 @@ class ProductImportService
                 $fileData['file_path'],
                 $settings['vendor_id'] ?? null,
                 $fileData['file_size'],
-                $settings['update_existing'] ?? false,
+                (int)($settings['update_existing'] ?? 0),
                 $settings['match_field'] ?? 'sku',
-                $settings['skip_duplicates'] ?? true,
-                $settings['auto_create_categories'] ?? false,
-                $settings['auto_create_vendors'] ?? false,
+                (int)($settings['skip_duplicates'] ?? 1),
+                (int)($settings['auto_create_categories'] ?? 0),
+                (int)($settings['auto_create_vendors'] ?? 0),
                 currentUser()['id'] ?? null
             ]
         );
+        $jobId = (int)Database::lastInsertId();
 
         return $jobId;
     }
@@ -137,23 +138,23 @@ class ProductImportService
 
         // Common field name patterns
         $patterns = [
-            'sku' => ['sku', 'item#', 'item_number', 'partnumber', 'part_number', 'product_code'],
-            'name' => ['name', 'product_name', 'title', 'description', 'item_name', 'product'],
-            'description' => ['description', 'desc', 'long_description', 'details'],
+            'sku' => ['sku', 'item#', 'item_number', 'partnumber', 'part_number', 'product_code', 'part_#', 'part_number'],
+            'name' => ['name', 'product_name', 'title', 'description', 'item_name', 'product', 'primary_description'],
+            'description' => ['description', 'desc', 'long_description', 'details', 'auxiliary_description'],
             'barcode' => ['barcode', 'upc', 'ean', 'gtin', 'upc_code'],
-            'cost_price' => ['cost', 'cost_price', 'wholesale', 'wholesale_price', 'dealer_price'],
-            'retail_price' => ['price', 'retail', 'retail_price', 'msrp', 'list_price', 'selling_price'],
+            'cost' => ['cost', 'cost_price', 'wholesale', 'wholesale_price', 'dealer_price'],
+            'price' => ['price', 'retail', 'retail_price', 'msrp', 'list_price', 'selling_price', 'retail'],
             'weight' => ['weight', 'wt', 'product_weight', 'item_weight'],
             'weight_unit' => ['weight_unit', 'wt_unit', 'unit'],
             'dimensions' => ['dimensions', 'size', 'dims'],
             'length' => ['length', 'len', 'l'],
             'width' => ['width', 'w'],
             'height' => ['height', 'h', 'ht'],
-            'stock_quantity' => ['stock', 'quantity', 'qty', 'inventory', 'on_hand', 'qty_on_hand'],
+            'quantity_in_stock' => ['stock', 'quantity', 'qty', 'inventory', 'on_hand', 'qty_on_hand', 'quantity_on_hand'],
             'category' => ['category', 'cat', 'product_category', 'type'],
-            'vendor' => ['vendor', 'supplier', 'manufacturer', 'brand'],
-            'vendor_sku' => ['vendor_sku', 'supplier_sku', 'mfg_sku'],
-            'model' => ['model', 'model_number', 'model#'],
+            'vendor' => ['vendor', 'supplier', 'manufacturer', 'brand', 'vendor_name'],
+            'model' => ['model', 'model_number', 'model#', 'model_number'],
+            'image_path' => ['image', 'image_url', 'photo', 'image_1'],
         ];
 
         foreach ($csvHeaders as $csvHeader) {
@@ -180,12 +181,13 @@ class ProductImportService
      */
     public function saveFieldMapping(int $jobId, array $mapping, array $defaultValues = []): bool
     {
-        return Database::execute(
+        Database::query(
             "UPDATE product_import_jobs
              SET field_mapping = ?, default_values = ?, status = 'mapping'
              WHERE id = ?",
             [json_encode($mapping), json_encode($defaultValues), $jobId]
         );
+        return true;
     }
 
     /**
@@ -231,7 +233,7 @@ class ProductImportService
             }
 
             // Store preview data
-            $previewId = Database::insert(
+            Database::query(
                 "INSERT INTO product_import_preview (
                     import_job_id, row_number, raw_data, mapped_data,
                     validation_status, validation_messages,
@@ -249,6 +251,7 @@ class ProductImportService
                     $existingProduct['id'] ?? null
                 ]
             );
+            $previewId = (int)Database::lastInsertId();
 
             $preview[] = [
                 'id' => $previewId,
@@ -263,7 +266,7 @@ class ProductImportService
         }
 
         // Update job status
-        Database::execute(
+        Database::query(
             "UPDATE product_import_jobs
              SET status = 'validating', total_rows = ?
              WHERE id = ?",
@@ -287,7 +290,7 @@ class ProductImportService
         }
 
         // Update status to importing
-        Database::execute(
+        Database::query(
             "UPDATE product_import_jobs
              SET status = 'importing', started_at = NOW()
              WHERE id = ?",
@@ -374,7 +377,7 @@ class ProductImportService
 
             // Update progress
             if ($stats['processed'] % 10 === 0) {
-                Database::execute(
+                Database::query(
                     "UPDATE product_import_jobs
                      SET rows_processed = ?, rows_success = ?, rows_updated = ?,
                          rows_skipped = ?, rows_failed = ?
@@ -392,7 +395,7 @@ class ProductImportService
         }
 
         // Final update
-        Database::execute(
+        Database::query(
             "UPDATE product_import_jobs
              SET status = ?, completed_at = NOW(),
                  rows_processed = ?, rows_success = ?, rows_updated = ?,
@@ -414,7 +417,7 @@ class ProductImportService
         );
 
         // Clear preview data
-        Database::execute(
+        Database::query(
             "DELETE FROM product_import_preview WHERE import_job_id = ?",
             [$jobId]
         );
@@ -444,17 +447,34 @@ class ProductImportService
         }
 
         // Type conversions
-        if (isset($mappedData['cost_price'])) {
-            $mappedData['cost_price'] = (float)str_replace(['$', ','], '', $mappedData['cost_price']);
+        if (isset($mappedData['cost'])) {
+            $mappedData['cost'] = (float)str_replace(['$', ','], '', $mappedData['cost']);
         }
-        if (isset($mappedData['retail_price'])) {
-            $mappedData['retail_price'] = (float)str_replace(['$', ','], '', $mappedData['retail_price']);
+        if (isset($mappedData['price'])) {
+            $mappedData['price'] = (float)str_replace(['$', ','], '', $mappedData['price']);
         }
-        if (isset($mappedData['stock_quantity'])) {
-            $mappedData['stock_quantity'] = (int)$mappedData['stock_quantity'];
+        if (isset($mappedData['quantity_in_stock'])) {
+            $mappedData['quantity_in_stock'] = (int)$mappedData['quantity_in_stock'];
         }
         if (isset($mappedData['weight'])) {
             $mappedData['weight'] = (float)$mappedData['weight'];
+        }
+
+        // Handle attributes (extra fields)
+        $attributes = [];
+        $knownFields = array_flip($mapping);
+        
+        // Add specific fields to attributes if they exist in raw row but aren't mapped to main columns
+        $attributeFields = ['Size', 'Color I', 'Color II', 'Accent Color', 'Gross Margin %', 'Minimum Price', 'Sale Price', 'Package Price', 'Preferred Customer Price', 'Staff', 'Government', 'Wholesale', 'Online Price', 'Apply Tax 1 (Yes/No)', 'Apply Tax 2 (Yes/No)', 'Apply Tax 3 (Yes/No)', 'No Commission flag', 'Commission Bonus', 'On Sale', 'Ignore Roundup', 'Discount Value (%)', 'Make Miscelleneous Item', "Don't check for inventory in Stock Flag", 'Preferred Stock Level', 'Reorder Quantity', 'Unit of Measurement', 'Case Quantity', 'Stocking Location', 'Print Label for each item in Stock', 'Warranty Reminder', 'Popup Notes', 'POS Visibility', 'Last Received Date', 'Website Visibility', 'Online Title', 'Online Description', 'Free Shipping', 'Display in Product Listing', 'Min. Advertised Pricing Flag', 'Min. Advertised Pricing', 'Image 2', 'Image 3', 'Image 4', 'Image 5', 'Product Url'];
+
+        foreach ($attributeFields as $field) {
+            if (isset($rawRow[$field]) && $rawRow[$field] !== '') {
+                $attributes[$field] = $rawRow[$field];
+            }
+        }
+
+        if (!empty($attributes)) {
+            $mappedData['attributes'] = json_encode($attributes);
         }
 
         return $mappedData;
@@ -477,13 +497,13 @@ class ProductImportService
             $messages[] = 'Product name is required';
             $status = 'error';
         }
-        if (empty($data['retail_price']) || $data['retail_price'] <= 0) {
+        if (empty($data['price']) || $data['price'] <= 0) {
             $messages[] = 'Valid retail price is required';
             $status = 'error';
         }
 
         // Warnings
-        if (empty($data['cost_price'])) {
+        if (empty($data['cost'])) {
             $messages[] = 'Cost price is missing (will use default 0)';
             if ($status !== 'error') $status = 'warning';
         }
@@ -500,7 +520,7 @@ class ProductImportService
     private function findExistingProduct(string $field, string $value): ?array
     {
         return Database::fetchOne(
-            "SELECT id, name, sku, retail_price FROM products WHERE {$field} = ?",
+            "SELECT id, name, sku, price FROM products WHERE {$field} = ?",
             [$value]
         );
     }
@@ -511,7 +531,7 @@ class ProductImportService
     private function findOrCreateCategory(string $categoryName, bool $autoCreate): ?int
     {
         $category = Database::fetchOne(
-            "SELECT id FROM product_categories WHERE name = ?",
+            "SELECT id FROM categories WHERE name = ?",
             [$categoryName]
         );
 
@@ -520,10 +540,11 @@ class ProductImportService
         }
 
         if ($autoCreate) {
-            return Database::insert(
-                "INSERT INTO product_categories (name, slug, is_active) VALUES (?, ?, 1)",
+            Database::query(
+                "INSERT INTO categories (name, slug, is_active) VALUES (?, ?, 1)",
                 [$categoryName, $this->generateSlug($categoryName)]
             );
+            return (int)Database::lastInsertId();
         }
 
         return null;
@@ -544,10 +565,11 @@ class ProductImportService
         }
 
         if ($autoCreate) {
-            return Database::insert(
+            Database::query(
                 "INSERT INTO vendors (name, is_active) VALUES (?, 1)",
                 [$vendorName]
             );
+            return (int)Database::lastInsertId();
         }
 
         return null;
@@ -596,15 +618,16 @@ class ProductImportService
     public function deleteImportJob(int $jobId): bool
     {
         // Delete preview data
-        Database::execute(
+        Database::query(
             "DELETE FROM product_import_preview WHERE import_job_id = ?",
             [$jobId]
         );
 
         // Delete job
-        return Database::execute(
+        Database::query(
             "DELETE FROM product_import_jobs WHERE id = ?",
             [$jobId]
         );
+        return true;
     }
 }

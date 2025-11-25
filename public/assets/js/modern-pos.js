@@ -145,8 +145,12 @@ const updateCart = () => {
     const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
     // Update badges
-    document.getElementById('cartCountBadge').textContent = itemCount;
-    document.getElementById('fabBadge').textContent = itemCount;
+    // Update badges
+    const cartItemCount = document.getElementById('cartItemCount');
+    if (cartItemCount) cartItemCount.textContent = `${itemCount} items`;
+
+    const fabBadge = document.getElementById('fabBadge');
+    if (fabBadge) fabBadge.textContent = itemCount;
 
     const container = document.getElementById('cartItemsContainer');
 
@@ -217,7 +221,7 @@ const updateCart = () => {
 const attachCartEventListeners = () => {
     // Remove item
     document.querySelectorAll('.btn-remove-item').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const index = parseInt(this.dataset.index);
             cart.splice(index, 1);
             updateCart();
@@ -227,7 +231,7 @@ const attachCartEventListeners = () => {
 
     // Decrease quantity
     document.querySelectorAll('.btn-qty-minus').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const index = parseInt(this.dataset.index);
             if (cart[index].quantity > 1) {
                 cart[index].quantity--;
@@ -238,7 +242,7 @@ const attachCartEventListeners = () => {
 
     // Increase quantity
     document.querySelectorAll('.btn-qty-plus').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const index = parseInt(this.dataset.index);
             cart[index].quantity++;
             updateCart();
@@ -285,7 +289,8 @@ const clearCart = () => {
 };
 
 const processCheckout = async () => {
-    const customerId = document.getElementById('customerSelect').value;
+    const customerIdInput = document.getElementById('selectedCustomerId');
+    const customerId = customerIdInput ? customerIdInput.value : null;
     const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
 
     if (!customerId) {
@@ -317,7 +322,8 @@ const processCheckout = async () => {
                 items: JSON.stringify(cart),
                 payment_method: paymentMethod,
                 amount_paid: total,
-                csrf_token: csrfToken
+                amount_paid: total,
+                csrf_token: typeof csrfToken !== 'undefined' ? csrfToken : ''
             })
         });
 
@@ -391,7 +397,7 @@ const searchProducts = debounce(async (query) => {
 
         // Add click listeners to search results
         document.querySelectorAll('.search-result-item').forEach(item => {
-            item.addEventListener('click', function(e) {
+            item.addEventListener('click', function (e) {
                 addToCart({
                     product_id: parseInt(this.dataset.productId),
                     name: this.dataset.productName,
@@ -424,7 +430,7 @@ const filterByCategory = (category) => {
 };
 
 // Initialize on DOM Ready
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Update clock every second
     updateClock();
     setInterval(updateClock, 1000);
@@ -438,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.product-card-modern').forEach(card => {
         const addBtn = card.querySelector('.btn-add-product');
 
-        addBtn.addEventListener('click', function(e) {
+        addBtn.addEventListener('click', function (e) {
             e.stopPropagation();
             addToCart({
                 product_id: parseInt(card.dataset.productId),
@@ -449,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Double click on card to add
-        card.addEventListener('dblclick', function(e) {
+        card.addEventListener('dblclick', function (e) {
             addToCart({
                 product_id: parseInt(this.dataset.productId),
                 name: this.dataset.productName,
@@ -460,12 +466,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Search input
-    document.getElementById('productSearch').addEventListener('input', function(e) {
+    document.getElementById('productSearch').addEventListener('input', function (e) {
         searchProducts(e.target.value);
     });
 
     // Clear search button
-    document.getElementById('clearSearch').addEventListener('click', function() {
+    document.getElementById('clearSearch').addEventListener('click', function () {
         document.getElementById('productSearch').value = '';
         document.getElementById('searchResults').innerHTML = '';
         this.style.display = 'none';
@@ -473,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Category filters
     document.querySelectorAll('.btn-category').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             document.querySelectorAll('.btn-category').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             filterByCategory(this.dataset.category);
@@ -487,13 +493,18 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('checkoutBtn').addEventListener('click', processCheckout);
 
     // Mobile FAB cart button
-    document.getElementById('fabCart').addEventListener('click', function() {
-        const cartSection = document.querySelector('.pos-cart-section');
-        cartSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+    const fabCart = document.getElementById('fabCart');
+    if (fabCart) {
+        fabCart.addEventListener('click', function () {
+            const cartSection = document.querySelector('.pos-cart-panel');
+            if (cartSection) {
+                cartSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    }
 
     // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         // Ctrl/Cmd + F for search
         if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
             e.preventDefault();
@@ -517,18 +528,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Barcode scanner button (placeholder)
-    document.getElementById('scanBarcodeBtn').addEventListener('click', function() {
+    document.getElementById('scanBarcodeBtn').addEventListener('click', function () {
         showToast('Barcode scanner feature coming soon!', 'info');
         document.getElementById('productSearch').focus();
     });
 
     // History button (placeholder)
-    document.getElementById('viewHistoryBtn').addEventListener('click', function() {
+    document.getElementById('viewHistoryBtn').addEventListener('click', function () {
         showToast('Transaction history feature coming soon!', 'info');
     });
 
     // Toggle view button (placeholder for list/grid view)
-    document.getElementById('toggleViewBtn').addEventListener('click', function() {
+    document.getElementById('toggleViewBtn').addEventListener('click', function () {
         const icon = this.querySelector('i');
         if (icon.classList.contains('bi-grid-3x3-gap')) {
             icon.classList.remove('bi-grid-3x3-gap');
@@ -543,4 +554,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize cart
     updateCart();
+
+    // Auto-Logout Logic
+    let logoutTimer;
+    const LOGOUT_TIME = 15 * 60; // 15 minutes in seconds
+    let timeLeft = LOGOUT_TIME;
+    const timerDisplay = document.getElementById('autoLogoutTimer');
+    const countdownDisplay = document.getElementById('logoutCountdown');
+
+    const resetTimer = () => {
+        timeLeft = LOGOUT_TIME;
+        timerDisplay.style.display = 'none';
+    };
+
+    const updateLogoutTimer = () => {
+        timeLeft--;
+
+        if (timeLeft <= 60) {
+            timerDisplay.style.display = 'block';
+            const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const seconds = (timeLeft % 60).toString().padStart(2, '0');
+            countdownDisplay.textContent = `${minutes}:${seconds}`;
+        } else {
+            timerDisplay.style.display = 'none';
+        }
+
+        if (timeLeft <= 0) {
+            window.location.href = '/store/logout';
+        }
+    };
+
+    // Track activity
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
+    activityEvents.forEach(event => {
+        document.addEventListener(event, resetTimer);
+    });
+
+    // Start timer
+    setInterval(updateLogoutTimer, 1000);
 });

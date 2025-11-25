@@ -71,7 +71,7 @@ class ProductService
             }
         }
         
-        if (empty($data['retail_price']) || $data['retail_price'] <= 0) {
+        if (empty($data['price']) || $data['price'] <= 0) {
             $errors[] = 'Retail price must be greater than 0';
         }
         

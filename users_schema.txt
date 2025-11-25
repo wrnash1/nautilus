@@ -1,0 +1,15 @@
+Field	Type	Null	Key	Default	Extra
+id	int(10) unsigned	NO	PRI	NULL	auto_increment
+tenant_id	int(10) unsigned	YES	MUL	1	
+username	varchar(100)	YES	UNI	NULL	
+email	varchar(255)	NO	UNI	NULL	
+password_hash	varchar(255)	NO		NULL	
+first_name	varchar(100)	YES		NULL	
+last_name	varchar(100)	YES		NULL	
+is_active	tinyint(1)	YES	MUL	1	
+two_factor_enabled	tinyint(1)	YES		0	
+two_factor_secret	varchar(255)	YES		NULL	
+last_login_at	timestamp	YES		NULL	
+password_changed_at	timestamp	YES		NULL	
+created_at	timestamp	YES		current_timestamp()	
+updated_at	timestamp	YES		current_timestamp()	on update current_timestamp()

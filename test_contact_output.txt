@@ -1,0 +1,11 @@
+Starting import test for: /home/wrnash1/development/nautilus/contact_list_1755117222.csv
+Detecting field mapping...
+PHP Deprecated:  fgetcsv(): the $escape parameter must be provided as its default value will change in /home/wrnash1/development/nautilus/app/Services/Import/CustomerImportService.php on line 46
+
+Deprecated: fgetcsv(): the $escape parameter must be provided as its default value will change in /home/wrnash1/development/nautilus/app/Services/Import/CustomerImportService.php on line 46
+Creating import job...
+Error: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'import_type' at row 1
+#0 /home/wrnash1/development/nautilus/app/Core/Database.php(57): PDOStatement->execute()
+#1 /home/wrnash1/development/nautilus/app/Services/Import/CustomerImportService.php(19): App\Core\Database::query()
+#2 /home/wrnash1/development/nautilus/test_contact_import.php(63): App\Services\Import\CustomerImportService->createImportJob()
+#3 {main}

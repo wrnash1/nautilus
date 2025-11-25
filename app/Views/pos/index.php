@@ -5,8 +5,7 @@ $user = currentUser();
 
 // Add modern POS CSS
 $additionalCss = '
-<link rel="stylesheet" href="/assets/css/mobile-pos.css">
-<link rel="stylesheet" href="/assets/css/professional-pos.css">
+<link rel="stylesheet" href="/assets/css/modern-pos.css">
 ';
 
 ob_start();
@@ -27,6 +26,9 @@ ob_start();
                 <div class="text-end">
                     <div id="posCurrentDate" class="fw-bold" style="font-size: 1.1rem;"></div>
                     <div id="posCurrentTime" class="text-muted" style="font-size: 1.5rem; font-family: 'Courier New', monospace;"></div>
+                    <div class="text-danger small mt-1" id="autoLogoutTimer" style="display: none;">
+                        <i class="bi bi-hourglass-split"></i> Auto-logout in <span id="logoutCountdown">00:00</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -43,9 +45,9 @@ ob_start();
                 </label>
                 <div class="customer-select-wrapper">
                     <div class="position-relative" style="flex: 1;">
-                        <input type="text" id="customerSearchInput" class="form-control customer-select" placeholder="Search customer or Walk-In..." autocomplete="off" style="padding-right: 2.5rem;">
-                        <button type="button" id="clearCustomerBtn" class="btn btn-sm btn-link position-absolute" style="right: 0.5rem; top: 50%; transform: translateY(-50%); display: none;">
-                            <i class="bi bi-x-circle-fill text-muted"></i>
+                        <input type="text" id="customerSearchInput" class="form-control customer-select" placeholder="Search customer or Walk-In..." autocomplete="off" style="padding-right: 2.5rem;" aria-label="Search customer">
+                        <button type="button" id="clearCustomerBtn" class="btn btn-sm btn-link position-absolute" style="right: 0.5rem; top: 50%; transform: translateY(-50%); display: none;" aria-label="Clear customer search">
+                            <i class="bi bi-x-circle-fill text-muted" aria-hidden="true"></i>
                         </button>
                         <input type="hidden" id="selectedCustomerId" value="">
                         <div id="customerSearchResults" class="search-dropdown"></div>
@@ -101,6 +103,9 @@ ob_start();
             <button class="category-tab" data-category="courses">
                 <i class="bi bi-mortarboard-fill"></i> Courses
             </button>
+            <button class="category-tab" data-category="trips">
+                <i class="bi bi-airplane-fill"></i> Trips
+            </button>
             <button class="category-tab" data-category="fills">
                 <i class="bi bi-wind"></i> Air Fills
             </button>
@@ -113,12 +118,12 @@ ob_start();
         <div class="product-search-bar">
             <div class="search-input-group">
                 <i class="bi bi-search"></i>
-                <input type="text" id="productSearch" class="search-input" placeholder="Search products, courses, or scan barcode..." autocomplete="off">
+                <input type="text" id="productSearch" class="search-input" placeholder="Search products, courses, or scan barcode..." autocomplete="off" aria-label="Search products">
                 <button class="btn btn-primary btn-sm ms-2" id="aiSearchBtn" title="AI Visual Search - Take or upload photo">
                     <i class="bi bi-camera-fill"></i> AI Search
                 </button>
-                <button class="btn-clear-search" id="clearSearch" style="display: none;">
-                    <i class="bi bi-x-circle-fill"></i>
+                <button class="btn-clear-search" id="clearSearch" style="display: none;" aria-label="Clear product search">
+                    <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
                 </button>
             </div>
             <div id="searchResults" class="search-dropdown"></div>
@@ -149,22 +154,64 @@ ob_start();
             <?php endforeach; ?>
 
             <!-- Course Tiles -->
+            <?php foreach ($courses as $course): ?>
             <div class="product-tile course-tile"
                  data-category="courses"
-                 data-product-id="course_1"
-                 data-course-id="1"
-                 data-product-name="Open Water Diver"
-                 data-product-price="399.00"
-                 data-product-sku="COURSE-OW">
+                 data-product-id="course_<?= $course['id'] ?>"
+                 data-course-id="<?= $course['id'] ?>"
+                 data-product-name="<?= htmlspecialchars($course['name']) ?>"
+                 data-product-price="<?= $course['price'] ?>"
+                 data-product-sku="<?= htmlspecialchars($course['course_code']) ?>">
                 <div class="product-tile-image course-item">
                     <i class="bi bi-mortarboard-fill"></i>
                 </div>
                 <div class="product-tile-info">
-                    <div class="product-tile-name">Open Water Diver</div>
-                    <div class="product-tile-price">$399.00</div>
+                    <div class="product-tile-name"><?= htmlspecialchars($course['name']) ?></div>
+                    <div class="product-tile-price"><?= formatCurrency($course['price']) ?></div>
                 </div>
                 <div class="course-badge">Course</div>
             </div>
+            <?php endforeach; ?>
+
+            <!-- Trip Tiles -->
+            <?php foreach ($trips as $trip): ?>
+            <div class="product-tile trip-tile"
+                 data-category="trips"
+                 data-product-id="trip_<?= $trip['id'] ?>"
+                 data-trip-id="<?= $trip['id'] ?>"
+                 data-product-name="<?= htmlspecialchars($trip['name']) ?>"
+                 data-product-price="<?= $trip['price'] ?>"
+                 data-product-sku="TRIP-<?= $trip['id'] ?>">
+                <div class="product-tile-image trip-item">
+                    <i class="bi bi-airplane-fill"></i>
+                </div>
+                <div class="product-tile-info">
+                    <div class="product-tile-name"><?= htmlspecialchars($trip['name']) ?></div>
+                    <div class="product-tile-price"><?= formatCurrency($trip['price']) ?></div>
+                </div>
+                <div class="course-badge" style="background: var(--pos-info);">Trip</div>
+            </div>
+            <?php endforeach; ?>
+
+            <!-- Rental Tiles -->
+            <?php foreach ($rentals as $rental): ?>
+            <div class="product-tile rental-tile"
+                 data-category="rentals"
+                 data-product-id="rental_<?= $rental['id'] ?>"
+                 data-rental-id="<?= $rental['id'] ?>"
+                 data-product-name="<?= htmlspecialchars($rental['name']) ?>"
+                 data-product-price="<?= $rental['daily_rate'] ?>"
+                 data-product-sku="<?= htmlspecialchars($rental['sku']) ?>">
+                <div class="product-tile-image rental-item">
+                    <i class="bi bi-briefcase-fill"></i>
+                </div>
+                <div class="product-tile-info">
+                    <div class="product-tile-name"><?= htmlspecialchars($rental['name']) ?></div>
+                    <div class="product-tile-price"><?= formatCurrency($rental['daily_rate']) ?>/day</div>
+                </div>
+                <div class="course-badge" style="background: var(--pos-warning);">Rental</div>
+            </div>
+            <?php endforeach; ?>
 
             <!-- Air Fill Tiles -->
             <div class="product-tile" data-category="fills" data-product-id="fill_air" data-product-name="Air Fill" data-product-price="8.00" data-product-sku="FILL-AIR">
@@ -573,6 +620,12 @@ ob_start();
     </div>
 </div>
 
+<!-- Floating Action Button for Mobile -->
+<button id="fabCart" class="fab-cart d-lg-none">
+    <i class="bi bi-cart3"></i>
+    <span id="fabBadge" class="fab-badge">0</span>
+</button>
+
 <?php
 $content = ob_get_clean();
 
@@ -581,7 +634,7 @@ $additionalJs = '
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
 <script src="/assets/js/ai-image-search.js"></script>
 <script src="/assets/js/pos-course-enrollment.js"></script>
-<script src="/assets/js/professional-pos.js"></script>
+<script src="/assets/js/modern-pos.js"></script>
 ';
 
 require __DIR__ . '/../layouts/app.php';

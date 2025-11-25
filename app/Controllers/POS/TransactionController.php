@@ -36,6 +36,25 @@ class TransactionController
         ");
         $courses = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
+        // Get rental equipment
+        $stmt = $db->query("
+            SELECT id, name, daily_rate, stock_quantity, sku
+            FROM rental_equipment
+            WHERE is_active = 1 AND stock_quantity > 0
+            ORDER BY name
+        ");
+        $rentals = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Get upcoming trips
+        $stmt = $db->query("
+            SELECT t.id, t.name, t.price, t.start_date, t.max_spots,
+                   (SELECT COUNT(*) FROM trip_bookings WHERE trip_id = t.id AND status != 'cancelled') as booked_spots
+            FROM trips t
+            WHERE t.start_date >= CURDATE() AND t.status = 'scheduled'
+            ORDER BY t.start_date
+        ");
+        $trips = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
         require __DIR__ . '/../../Views/pos/index.php';
     }
     

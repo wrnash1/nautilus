@@ -1,0 +1,5 @@
+Database fetchOne error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'role_id' in 'SELECT' SQL: SELECT id, email, password_hash, role_id FROM users WHERE email='admin@nautilus.local'
+User fetch result:
+NULL
+User not found!
+Total users: 1

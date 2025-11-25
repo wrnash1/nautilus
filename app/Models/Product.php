@@ -12,7 +12,7 @@ class Product
             "SELECT p.*, c.name as category_name,
              pi.file_path as image_url, pi.alt_text as image_alt
              FROM products p
-             LEFT JOIN product_categories c ON p.category_id = c.id
+             LEFT JOIN categories c ON p.category_id = c.id
              LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
              WHERE p.is_active = 1
              ORDER BY p.name ASC
@@ -27,7 +27,7 @@ class Product
             "SELECT p.*, c.name as category_name,
              pi.file_path as image_url, pi.alt_text as image_alt
              FROM products p
-             LEFT JOIN product_categories c ON p.category_id = c.id
+             LEFT JOIN categories c ON p.category_id = c.id
              LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
              WHERE p.id = ? AND p.is_active = 1",
             [$id]
@@ -39,7 +39,7 @@ class Product
         return Database::fetchOne(
             "SELECT p.*, c.name as category_name 
              FROM products p
-             LEFT JOIN product_categories c ON p.category_id = c.id
+             LEFT JOIN categories c ON p.category_id = c.id
              WHERE p.sku = ? AND p.is_active = 1",
             [$sku]
         );
@@ -52,7 +52,7 @@ class Product
             "SELECT p.*, c.name as category_name,
              pi.file_path as image_url, pi.alt_text as image_alt
              FROM products p
-             LEFT JOIN product_categories c ON p.category_id = c.id
+             LEFT JOIN categories c ON p.category_id = c.id
              LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
              WHERE p.is_active = 1 
              AND (p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ?)
@@ -67,11 +67,11 @@ class Product
         return Database::fetchAll(
             "SELECT p.*, c.name as category_name 
              FROM products p
-             LEFT JOIN product_categories c ON p.category_id = c.id
+             LEFT JOIN categories c ON p.category_id = c.id
              WHERE p.track_inventory = 1 
-             AND p.stock_quantity <= p.low_stock_threshold 
+             AND p.quantity_in_stock <= p.low_stock_threshold 
              AND p.is_active = 1
-             ORDER BY p.stock_quantity ASC"
+             ORDER BY p.quantity_in_stock ASC"
         ) ?? [];
     }
     
@@ -79,12 +79,10 @@ class Product
     {
         Database::query(
             "INSERT INTO products (
-                category_id, vendor_id, name, slug, sku, barcode, qr_code, description,
-                retail_price, cost_price, weight, weight_unit, dimensions,
-                color, material, manufacturer, warranty_info, location_in_store,
-                supplier_info, expiration_date, track_inventory,
-                stock_quantity, low_stock_threshold, is_active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                category_id, vendor_id, name, slug, sku, barcode, description,
+                price, cost, model, attributes,
+                quantity_in_stock, is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 $data['category_id'] ?? null,
                 $data['vendor_id'] ?? null,
@@ -92,23 +90,12 @@ class Product
                 $data['slug'],
                 $data['sku'],
                 $data['barcode'] ?? null,
-                $data['qr_code'] ?? null,
                 $data['description'] ?? null,
-                $data['retail_price'],
-                $data['cost_price'] ?? 0,
-                $data['weight'] ?? null,
-                $data['weight_unit'] ?? 'lb',
-                $data['dimensions'] ?? null,
-                $data['color'] ?? null,
-                $data['material'] ?? null,
-                $data['manufacturer'] ?? null,
-                $data['warranty_info'] ?? null,
-                $data['location_in_store'] ?? null,
-                $data['supplier_info'] ?? null,
-                $data['expiration_date'] ?? null,
-                $data['track_inventory'] ?? 1,
-                $data['stock_quantity'] ?? 0,
-                $data['low_stock_threshold'] ?? 5,
+                $data['price'],
+                $data['cost'] ?? 0,
+                $data['model'] ?? null,
+                $data['attributes'] ?? null,
+                $data['quantity_in_stock'] ?? 0,
                 $data['is_active'] ?? 1
             ]
         );
@@ -121,11 +108,9 @@ class Product
         Database::query(
             "UPDATE products SET
                 category_id = ?, vendor_id = ?, name = ?, slug = ?, sku = ?,
-                barcode = ?, qr_code = ?, description = ?, retail_price = ?, cost_price = ?,
-                weight = ?, weight_unit = ?, dimensions = ?, color = ?, material = ?,
-                manufacturer = ?, warranty_info = ?, location_in_store = ?,
-                supplier_info = ?, expiration_date = ?, track_inventory = ?,
-                stock_quantity = ?, low_stock_threshold = ?, is_active = ?,
+                barcode = ?, description = ?, price = ?, cost = ?,
+                model = ?, attributes = ?,
+                quantity_in_stock = ?, is_active = ?,
                 updated_at = NOW()
              WHERE id = ?",
             [
@@ -135,23 +120,12 @@ class Product
                 $data['slug'],
                 $data['sku'],
                 $data['barcode'] ?? null,
-                $data['qr_code'] ?? null,
                 $data['description'] ?? null,
-                $data['retail_price'],
-                $data['cost_price'] ?? 0,
-                $data['weight'] ?? null,
-                $data['weight_unit'] ?? 'lb',
-                $data['dimensions'] ?? null,
-                $data['color'] ?? null,
-                $data['material'] ?? null,
-                $data['manufacturer'] ?? null,
-                $data['warranty_info'] ?? null,
-                $data['location_in_store'] ?? null,
-                $data['supplier_info'] ?? null,
-                $data['expiration_date'] ?? null,
-                $data['track_inventory'] ?? 1,
-                $data['stock_quantity'] ?? 0,
-                $data['low_stock_threshold'] ?? 5,
+                $data['price'],
+                $data['cost'] ?? 0,
+                $data['model'] ?? null,
+                $data['attributes'] ?? null,
+                $data['quantity_in_stock'] ?? 0,
                 $data['is_active'] ?? 1,
                 $id
             ]
@@ -163,11 +137,11 @@ class Product
     public static function adjustStock(int $productId, int $quantity, string $type, $reference = null): bool
     {
         $product = self::find($productId);
-        $quantityBefore = (int)$product['stock_quantity'];
+        $quantityBefore = (int)$product['quantity_in_stock'];
         $quantityAfter = $quantityBefore + $quantity;
         
         Database::query(
-            "UPDATE products SET stock_quantity = stock_quantity + ?, updated_at = NOW() WHERE id = ?",
+            "UPDATE products SET quantity_in_stock = quantity_in_stock + ?, updated_at = NOW() WHERE id = ?",
             [$quantity, $productId]
         );
         
@@ -224,11 +198,11 @@ class Product
     public static function getInventoryReport(): array
     {
         return Database::fetchAll(
-            "SELECT p.id, p.sku, p.name, p.stock_quantity, p.low_stock_threshold,
-                    p.cost_price, p.retail_price, c.name as category_name,
-                    (p.stock_quantity * p.cost_price) as inventory_value
+            "SELECT p.id, p.sku, p.name, p.quantity_in_stock, p.low_stock_threshold,
+                    p.cost, p.price, p.model, p.attributes, c.name as category_name,
+                    (p.quantity_in_stock * p.cost) as inventory_value
              FROM products p
-             LEFT JOIN product_categories c ON p.category_id = c.id
+             LEFT JOIN categories c ON p.category_id = c.id
              WHERE p.track_inventory = 1 AND p.is_active = 1
              ORDER BY p.name ASC"
         ) ?? [];
