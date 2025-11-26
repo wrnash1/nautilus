@@ -1,0 +1,2 @@
+Field	Type	Null	Key	Default	Extra
+stock_quantity	int(11)	YES		0	
