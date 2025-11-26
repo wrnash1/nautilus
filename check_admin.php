@@ -21,10 +21,18 @@ try {
         
         // Try re-hashing
         $newHash = password_hash('admin123', PASSWORD_DEFAULT);
-        echo "New hash for 'admin123': $newHash\n";
-        
-        // Update password if verify failed
-        if (!$check) {
+    echo "Generated new hash: $newHash\n";
+    if (password_verify('admin123', $newHash)) {
+        echo "Immediate verification SUCCESS.\n";
+    } else {
+        echo "Immediate verification FAILED.\n";
+    }
+
+    // The previous line with $updateStmt was a syntax error and is removed.
+    // The echo below was also part of the syntax error and is removed.
+    
+    // Update password if verify failed
+    if (!$check) {
             Database::query("UPDATE users SET password_hash = ? WHERE id = ?", [$newHash, $user['id']]);
             echo "Updated password.\n";
         }

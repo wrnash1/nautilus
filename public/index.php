@@ -9,7 +9,11 @@
 define('BASE_PATH', dirname(__DIR__));
 
 // Load environment variables
-require __DIR__ . '/../vendor/autoload.php';
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+require_once __DIR__ . '/../vendor/autoload.php';
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
@@ -80,6 +84,9 @@ if (!file_exists($installedFile) && $scriptName !== 'install.php') {
 $router = require __DIR__ . '/../routes/web.php';
 
 // Dispatch request
+$requestUri = $_SERVER['REQUEST_URI'];
+$requestMethod = $_SERVER['REQUEST_METHOD'];
+
 $requestUri = $_SERVER['REQUEST_URI'];
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 

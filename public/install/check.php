@@ -26,7 +26,31 @@ $checks['web_server'] = [
     'critical' => true
 ];
 
-// 2.1 Dependencies Check
+// 2.1 Virtual Host Check
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$isIp = filter_var($host, FILTER_VALIDATE_IP);
+$checks['virtual_host'] = [
+    'name' => 'Virtual Host Configured',
+    'status' => !$isIp && $host !== 'localhost',
+    'message' => $host,
+    'help_text' => 'It is recommended to use a proper domain name (Virtual Host) instead of an IP address or localhost for production.',
+    'critical' => false
+];
+
+// 2.2 SSL/HTTPS Check
+$isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || 
+           (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443) ||
+           (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+$checks['ssl_check'] = [
+    'name' => 'SSL/HTTPS Enabled',
+    'status' => $isHttps,
+    'message' => $isHttps ? 'Enabled ✓' : 'Not detected',
+    'help_text' => 'Secure HTTPS connection is highly recommended for security.',
+    'critical' => false
+];
+
+// 2.3 Dependencies Check
 $autoloadFile = dirname(__DIR__, 2) . '/vendor/autoload.php';
 $hasDependencies = file_exists($autoloadFile);
 $checks['dependencies'] = [

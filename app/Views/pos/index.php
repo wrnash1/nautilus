@@ -135,7 +135,7 @@ ob_start();
             <div class="product-tile"
                  data-product-id="<?= $product['id'] ?>"
                  data-product-name="<?= htmlspecialchars($product['name']) ?>"
-                 data-product-price="<?= $product['retail_price'] ?>"
+                 data-product-price="<?= $product['price'] ?>"
                  data-product-sku="<?= htmlspecialchars($product['sku']) ?>"
                  data-category="gear">
                 <div class="product-tile-image">
@@ -143,11 +143,11 @@ ob_start();
                 </div>
                 <div class="product-tile-info">
                     <div class="product-tile-name"><?= htmlspecialchars($product['name']) ?></div>
-                    <div class="product-tile-price"><?= formatCurrency($product['retail_price']) ?></div>
+                    <div class="product-tile-price"><?= formatCurrency($product['price']) ?></div>
                 </div>
-                <?php if ($product['track_inventory'] && $product['stock_quantity'] <= $product['low_stock_threshold']): ?>
+                <?php if ($product['track_inventory'] && $product['quantity_in_stock'] <= $product['low_stock_threshold']): ?>
                 <div class="low-stock-indicator">
-                    <i class="bi bi-exclamation-triangle-fill"></i> <?= $product['stock_quantity'] ?>
+                    <i class="bi bi-exclamation-triangle-fill"></i> <?= $product['quantity_in_stock'] ?>
                 </div>
                 <?php endif; ?>
             </div>

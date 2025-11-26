@@ -59,6 +59,25 @@ try {
         }
     }
 
+    // Install POS Tables
+    $posSchemaFile = __DIR__ . '/sql/004_pos_tables.sql';
+    if (file_exists($posSchemaFile)) {
+        $posSql = file_get_contents($posSchemaFile);
+        $posSql = preg_replace('/--.*$/m', '', $posSql);
+        $posStatements = array_filter(
+            array_map('trim', explode(';', $posSql)),
+            fn($stmt) => !empty($stmt)
+        );
+        foreach ($posStatements as $statement) {
+            if (!empty($statement)) {
+                $stmt = $pdo->prepare($statement);
+                $stmt->execute();
+                $stmt->closeCursor();
+                $executedStatements++;
+            }
+        }
+    }
+
     // Update company_settings with business email (Business Name set via Setup Wizard later)
     $stmt = $pdo->prepare("UPDATE company_settings SET business_email = ? WHERE tenant_id = 1");
     $stmt->execute([$config['admin_email']]);

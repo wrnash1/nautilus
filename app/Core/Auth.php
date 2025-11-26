@@ -12,18 +12,33 @@ class Auth
     
     public static function attempt(string $email, string $password): bool
     {
-        $user = User::findByEmail($email);
+        $logPath = BASE_PATH . '/storage/logs/debug_auth.log';
+        file_put_contents($logPath, date('Y-m-d H:i:s') . " - Attempting login for $email\n", FILE_APPEND);
         
-        if ($user && password_verify($password, $user['password_hash'])) {
+        $user = User::findByEmail($email);
+
+        if (!$user) {
+            file_put_contents($logPath, date('Y-m-d H:i:s') . " - User not found for email: $email\n", FILE_APPEND);
+            return false;
+        }
+
+        file_put_contents($logPath, date('Y-m-d H:i:s') . " - User found: " . json_encode(['id' => $user['id'], 'email' => $user['email'], 'two_factor_enabled' => $user['two_factor_enabled'] ?? 'N/A']) . "\n", FILE_APPEND);
+
+        if (password_verify($password, $user['password_hash'])) {
+            file_put_contents($logPath, date('Y-m-d H:i:s') . " - Password verified for user ID: " . $user['id'] . "\n", FILE_APPEND);
+            
             if ($user['two_factor_enabled']) {
+                file_put_contents($logPath, date('Y-m-d H:i:s') . " - Two-factor authentication enabled for user ID: " . $user['id'] . ". Pending 2FA.\n", FILE_APPEND);
                 $_SESSION['2fa_pending'] = $user['id'];
                 return false;
             }
             
             self::login($user);
+            file_put_contents($logPath, date('Y-m-d H:i:s') . " - User ID: " . $user['id'] . " logged in successfully.\n", FILE_APPEND);
             return true;
         }
         
+        file_put_contents($logPath, date('Y-m-d H:i:s') . " - Password verification failed\n", FILE_APPEND);
         return false;
     }
     

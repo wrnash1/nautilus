@@ -79,8 +79,8 @@ $router->get('/waivers', function() {
 
 // Store Dashboard & Auth
 $router->get('/store', 'Admin\DashboardController@index', [AuthMiddleware::class]);
-$router->get('/store/login', 'Auth\AuthController@showLogin');
-$router->post('/store/login', 'Auth\AuthController@login');
+$router->get('/store/login', 'Auth\LoginController@showLogin');
+$router->post('/store/login', 'Auth\LoginController@login');
 $router->post('/store/logout', 'Auth\AuthController@logout', [AuthMiddleware::class]);
 
 // Customer Portal - Requires customer authentication

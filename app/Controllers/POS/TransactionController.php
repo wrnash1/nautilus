@@ -18,44 +18,51 @@ class TransactionController
     
     public function index()
     {
-        if (!hasPermission('pos.view')) {
-            $_SESSION['flash_error'] = 'Access denied';
-            redirect('/');
+        try {
+            // Check permission
+            if (!hasPermission('pos.view')) {
+                redirect('/store/dashboard');
+            }
+
+            $products = Product::all(50, 0);
+            $customers = Customer::all(100, 0);
+
+            // Get active courses for enrollment
+            $db = Database::getInstance();
+            $stmt = $db->query("
+                SELECT id, course_code, name, price, duration_days, max_students
+                FROM courses
+                WHERE is_active = 1
+                ORDER BY name
+            ");
+            $courses = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Get rental equipment
+            $stmt = $db->query("
+                SELECT id, name, daily_rate, stock_quantity, sku
+                FROM rental_equipment
+                WHERE is_active = 1 AND stock_quantity > 0
+                ORDER BY name
+            ");
+            $rentals = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Get upcoming trips
+            $stmt = $db->query("
+                SELECT t.id, t.name, t.price, t.start_date, t.max_spots,
+                       (SELECT COUNT(*) FROM trip_bookings WHERE trip_id = t.id AND status != 'cancelled') as booked_spots
+                FROM trips t
+                WHERE t.start_date >= CURDATE() AND t.status = 'scheduled'
+                ORDER BY t.start_date
+            ");
+            $trips = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            require __DIR__ . '/../../Views/pos/index.php';
+            
+        } catch (\PDOException $e) {
+            die("PDO Error: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            die("General Error: " . $e->getMessage());
         }
-
-        $products = Product::all(50, 0);
-        $customers = Customer::all(100, 0);
-
-        // Get active courses for enrollment
-        $db = Database::getInstance();
-        $stmt = $db->query("
-            SELECT id, course_code, name, price, duration_days, max_students
-            FROM courses
-            WHERE is_active = 1
-            ORDER BY name
-        ");
-        $courses = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        // Get rental equipment
-        $stmt = $db->query("
-            SELECT id, name, daily_rate, stock_quantity, sku
-            FROM rental_equipment
-            WHERE is_active = 1 AND stock_quantity > 0
-            ORDER BY name
-        ");
-        $rentals = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        // Get upcoming trips
-        $stmt = $db->query("
-            SELECT t.id, t.name, t.price, t.start_date, t.max_spots,
-                   (SELECT COUNT(*) FROM trip_bookings WHERE trip_id = t.id AND status != 'cancelled') as booked_spots
-            FROM trips t
-            WHERE t.start_date >= CURDATE() AND t.status = 'scheduled'
-            ORDER BY t.start_date
-        ");
-        $trips = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        require __DIR__ . '/../../Views/pos/index.php';
     }
     
     public function searchProducts()
