@@ -37,8 +37,8 @@ fi
 
 # Parse arguments
 SKIP_SSL=false
-DB_TYPE="mariadb"  # Default: mariadb (options: mysql, mariadb, postgresql)
-WEB_SERVER="apache"  # Default: apache (options: apache, nginx, caddy)
+DB_TYPE="auto"  # Default: auto-detect
+WEB_SERVER="auto"  # Default: auto-detect
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -59,14 +59,18 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  --skip-ssl           Skip SSL certificate generation"
-            echo "  --database=TYPE      Database type: mysql, mariadb, postgresql (default: mariadb)"
-            echo "  --webserver=TYPE     Web server: apache, nginx, caddy (default: apache)"
+            echo "  --database=TYPE      Database type: auto, mysql, mariadb, postgresql (default: auto)"
+            echo "  --webserver=TYPE     Web server: auto, apache, nginx, caddy (default: auto)"
             echo "  --help               Show this help message"
             echo ""
+            echo "Auto-detection:"
+            echo "  The installer will automatically detect existing databases and web servers."
+            echo "  Use explicit options to override auto-detection."
+            echo ""
             echo "Examples:"
-            echo "  sudo bash universal-install.sh"
-            echo "  sudo bash universal-install.sh --database=postgresql --webserver=nginx"
-            echo "  sudo bash universal-install.sh --database=mysql --webserver=apache --skip-ssl"
+            echo "  sudo bash universal-install.sh                    # Auto-detect everything"
+            echo "  sudo bash universal-install.sh --database=postgresql"
+            echo "  sudo bash universal-install.sh --webserver=nginx --database=mysql"
             exit 0
             ;;
         *)
@@ -75,6 +79,55 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+################################################################################
+# Auto-detect existing database and web server
+################################################################################
+detect_existing_software() {
+    log_info "Detecting existing software..."
+    
+    # Detect existing databases
+    if [ "$DB_TYPE" = "auto" ]; then
+        if command -v psql &> /dev/null && systemctl is-active --quiet postgresql 2>/dev/null; then
+            DB_TYPE="postgresql"
+            log_success "Detected PostgreSQL (running)"
+        elif command -v mysql &> /dev/null && systemctl is-active --quiet mysql 2>/dev/null; then
+            DB_TYPE="mysql"
+            log_success "Detected MySQL (running)"
+        elif command -v mysql &> /dev/null && systemctl is-active --quiet mariadb 2>/dev/null; then
+            DB_TYPE="mariadb"
+            log_success "Detected MariaDB (running)"
+        elif command -v psql &> /dev/null; then
+            DB_TYPE="postgresql"
+            log_info "Detected PostgreSQL (not running, will start)"
+        elif command -v mysql &> /dev/null; then
+            DB_TYPE="mysql"
+            log_info "Detected MySQL (not running, will start)"
+        else
+            DB_TYPE="mariadb"
+            log_info "No database detected, will install MariaDB (recommended)"
+        fi
+    fi
+    
+    # Detect existing web servers
+    if [ "$WEB_SERVER" = "auto" ]; then
+        if command -v nginx &> /dev/null && systemctl is-active --quiet nginx 2>/dev/null; then
+            WEB_SERVER="nginx"
+            log_success "Detected Nginx (running)"
+        elif command -v caddy &> /dev/null; then
+            WEB_SERVER="caddy"
+            log_success "Detected Caddy"
+        elif command -v httpd &> /dev/null || command -v apache2 &> /dev/null; then
+            WEB_SERVER="apache"
+            log_success "Detected Apache"
+        else
+            WEB_SERVER="apache"
+            log_info "No web server detected, will install Apache (recommended)"
+        fi
+    fi
+}
+
+detect_existing_software
 
 log_info "Configuration: Database=$DB_TYPE, Web Server=$WEB_SERVER, SSL=$([ "$SKIP_SSL" = true ] && echo "disabled" || echo "enabled")"
 

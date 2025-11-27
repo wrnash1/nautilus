@@ -1,0 +1,60 @@
+# Caddyfile for Nautilus
+# Location: /etc/caddy/Caddyfile or use caddy run --config
+
+# HTTP - redirect to HTTPS
+http://nautilus.local, http://www.nautilus.local {
+    redir https://{host}{uri} permanent
+}
+
+# HTTPS - main configuration
+https://nautilus.local, https://www.nautilus.local {
+    # Document root
+    root * /var/www/html/nautilus/public
+    
+    # Enable gzip compression
+    encode gzip
+    
+    # PHP-FPM
+    php_fastcgi unix//var/run/php-fpm/php-fpm.sock
+    
+    # File server
+    file_server
+    
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+        -Server  # Remove server header
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/nautilus_access.log
+    }
+    
+    # TLS configuration (auto HTTPS with Let's Encrypt)
+    # Or use self-signed for local development:
+    tls /etc/ssl/certs/nautilus-selfsigned.crt /etc/ssl/private/nautilus-selfsigned.key
+    
+    # Block sensitive files
+    @sensitive {
+        path *.env *.log *.sql *.md .git/* .gitignore
+    }
+    handle @sensitive {
+        respond 404
+    }
+    
+    # Handle installer
+    handle /install* {
+        try_files {path} {path}/ /install/index.php?{query}
+    }
+    
+    # Main app routing (front controller pattern)
+    handle {
+        try_files {path} {path}/ /index.php?{query}
+    }
+}

@@ -9,29 +9,38 @@ header('Content-Type: application/json');
 session_start();
 
 try {
-    // Get configuration from session
-    if (!isset($_SESSION['install_config'])) {
-        throw new Exception('Configuration not found. Please complete step 2 first.');
-    }
+    // Get database configuration from session
+    $dbHost = $_SESSION['install_config']['db_host'] ?? 'localhost';
+    $dbName = $_SESSION['install_config']['db_name'] ?? 'nautilus';
+    $dbUser = $_SESSION['install_config']['db_user'] ?? 'root';
+    $dbPass = $_SESSION['install_config']['db_password'] ?? '';
+    $dbPort = $_SESSION['install_config']['db_port'] ?? '3306'; // Assuming db_port is now in install_config
+    $dbConnection = $_SESSION['install_config']['db_connection'] ?? 'mysql'; // NEW: Get connection type
 
-    $config = $_SESSION['install_config'];
+    // Determine migration directory based on database type
+    $migrationsDir = match($dbConnection) {
+        'pgsql', 'postgresql' => dirname(__DIR__, 2) . '/database/migrations/postgresql',
+        'mysql', 'mariadb' => dirname(__DIR__, 2) . '/database/migrations',
+        default => dirname(__DIR__, 2) . '/database/migrations'
+    };
+
+    // Build DSN based on database type
+    $dsn = match($dbConnection) {
+        'pgsql', 'postgresql' => "pgsql:host=$dbHost;port=$dbPort;dbname=$dbName",
+        'mysql', 'mariadb' => "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4",
+        default => "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4"
+    };
 
     // Connect to database
-    $dsn = "mysql:host={$config['db_host']};charset=utf8mb4";
-    $pdo = new PDO($dsn, $config['db_user'], $config['db_password'], [
+    $pdo = new PDO($dsn, $dbUser, $dbPass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
-
-    // Create database if it doesn't exist
-    $pdo->exec("DROP DATABASE IF EXISTS `{$config['db_name']}`");
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$config['db_name']}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-
-    // Connect to the database
-    $pdo->exec("USE `{$config['db_name']}`");
+    
+    // Log connection info
+    error_log("Database installer: Using $dbConnection with migrations from $migrationsDir");
 
     // Find all migration files
-    $migrationsDir = dirname(__DIR__, 2) . '/database/migrations';
     
     if (!is_dir($migrationsDir)) {
         throw new Exception('Migrations directory not found: ' . $migrationsDir);

@@ -1,0 +1,45 @@
+-- Product Image Embeddings for AI-powered visual search
+-- Stores feature vectors extracted from product images using TensorFlow.js MobileNet
+
+CREATE TABLE IF NOT EXISTS "product_image_embeddings" (
+  "id" SERIAL PRIMARY KEY,
+  "product_id" INTEGER NOT NULL,
+  "image_path" VARCHAR(255) NOT NULL,
+  "embedding_vector" JSON NOT NULL COMMENT 'MobileNet feature vector (1024 dimensions)',
+  "embedding_model" VARCHAR(50) DEFAULT 'mobilenet_v2' COMMENT 'Model used for embedding',
+  "image_angle" ENUM('front', 'back', 'side', 'top', 'detail') DEFAULT 'front' COMMENT 'Photo angle for better matching',
+  "embedding_quality_score" DECIMAL(3,2) DEFAULT 1.00 COMMENT 'Confidence score of embedding',
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE,
+  INDEX "idx_product_id" ("product_id"),
+  INDEX "idx_image_angle" ("image_angle"),
+  INDEX "idx_created_at" ("created_at")
+);
+
+-- Create visual search history table for analytics
+CREATE TABLE IF NOT EXISTS "visual_search_history" (
+  "id" SERIAL PRIMARY KEY,
+  "user_id" INTEGER NULL,
+  "search_image_path" VARCHAR(255) NULL COMMENT 'Path to uploaded search image',
+  "top_result_product_id" INTEGER NULL,
+  "similarity_score" DECIMAL(4,3) NULL COMMENT 'Similarity score of top result',
+  "results_count" INT DEFAULT 0,
+  "result_selected" BOOLEAN DEFAULT FALSE,
+  "selected_product_id" INTEGER NULL,
+  "search_time_ms" INT NULL COMMENT 'Search execution time in milliseconds',
+  "search_date" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL,
+  FOREIGN KEY ("top_result_product_id") REFERENCES "products"("id") ON DELETE SET NULL,
+  FOREIGN KEY ("selected_product_id") REFERENCES "products"("id") ON DELETE SET NULL,
+  INDEX "idx_user_id" ("user_id"),
+  INDEX "idx_search_date" ("search_date")
+);
+
+-- Add visual search enabled flag to products
+ALTER TABLE "products"
+ADD COLUMN "visual_search_enabled" BOOLEAN DEFAULT TRUE AFTER "is_active",
+ADD COLUMN "last_embedding_generated" TIMESTAMP NULL AFTER "visual_search_enabled";
+
+-- Index for performance
+ALTER TABLE "products" ADD INDEX "idx_visual_search" ("visual_search_enabled", "is_active");
