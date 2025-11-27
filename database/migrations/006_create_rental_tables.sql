@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS `air_fills` (
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`equipment_id`) REFERENCES `rental_equipment`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`filled_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
-  FOREIGN KEY (`transaction_id`) REFERENCES `transactions`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`transaction_id`) REFERENCES `pos_transactions`(`id`) ON DELETE SET NULL,
   INDEX `idx_customer_id` (`customer_id`),
   INDEX `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

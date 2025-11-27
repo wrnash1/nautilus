@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `commissions` (
   `paid_at` TIMESTAMP NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`transaction_id`) REFERENCES `transactions`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`transaction_id`) REFERENCES `pos_transactions`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE SET NULL,
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_status` (`status`)

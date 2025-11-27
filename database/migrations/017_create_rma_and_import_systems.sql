@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `rma_requests` (
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`),
-  FOREIGN KEY (`transaction_id`) REFERENCES `transactions`(`id`),
+  FOREIGN KEY (`transaction_id`) REFERENCES `pos_transactions`(`id`),
   FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`id`),
   FOREIGN KEY (`approved_by`) REFERENCES `users`(`id`),
   FOREIGN KEY (`processed_by`) REFERENCES `users`(`id`),

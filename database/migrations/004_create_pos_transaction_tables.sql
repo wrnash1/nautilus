@@ -1,6 +1,7 @@
 
-CREATE TABLE IF NOT EXISTS `transactions` (
+CREATE TABLE IF NOT EXISTS `pos_transactions` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT UNSIGNED DEFAULT 1,
   `transaction_number` VARCHAR(50) NOT NULL UNIQUE,
   `customer_id` INT UNSIGNED,
   `transaction_type` ENUM('sale', 'return', 'exchange', 'quote', 'layaway') DEFAULT 'sale',
@@ -22,13 +23,15 @@ CREATE TABLE IF NOT EXISTS `transactions` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE SET NULL,
-  FOREIGN KEY (`original_transaction_id`) REFERENCES `transactions`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`original_transaction_id`) REFERENCES `pos_transactions`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`cashier_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`voided_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
   INDEX `idx_transaction_number` (`transaction_number`),
   INDEX `idx_customer_id` (`customer_id`),
   INDEX `idx_transaction_date` (`transaction_date`),
-  INDEX `idx_status` (`status`)
+  INDEX `idx_status` (`status`),
+  INDEX `idx_tenant_id` (`tenant_id`),
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `transaction_items` (
@@ -45,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `transaction_items` (
   `total` DECIMAL(10,2) NOT NULL,
   `is_taxable` BOOLEAN DEFAULT TRUE,
   `notes` TEXT,
-  FOREIGN KEY (`transaction_id`) REFERENCES `transactions`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`transaction_id`) REFERENCES `pos_transactions`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`variant_id`) REFERENCES `product_variants`(`id`) ON DELETE SET NULL,
   INDEX `idx_transaction_id` (`transaction_id`)
@@ -66,7 +69,7 @@ CREATE TABLE IF NOT EXISTS `payments` (
   `crypto_transaction_hash` VARCHAR(255),
   `status` ENUM('pending', 'completed', 'failed', 'refunded') DEFAULT 'completed',
   `processed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`transaction_id`) REFERENCES `transactions`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`transaction_id`) REFERENCES `pos_transactions`(`id`) ON DELETE CASCADE,
   INDEX `idx_transaction_id` (`transaction_id`),
   INDEX `idx_payment_method` (`payment_method`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -80,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `refunds` (
   `reason` TEXT,
   `processed_by` INT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`transaction_id`) REFERENCES `transactions`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`transaction_id`) REFERENCES `pos_transactions`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`payment_id`) REFERENCES `payments`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`processed_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
   INDEX `idx_transaction_id` (`transaction_id`)
@@ -113,7 +116,7 @@ CREATE TABLE IF NOT EXISTS `gift_card_transactions` (
   `balance_after` DECIMAL(10,2) NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`gift_card_id`) REFERENCES `gift_cards`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`transaction_id`) REFERENCES `transactions`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`transaction_id`) REFERENCES `pos_transactions`(`id`) ON DELETE SET NULL,
   INDEX `idx_gift_card_id` (`gift_card_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -141,7 +144,7 @@ CREATE TABLE IF NOT EXISTS `store_credit_transactions` (
   `created_by` INT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`store_credit_id`) REFERENCES `store_credits`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`transaction_id`) REFERENCES `transactions`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`transaction_id`) REFERENCES `pos_transactions`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
   INDEX `idx_store_credit_id` (`store_credit_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

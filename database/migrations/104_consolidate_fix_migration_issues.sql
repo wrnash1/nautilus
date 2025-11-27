@@ -106,9 +106,9 @@ SET @sql = IF(@table_exists > 0 AND @col_exists = 0, 'ALTER TABLE courses ADD CO
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Transactions tenant_id
-SET @table_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'transactions');
-SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'transactions' AND COLUMN_NAME = 'tenant_id');
-SET @sql = IF(@table_exists > 0 AND @col_exists = 0, 'ALTER TABLE transactions ADD COLUMN tenant_id INT UNSIGNED DEFAULT 1 AFTER id', 'SELECT 1');
+SET @table_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pos_transactions');
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pos_transactions' AND COLUMN_NAME = 'tenant_id');
+SET @sql = IF(@table_exists > 0 AND @col_exists = 0, 'ALTER TABLE pos_transactions ADD COLUMN tenant_id INT UNSIGNED DEFAULT 1 AFTER id', 'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- ============================================================================
@@ -131,8 +131,8 @@ SET @sql = IF(@idx_exists = 0, 'ALTER TABLE users ADD INDEX idx_users_tenant (te
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Index on transactions for reporting
-SET @idx_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'transactions' AND INDEX_NAME = 'idx_transactions_date');
-SET @sql = IF(@idx_exists = 0, 'ALTER TABLE transactions ADD INDEX idx_transactions_date (created_at)', 'SELECT 1');
+SET @idx_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pos_transactions' AND INDEX_NAME = 'idx_transactions_date');
+SET @sql = IF(@idx_exists = 0, 'ALTER TABLE pos_transactions ADD INDEX idx_transactions_date (created_at)', 'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- ============================================================================

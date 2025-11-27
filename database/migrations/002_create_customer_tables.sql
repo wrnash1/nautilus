@@ -1,6 +1,7 @@
 
 CREATE TABLE IF NOT EXISTS `customers` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT UNSIGNED DEFAULT 1,
   `customer_type` ENUM('B2C', 'B2B') NOT NULL DEFAULT 'B2C',
   `company_name` VARCHAR(255),
   `first_name` VARCHAR(100) NOT NULL,
@@ -34,7 +35,9 @@ CREATE TABLE IF NOT EXISTS `customers` (
   INDEX `idx_email` (`email`),
   INDEX `idx_phone` (`phone`),
   INDEX `idx_last_purchase_date` (`last_purchase_date`),
-  INDEX `idx_is_active` (`is_active`)
+  INDEX `idx_is_active` (`is_active`),
+  INDEX `idx_tenant_id` (`tenant_id`),
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `customer_addresses` (

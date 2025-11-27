@@ -7,4 +7,4 @@ ADD COLUMN `attributes` JSON AFTER `is_taxable`;
 CREATE INDEX `idx_model` ON `products` (`model`);
 
 -- Record migration
-INSERT INTO `migrations` (`migration`, `batch`) VALUES ('001_add_product_attributes.sql', 2);
+-- Migration tracking handled by installer

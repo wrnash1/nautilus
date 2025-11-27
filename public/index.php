@@ -75,7 +75,7 @@ if (!file_exists($installedFile) && $scriptName !== 'install.php') {
     // Allow install routes
     if (strpos($requestUri, '/install') !== 0 && $requestUri !== '/install.php') {
         // Redirect to new installer
-        header('Location: /install/');
+        header('Location: /install');
         exit;
     }
 }

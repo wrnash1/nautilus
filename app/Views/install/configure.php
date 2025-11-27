@@ -242,7 +242,7 @@
 
                     <!-- Submit Buttons -->
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
+                        <button type="button" class="btn btn-primary btn-lg" id="installBtn">
                             <i class="bi bi-rocket-takeoff"></i> Install Nautilus
                         </button>
                         <a href="/install" class="btn btn-outline-secondary">
@@ -411,24 +411,36 @@
         });
 
         // Form submission
-        document.getElementById('installForm').addEventListener('submit', async function(e) {
+        document.getElementById('installBtn').addEventListener('click', async function(e) {
             e.preventDefault();
+            console.log('Install button clicked');
+            
+            // Validate form validity
+            const form = document.getElementById('installForm');
+            if (!form.checkValidity()) {
+                console.log('Form invalid');
+                form.reportValidity();
+                return;
+            }
 
             // Validate password match
             const password = document.getElementById('admin_password').value;
             const confirm = document.getElementById('admin_password_confirm').value;
 
             if (password !== confirm) {
+                console.log('Passwords do not match');
                 alert('Passwords do not match!');
                 return;
             }
 
             // Show progress modal
+            console.log('Showing progress modal');
             const progressContainer = document.getElementById('progressContainer');
             progressContainer.style.display = 'flex';
 
             // Submit installation
-            const formData = new FormData(this);
+            const formData = new FormData(form);
+            console.log('Sending POST request to /install/process');
 
             try {
                 const response = await fetch('/install/process', {
@@ -436,13 +448,16 @@
                     body: formData
                 });
 
+                console.log('Response received', response.status, response.statusText);
                 const result = await response.json();
+                console.log('Result parsed', result);
 
                 if (result.success) {
                     // Poll for progress updates
                     const progressInterval = setInterval(async () => {
                         const progressResponse = await fetch('/install/progress');
                         const progress = await progressResponse.json();
+                        console.log('Progress update', progress);
 
                         document.getElementById('progressMessage').textContent = progress.message;
                         document.getElementById('progressBar').style.width = progress.percent + '%';
@@ -460,10 +475,12 @@
                         }
                     }, 500);
                 } else {
+                    console.error('Installation failed result', result);
                     progressContainer.style.display = 'none';
                     alert('Installation failed: ' + result.message);
                 }
             } catch (error) {
+                console.error('Fetch error:', error);
                 progressContainer.style.display = 'none';
                 alert('Installation error: ' + error.message);
             }

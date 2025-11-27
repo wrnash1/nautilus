@@ -231,7 +231,7 @@ CREATE TABLE IF NOT EXISTS notification_statistics (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Add notification tracking columns to existing tables
-ALTER TABLE transactions
+ALTER TABLE pos_transactions
 ADD COLUMN IF NOT EXISTS receipt_sent_at TIMESTAMP NULL AFTER status,
 ADD COLUMN IF NOT EXISTS receipt_notification_id BIGINT NULL AFTER receipt_sent_at;
 

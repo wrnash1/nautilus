@@ -1,6 +1,7 @@
 
 CREATE TABLE IF NOT EXISTS `product_categories` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT UNSIGNED DEFAULT 1,
   `parent_id` INT UNSIGNED,
   `name` VARCHAR(100) NOT NULL,
   `slug` VARCHAR(100) NOT NULL UNIQUE,
@@ -12,7 +13,9 @@ CREATE TABLE IF NOT EXISTS `product_categories` (
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`parent_id`) REFERENCES `product_categories`(`id`) ON DELETE SET NULL,
   INDEX `idx_parent_id` (`parent_id`),
-  INDEX `idx_slug` (`slug`)
+  INDEX `idx_category_slug` (`slug`),
+  INDEX `idx_tenant_id` (`tenant_id`),
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `vendors` (
@@ -38,9 +41,11 @@ CREATE TABLE IF NOT EXISTS `vendors` (
 
 CREATE TABLE IF NOT EXISTS `products` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT UNSIGNED DEFAULT 1,
   `category_id` INT UNSIGNED,
   `vendor_id` INT UNSIGNED,
   `sku` VARCHAR(100) NOT NULL UNIQUE,
+  `model` VARCHAR(100),
   `barcode` VARCHAR(100),
   `name` VARCHAR(255) NOT NULL,
   `slug` VARCHAR(255) NOT NULL UNIQUE,
@@ -61,6 +66,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `allow_backorders` BOOLEAN DEFAULT FALSE,
   `is_featured` BOOLEAN DEFAULT FALSE,
   `is_active` BOOLEAN DEFAULT TRUE,
+  `attributes` JSON,
   `meta_title` VARCHAR(255),
   `meta_description` VARCHAR(500),
   `meta_keywords` VARCHAR(255),
@@ -70,10 +76,13 @@ CREATE TABLE IF NOT EXISTS `products` (
   FOREIGN KEY (`category_id`) REFERENCES `product_categories`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`id`) ON DELETE SET NULL,
   INDEX `idx_sku` (`sku`),
+  INDEX `idx_model` (`model`),
   INDEX `idx_barcode` (`barcode`),
   INDEX `idx_category_id` (`category_id`),
-  INDEX `idx_slug` (`slug`),
-  FULLTEXT `idx_search` (`name`, `description`, `sku`)
+  INDEX `idx_product_slug` (`slug`),
+  INDEX `idx_tenant_id` (`tenant_id`),
+  FULLTEXT `idx_search` (`name`, `description`, `sku`),
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `product_images` (
