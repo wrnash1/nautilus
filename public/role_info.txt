@@ -1,3 +1,0 @@
-id	name
-2	Admin
-1	Super Admin
