@@ -8,6 +8,43 @@ header('Content-Type: application/json');
 
 $checks = [];
 
+// Detect OS/Distribution Information
+$osInfo = [
+    'name' => 'Unknown',
+    'version' => '',
+    'pretty_name' => 'Unknown OS',
+    'package_manager' => 'unknown'
+];
+
+if (file_exists('/etc/os-release')) {
+    $osRelease = parse_ini_file('/etc/os-release');
+    $osInfo['name'] = $osRelease['ID'] ?? 'Unknown';
+    $osInfo['version'] = $osRelease['VERSION_ID'] ?? '';
+    $osInfo['pretty_name'] = $osRelease['PRETTY_NAME'] ?? 'Unknown OS';
+    
+    // Detect package manager
+    if (in_array($osInfo['name'], ['fedora', 'rhel', 'centos', 'rocky', 'almalinux'])) {
+        $osInfo['package_manager'] = file_exists('/usr/bin/dnf') ? 'dnf' : 'yum';
+    } elseif (in_array($osInfo['name'], ['ubuntu', 'debian'])) {
+        $osInfo['package_manager'] = 'apt';
+    } elseif ($osInfo['name'] === 'arch') {
+        $osInfo['package_manager'] = 'pacman';
+    } elseif (strpos($osInfo['name'], 'suse') !== false) {
+        $osInfo['package_manager'] = 'zypper';
+    } elseif ($osInfo['name'] === 'alpine') {
+        $osInfo['package_manager'] = 'apk';
+    }
+}
+
+// Add OS info to checks for display
+$checks['os_info'] = [
+    'name' => 'Operating System',
+    'status' => true,
+    'message' => $osInfo['pretty_name'],
+    'os_data' => $osInfo,
+    'critical' => false
+];
+
 // 1. PHP Version Check (>= 8.1)
 $phpVersion = PHP_VERSION;
 $checks['php_version'] = [
@@ -115,7 +152,7 @@ $checks['pdo_mysql'] = [
     'name' => 'PDO MySQL Driver',
     'status' => extension_loaded('pdo_mysql'),
     'message' => extension_loaded('pdo_mysql') ? 'Installed' : 'Not installed',
-    'fix_command' => extension_loaded('pdo_mysql') ? '' : 'sudo dnf install php-mysqlnd',
+    'fix_command' => extension_loaded('pdo_mysql') ? '' : ($osInfo['package_manager'] === 'apt' ? 'sudo apt-get install php-mysql' : 'sudo dnf install php-mysqlnd'),
     'critical' => true
 ];
 

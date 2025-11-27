@@ -17,7 +17,6 @@ class AuthController
 
     public function login()
     {
-        die('DEBUG: Reached login method');
         $email = sanitizeInput($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
 

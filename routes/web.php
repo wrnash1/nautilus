@@ -420,6 +420,14 @@ $router->get('/store/integrations/google-workspace', 'Integrations\GoogleWorkspa
 $router->post('/store/integrations/google-workspace/config', 'Integrations\GoogleWorkspaceController@saveConfig', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/integrations/google-workspace/test', 'Integrations\GoogleWorkspaceController@testConnection', [AuthMiddleware::class, CsrfMiddleware::class]);
 
+// Google Contacts Integration
+$router->get('/admin/integrations/google-contacts', 'Integrations\GoogleContactsController@index', [AuthMiddleware::class]);
+$router->get('/admin/integrations/google-contacts/connect', 'Integrations\GoogleContactsController@connect', [AuthMiddleware::class]);
+$router->post('/admin/integrations/google-contacts/disconnect', 'Integrations\GoogleContactsController@disconnect', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/integrations/google-contacts/sync', 'Integrations\GoogleContactsController@manualSync', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/admin/integrations/google-contacts/config', 'Integrations\GoogleContactsController@saveConfig', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/admin/integrations/google-contacts/logs', 'Integrations\GoogleContactsController@viewLogs', [AuthMiddleware::class]);
+
 // Dive Sites Management
 $router->get('/store/dive-sites', 'DiveSitesController@index', [AuthMiddleware::class]);
 $router->get('/store/dive-sites/create', 'DiveSitesController@create', [AuthMiddleware::class]);

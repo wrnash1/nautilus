@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nautilus - Setup</title>
+    <title>Nautilus Universal Installer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -384,7 +384,7 @@
         <div class="card">
             <div class="header">
                 <div class="logo">NAUTILUS</div>
-                <div class="subtitle">Enterprise Dive Shop Management</div>
+                <div class="subtitle">Universal Installer • Multi-Distribution Linux Support</div>
                 
                 <div class="progress-bar">
                     <div class="progress-line"></div>
@@ -400,7 +400,24 @@
                 <!-- Step 1: System Check -->
                 <div class="step-content active" id="step1">
                     <h2>System Check</h2>
-                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Checking your server environment for compatibility.</p>
+                    <p style="color: var(--text-muted); margin-bottom: 1rem;">Checking your server environment for compatibility.</p>
+                    
+                    <div id="osInfoBadge" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); padding: 1rem; border-radius: 12px; margin-bottom: 2rem; display: none;">
+                        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">Detected Environment</div>
+                                <div style="font-weight: 600; font-size: 1.1rem;" id="osName">Loading...</div>
+                            </div>
+                            <div style="flex: 1; min-width: 150px;">
+                                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">Package Manager</div>
+                                <div style="font-weight: 500;" id="packageManager">-</div>
+                            </div>
+                            <div style="flex: 1; min-width: 150px;">
+                                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">PHP Version</div>
+                                <div style="font-weight: 500;" id="phpVersion">-</div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="checks-grid" id="checksContainer">
                         <!-- Checks injected here -->
@@ -584,6 +601,19 @@
                 let allPassed = true;
 
                 Object.values(checks).forEach(check => {
+                    // Extract and display OS info if present
+                    if (check.os_data) {
+                        document.getElementById('osInfoBadge').style.display = 'block';
+                        document.getElementById('osName').textContent = check.os_data.pretty_name;
+                        document.getElementById('packageManager').textContent = check.os_data.package_manager.toUpperCase();
+                        return; // Skip adding this to the checks grid
+                    }
+                    
+                    // Extract PHP version for display
+                    if (check.name && check.name.includes('PHP Version')) {
+                        document.getElementById('phpVersion').textContent = check.message.replace('PHP ', '');
+                    }
+                    
                     const div = document.createElement('div');
                     div.className = 'check-item';
                     
