@@ -4,8 +4,8 @@
 -- Search History (track all searches for analytics)
 CREATE TABLE IF NOT EXISTS search_history (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    user_id INT,
+    tenant_id INT UNSIGNED,
+    user_id INT UNSIGNED,
     search_query VARCHAR(500) NOT NULL,
     entity_type VARCHAR(50) NOT NULL COMMENT 'products, customers, transactions, etc.',
     result_count INT DEFAULT 0,
@@ -24,8 +24,8 @@ CREATE TABLE IF NOT EXISTS search_history (
 -- Saved Searches (user-saved search filters)
 CREATE TABLE IF NOT EXISTS saved_searches (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    user_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    user_id INT UNSIGNED NOT NULL,
     search_name VARCHAR(100) NOT NULL,
     entity_type VARCHAR(50) NOT NULL,
     search_query VARCHAR(500),
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS saved_searches (
 -- Search Analytics (aggregated search metrics)
 CREATE TABLE IF NOT EXISTS search_analytics (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
+    tenant_id INT UNSIGNED,
     date DATE NOT NULL,
     entity_type VARCHAR(50) NOT NULL,
     total_searches INT DEFAULT 0,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS search_analytics (
 -- Popular Searches (frequently searched terms)
 CREATE TABLE IF NOT EXISTS popular_searches (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
+    tenant_id INT UNSIGNED,
     search_term VARCHAR(500) NOT NULL,
     entity_type VARCHAR(50) NOT NULL,
     search_count INT DEFAULT 1,
@@ -88,7 +88,7 @@ ALTER TABLE products ADD FULLTEXT INDEX ft_products_search (name, sku, descripti
 ALTER TABLE customers ADD FULLTEXT INDEX ft_customers_search (first_name, last_name, email);
 
 -- Courses full-text search
-ALTER TABLE courses ADD FULLTEXT INDEX ft_courses_search (title, description);
+ALTER TABLE courses ADD FULLTEXT INDEX ft_courses_search (name, description);
 
 -- Equipment full-text search
 ALTER TABLE equipment ADD FULLTEXT INDEX ft_equipment_search (name, serial_number, description);

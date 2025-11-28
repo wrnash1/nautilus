@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS newsletter_subscriptions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    tenant_id INT UNSIGNED NOT NULL,
 
     -- Subscriber Information
     email VARCHAR(255) NOT NULL,

@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS company_settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    tenant_id INT UNSIGNED NOT NULL,
 
     -- Company Information
     company_name VARCHAR(255),

@@ -4,8 +4,8 @@
 -- Main Audit Log Table
 CREATE TABLE IF NOT EXISTS audit_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    user_id INT,
+    tenant_id INT UNSIGNED,
+    user_id INT UNSIGNED,
     action VARCHAR(100) NOT NULL COMMENT 'Action performed (create, update, delete, login, etc.)',
     entity_type VARCHAR(100) NOT NULL COMMENT 'Type of entity affected (product, customer, user, etc.)',
     entity_id INT COMMENT 'ID of the affected entity',
@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS audit_log (
 -- Data Access Log (track who viewed sensitive data)
 CREATE TABLE IF NOT EXISTS data_access_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    user_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    user_id INT UNSIGNED NOT NULL,
     resource_type VARCHAR(100) NOT NULL COMMENT 'Type of resource accessed',
     resource_id INT NOT NULL,
     access_type ENUM('view', 'export', 'print') DEFAULT 'view',
@@ -49,8 +49,8 @@ CREATE TABLE IF NOT EXISTS data_access_log (
 -- Login History (detailed login tracking)
 CREATE TABLE IF NOT EXISTS login_history (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    user_id INT,
+    tenant_id INT UNSIGNED,
+    user_id INT UNSIGNED,
     username VARCHAR(255),
     login_status ENUM('success', 'failed', 'blocked') NOT NULL,
     failure_reason VARCHAR(255) COMMENT 'Reason for failed login',
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS login_history (
 -- System Events Log (system-level events)
 CREATE TABLE IF NOT EXISTS system_events_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
+    tenant_id INT UNSIGNED,
     event_type VARCHAR(100) NOT NULL COMMENT 'backup, maintenance, error, etc.',
     event_level ENUM('info', 'warning', 'error', 'critical') DEFAULT 'info',
     message TEXT NOT NULL,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS system_events_log (
 -- Audit Report Templates
 CREATE TABLE IF NOT EXISTS audit_report_templates (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
+    tenant_id INT UNSIGNED,
     template_name VARCHAR(100) NOT NULL,
     description TEXT,
     report_type ENUM('security', 'data_access', 'user_activity', 'system', 'compliance', 'custom') DEFAULT 'custom',
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS audit_report_templates (
     is_scheduled BOOLEAN DEFAULT FALSE,
     schedule_frequency ENUM('daily', 'weekly', 'monthly') NULL,
     recipients JSON COMMENT 'Email addresses to send scheduled reports',
-    created_by INT,
+    created_by INT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -112,13 +112,13 @@ CREATE TABLE IF NOT EXISTS audit_report_templates (
 -- Compliance Snapshots (point-in-time compliance reports)
 CREATE TABLE IF NOT EXISTS compliance_snapshots (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
+    tenant_id INT UNSIGNED,
     snapshot_date DATE NOT NULL,
     compliance_type VARCHAR(100) NOT NULL COMMENT 'GDPR, HIPAA, SOX, etc.',
     status ENUM('compliant', 'non_compliant', 'review_needed') DEFAULT 'review_needed',
     findings JSON COMMENT 'Compliance check results',
     recommendations TEXT,
-    reviewed_by INT,
+    reviewed_by INT UNSIGNED,
     reviewed_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 

@@ -68,49 +68,155 @@ CREATE TABLE IF NOT EXISTS `email_queue` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Email Templates
-CREATE TABLE IF NOT EXISTS `email_templates` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+-- Email Templates (Created in 011)
+-- CREATE TABLE IF NOT EXISTS `email_templates` (
+--     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+--     `tenant_id` INT UNSIGNED NULL,
+-- 
+--     -- Template Identity
+--     `name` VARCHAR(100) NOT NULL COMMENT 'Unique template identifier',
+--     `display_name` VARCHAR(255) NOT NULL,
+--     `description` TEXT NULL,
+--     `category` VARCHAR(100) NULL COMMENT 'transactional, marketing, notification',
+-- 
+--     -- Template Content
+--     `subject` VARCHAR(500) NOT NULL,
+--     `body_html` LONGTEXT NULL,
+--     `body_text` LONGTEXT NULL,
+-- 
+--     -- Default Settings
+--     `from_email` VARCHAR(255) NULL,
+--     `from_name` VARCHAR(255) NULL,
+--     `reply_to` VARCHAR(255) NULL,
+-- 
+--     -- Variables & Customization
+--     `available_variables` JSON NULL COMMENT 'List of available template variables',
+--     `preview_data` JSON NULL COMMENT 'Sample data for previewing',
+-- 
+--     -- Status
+--     `is_active` BOOLEAN DEFAULT TRUE,
+--     `is_system` BOOLEAN DEFAULT FALSE COMMENT 'System templates cannot be deleted',
+-- 
+--     -- Versioning
+--     `version` INT DEFAULT 1,
+-- 
+--     -- Timestamps
+--     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     `created_by` INT UNSIGNED NULL,
+-- 
+--     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
+--     FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+-- 
+--     UNIQUE KEY `unique_template_name` (`tenant_id`, `name`),
+--     INDEX `idx_category` (`category`),
+--     INDEX `idx_active` (`is_active`)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-    -- Template Identity
-    `name` VARCHAR(100) NOT NULL COMMENT 'Unique template identifier',
-    `display_name` VARCHAR(255) NOT NULL,
-    `description` TEXT NULL,
-    `category` VARCHAR(100) NULL COMMENT 'transactional, marketing, notification',
+-- Update email_templates table to match requirements
+SET @dbname = DATABASE();
+SET @tablename = "email_templates";
 
-    -- Template Content
-    `subject` VARCHAR(500) NOT NULL,
-    `body_html` LONGTEXT NULL,
-    `body_text` LONGTEXT NULL,
+-- Add tenant_id
+SET @columnname = "tenant_id";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE email_templates ADD COLUMN tenant_id INT UNSIGNED NULL AFTER id;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-    -- Default Settings
-    `from_email` VARCHAR(255) NULL,
-    `from_name` VARCHAR(255) NULL,
-    `reply_to` VARCHAR(255) NULL,
+-- Add display_name
+SET @columnname = "display_name";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE email_templates ADD COLUMN display_name VARCHAR(255) NOT NULL AFTER name;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-    -- Variables & Customization
-    `available_variables` JSON NULL COMMENT 'List of available template variables',
-    `preview_data` JSON NULL COMMENT 'Sample data for previewing',
+-- Add description
+SET @columnname = "description";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE email_templates ADD COLUMN description TEXT NULL AFTER display_name;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-    -- Status
-    `is_active` BOOLEAN DEFAULT TRUE,
-    `is_system` BOOLEAN DEFAULT FALSE COMMENT 'System templates cannot be deleted',
+-- Add category
+SET @columnname = "category";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE email_templates ADD COLUMN category VARCHAR(100) NULL AFTER description;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-    -- Versioning
-    `version` INT DEFAULT 1,
+-- Add body_html
+SET @columnname = "body_html";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE email_templates ADD COLUMN body_html LONGTEXT NULL AFTER subject;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-    -- Timestamps
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `created_by` INT UNSIGNED NULL,
+-- Add body_text
+SET @columnname = "body_text";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE email_templates ADD COLUMN body_text LONGTEXT NULL AFTER body_html;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-    FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+-- Add is_system
+SET @columnname = "is_system";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE email_templates ADD COLUMN is_system BOOLEAN DEFAULT FALSE AFTER is_active;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-    UNIQUE KEY `unique_template_name` (`tenant_id`, `name`),
-    INDEX `idx_category` (`category`),
-    INDEX `idx_active` (`is_active`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Add available_variables
+SET @columnname = "available_variables";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE email_templates ADD COLUMN available_variables JSON NULL AFTER is_system;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Make content nullable as we are using body_html/body_text now
+SET @dbname = DATABASE();
+SET @tablename = "email_templates";
+SET @columnname = "content";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "ALTER TABLE email_templates MODIFY COLUMN content LONGTEXT NULL;",
+  "SELECT 1"
+));
+PREPARE alterIfExists FROM @preparedStatement;
+EXECUTE alterIfExists;
+DEALLOCATE PREPARE alterIfExists;
 
 -- Email Log (for sent emails)
 CREATE TABLE IF NOT EXISTS `email_log` (

@@ -62,6 +62,25 @@ CREATE TABLE IF NOT EXISTS tenants (
     INDEX idx_subscription_status (subscription_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Ensure plan_id exists if table was created by 000_CORE_SCHEMA
+SET @dbname = DATABASE();
+SET @tablename = "tenants";
+SET @columnname = "plan_id";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  "ALTER TABLE tenants ADD COLUMN plan_id INT;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
 -- Subscription plans
 CREATE TABLE IF NOT EXISTS subscription_plans (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

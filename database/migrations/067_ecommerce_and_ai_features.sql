@@ -4,10 +4,10 @@
 -- Shopping Cart Table
 CREATE TABLE IF NOT EXISTS shopping_cart (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
+    tenant_id INT UNSIGNED,
     session_id VARCHAR(255) NOT NULL,
-    customer_id INT NULL,
-    product_id INT NOT NULL,
+    customer_id INT UNSIGNED NULL,
+    product_id INT UNSIGNED NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     price DECIMAL(10, 2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -25,9 +25,9 @@ CREATE TABLE IF NOT EXISTS shopping_cart (
 -- Product Views Tracking (for AI recommendations)
 CREATE TABLE IF NOT EXISTS product_views (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NULL,
-    product_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NULL,
+    product_id INT UNSIGNED NOT NULL,
     session_id VARCHAR(255),
     viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS product_views (
 -- Product Images
 CREATE TABLE IF NOT EXISTS product_images (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    product_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    product_id INT UNSIGNED NOT NULL,
     image_url VARCHAR(500) NOT NULL,
     alt_text VARCHAR(255),
     is_primary BOOLEAN DEFAULT FALSE,
@@ -61,8 +61,8 @@ CREATE TABLE IF NOT EXISTS product_images (
 -- Product Variants (sizes, colors, etc.)
 CREATE TABLE IF NOT EXISTS product_variants (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    product_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    product_id INT UNSIGNED NOT NULL,
     variant_name VARCHAR(100) NOT NULL,
     variant_value VARCHAR(100) NOT NULL,
     price_adjustment DECIMAL(10, 2) DEFAULT 0.00,
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS product_variants (
 -- Hero Banners for Homepage
 CREATE TABLE IF NOT EXISTS hero_banners (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
+    tenant_id INT UNSIGNED,
     title VARCHAR(255) NOT NULL,
     subtitle TEXT,
     image_url VARCHAR(500) NOT NULL,
@@ -101,8 +101,8 @@ CREATE TABLE IF NOT EXISTS hero_banners (
 -- AI Chatbot Conversations
 CREATE TABLE IF NOT EXISTS chatbot_conversations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NULL,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NULL,
     session_id VARCHAR(255),
     user_message TEXT NOT NULL,
     bot_response TEXT NOT NULL,
@@ -123,10 +123,10 @@ CREATE TABLE IF NOT EXISTS chatbot_conversations (
 -- AI Recommendation Logs
 CREATE TABLE IF NOT EXISTS recommendation_logs (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NULL,
-    product_id INT NOT NULL,
-    recommended_product_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NULL,
+    product_id INT UNSIGNED NOT NULL,
+    recommended_product_id INT UNSIGNED NOT NULL,
     recommendation_type VARCHAR(50) NOT NULL COMMENT 'collaborative, content_based, trending, bundle',
     score DECIMAL(5, 4),
     was_clicked BOOLEAN DEFAULT FALSE,
@@ -146,8 +146,8 @@ CREATE TABLE IF NOT EXISTS recommendation_logs (
 -- AI Inventory Forecasts
 CREATE TABLE IF NOT EXISTS inventory_forecasts (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    product_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    product_id INT UNSIGNED NOT NULL,
     forecast_date DATE NOT NULL,
     forecast_days INT NOT NULL,
     predicted_demand DECIMAL(10, 2) NOT NULL,
@@ -183,9 +183,9 @@ CREATE INDEX IF NOT EXISTS idx_is_featured ON products(is_featured);
 -- Wishlist Table
 CREATE TABLE IF NOT EXISTS wishlist_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NOT NULL,
-    product_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NOT NULL,
+    product_id INT UNSIGNED NOT NULL,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
@@ -199,9 +199,9 @@ CREATE TABLE IF NOT EXISTS wishlist_items (
 -- Recently Viewed Products
 CREATE TABLE IF NOT EXISTS recently_viewed (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NOT NULL,
-    product_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NOT NULL,
+    product_id INT UNSIGNED NOT NULL,
     viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
@@ -215,9 +215,9 @@ CREATE TABLE IF NOT EXISTS recently_viewed (
 -- Online Orders (separate from POS transactions)
 CREATE TABLE IF NOT EXISTS online_orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
+    tenant_id INT UNSIGNED,
     order_number VARCHAR(50) UNIQUE NOT NULL,
-    customer_id INT NOT NULL,
+    customer_id INT UNSIGNED NOT NULL,
     session_id VARCHAR(255),
     status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
     subtotal DECIMAL(12, 2) NOT NULL,
@@ -252,7 +252,7 @@ CREATE TABLE IF NOT EXISTS online_orders (
 CREATE TABLE IF NOT EXISTS online_order_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
-    product_id INT NOT NULL,
+    product_id INT UNSIGNED NOT NULL,
     product_name VARCHAR(255) NOT NULL,
     sku VARCHAR(100),
     quantity INT NOT NULL,
@@ -269,7 +269,7 @@ CREATE TABLE IF NOT EXISTS online_order_items (
 -- Discount Codes / Coupons
 CREATE TABLE IF NOT EXISTS discount_codes (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
+    tenant_id INT UNSIGNED,
     code VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
     discount_type ENUM('percentage', 'fixed_amount', 'free_shipping') DEFAULT 'percentage',
@@ -293,7 +293,7 @@ CREATE TABLE IF NOT EXISTS discount_codes (
 CREATE TABLE IF NOT EXISTS discount_code_usage (
     id INT AUTO_INCREMENT PRIMARY KEY,
     discount_code_id INT NOT NULL,
-    customer_id INT NOT NULL,
+    customer_id INT UNSIGNED NOT NULL,
     order_id INT NOT NULL,
     discount_amount DECIMAL(10, 2) NOT NULL,
     used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

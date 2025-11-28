@@ -69,37 +69,77 @@ CREATE TABLE IF NOT EXISTS tax_nexus (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tax Rates
-CREATE TABLE IF NOT EXISTS tax_rates (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    country VARCHAR(2) NOT NULL,
-    state VARCHAR(50) NULL,
-    zip_code VARCHAR(10) NULL,
-    rate DECIMAL(8, 4) NOT NULL,
-    tax_type VARCHAR(20) DEFAULT 'sales' COMMENT 'sales, vat, gst, pst',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_tax_location (country, state, zip_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Tax Rates (Created in 004)
+-- CREATE TABLE IF NOT EXISTS tax_rates (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     country VARCHAR(2) NOT NULL,
+--     state VARCHAR(50) NULL,
+--     zip_code VARCHAR(10) NULL,
+--     rate DECIMAL(8, 4) NOT NULL,
+--     tax_type VARCHAR(20) DEFAULT 'sales' COMMENT 'sales, vat, gst, pst',
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     INDEX idx_tax_location (country, state, zip_code)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Ensure tax_type exists in tax_rates (from 004)
+SET @dbname = DATABASE();
+SET @tablename = "tax_rates";
+SET @columnname = "tax_type";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  "ALTER TABLE tax_rates ADD COLUMN tax_type VARCHAR(20) DEFAULT 'sales';"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Subscription Plans
-CREATE TABLE IF NOT EXISTS subscription_plans (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NULL,
-    amount DECIMAL(10, 2) NOT NULL,
-    currency VARCHAR(3) DEFAULT 'USD',
-    billing_period VARCHAR(20) DEFAULT 'month' COMMENT 'month, year',
-    trial_days INT DEFAULT 0,
-    features TEXT NULL COMMENT 'JSON array of features',
-    is_active BOOLEAN DEFAULT TRUE,
-    max_users INT NULL,
-    max_products INT NULL,
-    max_storage_mb INT NULL,
-    api_rate_limit INT DEFAULT 1000,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_plan_active (is_active)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Subscription Plans (Created in 058)
+-- CREATE TABLE IF NOT EXISTS subscription_plans (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     name VARCHAR(100) NOT NULL,
+--     description TEXT NULL,
+--     amount DECIMAL(10, 2) NOT NULL,
+--     currency VARCHAR(3) DEFAULT 'USD',
+--     billing_period VARCHAR(20) DEFAULT 'month' COMMENT 'month, year',
+--     trial_days INT DEFAULT 0,
+--     features TEXT NULL COMMENT 'JSON array of features',
+--     is_active BOOLEAN DEFAULT TRUE,
+--     max_users INT NULL,
+--     max_products INT NULL,
+--     max_storage_mb INT NULL,
+--     api_rate_limit INT DEFAULT 1000,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     INDEX idx_plan_active (is_active)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Ensure api_rate_limit exists in subscription_plans (from 058)
+SET @dbname = DATABASE();
+SET @tablename = "subscription_plans";
+SET @columnname = "api_rate_limit";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  "ALTER TABLE subscription_plans ADD COLUMN api_rate_limit INT DEFAULT 1000;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Tenant Subscriptions
 CREATE TABLE IF NOT EXISTS tenant_subscriptions (
@@ -286,33 +326,34 @@ ADD COLUMN IF NOT EXISTS api_burst_limit INT DEFAULT 50 AFTER api_rate_limit;
 
 -- Alter users table for SSO and presence
 ALTER TABLE users
-ADD COLUMN IF NOT EXISTS sso_provider VARCHAR(50) NULL AFTER password,
+ADD COLUMN IF NOT EXISTS sso_provider VARCHAR(50) NULL AFTER password_hash,
 ADD COLUMN IF NOT EXISTS sso_provider_id VARCHAR(255) NULL AFTER sso_provider,
 ADD COLUMN IF NOT EXISTS online_status VARCHAR(20) DEFAULT 'offline' AFTER sso_provider_id,
 ADD COLUMN IF NOT EXISTS last_seen DATETIME NULL AFTER online_status;
 
 -- Alter products table for multi-currency
 ALTER TABLE products
-ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'USD' AFTER price,
+ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'USD' AFTER retail_price,
 ADD COLUMN IF NOT EXISTS is_taxable BOOLEAN DEFAULT TRUE AFTER currency,
 ADD COLUMN IF NOT EXISTS tax_code VARCHAR(50) NULL AFTER is_taxable;
 
 -- Insert default subscription plans
-INSERT IGNORE INTO subscription_plans (name, description, amount, billing_period, trial_days, features, max_users, max_products, api_rate_limit) VALUES
-('Starter', 'Perfect for small dive shops', 29.99, 'month', 14, '["POS System", "Basic Inventory", "Customer Management", "5 Users"]', 5, 500, 500),
-('Professional', 'For growing dive operations', 79.99, 'month', 14, '["Everything in Starter", "Rental Management", "Course Scheduling", "20 Users", "Advanced Reporting"]', 20, 2000, 1000),
-('Enterprise', 'Full-featured for large operations', 199.99, 'month', 30, '["Everything in Professional", "Multi-location", "API Access", "Unlimited Users", "White-label", "Priority Support"]', NULL, NULL, 5000),
-('Starter Annual', 'Annual Starter plan (2 months free)', 299.99, 'year', 14, '["POS System", "Basic Inventory", "Customer Management", "5 Users"]', 5, 500, 500),
-('Professional Annual', 'Annual Professional plan (2 months free)', 799.99, 'year', 14, '["Everything in Starter", "Rental Management", "Course Scheduling", "20 Users", "Advanced Reporting"]', 20, 2000, 1000),
-('Enterprise Annual', 'Annual Enterprise plan (2 months free)', 1999.99, 'year', 30, '["Everything in Professional", "Multi-location", "API Access", "Unlimited Users", "White-label", "Priority Support"]', NULL, NULL, 5000);
+-- Insert default subscription plans (Handled in 058)
+-- INSERT IGNORE INTO subscription_plans (name, description, amount, billing_period, trial_days, features, max_users, max_products, api_rate_limit) VALUES
+-- ('Starter', 'Perfect for small dive shops', 29.99, 'month', 14, '["POS System", "Basic Inventory", "Customer Management", "5 Users"]', 5, 500, 500),
+-- ('Professional', 'For growing dive operations', 79.99, 'month', 14, '["Everything in Starter", "Rental Management", "Course Scheduling", "20 Users", "Advanced Reporting"]', 20, 2000, 1000),
+-- ('Enterprise', 'Full-featured for large operations', 199.99, 'month', 30, '["Everything in Professional", "Multi-location", "API Access", "Unlimited Users", "White-label", "Priority Support"]', NULL, NULL, 5000),
+-- ('Starter Annual', 'Annual Starter plan (2 months free)', 299.99, 'year', 14, '["POS System", "Basic Inventory", "Customer Management", "5 Users"]', 5, 500, 500),
+-- ('Professional Annual', 'Annual Professional plan (2 months free)', 799.99, 'year', 14, '["Everything in Starter", "Rental Management", "Course Scheduling", "20 Users", "Advanced Reporting"]', 20, 2000, 1000),
+-- ('Enterprise Annual', 'Annual Enterprise plan (2 months free)', 1999.99, 'year', 30, '["Everything in Professional", "Multi-location", "API Access", "Unlimited Users", "White-label", "Priority Support"]', NULL, NULL, 5000);
 
 -- Insert default tax rates (US states)
-INSERT IGNORE INTO tax_rates (country, state, rate, tax_type) VALUES
-('US', 'CA', 7.25, 'sales'),
-('US', 'FL', 6.00, 'sales'),
-('US', 'TX', 6.25, 'sales'),
-('US', 'NY', 4.00, 'sales'),
-('US', 'IL', 6.25, 'sales');
+INSERT IGNORE INTO tax_rates (name, country, state, rate, tax_type) VALUES
+('Sales Tax CA', 'US', 'CA', 7.25, 'sales'),
+('Sales Tax FL', 'US', 'FL', 6.00, 'sales'),
+('Sales Tax TX', 'US', 'TX', 6.25, 'sales'),
+('Sales Tax NY', 'US', 'NY', 4.00, 'sales'),
+('Sales Tax IL', 'US', 'IL', 6.25, 'sales');
 
 -- Insert default exchange rates (will be updated by API)
 INSERT IGNORE INTO exchange_rates (from_currency, to_currency, rate, source) VALUES

@@ -1,6 +1,32 @@
 -- Stock Management Tables
 -- Advanced inventory tracking, stock counts, transfers, and forecasting
 
+-- Vendors/Suppliers (Moved to top to satisfy FK dependency)
+CREATE TABLE IF NOT EXISTS vendors (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT UNSIGNED,
+    vendor_name VARCHAR(255) NOT NULL,
+    contact_name VARCHAR(255),
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    address_line1 VARCHAR(255),
+    address_line2 VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(100),
+    postal_code VARCHAR(20),
+    country VARCHAR(100),
+    payment_terms VARCHAR(100),
+    notes TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+    INDEX idx_tenant_id (tenant_id),
+    INDEX idx_vendor_name (vendor_name),
+    INDEX idx_is_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Stock Counts table (for physical inventory audits)
 CREATE TABLE IF NOT EXISTS stock_counts (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -88,9 +114,11 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE SET NULL,
     INDEX idx_tenant_id (tenant_id),
     INDEX idx_po_number (po_number),
     INDEX idx_order_date (order_date),
+    INDEX idx_vendor_id (vendor_id),
     INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -111,38 +139,6 @@ CREATE TABLE IF NOT EXISTS purchase_order_items (
     INDEX idx_purchase_order (purchase_order_id),
     INDEX idx_product (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Vendors/Suppliers
-CREATE TABLE IF NOT EXISTS vendors (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    vendor_name VARCHAR(255) NOT NULL,
-    contact_name VARCHAR(255),
-    email VARCHAR(255),
-    phone VARCHAR(50),
-    address_line1 VARCHAR(255),
-    address_line2 VARCHAR(255),
-    city VARCHAR(100),
-    state VARCHAR(100),
-    postal_code VARCHAR(20),
-    country VARCHAR(100),
-    payment_terms VARCHAR(100),
-    notes TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
-    INDEX idx_tenant_id (tenant_id),
-    INDEX idx_vendor_name (vendor_name),
-    INDEX idx_is_active (is_active)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Add vendor_id foreign key to purchase_orders if not exists
--- Note: This FK is added after both tables are created
-ALTER TABLE purchase_orders
-ADD CONSTRAINT IF NOT EXISTS fk_vendor
-FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE SET NULL;
 
 -- Stock Locations/Warehouses
 CREATE TABLE IF NOT EXISTS stock_locations (

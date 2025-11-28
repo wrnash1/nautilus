@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS customer_portal_access (
 -- Customer Notifications
 CREATE TABLE IF NOT EXISTS customer_notifications (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NOT NULL,
     notification_type VARCHAR(50) NOT NULL,
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
@@ -51,9 +51,9 @@ CREATE TABLE IF NOT EXISTS customer_notifications (
 -- Customer Wishlist
 CREATE TABLE IF NOT EXISTS customer_wishlists (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NOT NULL,
-    product_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NOT NULL,
+    product_id INT UNSIGNED NOT NULL,
     notes TEXT,
     priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -70,16 +70,16 @@ CREATE TABLE IF NOT EXISTS customer_wishlists (
 -- Customer Reviews/Ratings
 CREATE TABLE IF NOT EXISTS customer_reviews (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NOT NULL,
-    product_id INT,
-    course_id INT,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NOT NULL,
+    product_id INT UNSIGNED,
+    course_id INT UNSIGNED,
     rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     review_title VARCHAR(255),
     review_text TEXT,
     is_verified_purchase BOOLEAN DEFAULT FALSE,
     is_approved BOOLEAN DEFAULT FALSE,
-    approved_by INT,
+    approved_by INT UNSIGNED,
     approved_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -100,8 +100,8 @@ CREATE TABLE IF NOT EXISTS customer_reviews (
 -- Customer Saved Addresses
 CREATE TABLE IF NOT EXISTS customer_addresses (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NOT NULL,
     address_type ENUM('shipping', 'billing', 'both') DEFAULT 'both',
     is_default BOOLEAN DEFAULT FALSE,
     recipient_name VARCHAR(255),
@@ -125,15 +125,15 @@ CREATE TABLE IF NOT EXISTS customer_addresses (
 -- Customer Support Tickets
 CREATE TABLE IF NOT EXISTS customer_support_tickets (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
+    tenant_id INT UNSIGNED,
     ticket_number VARCHAR(50) UNIQUE NOT NULL,
-    customer_id INT NOT NULL,
+    customer_id INT UNSIGNED NOT NULL,
     subject VARCHAR(255) NOT NULL,
     category VARCHAR(50) NOT NULL,
     priority ENUM('low', 'normal', 'high', 'urgent') DEFAULT 'normal',
     status ENUM('open', 'in_progress', 'waiting_customer', 'resolved', 'closed') DEFAULT 'open',
     description TEXT NOT NULL,
-    assigned_to INT,
+    assigned_to INT UNSIGNED,
     resolution TEXT,
     resolved_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -169,8 +169,8 @@ CREATE TABLE IF NOT EXISTS support_ticket_messages (
 -- Customer Preferences
 CREATE TABLE IF NOT EXISTS customer_preferences (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NOT NULL,
     preference_key VARCHAR(100) NOT NULL,
     preference_value TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -186,8 +186,8 @@ CREATE TABLE IF NOT EXISTS customer_preferences (
 -- Customer Activity Log (for portal access tracking)
 CREATE TABLE IF NOT EXISTS customer_activity_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    customer_id INT NOT NULL,
+    tenant_id INT UNSIGNED,
+    customer_id INT UNSIGNED NOT NULL,
     activity_type VARCHAR(50) NOT NULL,
     description TEXT,
     ip_address VARCHAR(45),

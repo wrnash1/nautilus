@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS help_articles (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    tenant_id INT UNSIGNED NOT NULL,
 
     -- Article Information
     title VARCHAR(255) NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS help_articles (
     published_at TIMESTAMP NULL,
 
     -- Metadata
-    author_id INT,
+    author_id INT UNSIGNED,
     views INT DEFAULT 0,
     helpful_count INT DEFAULT 0,
     not_helpful_count INT DEFAULT 0,
