@@ -42,7 +42,11 @@ INSERT INTO `roles` (`name`, `description`) VALUES
 ('Staff', 'Store staff'),
 ('Instructor', 'Diving instructor');
 
-CREATE TABLE IF NOT EXISTS `permissions` (
+-- Drop and recreate permissions table to ensure correct schema
+DROP TABLE IF EXISTS `role_permissions`;
+DROP TABLE IF EXISTS `permissions`;
+
+CREATE TABLE `permissions` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(100) NOT NULL UNIQUE,
     `display_name` VARCHAR(150) NOT NULL,
@@ -52,6 +56,7 @@ CREATE TABLE IF NOT EXISTS `permissions` (
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX `idx_module` (`module`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- Insert core permissions
 -- Insert default permissions

@@ -140,7 +140,9 @@ CREATE TABLE IF NOT EXISTS `scheduled_reports` (
 -- =============================================
 
 -- Custom dashboards
-CREATE TABLE IF NOT EXISTS `dashboards` (
+-- Drop the old dashboards table if it exists (from migration 013) and recreate with new schema
+DROP TABLE IF EXISTS `dashboards`;
+CREATE TABLE `dashboards` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED NOT NULL,
     `dashboard_name` VARCHAR(200) NOT NULL,
@@ -171,8 +173,11 @@ CREATE TABLE IF NOT EXISTS `dashboards` (
     INDEX idx_created_by (`created_by`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
 -- Dashboard widgets
-CREATE TABLE IF NOT EXISTS `dashboard_widgets` (
+-- Drop the old dashboard_widgets table if it exists (from migration 026) and recreate with new schema
+DROP TABLE IF EXISTS `dashboard_widgets`;
+CREATE TABLE `dashboard_widgets` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `dashboard_id` INT UNSIGNED NOT NULL,
     `tenant_id` INT UNSIGNED NOT NULL,
@@ -220,6 +225,7 @@ CREATE TABLE IF NOT EXISTS `dashboard_widgets` (
     FOREIGN KEY (`dashboard_id`) REFERENCES `dashboards`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`report_template_id`) REFERENCES `report_templates`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- Key Performance Indicators
 CREATE TABLE IF NOT EXISTS `kpi_definitions` (

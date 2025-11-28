@@ -167,7 +167,9 @@ CREATE TABLE IF NOT EXISTS `cash_drawer_operations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Loyalty Programs
-CREATE TABLE IF NOT EXISTS `loyalty_programs` (
+-- Drop the old loyalty_programs table if it exists (from migration 011) and recreate with new schema
+DROP TABLE IF EXISTS `loyalty_programs`;
+CREATE TABLE `loyalty_programs` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED NOT NULL,
     `program_name` VARCHAR(255) NOT NULL,
@@ -220,6 +222,9 @@ CREATE TABLE IF NOT EXISTS `loyalty_programs` (
 
     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
 
 -- Customer Loyalty Accounts
 CREATE TABLE IF NOT EXISTS `customer_loyalty_accounts` (

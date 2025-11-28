@@ -1,9 +1,10 @@
 
 
-INSERT INTO roles (name, display_name, description) VALUES
-('admin', 'Admin', 'Full system access with all permissions'),
-('manager', 'Manager', 'Manager access - can manage inventory, customers, and reports but not users'),
-('cashier', 'Cashier', 'Basic POS access - can process sales and view customers');
+INSERT INTO roles (name, description) VALUES
+('admin', 'Full system access with all permissions'),
+('manager', 'Manager access - can manage inventory, customers, and reports but not users'),
+('cashier', 'Basic POS access - can process sales and view customers');
+
 
 INSERT INTO permissions (name, display_name, module, description) VALUES
 ('dashboard.view', 'View Dashboard', 'dashboard', 'View dashboard'),
