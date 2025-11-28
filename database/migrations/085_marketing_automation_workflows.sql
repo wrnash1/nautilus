@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS `automation_workflow_steps` (
     `send_day_of_week` TINYINT NULL COMMENT '0=Sunday, 6=Saturday',
 
     -- Step Configuration
-    `config` JSON NOT NULL COMMENT 'Step-specific configuration',
+    `config` JSON NOT NULL DEFAULT ('{}') COMMENT 'Step-specific configuration',
 
     -- Email/SMS Content
     `email_template_id` INT UNSIGNED NULL,

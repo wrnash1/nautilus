@@ -1,5 +1,5 @@
 Starting installation...
-Connecting to localhost:3306 as nautilus...
+Connecting to 127.0.0.1:3306 as nautilus_admin...
 Dropping database 'nautilus' if exists...
 Creating database 'nautilus' if not exists...
 Found 106 migration files.
@@ -87,5 +87,27 @@ Running 081_incident_reporting_system.sql... OK
 Running 082_ai_ml_systems.sql... OK
 Running 083_marketing_campaigns_system.sql... OK
 Running 084_customer_segmentation_system.sql... OK
-Running 085_marketing_automation_workflows.sql... FAILED
-Error: SQLSTATE[HY000]: General error: 1364 Field 'config' doesn't have a default value
+Running 085_marketing_automation_workflows.sql... OK
+Running 086_sms_marketing_ab_testing.sql... OK
+Running 087_referral_social_media.sql... OK
+Running 088_tax_reporting_system.sql... OK
+Running 089_travel_agent_system.sql... OK
+Running 090_training_tracking_system.sql... OK
+Running 091_employee_scheduling_system.sql... OK
+Running 092_advanced_inventory_control.sql... OK
+Running 093_security_system.sql... OK
+Running 094_communication_integrations.sql... OK
+Running 095_advanced_business_features.sql... OK
+Running 096_online_booking_and_mobile_apis.sql... OK
+Running 097_business_intelligence_reporting.sql... OK
+Running 098_layaway_and_club_management.sql... OK
+Running 099_add_sso_support.sql... OK
+Running 099_google_contacts_sync.sql... OK
+Running 100_fix_all_migration_warnings.sql... OK
+Running 101_comprehensive_database_fixes.sql... OK
+Running 102_create_update_system_tables.sql... OK
+Running 103_fix_database_warnings.sql... OK
+Running 104_consolidate_fix_migration_issues.sql... OK
+Running 999_ensure_all_tables_exist.sql... OK
+
+All migrations completed successfully!

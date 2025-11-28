@@ -118,8 +118,9 @@ INSERT IGNORE INTO `system_settings` (`setting_key`, `setting_value`, `setting_t
 -- SECTION 5: ENSURE DEFAULT TENANT EXISTS
 -- ============================================================================
 
-INSERT IGNORE INTO `tenants` (`id`, `name`, `subdomain`, `database_name`, `is_active`, `created_at`)
-VALUES (1, 'Default Tenant', 'default', DATABASE(), 1, NOW());
+INSERT IGNORE INTO `tenants` (`id`, `name`, `subdomain`, `status`, `created_at`)
+VALUES (1, 'Default Tenant', 'default', 'active', NOW());
+
 
 -- ============================================================================
 -- SECTION 6: FIX FOREIGN KEY ISSUES IN PROBLEMATIC TABLES

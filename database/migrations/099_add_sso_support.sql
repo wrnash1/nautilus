@@ -7,20 +7,138 @@
 -- Created: 2025-11-19
 -- =====================================================
 
--- Add SSO fields to users table
-ALTER TABLE users
-ADD COLUMN sso_provider VARCHAR(50) NULL COMMENT 'OAuth provider: google, microsoft, github, oidc, saml',
-ADD COLUMN sso_provider_id VARCHAR(255) NULL COMMENT 'Unique ID from SSO provider',
-ADD COLUMN sso_email VARCHAR(255) NULL COMMENT 'Email from SSO provider',
-ADD COLUMN sso_avatar_url VARCHAR(500) NULL COMMENT 'Profile picture URL from provider',
-ADD COLUMN sso_access_token TEXT NULL COMMENT 'Encrypted OAuth access token',
-ADD COLUMN sso_refresh_token TEXT NULL COMMENT 'Encrypted OAuth refresh token',
-ADD COLUMN sso_token_expires_at DATETIME NULL COMMENT 'When the access token expires',
-ADD COLUMN sso_last_login DATETIME NULL COMMENT 'Last SSO login timestamp',
-ADD COLUMN allow_password_login BOOLEAN DEFAULT TRUE COMMENT 'Allow traditional password login',
-ADD INDEX idx_sso_provider (sso_provider),
-ADD INDEX idx_sso_provider_id (sso_provider_id),
-ADD UNIQUE KEY unique_sso_provider_id (sso_provider, sso_provider_id);
+-- Add SSO fields to users table (only if they don't exist)
+SET @dbname = DATABASE();
+SET @tablename = 'users';
+
+-- Add sso_provider
+SET @columnname = 'sso_provider';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_provider VARCHAR(50) NULL COMMENT 'OAuth provider: google, microsoft, github, oidc, saml'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_provider_id
+SET @columnname = 'sso_provider_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_provider_id VARCHAR(255) NULL COMMENT 'Unique ID from SSO provider'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_email
+SET @columnname = 'sso_email';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_email VARCHAR(255) NULL COMMENT 'Email from SSO provider'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_avatar_url
+SET @columnname = 'sso_avatar_url';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_avatar_url VARCHAR(500) NULL COMMENT 'Profile picture URL from provider'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_access_token
+SET @columnname = 'sso_access_token';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_access_token TEXT NULL COMMENT 'Encrypted OAuth access token'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_refresh_token
+SET @columnname = 'sso_refresh_token';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_refresh_token TEXT NULL COMMENT 'Encrypted OAuth refresh token'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_token_expires_at
+SET @columnname = 'sso_token_expires_at';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_token_expires_at DATETIME NULL COMMENT 'When the access token expires'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_last_login
+SET @columnname = 'sso_last_login';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_last_login DATETIME NULL COMMENT 'Last SSO login timestamp'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add allow_password_login
+SET @columnname = 'allow_password_login';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN allow_password_login BOOLEAN DEFAULT TRUE COMMENT 'Allow traditional password login'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add indexes (these will error if they exist, but we can ignore that)
+-- Note: MySQL doesn't allow conditional index creation easily, so we skip index creation if they exist
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_sso_provider') > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD INDEX idx_sso_provider (sso_provider)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_sso_provider_id') > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD INDEX idx_sso_provider_id (sso_provider_id)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'unique_sso_provider_id') > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD UNIQUE KEY unique_sso_provider_id (sso_provider, sso_provider_id)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
 
 -- OAuth provider configurations (tenant-specific)
 CREATE TABLE oauth_providers (
@@ -205,6 +323,20 @@ SELECT
 FROM tenants
 WHERE id = 1;
 
+-- Create system_settings table if it doesn't exist
+CREATE TABLE IF NOT EXISTS system_settings (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value TEXT NULL,
+    setting_type ENUM('string', 'integer', 'boolean', 'json', 'float') DEFAULT 'string',
+    description TEXT NULL,
+    is_public BOOLEAN DEFAULT FALSE COMMENT 'Can be accessed by frontend',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_setting_key (setting_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 -- Add system setting for SSO
 INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public, created_at)
 VALUES 
@@ -213,6 +345,7 @@ VALUES
 ('sso_allow_account_linking', 'true', 'boolean', 'Allow users to link multiple SSO providers', 0, NOW()),
 ('sso_session_lifetime', '86400', 'integer', 'SSO session lifetime in seconds (24 hours)', 0, NOW())
 ON DUPLICATE KEY UPDATE updated_at = NOW();
+
 
 -- =====================================================
 -- Migration Complete
