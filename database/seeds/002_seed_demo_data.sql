@@ -1,10 +1,15 @@
+
 -- Demo Data for Nautilus Dive Shop
 -- This file contains sample data for testing and demonstration purposes
 
 -- Demo Users (password for all: password)
-INSERT INTO users (role_id, first_name, last_name, email, password_hash, is_active, created_at) VALUES
-(2, 'Jane', 'Manager', 'manager@nautilus.demo', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
-(3, 'Bob', 'Cashier', 'cashier@nautilus.demo', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW());
+INSERT INTO users (id, first_name, last_name, email, password_hash, is_active, created_at) VALUES
+(4, 'Jane', 'Manager', 'manager@nautilus.demo', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
+(5, 'Bob', 'Cashier', 'cashier@nautilus.demo', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW());
+
+INSERT INTO user_roles (user_id, role_id) VALUES
+(4, 2),
+(5, 3);
 
 -- Rental Categories
 INSERT INTO rental_categories (name, description) VALUES

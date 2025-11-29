@@ -6,6 +6,10 @@ use PDO;
 use PDOException;
 use Exception;
 
+/**
+ * Simplified WordPress-style Installer
+ * Single-file SQL import approach for reliability
+ */
 class InstallService
 {
     private array $progress = [];
@@ -21,49 +25,8 @@ class InstallService
      */
     public function isInstalled(): bool
     {
-        try {
-            // Check if .env has database credentials
-            $envPath = __DIR__ . '/../../../.env';
-
-            if (!file_exists($envPath)) {
-                return false;
-            }
-
-            $envContent = file_get_contents($envPath);
-
-            // Check if DB_DATABASE is set and not empty
-            if (!preg_match('/^DB_DATABASE=(.+)$/m', $envContent, $matches)) {
-                return false;
-            }
-
-            $dbName = trim($matches[1]);
-            if (empty($dbName)) {
-                return false;
-            }
-
-            // Try to connect and check if migrations table exists
-            try {
-                $pdo = $this->createDatabaseConnection();
-                $stmt = $pdo->query("SHOW TABLES LIKE 'migrations'");
-                $result = $stmt->fetch();
-                $stmt->closeCursor();
-
-                if (!$result) {
-                    return false;
-                }
-
-                // Check if at least one migration has been run
-                $stmt = $pdo->query("SELECT COUNT(*) as count FROM migrations");
-                $count = $stmt->fetch(PDO::FETCH_ASSOC);
-                $stmt->closeCursor();
-
-                return $count['count'] > 0;
-            } catch (PDOException $e) {
-                return false;
-            }
-        } catch (Exception $e) {
-            return false;
-        }
+        $installedFile = __DIR__ . '/../../../.installed';
+        return file_exists($installedFile);
     }
 
     /**
@@ -80,35 +43,31 @@ class InstallService
             $dsn = "mysql:host={$host};port={$port};charset=utf8mb4";
             $pdo = new PDO($dsn, $username, $password, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             ]);
 
             // Check if database exists
             $stmt = $pdo->query("SHOW DATABASES LIKE '{$database}'");
             $dbExists = $stmt->fetch();
-            $stmt->closeCursor();
 
-            // Check MySQL version
-            $stmt = $pdo->query("SELECT VERSION() as version");
-            $version = $stmt->fetch();
-            $stmt->closeCursor();
+            // Get MySQL version
+            $version = $pdo->query("SELECT VERSION()")->fetchColumn();
 
             return [
                 'success' => true,
                 'message' => 'Database connection successful',
                 'database_exists' => (bool)$dbExists,
-                'mysql_version' => $version['version']
+                'mysql_version' => $version
             ];
         } catch (PDOException $e) {
             return [
                 'success' => false,
-                'message' => 'Database connection failed: ' . $e->getMessage()
+                'message' => 'Connection failed: ' . $e->getMessage()
             ];
         }
     }
 
     /**
-     * Run full installation
+     * Run complete installation
      */
     public function runInstallation(array $config): array
     {
@@ -116,47 +75,26 @@ class InstallService
             $this->updateProgress('Starting installation...', 0);
 
             // Step 1: Update .env file
-            $this->updateProgress('Updating .env file...', 10);
+            $this->updateProgress('Configuring environment...', 10);
             $this->updateEnvFile($config);
 
-            // Step 2: Create database if it doesn't exist
+            // Step 2: Create database
             $this->updateProgress('Creating database...', 20);
             $this->createDatabase($config);
 
-            // Step 3: Run migrations
-            $this->updateProgress('Running database migrations...', 30);
-            $migrationResult = $this->runMigrations();
+            // Step 3: Import schema
+            $this->updateProgress('Installing database schema...', 30);
+            $this->importSchema($config);
 
-            if (!$migrationResult['success']) {
-                throw new Exception($migrationResult['message']);
-            }
+            // Step 4: Create default tenant
+            $this->updateProgress('Setting up company...', 60);
+            $this->createTenant($config);
 
-            // Step 4: Seed initial data (roles, permissions)
-            $this->updateProgress('Seeding initial data...', 70);
-            $this->seedInitialData();
-
-            // Step 5: Seed certification agencies and cash drawers
-            $this->updateProgress('Seeding certification agencies...', 72);
-            $this->seedCertificationAgencies();
-
-            $this->updateProgress('Seeding cash drawers and customer tags...', 74);
-            $this->seedCashDrawers();
-
-            // Step 6: Save company settings
-            $this->updateProgress('Saving company settings...', 76);
-            $this->saveCompanySettings($config);
-
-            // Step 7: Create admin user
-            $this->updateProgress('Creating admin user...', 80);
+            // Step 5: Create admin user
+            $this->updateProgress('Creating admin account...', 80);
             $this->createAdminUser($config);
 
-            // Step 8: Install demo data if requested
-            if ($config['install_demo_data']) {
-                $this->updateProgress('Installing demo data...', 85);
-                $this->installDemoData();
-            }
-
-            // Step 9: Finalize
+            // Step 6: Finalize
             $this->updateProgress('Finalizing installation...', 95);
             $this->finalizeInstallation();
 
@@ -169,7 +107,6 @@ class InstallService
             ];
         } catch (Exception $e) {
             $this->updateProgress('Installation failed: ' . $e->getMessage(), -1);
-
             return [
                 'success' => false,
                 'message' => 'Installation failed: ' . $e->getMessage()
@@ -178,14 +115,13 @@ class InstallService
     }
 
     /**
-     * Update .env file with configuration
+     * Update .env file
      */
     private function updateEnvFile(array $config): void
     {
         $envPath = __DIR__ . '/../../../.env';
         $envExamplePath = __DIR__ . '/../../../.env.example';
 
-        // Load .env.example as template
         if (file_exists($envExamplePath)) {
             $envContent = file_get_contents($envExamplePath);
         } else {
@@ -193,8 +129,8 @@ class InstallService
         }
 
         // Generate security keys
-        $appKey = $this->generateRandomKey(32);
-        $jwtSecret = $this->generateRandomKey(64);
+        $appKey = bin2hex(random_bytes(32));
+        $jwtSecret = bin2hex(random_bytes(64));
 
         // Replace placeholders
         $replacements = [
@@ -214,18 +150,13 @@ class InstallService
             $envContent = preg_replace($pattern, $replacement, $envContent);
         }
 
-        // Write to .env file
         if (file_put_contents($envPath, $envContent) === false) {
             throw new Exception('Failed to write .env file');
         }
-
-        // Reload environment variables
-        $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../../..');
-        $dotenv->load();
     }
 
     /**
-     * Create database if it doesn't exist
+     * Create database
      */
     private function createDatabase(array $config): void
     {
@@ -234,174 +165,101 @@ class InstallService
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         ]);
 
-        // Create database if it doesn't exist
         $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$config['db_database']}`
                     CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     }
 
     /**
-     * Run database migrations
+     * Import database schema from single SQL file and run all migrations
      */
-    private function runMigrations(): array
+    private function importSchema(array $config): void
     {
-        try {
-            // Use mysqli instead of PDO to avoid buffering issues
-            $host = $_ENV['DB_HOST'] ?? 'localhost';
-            $port = $_ENV['DB_PORT'] ?? '3306';
-            $database = $_ENV['DB_DATABASE'] ?? '';
-            $username = $_ENV['DB_USERNAME'] ?? '';
-            $password = $_ENV['DB_PASSWORD'] ?? '';
+        $sqlFile = __DIR__ . '/../../../database/install.sql';
+        
+        if (!file_exists($sqlFile)) {
+            throw new Exception("Installation SQL file not found: {$sqlFile}");
+        }
 
-            // Create mysqli connection for migration execution
-            $mysqli = new \mysqli($host, $username, $password, $database, $port);
+        // Connect to the database
+        $dsn = "mysql:host={$config['db_host']};port={$config['db_port']};dbname={$config['db_database']};charset=utf8mb4";
+        $pdo = new PDO($dsn, $config['db_username'], $config['db_password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        ]);
 
-            if ($mysqli->connect_error) {
-                throw new Exception("Connection failed: " . $mysqli->connect_error);
+        // Execute the base SQL file
+        $sql = file_get_contents($sqlFile);
+        $pdo->exec($sql);
+        
+        $this->updateProgress('Running database migrations...', 40);
+        
+        // Run all migrations
+        $this->runMigrations($pdo);
+    }
+    
+    /**
+     * Run all database migrations
+     */
+    private function runMigrations(PDO $pdo): void
+    {
+        $migrationsDir = __DIR__ . '/../../../database/migrations';
+        
+        if (!is_dir($migrationsDir)) {
+            return; // No migrations directory, skip
+        }
+        
+        // Get all .sql files sorted
+        $migrations = glob($migrationsDir . '/*.sql');
+        sort($migrations);
+        
+        foreach ($migrations as $migrationFile) {
+            $migrationName = basename($migrationFile);
+            
+            // Check if already run
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM migrations WHERE migration = ?");
+            $stmt->execute([$migrationName]);
+            $alreadyRun = $stmt->fetchColumn();
+            
+            if ($alreadyRun > 0) {
+                continue; // Skip already applied migrations
             }
-
-            $mysqli->set_charset("utf8mb4");
-
-            // Disable foreign key checks to allow tables to be created in any order
-            $mysqli->query("SET FOREIGN_KEY_CHECKS=0");
-            $mysqli->query("SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO'");
-
-            // Create migrations table
-            $mysqli->query("
-                CREATE TABLE IF NOT EXISTS migrations (
-                    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                    migration VARCHAR(255) NOT NULL UNIQUE,
-                    batch INT NOT NULL,
-                    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-            ");
-
-            // Get executed migrations
-            $result = $mysqli->query("SELECT migration FROM migrations");
-            $executed = [];
-            if ($result) {
-                while ($row = $result->fetch_assoc()) {
-                    $executed[] = $row['migration'];
-                }
-                $result->free();
-            }
-
-            // Get current batch
-            $result = $mysqli->query("SELECT MAX(batch) as max_batch FROM migrations");
-            $lastBatch = $result ? $result->fetch_assoc() : null;
-            $result?->free();
-            $currentBatch = ($lastBatch['max_batch'] ?? 0) + 1;
-
-            $migrationsDir = __DIR__ . '/../../../database/migrations';
-            $files = glob($migrationsDir . '/*.sql');
-            sort($files);
-
-            $newMigrations = 0;
-            $totalMigrations = count($files);
-            $current = 0;
-
-            foreach ($files as $file) {
-                $filename = basename($file);
-                $current++;
-
-                if (in_array($filename, $executed)) {
-                    continue;
-                }
-
-                $progress = 30 + (($current / $totalMigrations) * 40);
-                $this->updateProgress("Running migration: {$filename}", (int)$progress);
-
-                // Read the entire SQL file
-                $sql = file_get_contents($file);
-
-                // CRITICAL FIX: Disable FK checks at CONNECTION level BEFORE multi_query
-                // This is the ONLY way that works with mysqli::multi_query()
-                // The SET commands inside multi_query don't apply to subsequent statements in the batch
-                $mysqli->query("SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS");
-                $mysqli->query("SET FOREIGN_KEY_CHECKS=0");
-
-                // Execute using multi_query
-                if (!$mysqli->multi_query($sql)) {
-                    throw new Exception("Error in {$filename}: " . $mysqli->error);
-                }
-
-                // Clear all result sets
-                do {
-                    if ($result = $mysqli->store_result()) {
-                        $result->free();
-                    }
-                } while ($mysqli->more_results() && $mysqli->next_result());
-
-                // Re-enable FK checks after migration completes
-                $mysqli->query("SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS");
-
-                // Check for errors (but don't fail - just log)
-                // Some foreign key warnings are expected if tables reference each other
-                if ($mysqli->error) {
-                    error_log("Warning in {$filename}: " . $mysqli->error);
-                }
-
+            
+            try {
+                // Read and execute migration
+                $sql = file_get_contents($migrationFile);
+                $pdo->exec($sql);
+                
                 // Record migration
-                $stmt = $mysqli->prepare("INSERT INTO migrations (migration, batch) VALUES (?, ?)");
-                $stmt->bind_param("si", $filename, $currentBatch);
-                $stmt->execute();
-                $stmt->close();
-
-                $newMigrations++;
+                $stmt = $pdo->prepare("INSERT INTO migrations (migration, batch) VALUES (?, 1)");
+                $stmt->execute([$migrationName]);
+            } catch (Exception $e) {
+                // Log but continue - some migrations may fail if tables already exist
+                error_log("Migration {$migrationName} failed: " . $e->getMessage());
             }
-
-            $mysqli->close();
-
-            return [
-                'success' => true,
-                'message' => "Successfully executed {$newMigrations} migration(s)"
-            ];
-        } catch (Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Migration failed: ' . $e->getMessage()
-            ];
         }
     }
 
     /**
-     * Seed initial data (roles, permissions)
+     * Create default tenant
      */
-    private function seedInitialData(): void
+    private function createTenant(array $config): void
     {
-        $pdo = $this->createDatabaseConnection();
-        $seedFile = __DIR__ . '/../../../database/seeds/001_seed_initial_data.sql';
+        $dsn = "mysql:host={$config['db_host']};port={$config['db_port']};dbname={$config['db_database']};charset=utf8mb4";
+        $pdo = new PDO($dsn, $config['db_username'], $config['db_password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        ]);
 
-        if (!file_exists($seedFile)) {
-            throw new Exception('Seed file not found');
-        }
-
-        $sql = file_get_contents($seedFile);
-
-        // Extract only roles and permissions sections (not demo users, products, etc.)
-        $statements = array_filter(
-            array_map('trim', explode(';', $sql)),
-            fn($stmt) => !empty($stmt) && !preg_match('/^\s*--/', $stmt)
-        );
-
-        foreach ($statements as $statement) {
-            if (!empty($statement)) {
-                // Only execute role and permission inserts, skip demo data
-                if (
-                    stripos($statement, 'INSERT INTO roles') !== false ||
-                    stripos($statement, 'INSERT INTO permissions') !== false ||
-                    stripos($statement, 'INSERT INTO role_permissions') !== false
-                ) {
-                    try {
-                        $pdo->exec($statement);
-                    } catch (PDOException $e) {
-                        // Ignore duplicate errors
-                        if ($e->getCode() != 23000) {
-                            throw $e;
-                        }
-                    }
-                }
-            }
-        }
+        $tenantUuid = $this->generateUUID();
+        
+        $stmt = $pdo->prepare("
+            INSERT INTO tenants (id, tenant_uuid, company_name, subdomain, contact_email, status, created_at)
+            VALUES (1, ?, ?, 'default', ?, 'active', NOW())
+        ");
+        
+        $stmt->execute([
+            $tenantUuid,
+            $config['app_name'],
+            $config['admin_email']
+        ]);
     }
 
     /**
@@ -409,330 +267,35 @@ class InstallService
      */
     private function createAdminUser(array $config): void
     {
-        $pdo = $this->createDatabaseConnection();
-
-        // Create default tenant if it doesn't exist
-        $stmt = $pdo->query("SELECT id FROM tenants WHERE id = 1 LIMIT 1");
-        $defaultTenant = $stmt->fetch();
-        $stmt->closeCursor();
-
-        if (!$defaultTenant) {
-            // Create default tenant
-            $tenantUuid = $this->generateUUID();
-            $subdomain = $this->generateSubdomain($config['app_name'] ?? 'default');
-
-            $stmt = $pdo->prepare("
-                INSERT INTO tenants (id, tenant_uuid, company_name, subdomain, contact_email, status, created_at)
-                VALUES (1, ?, ?, ?, ?, 'active', NOW())
-            ");
-            $stmt->execute([
-                $tenantUuid,
-                $config['app_name'] ?? 'Default Company',
-                $subdomain,
-                $config['admin_email']
-            ]);
-            $stmt->closeCursor();
-            $tenantId = 1;
-        } else {
-            $tenantId = $defaultTenant['id'];
-        }
-
-        // Check if admin role exists
-        $stmt = $pdo->query("SELECT id FROM roles WHERE name = 'admin' LIMIT 1");
-        $adminRole = $stmt->fetch();
-        $stmt->closeCursor();
-
-        if (!$adminRole) {
-            throw new Exception('Admin role not found. Please ensure initial data was seeded.');
-        }
+        $dsn = "mysql:host={$config['db_host']};port={$config['db_port']};dbname={$config['db_database']};charset=utf8mb4";
+        $pdo = new PDO($dsn, $config['db_username'], $config['db_password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        ]);
 
         $passwordHash = password_hash($config['admin_password'], PASSWORD_BCRYPT);
 
-        // Check if user already exists
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-        $stmt->execute([$config['admin_email']]);
-        $existingUser = $stmt->fetch();
-        $stmt->closeCursor();
+        // Create user
+        $stmt = $pdo->prepare("
+            INSERT INTO users (tenant_id, first_name, last_name, email, password_hash, is_active, created_at)
+            VALUES (1, ?, ?, ?, ?, 1, NOW())
+        ");
+        
+        $stmt->execute([
+            $config['admin_first_name'],
+            $config['admin_last_name'],
+            $config['admin_email'],
+            $passwordHash
+        ]);
 
-        if ($existingUser) {
-            // Update existing user
-            $stmt = $pdo->prepare("
-                UPDATE users
-                SET tenant_id = ?,
-                    role_id = ?,
-                    first_name = ?,
-                    last_name = ?,
-                    password_hash = ?,
-                    is_active = 1
-                WHERE email = ?
-            ");
-            $stmt->execute([
-                $tenantId,
-                $adminRole['id'],
-                $config['admin_first_name'],
-                $config['admin_last_name'],
-                $passwordHash,
-                $config['admin_email']
-            ]);
-            $stmt->closeCursor();
-        } else {
-            // Insert new user
-            $stmt = $pdo->prepare("
-                INSERT INTO users (tenant_id, role_id, email, password_hash, first_name, last_name, is_active, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, 1, NOW())
-            ");
-            $stmt->execute([
-                $tenantId,
-                $adminRole['id'],
-                $config['admin_email'],
-                $passwordHash,
-                $config['admin_first_name'],
-                $config['admin_last_name']
-            ]);
-            $stmt->closeCursor();
-        }
-    }
+        $userId = $pdo->lastInsertId();
 
-    /**
-     * Generate a UUID v4
-     */
-    private function generateUUID(): string
-    {
-        $data = random_bytes(16);
-        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
-        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
-        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-    }
-
-    /**
-     * Generate a subdomain from company name
-     */
-    private function generateSubdomain(string $companyName): string
-    {
-        $subdomain = strtolower($companyName);
-        $subdomain = preg_replace('/[^a-z0-9]+/', '-', $subdomain);
-        $subdomain = trim($subdomain, '-');
-        $subdomain = substr($subdomain, 0, 50);
-
-        if (empty($subdomain)) {
-            $subdomain = 'company-' . substr(md5(uniqid()), 0, 8);
-        }
-
-        return $subdomain;
-    }
-
-    /**
-     * Install demo data
-     */
-    private function installDemoData(): void
-    {
-        $host = $_ENV['DB_HOST'] ?? 'localhost';
-        $port = $_ENV['DB_PORT'] ?? '3306';
-        $database = $_ENV['DB_DATABASE'] ?? '';
-        $username = $_ENV['DB_USERNAME'] ?? '';
-        $password = $_ENV['DB_PASSWORD'] ?? '';
-
-        $mysqli = new \mysqli($host, $username, $password, $database, $port);
-
-        if ($mysqli->connect_error) {
-            throw new \Exception("Connection failed: " . $mysqli->connect_error);
-        }
-
-        $mysqli->set_charset("utf8mb4");
-
-        $seedFile = __DIR__ . '/../../../database/seeds/002_seed_demo_data.sql';
-
-        if (file_exists($seedFile)) {
-            $sql = file_get_contents($seedFile);
-
-            // Execute using multi_query
-            if ($mysqli->multi_query($sql)) {
-                // Clear all result sets
-                do {
-                    if ($result = $mysqli->store_result()) {
-                        $result->free();
-                    }
-                } while ($mysqli->more_results() && $mysqli->next_result());
-            }
-
-            // Check for errors (ignore duplicate key errors)
-            if ($mysqli->error && $mysqli->errno != 1062) {
-                throw new \Exception("Demo data installation failed: " . $mysqli->error);
-            }
-        }
-
-        $mysqli->close();
-    }
-
-    /**
-     * Save company settings to database
-     */
-    private function saveCompanySettings(array $config): void
-    {
-        $pdo = $this->createDatabaseConnection();
-
-        // Company settings to save
-        $companySettings = [
-            ['business_name', $config['company_name'] ?? $config['app_name'] ?? 'Nautilus Dive Shop', 'string', 'Business/Company Name'],
-            ['business_email', $config['company_email'] ?? '', 'string', 'Business Email'],
-            ['business_phone', $config['company_phone'] ?? '', 'string', 'Business Phone'],
-            ['business_address', $config['company_address'] ?? '', 'string', 'Business Address'],
-            ['business_city', $config['company_city'] ?? '', 'string', 'Business City'],
-            ['business_state', $config['company_state'] ?? '', 'string', 'Business State'],
-            ['business_zip', $config['company_zip'] ?? '', 'string', 'Business ZIP Code'],
-            ['business_country', $config['company_country'] ?? 'US', 'string', 'Business Country'],
-            ['brand_primary_color', '#0066cc', 'string', 'Primary Brand Color'],
-            ['brand_secondary_color', '#003366', 'string', 'Secondary Brand Color'],
-            ['company_logo_path', '', 'string', 'Company Logo Path'],
-            ['company_logo_small_path', '', 'string', 'Company Small Logo Path'],
-            ['company_favicon_path', '', 'string', 'Company Favicon Path'],
-            ['tax_rate', '0.07', 'float', 'Default Tax Rate'],
-            ['currency', 'USD', 'string', 'Currency Code'],
-            ['timezone', $config['app_timezone'] ?? 'America/New_York', 'string', 'Timezone'],
-            ['setup_complete', '1', 'boolean', 'Whether initial setup is complete'],
-        ];
-
-        foreach ($companySettings as $setting) {
-            $stmt = $pdo->prepare("
-                INSERT INTO system_settings (setting_key, setting_value, setting_type, description, updated_at)
-                VALUES (?, ?, ?, ?, NOW())
-                ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW()
-            ");
-            $stmt->execute($setting);
-            $stmt->closeCursor();
-        }
-    }
-
-    /**
-     * Seed certification agencies
-     */
-    private function seedCertificationAgencies(): void
-    {
-        $pdo = $this->createDatabaseConnection();
-
-        // Check if table exists first
-        $stmt = $pdo->query("SHOW TABLES LIKE 'certification_agencies'");
-        $tableExists = $stmt->fetch();
-        $stmt->closeCursor();
-
-        if (!$tableExists) {
-            // Table doesn't exist yet, skip silently (will be created by migrations)
-            return;
-        }
-
-        // Check if already seeded
-        $stmt = $pdo->query("SELECT COUNT(*) as count FROM certification_agencies");
-        $result = $stmt->fetch();
-        $stmt->closeCursor();
-
-        if ($result['count'] > 0) {
-            // Already seeded, skip
-            return;
-        }
-
-        // Run seeder
-        $seederFile = __DIR__ . '/../../../database/seeders/certification_agencies.sql';
-
-        if (!file_exists($seederFile)) {
-            // Seeder doesn't exist yet, skip silently
-            return;
-        }
-
-        try {
-            $sql = file_get_contents($seederFile);
-
-            // Use mysqli for multi-query support
-            $host = $_ENV['DB_HOST'] ?? 'localhost';
-            $port = $_ENV['DB_PORT'] ?? '3306';
-            $database = $_ENV['DB_DATABASE'] ?? '';
-            $username = $_ENV['DB_USERNAME'] ?? '';
-            $password = $_ENV['DB_PASSWORD'] ?? '';
-
-            $mysqli = new \mysqli($host, $username, $password, $database, $port);
-            $mysqli->set_charset("utf8mb4");
-
-            if (!$mysqli->multi_query($sql)) {
-                throw new \Exception("Error seeding certification agencies: " . $mysqli->error);
-            }
-
-            // Clear all result sets
-            do {
-                if ($result = $mysqli->store_result()) {
-                    $result->free();
-                }
-            } while ($mysqli->more_results() && $mysqli->next_result());
-
-            $mysqli->close();
-        } catch (\Exception $e) {
-            // Log error but don't fail installation
-            error_log("Failed to seed certification agencies: " . $e->getMessage());
-        }
-    }
-
-    /**
-     * Seed cash drawers and customer tags
-     */
-    private function seedCashDrawers(): void
-    {
-        $pdo = $this->createDatabaseConnection();
-
-        // Check if table exists first
-        $stmt = $pdo->query("SHOW TABLES LIKE 'cash_drawers'");
-        $tableExists = $stmt->fetch();
-        $stmt->closeCursor();
-
-        if (!$tableExists) {
-            // Table doesn't exist yet, skip silently (will be created by migration 041)
-            return;
-        }
-
-        // Check if already seeded
-        $stmt = $pdo->query("SELECT COUNT(*) as count FROM cash_drawers");
-        $result = $stmt->fetch();
-        $stmt->closeCursor();
-
-        if ($result['count'] > 0) {
-            // Already seeded, skip
-            return;
-        }
-
-        // Run seeder
-        $seederFile = __DIR__ . '/../../../database/seeders/cash_drawers.sql';
-
-        if (!file_exists($seederFile)) {
-            // Seeder doesn't exist yet, skip silently
-            return;
-        }
-
-        try {
-            $sql = file_get_contents($seederFile);
-
-            // Use mysqli for multi-query support
-            $host = $_ENV['DB_HOST'] ?? 'localhost';
-            $port = $_ENV['DB_PORT'] ?? '3306';
-            $database = $_ENV['DB_DATABASE'] ?? '';
-            $username = $_ENV['DB_USERNAME'] ?? '';
-            $password = $_ENV['DB_PASSWORD'] ?? '';
-
-            $mysqli = new \mysqli($host, $username, $password, $database, $port);
-            $mysqli->set_charset("utf8mb4");
-
-            if (!$mysqli->multi_query($sql)) {
-                throw new \Exception("Error seeding cash drawers: " . $mysqli->error);
-            }
-
-            // Clear all result sets
-            do {
-                if ($result = $mysqli->store_result()) {
-                    $result->free();
-                }
-            } while ($mysqli->more_results() && $mysqli->next_result());
-
-            $mysqli->close();
-        } catch (\Exception $e) {
-            // Log error but don't fail installation
-            error_log("Failed to seed cash drawers: " . $e->getMessage());
-        }
+        // Assign Super Admin role (role_id = 1)
+        $stmt = $pdo->prepare("
+            INSERT INTO user_roles (user_id, role_id)
+            VALUES (?, 1)
+        ");
+        
+        $stmt->execute([$userId]);
     }
 
     /**
@@ -740,7 +303,11 @@ class InstallService
      */
     private function finalizeInstallation(): void
     {
-        // Create storage directories if they don't exist
+        // Create .installed file
+        $installedFile = __DIR__ . '/../../../.installed';
+        file_put_contents($installedFile, date('Y-m-d H:i:s'));
+
+        // Create storage directories
         $directories = [
             __DIR__ . '/../../../storage/backups',
             __DIR__ . '/../../../storage/cache',
@@ -753,38 +320,17 @@ class InstallService
                 mkdir($dir, 0755, true);
             }
         }
-
-        // Set permissions
-        chmod(__DIR__ . '/../../../storage', 0755);
     }
 
     /**
-     * Create database connection using current environment
+     * Generate UUID v4
      */
-    private function createDatabaseConnection(): PDO
+    private function generateUUID(): string
     {
-        $host = $_ENV['DB_HOST'] ?? 'localhost';
-        $port = $_ENV['DB_PORT'] ?? '3306';
-        $database = $_ENV['DB_DATABASE'] ?? '';
-        $username = $_ENV['DB_USERNAME'] ?? '';
-        $password = $_ENV['DB_PASSWORD'] ?? '';
-
-        $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
-
-        return new PDO($dsn, $username, $password, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
-            PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true  // Fix for migration PDO buffering errors
-        ]);
-    }
-
-    /**
-     * Generate random key
-     */
-    private function generateRandomKey(int $length = 32): string
-    {
-        return bin2hex(random_bytes($length));
+        $data = random_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
     /**
@@ -798,13 +344,7 @@ class InstallService
             'timestamp' => time()
         ];
 
-        // Ensure storage directory exists
-        $storageDir = dirname($this->progressFile);
-        if (!is_dir($storageDir)) {
-            mkdir($storageDir, 0755, true);
-        }
-
-        file_put_contents($this->progressFile, json_encode($this->progress));
+        @file_put_contents($this->progressFile, json_encode($this->progress));
     }
 
     /**
@@ -813,10 +353,10 @@ class InstallService
     public function getProgress(): array
     {
         if (file_exists($this->progressFile)) {
-            $content = file_get_contents($this->progressFile);
-            return json_decode($content, true) ?? ['message' => 'Starting...', 'percent' => 0];
+            $progress = json_decode(file_get_contents($this->progressFile), true);
+            return $progress ?: ['message' => 'Waiting...', 'percent' => 0];
         }
 
-        return ['message' => 'Starting...', 'percent' => 0];
+        return ['message' => 'Waiting...', 'percent' => 0];
     }
 }

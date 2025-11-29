@@ -78,10 +78,15 @@ WHERE name IN ('pos.view', 'pos.create', 'customers.view', 'dashboard.view', 'or
 
 
 
-INSERT INTO users (role_id, first_name, last_name, email, password_hash, is_active, created_at) VALUES
+INSERT INTO users (id, first_name, last_name, email, password_hash, is_active, created_at) VALUES
 (1, 'Admin', 'User', 'admin@nautilus.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
 (2, 'Manager', 'Smith', 'manager@nautilus.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
 (3, 'Cashier', 'Jones', 'cashier@nautilus.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW());
+
+INSERT INTO user_roles (user_id, role_id) VALUES
+(1, 1),
+(2, 2),
+(3, 3);
 
 
 INSERT INTO rental_categories (name, description) VALUES

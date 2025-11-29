@@ -1,4 +1,0 @@
-ERROR 1141 (42000) at line 1: There is no such grant defined for user 'nautilus' on host '127.0.0.1'
-Grants for nautilus@localhost
-GRANT USAGE ON *.* TO `nautilus`@`localhost` IDENTIFIED BY PASSWORD '*4B9BD413F12F9E4AE03A555F38F759608DDBF787'
-GRANT ALL PRIVILEGES ON `nautilus`.* TO `nautilus`@`localhost`

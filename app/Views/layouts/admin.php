@@ -372,6 +372,24 @@
             </a>
             <?php endif; ?>
 
+            <?php if (hasPermission('appointments.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'appointments' ? 'active' : '' ?>" href="<?= url('/store/appointments') ?>">
+                <i class="bi bi-calendar-event"></i><span>Appointments</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('documents.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'documents' ? 'active' : '' ?>" href="<?= url('/store/documents') ?>">
+                <i class="bi bi-file-earmark-text"></i><span>Documents</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('medical.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'medical-forms' ? 'active' : '' ?>" href="<?= url('/store/medical-forms') ?>">
+                <i class="bi bi-heart-pulse"></i><span>Medical Forms</span>
+            </a>
+            <?php endif; ?>
+
             <?php if (hasPermission('orders.view')): ?>
             <a class="nav-link <?= $activeMenu === 'orders' ? 'active' : '' ?>" href="<?= url('/store/orders') ?>">
                 <i class="bi bi-box-seam"></i><span>Orders</span>
@@ -473,6 +491,67 @@
             </div>
             <?php endif; ?>
 
+            <?php if (hasPermission('instructor.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'instructors' ? 'active' : '' ?>" href="<?= url('/store/instructors') ?>">
+                <i class="bi bi-person-video3"></i><span>Instructors</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('crm.view')): ?>
+            <div class="nav-item">
+                <a class="nav-link <?= $activeMenu === 'crm' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#crmMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-person-lines-fill"></i><span>CRM</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="crmMenu">
+                    <a class="nav-link ps-5" href="<?= url('/store/crm/leads') ?>">Leads</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/crm/contacts') ?>">Contacts</a>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if (hasPermission('communication.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'communication' ? 'active' : '' ?>" href="<?= url('/store/communication') ?>">
+                <i class="bi bi-chat-dots"></i><span>Communication</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('newsletter.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'newsletters' ? 'active' : '' ?>" href="<?= url('/store/newsletters') ?>">
+                <i class="bi bi-envelope-paper"></i><span>Newsletters</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('analytics.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'analytics' ? 'active' : '' ?>" href="<?= url('/store/analytics') ?>">
+                <i class="bi bi-graph-up"></i><span>Analytics</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('financial.view')): ?>
+            <div class="nav-item">
+                <a class="nav-link <?= $activeMenu === 'financial' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#financialMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-cash-coin"></i><span>Financial</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="financialMenu">
+                    <a class="nav-link ps-5" href="<?= url('/store/financial/overview') ?>">Overview</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/financial/invoices') ?>">Invoices</a>
+                    <a class="nav-link ps-5" href="<?= url('/store/financial/expenses') ?>">Expenses</a>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if (hasPermission('ecommerce.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'ecommerce' ? 'active' : '' ?>" href="<?= url('/store/ecommerce') ?>">
+                <i class="bi bi-cart4"></i><span>E-commerce</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('portal.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'portal' ? 'active' : '' ?>" href="<?= url('/store/portal') ?>">
+                <i class="bi bi-door-open"></i><span>Customer Portal</span>
+            </a>
+            <?php endif; ?>
+
             <hr class="my-2 text-white-50">
 
             <?php if (hasPermission('admin.integrations')): ?>
@@ -529,6 +608,12 @@
             <?php if (hasPermission('errors.view')): ?>
             <a class="nav-link <?= $activeMenu === 'errors' ? 'active' : '' ?>" href="<?= url('/store/admin/errors') ?>">
                 <i class="bi bi-exclamation-triangle"></i><span>Error Logs</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (hasPermission('audit.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'audit' ? 'active' : '' ?>" href="<?= url('/store/admin/audit') ?>">
+                <i class="bi bi-journal-text"></i><span>Audit Trail</span>
             </a>
             <?php endif; ?>
 
