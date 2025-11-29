@@ -223,6 +223,22 @@ $router->get('/store/courses/{id}/edit', 'Courses\CourseController@edit', [AuthM
 $router->post('/store/courses/{id}', 'Courses\CourseController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/courses/{id}/delete', 'Courses\CourseController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
 
+// Certifications
+$router->get('/certifications', 'Certifications\CertificationController@index', [AuthMiddleware::class]);
+$router->get('/certifications/create', 'Certifications\CertificationController@create', [AuthMiddleware::class]);
+$router->post('/certifications', 'Certifications\CertificationController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/certifications/{id}', 'Certifications\CertificationController@show', [AuthMiddleware::class]);
+$router->get('/certifications/{id}/edit', 'Certifications\CertificationController@edit', [AuthMiddleware::class]);
+$router->post('/certifications/{id}/update', 'Certifications\CertificationController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/certifications/{id}/delete', 'Certifications\CertificationController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Certification Agencies
+$router->get('/certifications/agencies', 'Certifications\CertificationController@agencies', [AuthMiddleware::class]);
+$router->get('/certifications/agencies/create', 'Certifications\CertificationController@createAgency', [AuthMiddleware::class]);
+$router->post('/certifications/agencies', 'Certifications\CertificationController@storeAgency', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/certifications/agencies/{id}/edit', 'Certifications\CertificationController@editAgency', [AuthMiddleware::class]);
+$router->post('/certifications/agencies/{id}/update', 'Certifications\CertificationController@updateAgency', [AuthMiddleware::class, CsrfMiddleware::class]);
+
 $router->get('/store/trips', 'Trips\TripController@index', [AuthMiddleware::class]);
 $router->get('/store/trips/create', 'Trips\TripController@create', [AuthMiddleware::class]);
 $router->get('/store/trips/schedules', 'Trips\TripController@schedules', [AuthMiddleware::class]);

@@ -1,19 +1,119 @@
 -- Enhancement for certification bodies, dive sites, travel packets, and service reminders
 
--- Add logo and color scheme to certification agencies
-ALTER TABLE `certification_agencies`
-ADD COLUMN IF NOT EXISTS `logo_path` VARCHAR(255) AFTER `abbreviation`,
-ADD COLUMN IF NOT EXISTS `primary_color` VARCHAR(7) DEFAULT '#0066CC' AFTER `logo_path`,
-ADD COLUMN IF NOT EXISTS `verification_enabled` BOOLEAN DEFAULT FALSE AFTER `api_key_encrypted`,
-ADD COLUMN IF NOT EXISTS `verification_url` VARCHAR(255) AFTER `verification_enabled`,
-ADD COLUMN IF NOT EXISTS `country` VARCHAR(100) AFTER `website`;
+-- Add logo and color scheme to certification agencies (conditional)
+SET @dbname = DATABASE();
+SET @tablename = "certification_agencies";
 
--- Add expiry tracking to customer certifications
-ALTER TABLE `customer_certifications`
-ADD COLUMN IF NOT EXISTS `expiry_date` DATE AFTER `issue_date`,
-ADD COLUMN IF NOT EXISTS `auto_verified` BOOLEAN DEFAULT FALSE AFTER `verification_status`,
-ADD COLUMN IF NOT EXISTS `verified_at` TIMESTAMP NULL AFTER `auto_verified`,
-ADD COLUMN IF NOT EXISTS `verified_by` INT UNSIGNED NULL AFTER `verified_at`;
+-- Add logo_path
+SET @columnname = "logo_path";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE `certification_agencies` ADD COLUMN `logo_path` VARCHAR(255) AFTER `abbreviation`"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add primary_color
+SET @columnname = "primary_color";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE `certification_agencies` ADD COLUMN `primary_color` VARCHAR(7) DEFAULT '#0066CC' AFTER `abbreviation`"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add verification_enabled
+SET @columnname = "verification_enabled";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE `certification_agencies` ADD COLUMN `verification_enabled` BOOLEAN DEFAULT FALSE"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add verification_url
+SET @columnname = "verification_url";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE `certification_agencies` ADD COLUMN `verification_url` VARCHAR(255)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add country
+SET @columnname = "country";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE `certification_agencies` ADD COLUMN `country` VARCHAR(100)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add expiry tracking to customer certifications (conditional)
+SET @tablename = "customer_certifications";
+
+-- Add expiry_date
+SET @columnname = "expiry_date";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE `customer_certifications` ADD COLUMN `expiry_date` DATE"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add auto_verified
+SET @columnname = "auto_verified";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE `customer_certifications` ADD COLUMN `auto_verified` BOOLEAN DEFAULT FALSE"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add verified_at
+SET @columnname = "verified_at";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE `customer_certifications` ADD COLUMN `verified_at` TIMESTAMP NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add verified_by
+SET @columnname = "verified_by";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE `customer_certifications` ADD COLUMN `verified_by` INT UNSIGNED NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Add foreign key if it doesn't exist
 SET @constraint_exists = (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
@@ -30,9 +130,18 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
--- Add photo to customers table if not exists
-ALTER TABLE `customers`
-ADD COLUMN IF NOT EXISTS `photo_path` VARCHAR(255) AFTER `email`;
+-- Add photo to customers table if not exists (conditional)
+SET @tablename = "customers";
+SET @columnname = "photo_path";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE `customers` ADD COLUMN `photo_path` VARCHAR(255)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Dive Sites Table
 CREATE TABLE IF NOT EXISTS `dive_sites` (

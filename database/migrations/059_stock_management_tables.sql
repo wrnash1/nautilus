@@ -204,7 +204,36 @@ CREATE TABLE IF NOT EXISTS inventory_alerts (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Add indexes to existing inventory_adjustments table if not present
-ALTER TABLE inventory_adjustments ADD INDEX IF NOT EXISTS idx_adjustment_type (adjustment_type);
-ALTER TABLE inventory_adjustments ADD INDEX IF NOT EXISTS idx_adjusted_at (adjusted_at);
-ALTER TABLE inventory_adjustments ADD INDEX IF NOT EXISTS idx_adjusted_by (adjusted_by);
+-- Add indexes to existing inventory_adjustments table if not present (conditional)
+SET @dbname = DATABASE();
+SET @tablename = "inventory_adjustments";
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_adjustment_type') > 0,
+  "SELECT 1",
+  "ALTER TABLE inventory_adjustments ADD INDEX idx_adjustment_type (adjustment_type)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_adjusted_at') > 0,
+  "SELECT 1",
+  "ALTER TABLE inventory_adjustments ADD INDEX idx_adjusted_at (adjusted_at)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_adjusted_by') > 0,
+  "SELECT 1",
+  "ALTER TABLE inventory_adjustments ADD INDEX idx_adjusted_by (adjusted_by)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;

@@ -3,27 +3,151 @@
 -- Description: Customer tagging system and customer relationship linking
 -- ==========================================
 
--- Customer tags table - already exists from migration 002, adding missing columns
+-- Customer tags table - already exists from migration 002, adding missing columns (conditional)
 -- Note: customer_tags table created in migration 002 with: id, name, color, created_at
-ALTER TABLE customer_tags
-ADD COLUMN IF NOT EXISTS slug VARCHAR(50) AFTER name,
-ADD COLUMN IF NOT EXISTS icon VARCHAR(50) AFTER color,
-ADD COLUMN IF NOT EXISTS description VARCHAR(255) AFTER icon,
-ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE AFTER description,
-ADD COLUMN IF NOT EXISTS display_order INT DEFAULT 0 AFTER is_active,
-ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at,
-ADD COLUMN IF NOT EXISTS created_by INT UNSIGNED AFTER updated_at;
+SET @dbname = DATABASE();
+SET @tablename = "customer_tags";
 
--- Add indexes if they don't exist
-ALTER TABLE customer_tags ADD INDEX IF NOT EXISTS idx_active (is_active);
-ALTER TABLE customer_tags ADD INDEX IF NOT EXISTS idx_slug (slug);
-ALTER TABLE customer_tags ADD INDEX IF NOT EXISTS idx_order (display_order);
+-- Add slug
+SET @columnname = "slug";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tags ADD COLUMN slug VARCHAR(50)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- Customer tag assignments - already exists from migration 002, adding missing columns
+-- Add icon
+SET @columnname = "icon";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tags ADD COLUMN icon VARCHAR(50)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add description
+SET @columnname = "description";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tags ADD COLUMN description VARCHAR(255)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add is_active
+SET @columnname = "is_active";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tags ADD COLUMN is_active BOOLEAN DEFAULT TRUE"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add display_order
+SET @columnname = "display_order";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tags ADD COLUMN display_order INT DEFAULT 0"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add updated_at
+SET @columnname = "updated_at";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tags ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add created_by
+SET @columnname = "created_by";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tags ADD COLUMN created_by INT UNSIGNED"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add indexes (conditional)
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_active') > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tags ADD INDEX idx_active (is_active)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_slug') > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tags ADD INDEX idx_slug (slug)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_order') > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tags ADD INDEX idx_order (display_order)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Customer tag assignments - already exists from migration 002, adding missing columns (conditional)
 -- Note: customer_tag_assignments table created in migration 002 with PK (customer_id, tag_id) and assigned_at
-ALTER TABLE customer_tag_assignments
-ADD COLUMN IF NOT EXISTS assigned_by INT UNSIGNED AFTER assigned_at,
-ADD COLUMN IF NOT EXISTS notes VARCHAR(255) COMMENT 'Reason for tag assignment' AFTER assigned_by;
+SET @tablename = "customer_tag_assignments";
+
+SET @columnname = "assigned_by";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tag_assignments ADD COLUMN assigned_by INT UNSIGNED"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = "notes";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE customer_tag_assignments ADD COLUMN notes VARCHAR(255) COMMENT 'Reason for tag assignment'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Customer relationships (linking customers together)
 CREATE TABLE IF NOT EXISTS customer_relationships (

@@ -2,7 +2,7 @@
     "name": "nautilus/dive-shop-management",
     "description": "Nautilus - Enterprise-grade Dive Shop Management System",
     "type": "project",
-    "license": "proprietary",
+    "license": "MIT",
     "require": {
         "php": ">=8.2",
         "ext-curl": "*",

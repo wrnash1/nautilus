@@ -274,10 +274,11 @@ INSERT INTO compressor_parts (part_number, part_name, description, manufacturer,
 ('PST-001', 'Piston Ring Set', 'Complete piston ring replacement set', 'Bauer', 2, 1, 125.00),
 ('VLV-001', 'Safety Valve', 'Pressure relief safety valve', 'Bauer', 3, 1, 75.00);
 
--- Comments
-ALTER TABLE compressors COMMENT = 'Dive shop air compressor inventory';
-ALTER TABLE compressor_logs COMMENT = 'Compressor usage, maintenance, and service logs';
-ALTER TABLE compressor_maintenance_schedule COMMENT = 'Scheduled maintenance tasks';
-ALTER TABLE compressor_alerts COMMENT = 'Active alerts for compressor maintenance';
-ALTER TABLE compressor_parts COMMENT = 'Parts inventory for compressor maintenance';
-ALTER TABLE compressor_log_parts COMMENT = 'Parts used in each maintenance log entry';
+-- Comments are already defined in CREATE TABLE statements, so these ALTER statements are redundant
+-- Commenting them out to avoid syntax errors:
+-- ALTER TABLE compressors COMMENT = 'Dive shop air compressor inventory';
+-- ALTER TABLE compressor_logs COMMENT = 'Compressor usage, maintenance, and service logs';
+-- ALTER TABLE compressor_maintenance_schedule COMMENT = 'Scheduled maintenance tasks';
+-- ALTER TABLE compressor_alerts COMMENT = 'Active alerts for compressor maintenance';
+-- ALTER TABLE compressor_parts COMMENT = 'Parts inventory for compressor maintenance';
+-- ALTER TABLE compressor_log_parts COMMENT = 'Parts used in each maintenance log entry';

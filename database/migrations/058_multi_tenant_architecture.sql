@@ -290,31 +290,171 @@ CREATE TABLE IF NOT EXISTS tenant_activity_log (
 -- Add tenant_id to existing tables for data isolation
 -- This allows each tenant to have their own data while sharing the same tables
 
+-- Add tenant_id to existing tables for data isolation (conditional)
 -- NOTE: users table already has tenant_id from migration 001
--- ALTER TABLE users ADD COLUMN tenant_id INT UNSIGNED NULL AFTER id;
--- ALTER TABLE users ADD CONSTRAINT fk_users_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE;
--- ALTER TABLE users ADD INDEX idx_tenant_id (tenant_id);
+SET @dbname = DATABASE();
 
-ALTER TABLE customers ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
-ALTER TABLE customers ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
+-- Helper macro to add tenant_id column and index to a table
+-- customers table
+SET @tablename = "customers";
+SET @columnname = "tenant_id";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE customers ADD COLUMN tenant_id INT UNSIGNED NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-ALTER TABLE products ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
-ALTER TABLE products ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_tenant_id') > 0,
+  "SELECT 1",
+  "ALTER TABLE customers ADD INDEX idx_tenant_id (tenant_id)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-ALTER TABLE product_categories ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
-ALTER TABLE product_categories ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
+-- products table
+SET @tablename = "products";
+SET @columnname = "tenant_id";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE products ADD COLUMN tenant_id INT UNSIGNED NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-ALTER TABLE pos_transactions ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
-ALTER TABLE pos_transactions ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_tenant_id') > 0,
+  "SELECT 1",
+  "ALTER TABLE products ADD INDEX idx_tenant_id (tenant_id)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-ALTER TABLE courses ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
-ALTER TABLE courses ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
+-- product_categories table
+SET @tablename = "product_categories";
+SET @columnname = "tenant_id";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE product_categories ADD COLUMN tenant_id INT UNSIGNED NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-ALTER TABLE equipment ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
-ALTER TABLE equipment ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_tenant_id') > 0,
+  "SELECT 1",
+  "ALTER TABLE product_categories ADD INDEX idx_tenant_id (tenant_id)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
-ALTER TABLE equipment_rentals ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
-ALTER TABLE equipment_rentals ADD INDEX IF NOT EXISTS idx_tenant_id (tenant_id);
+-- pos_transactions table
+SET @tablename = "pos_transactions";
+SET @columnname = "tenant_id";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE pos_transactions ADD COLUMN tenant_id INT UNSIGNED NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_tenant_id') > 0,
+  "SELECT 1",
+  "ALTER TABLE pos_transactions ADD INDEX idx_tenant_id (tenant_id)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- courses table
+SET @tablename = "courses";
+SET @columnname = "tenant_id";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE courses ADD COLUMN tenant_id INT UNSIGNED NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_tenant_id') > 0,
+  "SELECT 1",
+  "ALTER TABLE courses ADD INDEX idx_tenant_id (tenant_id)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- equipment table
+SET @tablename = "equipment";
+SET @columnname = "tenant_id";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE equipment ADD COLUMN tenant_id INT UNSIGNED NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_tenant_id') > 0,
+  "SELECT 1",
+  "ALTER TABLE equipment ADD INDEX idx_tenant_id (tenant_id)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- equipment_rentals table
+SET @tablename = "equipment_rentals";
+SET @columnname = "tenant_id";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE equipment_rentals ADD COLUMN tenant_id INT UNSIGNED NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_tenant_id') > 0,
+  "SELECT 1",
+  "ALTER TABLE equipment_rentals ADD INDEX idx_tenant_id (tenant_id)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Tenant onboarding tracking
 CREATE TABLE IF NOT EXISTS tenant_onboarding (

@@ -230,16 +230,77 @@ CREATE TABLE IF NOT EXISTS notification_statistics (
     INDEX idx_notification_type (notification_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Add notification tracking columns to existing tables
-ALTER TABLE pos_transactions
-ADD COLUMN IF NOT EXISTS receipt_sent_at TIMESTAMP NULL AFTER status,
-ADD COLUMN IF NOT EXISTS receipt_notification_id BIGINT NULL AFTER receipt_sent_at;
+-- Add notification tracking columns to existing tables (conditional)
+SET @dbname = DATABASE();
 
-ALTER TABLE course_enrollments
-ADD COLUMN IF NOT EXISTS confirmation_sent_at TIMESTAMP NULL AFTER status,
-ADD COLUMN IF NOT EXISTS confirmation_notification_id BIGINT NULL AFTER confirmation_sent_at;
+-- pos_transactions table
+SET @tablename = "pos_transactions";
+SET @columnname = "receipt_sent_at";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE pos_transactions ADD COLUMN receipt_sent_at TIMESTAMP NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- Fixed: rental_transactions table doesn't exist, using rental_reservations instead
-ALTER TABLE rental_reservations
-ADD COLUMN IF NOT EXISTS reminder_sent_at TIMESTAMP NULL AFTER status,
-ADD COLUMN IF NOT EXISTS reminder_notification_id BIGINT NULL AFTER reminder_sent_at;
+SET @columnname = "receipt_notification_id";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE pos_transactions ADD COLUMN receipt_notification_id BIGINT NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- course_enrollments table
+SET @tablename = "course_enrollments";
+SET @columnname = "confirmation_sent_at";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE course_enrollments ADD COLUMN confirmation_sent_at TIMESTAMP NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = "confirmation_notification_id";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE course_enrollments ADD COLUMN confirmation_notification_id BIGINT NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- rental_reservations table (fixed from rental_transactions)
+SET @tablename = "rental_reservations";
+SET @columnname = "reminder_sent_at";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE rental_reservations ADD COLUMN reminder_sent_at TIMESTAMP NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = "reminder_notification_id";
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE rental_reservations ADD COLUMN reminder_notification_id BIGINT NULL"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;

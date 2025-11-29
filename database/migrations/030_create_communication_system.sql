@@ -10,15 +10,15 @@ CREATE TABLE IF NOT EXISTS communication_campaigns (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     description TEXT,
-    campaign_type VARCHAR(20) NOT NULL,  -- 'sms', 'push', 'email', 'multi'
-    status VARCHAR(20) NOT NULL DEFAULT 'draft',  -- 'draft', 'scheduled', 'sending', 'completed', 'cancelled'
-    target_audience VARCHAR(20) NOT NULL,  -- 'all', 'segment', 'individual', 'tier'
-    target_segment TEXT,  -- JSON criteria for segmentation
+    campaign_type VARCHAR(20) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'draft',
+    target_audience VARCHAR(20) NOT NULL,
+    target_segment TEXT,
     message_subject VARCHAR(200),
     message_body TEXT NOT NULL,
-    scheduled_at TIMESTAMP,
-    started_at TIMESTAMP,
-    completed_at TIMESTAMP,
+    scheduled_at TIMESTAMP NULL,
+    started_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL,
     total_recipients INT DEFAULT 0,
     total_sent INT DEFAULT 0,
     total_delivered INT DEFAULT 0,
@@ -28,101 +28,104 @@ CREATE TABLE IF NOT EXISTS communication_campaigns (
     total_cost DECIMAL(10,2) DEFAULT 0.00,
     created_by INT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-CREATE INDEX IF NOT EXISTS idx_communication_campaigns_status ON communication_campaigns(status);
-CREATE INDEX IF NOT EXISTS idx_communication_campaigns_type ON communication_campaigns(campaign_type);
-CREATE INDEX IF NOT EXISTS idx_communication_campaigns_scheduled ON communication_campaigns(scheduled_at);
+    INDEX idx_status (status),
+    INDEX idx_type (campaign_type),
+    INDEX idx_scheduled (scheduled_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Communication Message Log (created after campaigns so it can reference campaign_id)
 CREATE TABLE IF NOT EXISTS communication_log (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     customer_id INT UNSIGNED NOT NULL,
-    message_type VARCHAR(20) NOT NULL,  -- 'sms', 'push', 'email'
-    campaign_id INT UNSIGNED,  -- If part of a campaign
+    message_type VARCHAR(20) NOT NULL,
+    campaign_id INT UNSIGNED,
     subject VARCHAR(200),
     message TEXT NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'sent', 'delivered', 'failed', 'bounced'
-    provider VARCHAR(50),  -- 'twilio', 'firebase', 'sendgrid', etc.
-    provider_message_id VARCHAR(200),  -- External provider's message ID
-    sent_at TIMESTAMP,
-    delivered_at TIMESTAMP,
-    opened_at TIMESTAMP,  -- For emails and push
-    clicked_at TIMESTAMP,  -- For tracking links
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    provider VARCHAR(50),
+    provider_message_id VARCHAR(200),
+    sent_at TIMESTAMP NULL,
+    delivered_at TIMESTAMP NULL,
+    opened_at TIMESTAMP NULL,
+    clicked_at TIMESTAMP NULL,
     failed_reason TEXT,
-    cost DECIMAL(10,4),  -- Cost per message
-    metadata TEXT,  -- JSON for additional data
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    cost DECIMAL(10,4),
+    metadata TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-CREATE INDEX IF NOT EXISTS idx_communication_log_customer ON communication_log(customer_id);
-CREATE INDEX IF NOT EXISTS idx_communication_log_type ON communication_log(message_type);
-CREATE INDEX IF NOT EXISTS idx_communication_log_status ON communication_log(status);
-CREATE INDEX IF NOT EXISTS idx_communication_log_campaign ON communication_log(campaign_id);
-CREATE INDEX IF NOT EXISTS idx_communication_log_sent_at ON communication_log(sent_at);
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    FOREIGN KEY (campaign_id) REFERENCES communication_campaigns(id) ON DELETE SET NULL,
+    INDEX idx_customer (customer_id),
+    INDEX idx_type (message_type),
+    INDEX idx_status (status),
+    INDEX idx_campaign (campaign_id),
+    INDEX idx_sent_at (sent_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Customer Device Tokens (for Push Notifications)
 CREATE TABLE IF NOT EXISTS customer_devices (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     customer_id INT UNSIGNED NOT NULL,
-    device_type VARCHAR(20) NOT NULL,  -- 'ios', 'android', 'web'
-    device_token TEXT NOT NULL,  -- FCM/APNs token
-    device_name VARCHAR(100),  -- User-friendly device name
+    device_type VARCHAR(20) NOT NULL,
+    device_token TEXT NOT NULL,
+    device_name VARCHAR(100),
     app_version VARCHAR(20),
     os_version VARCHAR(20),
-    is_active TINYINT(1) DEFAULT 1,
-    last_used_at TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    last_used_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-CREATE INDEX IF NOT EXISTS idx_customer_devices_customer ON customer_devices(customer_id);
-CREATE INDEX IF NOT EXISTS idx_customer_devices_active ON customer_devices(is_active);
-CREATE INDEX IF NOT EXISTS idx_customer_devices_token ON customer_devices(device_token);
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    INDEX idx_customer (customer_id),
+    INDEX idx_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Communication Templates
 CREATE TABLE IF NOT EXISTS communication_templates (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
-    template_type VARCHAR(20) NOT NULL,  -- 'sms', 'push', 'email'
-    category VARCHAR(50),  -- 'transactional', 'marketing', 'notification'
+    template_type VARCHAR(20) NOT NULL,
+    category VARCHAR(50),
     subject VARCHAR(200),
     body TEXT NOT NULL,
-    variables TEXT,  -- JSON array of available variables
-    is_active TINYINT(1) DEFAULT 1,
+    variables TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
     usage_count INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-CREATE INDEX IF NOT EXISTS idx_communication_templates_type ON communication_templates(template_type);
-CREATE INDEX IF NOT EXISTS idx_communication_templates_active ON communication_templates(is_active);
+    INDEX idx_type (template_type),
+    INDEX idx_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Customer Communication Preferences (enhanced)
 CREATE TABLE IF NOT EXISTS customer_communication_preferences (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     customer_id INT UNSIGNED NOT NULL,
-    email_enabled TINYINT(1) DEFAULT 1,
-    sms_enabled TINYINT(1) DEFAULT 1,
-    push_enabled TINYINT(1) DEFAULT 1,
-    marketing_email TINYINT(1) DEFAULT 1,
-    marketing_sms TINYINT(1) DEFAULT 0,  -- Opt-in required for SMS marketing
-    marketing_push TINYINT(1) DEFAULT 1,
-    transactional_email TINYINT(1) DEFAULT 1,  -- Order confirmations, receipts
-    transactional_sms TINYINT(1) DEFAULT 1,  -- Booking reminders, alerts
-    reminder_notifications TINYINT(1) DEFAULT 1,  -- Appointment/trip reminders
-    promotional_notifications TINYINT(1) DEFAULT 1,
-    newsletter TINYINT(1) DEFAULT 1,
-    preferred_contact_method VARCHAR(20) DEFAULT 'email',  -- 'email', 'sms', 'push'
-    quiet_hours_start TIME,  -- Don't send between these hours
+    email_enabled BOOLEAN DEFAULT TRUE,
+    sms_enabled BOOLEAN DEFAULT TRUE,
+    push_enabled BOOLEAN DEFAULT TRUE,
+    marketing_email BOOLEAN DEFAULT TRUE,
+    marketing_sms BOOLEAN DEFAULT FALSE,
+    marketing_push BOOLEAN DEFAULT TRUE,
+    transactional_email BOOLEAN DEFAULT TRUE,
+    transactional_sms BOOLEAN DEFAULT TRUE,
+    reminder_notifications BOOLEAN DEFAULT TRUE,
+    promotional_notifications BOOLEAN DEFAULT TRUE,
+    newsletter BOOLEAN DEFAULT TRUE,
+    preferred_contact_method VARCHAR(20) DEFAULT 'email',
+    quiet_hours_start TIME,
     quiet_hours_end TIME,
     timezone VARCHAR(50) DEFAULT 'America/New_York',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE(customer_id)
-);
 
-CREATE INDEX IF NOT EXISTS idx_customer_comm_prefs_customer ON customer_communication_preferences(customer_id);
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_customer (customer_id),
+    INDEX idx_customer (customer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert default templates
 INSERT IGNORE INTO communication_templates (id, name, template_type, category, subject, body, variables) VALUES

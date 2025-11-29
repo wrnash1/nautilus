@@ -219,9 +219,9 @@ CREATE TABLE IF NOT EXISTS theme_assets (
     INDEX idx_type (asset_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Insert default theme configuration (Ascuba-inspired)
-INSERT INTO theme_config (
-    theme_name, is_active, is_default,
+-- Insert default theme configuration (Ascuba-inspired) - idempotent
+INSERT IGNORE INTO theme_config (
+    id, theme_name, is_active, is_default,
     primary_color, secondary_color, accent_color, dark_color,
     body_bg_color, header_bg_color, footer_bg_color, hero_bg_color,
     text_color, heading_color, link_color,
@@ -229,7 +229,7 @@ INSERT INTO theme_config (
     hero_style, hero_height, products_per_row,
     show_product_ratings, show_newsletter_signup, show_social_links
 ) VALUES (
-    'Default Dive Shop', TRUE, TRUE,
+    1, 'Default Dive Shop', TRUE, TRUE,
     '#0d6efd', '#6c757d', '#0dcaf0', '#01012e',
     '#ffffff', '#ffffff', '#212529', '#01012e',
     '#212529', '#000000', '#0d6efd',
@@ -239,8 +239,8 @@ INSERT INTO theme_config (
     TRUE, TRUE, TRUE
 );
 
--- Insert default storefront settings
-INSERT INTO storefront_settings (setting_key, setting_value, setting_type, category, description) VALUES
+-- Insert default storefront settings (idempotent)
+INSERT IGNORE INTO storefront_settings (setting_key, setting_value, setting_type, category, description) VALUES
 ('store_name', 'Nautilus Dive Shop', 'text', 'general', 'Online store name'),
 ('store_tagline', 'Your Premier Diving Equipment and Training Center', 'text', 'general', 'Store tagline/slogan'),
 ('store_description', 'Professional scuba diving equipment, certification courses, and unforgettable dive trips.', 'textarea', 'general', 'Store description for SEO'),
@@ -278,8 +278,8 @@ INSERT INTO storefront_settings (setting_key, setting_value, setting_type, categ
 ('facebook_pixel_id', '', 'text', 'integrations', 'Facebook Pixel ID'),
 ('google_tag_manager_id', '', 'text', 'integrations', 'Google Tag Manager ID');
 
--- Insert default navigation menu
-INSERT INTO navigation_menus (menu_location, display_order, label, url, link_type, is_active) VALUES
+-- Insert default navigation menu (idempotent)
+INSERT IGNORE INTO navigation_menus (menu_location, display_order, label, url, link_type, is_active) VALUES
 ('header', 1, 'Home', '/', 'custom', TRUE),
 ('header', 2, 'Shop', '/shop', 'shop', TRUE),
 ('header', 3, 'Courses', '/courses', 'courses', TRUE),
@@ -288,14 +288,14 @@ INSERT INTO navigation_menus (menu_location, display_order, label, url, link_typ
 ('header', 6, 'About Us', '/about', 'custom', TRUE),
 ('header', 7, 'Contact', '/contact', 'custom', TRUE);
 
-INSERT INTO navigation_menus (menu_location, display_order, label, url, link_type, is_active) VALUES
+INSERT IGNORE INTO navigation_menus (menu_location, display_order, label, url, link_type, is_active) VALUES
 ('footer', 1, 'Privacy Policy', '/privacy', 'custom', TRUE),
 ('footer', 2, 'Terms of Service', '/terms', 'custom', TRUE),
 ('footer', 3, 'Shipping & Returns', '/shipping', 'custom', TRUE),
 ('footer', 4, 'FAQs', '/faq', 'custom', TRUE);
 
--- Insert default homepage sections for the active theme
-INSERT INTO homepage_sections (theme_id, section_type, section_title, section_subtitle, display_order, is_active, config) VALUES
+-- Insert default homepage sections for the active theme (idempotent)
+INSERT IGNORE INTO homepage_sections (theme_id, section_type, section_title, section_subtitle, display_order, is_active, config) VALUES
 (1, 'hero', 'Dive Into Adventure', 'Discover the underwater world with professional equipment and expert training', 1, TRUE, '{"cta_primary_text": "Shop Equipment", "cta_primary_url": "/shop", "cta_secondary_text": "View Courses", "cta_secondary_url": "/courses"}'),
 (1, 'featured_categories', 'Shop by Category', 'Find everything you need for your diving adventures', 2, TRUE, '{"limit": 6, "show_product_count": true}'),
 (1, 'featured_products', 'Featured Equipment', 'Top-rated gear trusted by professional divers', 3, TRUE, '{"limit": 8, "filter": "featured"}'),

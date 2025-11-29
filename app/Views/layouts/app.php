@@ -353,6 +353,12 @@
             </div>
             <?php endif; ?>
 
+            <?php if (hasPermission('certifications.view')): ?>
+            <a class="nav-link <?= $activeMenu === 'certifications' ? 'active' : '' ?>" href="<?= url('/certifications') ?>">
+                <i class="bi bi-award"></i><span>Certifications</span>
+            </a>
+            <?php endif; ?>
+
             <?php if (hasPermission('trips.view')): ?>
             <div class="nav-item">
                 <a class="nav-link <?= $activeMenu === 'trips' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#tripsMenu" role="button" aria-expanded="false">
