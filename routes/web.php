@@ -160,6 +160,16 @@ $router->get('/store/vendors/{id}/edit', 'Inventory\VendorController@edit', [Aut
 $router->post('/store/vendors/{id}', 'Inventory\VendorController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/vendors/{id}/delete', 'Inventory\VendorController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
 
+// Inventory Counts (NEW - AI-powered counting with barcode scanning)
+$router->get('/store/inventory/counts', 'Inventory\InventoryCountController@index', [AuthMiddleware::class]);
+$router->get('/store/inventory/counts/create', 'Inventory\InventoryCountController@create', [AuthMiddleware::class]);
+$router->post('/store/inventory/counts', 'Inventory\InventoryCountController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/inventory/counts/{id}', 'Inventory\InventoryCountController@show', [AuthMiddleware::class]);
+$router->post('/store/inventory/counts/{id}/start', 'Inventory\InventoryCountController@start', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/inventory/counts/{id}/complete', 'Inventory\InventoryCountController@complete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/inventory/counts/update-count', 'Inventory\InventoryCountController@updateCount', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/inventory/counts/scan-barcode', 'Inventory\InventoryCountController@scanBarcode', [AuthMiddleware::class, CsrfMiddleware::class]);
+
 // Reports
 $router->get('/store/reports/low-stock', 'Inventory\ReportController@lowStock', [AuthMiddleware::class]);
 $router->get('/store/reports/inventory', 'Inventory\ReportController@inventory', [AuthMiddleware::class]);

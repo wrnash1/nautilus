@@ -69,6 +69,22 @@ Nautilus is an enterprise-grade, all-in-one management system designed specifica
 - 🌊 **Conservation Tracking** - Marine conservation initiatives, volunteer hours
 - 🏥 **Insurance Management** - DAN/dive insurance tracking, expiration alerts
 
+### 🤖 AI-Powered Community Learning ⭐ NEW
+
+Nautilus learns from **every dive shop installation** to help the entire diving community:
+
+- **Automatic Learning** - Anonymized insights shared across all installations
+- **Privacy-First** - No customer data, prices, or personal information shared
+- **Community-Driven** - AI models improved by and for dive shops
+- **GitHub-Based** - Models versioned and shared via GitHub
+- **Better Together** - Your dive shop helps others succeed
+
+**What's Shared (Anonymized):**
+✅ Product category trends, course patterns, seasonal demand, operational best practices
+
+**Never Shared:**
+❌ Customer names, revenue, prices, personal data
+
 **[📖 Complete Documentation](COMPLETE_SYSTEM_DOCUMENTATION.md)** | **[⚡ Quick Start Guide](QUICK_START_GUIDE.md)** | **[💡 Simple Usage Guide](SIMPLE_USAGE_GUIDE.md)**
 
 ---
@@ -241,9 +257,11 @@ Touch-optimized interface!
 
 ## 📄 License
 
-Proprietary Software © 2025 Nautilus
+**MIT License** - Free and Open Source! 🎉
 
-For licensed dive shops only.
+Nautilus is **100% free** and **open source** under the MIT License. Use it, modify it, share it - no restrictions!
+
+See [LICENSE](LICENSE) for full details.
 
 ---
 
@@ -368,11 +386,18 @@ Built with expertise from:
 
 ---
 
-## 📄 License
+## 🤝 Contributing
 
-Proprietary Software © 2025 Nautilus Dive Shop Management System
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-For licensing inquiries: license@nautilus-diving.com
+**All contributions are welcome:**
+- 🐛 Bug reports and fixes
+- ✨ New features
+- 📝 Documentation improvements
+- 🌍 Translations
+- 🧪 Tests
+
+Join our community and help make Nautilus better for dive shops everywhere!
 
 ---
 
