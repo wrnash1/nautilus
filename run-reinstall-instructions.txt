@@ -1,0 +1,50 @@
+===============================================
+NAUTILUS CLEAN REINSTALL INSTRUCTIONS
+===============================================
+
+To reinstall Nautilus from scratch, run this command:
+
+sudo /home/wrnash1/Developer/nautilus/clean-reinstall.sh
+
+This will:
+1. Backup your current database (if exists)
+2. Remove old installation
+3. Copy fresh files with smart installer
+4. Set proper permissions
+5. Create fresh database
+
+Then visit in your browser:
+https://nautilus.local/install.php
+
+The smart installer will guide you through 6 easy steps!
+
+===============================================
+
+WHAT THE SMART INSTALLER DOES:
+
+✅ Auto-fixes permissions automatically
+✅ Shows friendly error messages
+✅ One-click "Try Auto-Fix" button
+✅ Copy-paste commands for hosting providers
+✅ Detects your OS (Fedora/Ubuntu/Windows)
+✅ No technical knowledge required!
+
+6 SIMPLE STEPS:
+1. Requirements Check (auto-fixes issues)
+2. Application Settings (name, company, timezone)
+3. Database Config (host, user, password)
+4. Automatic Table Creation (watch spinner)
+5. Create Admin Account (your login)
+6. Done! Go to Dashboard
+
+===============================================
+
+THE NEW INDEX.PHP FIX:
+
+Now if anyone visits https://nautilus.local/ before
+installation is complete, they'll automatically be
+redirected to /install.php
+
+No more confusing errors! 🎉
+
+===============================================

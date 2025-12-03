@@ -8,6 +8,13 @@
 // Define base path constant for the application
 define('BASE_PATH', dirname(__DIR__));
 
+// Check if application is installed
+if (!file_exists(BASE_PATH . '/.env') && !file_exists(BASE_PATH . '/.installed')) {
+    // Redirect to installer
+    header('Location: /install.php');
+    exit;
+}
+
 // Load environment variables
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -15,8 +22,15 @@ error_reporting(E_ALL);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
-$dotenv->load();
+// Only load .env if it exists (graceful handling)
+if (file_exists(BASE_PATH . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+    $dotenv->load();
+} else {
+    // Redirect to installer if .env is missing
+    header('Location: /install.php');
+    exit;
+}
 
 // Set error reporting based on environment
 if ($_ENV['APP_ENV'] === 'production') {

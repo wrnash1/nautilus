@@ -1,70 +1,40 @@
-# Nautilus - Git Ignore File
-
-# Environment & Installation
+# Environment & Configuration
 .env
+.env.local
+.env.*.local
+
+# Installation marker
 .installed
 
-# Storage & Uploads
+# Application Storage
 storage/logs/*.log
 storage/cache/*
-storage/sessions/*
-storage/uploads/*
+storage/backups/*
 !storage/logs/.gitkeep
 !storage/cache/.gitkeep
-!storage/sessions/.gitkeep
-!storage/uploads/.gitkeep
-public/uploads/*
-!public/uploads/.gitkeep
+!storage/backups/.gitkeep
 
-# IDE & Editor Files
+# Vendor
+vendor/
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+
+# OS
 .DS_Store
 Thumbs.db
 
-# Composer
-/vendor/
-composer.lock
-
-# Temporary Files
+# Temporary files
 *.tmp
 *.bak
-*.backup
 *.old
-temp/
-tmp/
+*~
+.*.swp
 
-# Test Files
-test-*.php
-*-test.php
-debug*.php
-
-# OS Files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Desktop.ini
-
-# Logs
-*.log
-error_log
-access_log
-
-# Backup Files
-*.sql.gz
-*.sql.zip
-backup/
-backups/
-
-# Node modules
-node_modules/
-
-# PHP specific
-*.phpunit.result.cache
-.phpunit.cache/
+# Test files
+test*.php
+check*.php

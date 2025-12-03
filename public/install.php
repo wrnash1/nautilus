@@ -1,9 +1,10 @@
 <?php
 /**
  * Nautilus Dive Shop Management System
- * Web-Based Installation Wizard
+ * Improved Web-Based Installation Wizard
  *
  * Zero command-line needed - just like WordPress!
+ * Now with proper application name usage throughout
  */
 
 // Prevent execution if already installed
@@ -19,22 +20,120 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Auto-fix permissions on first load or when requested
+if (!isset($_SESSION['permissions_fixed']) || isset($_GET['autofix'])) {
+    auto_fix_permissions();
+    $_SESSION['permissions_fixed'] = true;
+
+    // If manually triggered, redirect to remove the URL parameter
+    if (isset($_GET['autofix'])) {
+        header('Location: ?step=1');
+        exit;
+    }
+}
+
 // Determine current step
 $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     switch ($step) {
-        case 2: // Database setup
+        case 2: // Application settings
+            handle_app_settings();
+            break;
+        case 3: // Database setup
             handle_database_setup();
             break;
-        case 3: // Run migrations
+        case 4: // Run migrations
             handle_migrations();
             break;
-        case 4: // Admin account
+        case 5: // Admin account
             handle_admin_creation();
             break;
     }
+}
+
+/**
+ * Automatically fix common permission issues
+ * Works on Linux, macOS, and Windows (with appropriate web server setup)
+ */
+function auto_fix_permissions() {
+    $fixed = [];
+    $web_user = get_web_server_user();
+
+    // Try to fix storage directory permissions
+    if (!is_writable(ROOT_DIR . '/storage')) {
+        @chmod(ROOT_DIR . '/storage', 0775);
+        @chmod(ROOT_DIR . '/storage/logs', 0775);
+        @chmod(ROOT_DIR . '/storage/cache', 0775);
+        @chmod(ROOT_DIR . '/storage/backups', 0775);
+
+        if (is_writable(ROOT_DIR . '/storage')) {
+            $fixed[] = 'storage';
+        }
+    }
+
+    // Try to make root directory writable for .env creation
+    if (!is_writable(ROOT_DIR) && !file_exists(ROOT_DIR . '/.env')) {
+        @chmod(ROOT_DIR, 0775);
+
+        if (is_writable(ROOT_DIR)) {
+            $fixed[] = 'root';
+        }
+    }
+
+    // Store what we fixed
+    $_SESSION['auto_fixed'] = $fixed;
+
+    return $fixed;
+}
+
+/**
+ * Detect web server user (for display purposes)
+ */
+function get_web_server_user() {
+    if (function_exists('posix_getpwuid') && function_exists('posix_geteuid')) {
+        $processUser = posix_getpwuid(posix_geteuid());
+        return $processUser['name'] ?? 'www-data';
+    }
+
+    // Common defaults by OS
+    if (stripos(PHP_OS, 'WIN') === 0) {
+        return 'IUSR';
+    } elseif (file_exists('/etc/fedora-release') || file_exists('/etc/redhat-release')) {
+        return 'apache';
+    } else {
+        return 'www-data';
+    }
+}
+
+/**
+ * Get OS-specific fix commands
+ */
+function get_fix_commands() {
+    $web_user = get_web_server_user();
+    $is_fedora = file_exists('/etc/fedora-release') || file_exists('/etc/redhat-release');
+    $restart_cmd = $is_fedora ? 'sudo systemctl restart httpd' : 'sudo systemctl restart apache2';
+
+    return [
+        'storage' => "sudo chmod -R 775 " . ROOT_DIR . "/storage && sudo chown -R {$web_user}:{$web_user} " . ROOT_DIR . "/storage",
+        'root' => "sudo chmod 775 " . ROOT_DIR . " && sudo chown {$web_user}:{$web_user} " . ROOT_DIR,
+        'restart' => $restart_cmd
+    ];
+}
+
+/**
+ * Handle application settings (NEW STEP)
+ */
+function handle_app_settings() {
+    $_SESSION['app_config'] = [
+        'app_name' => $_POST['app_name'] ?? 'Nautilus Dive Shop',
+        'company_name' => $_POST['company_name'] ?? 'My Dive Shop',
+        'timezone' => $_POST['timezone'] ?? 'America/New_York'
+    ];
+
+    header('Location: ?step=3');
+    exit;
 }
 
 /**
@@ -45,7 +144,7 @@ function handle_database_setup() {
         $host = $_POST['db_host'] ?? '127.0.0.1';
         $port = $_POST['db_port'] ?? '3306';
         $database = $_POST['db_database'] ?? 'nautilus';
-        $username = $_POST['db_username'] ?? 'nautilus_user';
+        $username = $_POST['db_username'] ?? 'root';
         $password = $_POST['db_password'] ?? '';
 
         // Test connection
@@ -55,6 +154,10 @@ function handle_database_setup() {
 
         // Create database if it doesn't exist
         $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+        // Test connection to new database
+        $dsn_with_db = "mysql:host={$host};port={$port};dbname={$database}";
+        $pdo_test = new PDO($dsn_with_db, $username, $password);
 
         // Store config in session
         $_SESSION['db_config'] = [
@@ -66,42 +169,66 @@ function handle_database_setup() {
         ];
 
         // Create .env file
-        create_env_file($host, $port, $database, $username, $password);
+        create_env_file();
 
-        header('Location: ?step=3');
+        header('Location: ?step=4');
         exit;
 
     } catch (PDOException $e) {
         $_SESSION['db_error'] = $e->getMessage();
-        header('Location: ?step=2');
+        header('Location: ?step=3');
         exit;
     }
 }
 
 /**
- * Create .env configuration file
+ * Create .env configuration file with ALL settings
  */
-function create_env_file($host, $port, $database, $username, $password) {
+function create_env_file() {
+    $app_config = $_SESSION['app_config'];
+    $db_config = $_SESSION['db_config'];
+
+    // Detect if we're running on HTTPS
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $app_url = $protocol . '://' . $_SERVER['HTTP_HOST'];
+
     $env_content = <<<ENV
-APP_NAME="Nautilus Dive Shop"
+# Application Settings
+APP_NAME="{$app_config['app_name']}"
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=http://{$_SERVER['HTTP_HOST']}
+APP_URL={$app_url}
+APP_TIMEZONE={$app_config['timezone']}
 
+# Database Configuration
 DB_CONNECTION=mysql
-DB_HOST={$host}
-DB_PORT={$port}
-DB_DATABASE={$database}
-DB_USERNAME={$username}
-DB_PASSWORD={$password}
+DB_HOST={$db_config['host']}
+DB_PORT={$db_config['port']}
+DB_DATABASE={$db_config['database']}
+DB_USERNAME={$db_config['username']}
+DB_PASSWORD={$db_config['password']}
 
+# Cache & Session
 CACHE_DRIVER=file
 SESSION_DRIVER=file
+SESSION_LIFETIME=120
 QUEUE_CONNECTION=sync
+
+# Security
+SESSION_SECURE_COOKIE=true
+SESSION_HTTP_ONLY=true
+SESSION_SAME_SITE=lax
+
+# Mail Configuration (can be configured later)
+MAIL_MAILER=smtp
+MAIL_HOST=localhost
+MAIL_PORT=25
+MAIL_FROM_ADDRESS=noreply@example.com
+MAIL_FROM_NAME="{$app_config['app_name']}"
 ENV;
 
     file_put_contents(ROOT_DIR . '/.env', $env_content);
-    chmod(ROOT_DIR . '/.env', 0644);
+    chmod(ROOT_DIR . '/.env', 0600); // More secure permissions
 }
 
 /**
@@ -110,10 +237,13 @@ ENV;
 function handle_migrations() {
     require_once ROOT_DIR . '/vendor/autoload.php';
 
-    $dotenv = Dotenv\Dotenv::createImmutable(ROOT_DIR);
-    $dotenv->load();
-
     try {
+        // Load .env file
+        if (file_exists(ROOT_DIR . '/.env')) {
+            $dotenv = Dotenv\Dotenv::createImmutable(ROOT_DIR);
+            $dotenv->load();
+        }
+
         $config = $_SESSION['db_config'];
         $dsn = "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']}";
         $pdo = new PDO($dsn, $config['username'], $config['password']);
@@ -144,6 +274,12 @@ function handle_migrations() {
             $filename = basename($file);
 
             if (in_array($filename, $executed)) {
+                $results[] = [
+                    'file' => $filename,
+                    'success' => true,
+                    'error' => null,
+                    'skipped' => true
+                ];
                 continue;
             }
 
@@ -177,46 +313,53 @@ function handle_migrations() {
             $results[] = [
                 'file' => $filename,
                 'success' => $success,
-                'error' => $error
+                'error' => $error,
+                'skipped' => false
             ];
         }
 
         $_SESSION['migration_results'] = $results;
-        header('Location: ?step=4');
+        header('Location: ?step=5');
         exit;
 
     } catch (Exception $e) {
         $_SESSION['migration_error'] = $e->getMessage();
-        header('Location: ?step=3');
+        header('Location: ?step=4');
         exit;
     }
 }
 
 /**
- * Create admin account
+ * Create admin account and setup tenant
  */
 function handle_admin_creation() {
     require_once ROOT_DIR . '/vendor/autoload.php';
 
-    $dotenv = Dotenv\Dotenv::createImmutable(ROOT_DIR);
-    $dotenv->load();
-
     try {
+        // Load .env
+        if (file_exists(ROOT_DIR . '/.env')) {
+            $dotenv = Dotenv\Dotenv::createImmutable(ROOT_DIR);
+            $dotenv->load();
+        }
+
         $config = $_SESSION['db_config'];
+        $app_config = $_SESSION['app_config'];
+
         $dsn = "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']}";
         $pdo = new PDO($dsn, $config['username'], $config['password']);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $company = $_POST['company_name'] ?? 'My Dive Shop';
+        $company = $app_config['company_name'];
         $email = $_POST['admin_email'];
         $password = password_hash($_POST['admin_password'], PASSWORD_BCRYPT);
-        $firstName = $_POST['first_name'] ?? 'Admin';
-        $lastName = $_POST['last_name'] ?? 'User';
+        $firstName = $_POST['first_name'];
+        $lastName = $_POST['last_name'];
 
-        // Create default tenant
-        $pdo->exec("INSERT INTO tenants (id, tenant_uuid, company_name, subdomain, contact_email, status)
-                   VALUES (1, UUID(), '{$company}', 'default', '{$email}', 'active')
-                   ON DUPLICATE KEY UPDATE company_name = VALUES(company_name)");
+        // Create default tenant with company name from settings
+        $stmt = $pdo->prepare("INSERT INTO tenants (id, tenant_uuid, company_name, subdomain, contact_email, status)
+                   VALUES (1, UUID(), ?, 'default', ?, 'active')
+                   ON DUPLICATE KEY UPDATE company_name = VALUES(company_name), contact_email = VALUES(contact_email)");
+        $stmt->execute([$company, $email]);
 
         // Create admin user
         $pdo->prepare("INSERT INTO users (tenant_id, role_id, email, password_hash, first_name, last_name, is_active)
@@ -225,15 +368,18 @@ function handle_admin_creation() {
             ->execute([$email, $password, $firstName, $lastName]);
 
         // Mark installation complete
-        file_put_contents(INSTALLED_FILE, "Installed: " . date('Y-m-d H:i:s') . "\nCompany: {$company}\n");
+        file_put_contents(INSTALLED_FILE, "Installed: " . date('Y-m-d H:i:s') . "\n" .
+                                         "Company: {$company}\n" .
+                                         "App Name: {$app_config['app_name']}\n" .
+                                         "Admin Email: {$email}\n");
 
         $_SESSION['install_complete'] = true;
-        header('Location: ?step=5');
+        header('Location: ?step=6');
         exit;
 
     } catch (Exception $e) {
         $_SESSION['admin_error'] = $e->getMessage();
-        header('Location: ?step=4');
+        header('Location: ?step=5');
         exit;
     }
 }
@@ -242,7 +388,7 @@ function handle_admin_creation() {
  * Check system requirements
  */
 function check_requirements() {
-    return [
+    $checks = [
         'PHP Version >= 8.0' => version_compare(PHP_VERSION, '8.0.0', '>='),
         'PDO Extension' => extension_loaded('pdo'),
         'PDO MySQL Extension' => extension_loaded('pdo_mysql'),
@@ -252,8 +398,33 @@ function check_requirements() {
         'cURL Extension' => extension_loaded('curl'),
         'OpenSSL Extension' => extension_loaded('openssl'),
         'GD Extension' => extension_loaded('gd'),
+        'ZIP Extension' => extension_loaded('zip'),
+        'XML Extension' => extension_loaded('xml'),
         'Storage Writable' => is_writable(ROOT_DIR . '/storage'),
-        'Vendor Directory' => is_dir(ROOT_DIR . '/vendor')
+        'Vendor Directory Exists' => is_dir(ROOT_DIR . '/vendor'),
+        '.env File Writable' => is_writable(ROOT_DIR) || is_writable(ROOT_DIR . '/.env')
+    ];
+
+    return $checks;
+}
+
+/**
+ * Get list of common timezones
+ */
+function get_timezones() {
+    return [
+        'America/New_York' => 'Eastern Time (US & Canada)',
+        'America/Chicago' => 'Central Time (US & Canada)',
+        'America/Denver' => 'Mountain Time (US & Canada)',
+        'America/Los_Angeles' => 'Pacific Time (US & Canada)',
+        'America/Phoenix' => 'Arizona',
+        'America/Anchorage' => 'Alaska',
+        'Pacific/Honolulu' => 'Hawaii',
+        'Europe/London' => 'London',
+        'Europe/Paris' => 'Paris',
+        'Asia/Tokyo' => 'Tokyo',
+        'Australia/Sydney' => 'Sydney',
+        'UTC' => 'UTC'
     ];
 }
 
@@ -300,12 +471,14 @@ function check_requirements() {
             margin-bottom: 30px;
             padding: 0;
             list-style: none;
+            flex-wrap: wrap;
         }
         .step-indicator li {
             flex: 1;
+            min-width: 80px;
             text-align: center;
             position: relative;
-            padding: 10px;
+            padding: 10px 5px;
         }
         .step-indicator li:before {
             content: attr(data-step);
@@ -342,12 +515,6 @@ function check_requirements() {
         .badge-danger {
             background-color: #ef4444;
         }
-        .progress-item {
-            padding: 8px;
-            margin: 5px 0;
-            background: #f8f9fa;
-            border-radius: 5px;
-        }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -355,7 +522,63 @@ function check_requirements() {
         .btn-primary:hover {
             opacity: 0.9;
         }
+        .copy-command {
+            position: relative;
+            margin: 10px 0;
+        }
+        .copy-command code {
+            display: block;
+            padding: 12px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            padding-right: 100px;
+        }
+        .copy-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 4px 12px;
+            font-size: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+        .copy-btn.copied {
+            background: #10b981;
+        }
+        .copy-btn.copied:after {
+            content: ' ✓';
+        }
     </style>
+    <script>
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(function() {
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                setTimeout(function() {
+                    button.textContent = 'Copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Failed to copy:', err);
+                button.textContent = 'Failed';
+                setTimeout(function() {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+    </script>
 </head>
 <body>
     <div class="install-card">
@@ -371,15 +594,18 @@ function check_requirements() {
                     <small>Requirements</small>
                 </li>
                 <li data-step="2" class="<?= $step >= 2 ? ($step > 2 ? 'completed' : 'active') : '' ?>">
-                    <small>Database</small>
+                    <small>Settings</small>
                 </li>
                 <li data-step="3" class="<?= $step >= 3 ? ($step > 3 ? 'completed' : 'active') : '' ?>">
-                    <small>Migrations</small>
+                    <small>Database</small>
                 </li>
                 <li data-step="4" class="<?= $step >= 4 ? ($step > 4 ? 'completed' : 'active') : '' ?>">
-                    <small>Admin Account</small>
+                    <small>Migrations</small>
                 </li>
-                <li data-step="5" class="<?= $step == 5 ? 'active' : '' ?>">
+                <li data-step="5" class="<?= $step >= 5 ? ($step > 5 ? 'completed' : 'active') : '' ?>">
+                    <small>Admin</small>
+                </li>
+                <li data-step="6" class="<?= $step == 6 ? 'active' : '' ?>">
                     <small>Complete</small>
                 </li>
             </ul>
@@ -391,6 +617,14 @@ function check_requirements() {
                 <?php
                 $requirements = check_requirements();
                 $all_passed = !in_array(false, $requirements);
+
+                // Show auto-fix success message
+                if (isset($_SESSION['auto_fixed']) && !empty($_SESSION['auto_fixed'])) {
+                    echo '<div class="alert alert-success mb-3">';
+                    echo '<strong>🎉 Auto-Fixed!</strong><br>';
+                    echo 'Automatically repaired: ' . implode(', ', $_SESSION['auto_fixed']);
+                    echo '</div>';
+                }
                 ?>
 
                 <?php foreach ($requirements as $name => $passed): ?>
@@ -404,31 +638,153 @@ function check_requirements() {
 
                 <?php if (!$all_passed): ?>
                     <div class="alert alert-danger mt-4">
-                        <strong>Requirements Not Met</strong><br>
-                        Please fix the failed requirements before continuing.
-                        <?php if (!is_writable(ROOT_DIR . '/storage')): ?>
-                            <br><br>To fix storage permissions, run:
-                            <code>chmod -R 775 storage/</code>
+                        <strong>⚠️ Setup Needed</strong>
+                        <p class="mt-2 mb-3">Some files need permission adjustments to continue.</p>
+
+                        <?php
+                        $permission_issues = (!is_writable(ROOT_DIR . '/storage')) ||
+                                           (!is_writable(ROOT_DIR) && !is_writable(ROOT_DIR . '/.env'));
+
+                        if ($permission_issues): ?>
+                            <div class="alert alert-info mt-2 mb-3">
+                                <strong>🔧 Easy Fix Option 1: One-Click Repair</strong><br>
+                                Click the button below and the installer will try to fix permissions automatically:
+                                <div class="d-grid gap-2 mt-3">
+                                    <button onclick="location.href='?step=1&autofix=1'" class="btn btn-warning btn-lg">
+                                        ✨ Try Auto-Fix Permissions
+                                    </button>
+                                </div>
+                                <small class="text-muted mt-2 d-block">This works in most hosting environments</small>
+                            </div>
+
+                            <div class="alert alert-warning mt-2 mb-2">
+                                <strong>🛠️ Alternative: Run This Command</strong><br>
+                                If auto-fix doesn't work, ask your hosting provider or system admin to run:
+                                <div class="copy-command">
+                                    <?php
+                                    $web_user = get_web_server_user();
+                                    $fix_cmd = "cd " . ROOT_DIR . " && chmod -R 775 storage && chmod 775 . && chown -R {$web_user}:{$web_user} .";
+                                    ?>
+                                    <code><?= $fix_cmd ?><button class="copy-btn" onclick="copyToClipboard('<?= addslashes($fix_cmd) ?>', this)">Copy</button></code>
+                                </div>
+                                <small class="text-muted">They can paste this into their terminal</small>
+                            </div>
                         <?php endif; ?>
-                        <?php if (!is_dir(ROOT_DIR . '/vendor')): ?>
-                            <br><br>Vendor directory missing. Run:
-                            <code>composer install</code>
+
+                        <?php
+                        // Collect missing PHP extensions
+                        $missing_extensions = [];
+                        if (!extension_loaded('pdo_mysql')) $missing_extensions[] = 'pdo_mysql';
+                        if (!extension_loaded('gd')) $missing_extensions[] = 'gd';
+                        if (!extension_loaded('zip')) $missing_extensions[] = 'zip';
+
+                        if (!empty($missing_extensions) || !is_dir(ROOT_DIR . '/vendor')):
+                        ?>
+                            <div class="alert alert-warning mt-2 mb-2">
+                                <strong>📦 Server Components Needed</strong><br>
+                                Your hosting provider or system administrator needs to install some PHP components.
+                                <br><br>
+                                <strong>📋 Send them this information:</strong>
+                                <div class="alert alert-light mt-2 mb-2">
+                                    <p class="mb-2"><strong>Missing Components:</strong></p>
+                                    <ul class="mb-2">
+                                        <?php if (!is_dir(ROOT_DIR . '/vendor')): ?>
+                                            <li>PHP Composer dependencies (run: <code>composer install --no-dev</code>)</li>
+                                        <?php endif; ?>
+                                        <?php foreach ($missing_extensions as $ext): ?>
+                                            <li>PHP Extension: <?= $ext ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                    <p class="mb-1"><strong>Installation Command for Them:</strong></p>
+                                    <?php
+                                    $is_fedora = file_exists('/etc/fedora-release') || file_exists('/etc/redhat-release');
+                                    if ($is_fedora) {
+                                        $install_cmd = "sudo dnf install php-mysqlnd php-gd php-pecl-zip && sudo systemctl restart httpd";
+                                    } else {
+                                        $install_cmd = "sudo apt install php-mysql php-gd php-zip && sudo systemctl restart apache2";
+                                    }
+                                    ?>
+                                    <div class="copy-command">
+                                        <code><?= $install_cmd ?><button class="copy-btn" onclick="copyToClipboard('<?= addslashes($install_cmd) ?>', this)">Copy</button></code>
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    💡 <strong>Using Shared Hosting?</strong> Contact your hosting support and tell them you need these PHP extensions enabled.
+                                    Most hosting providers can enable these through their control panel (cPanel, Plesk, etc.)
+                                </small>
+                            </div>
                         <?php endif; ?>
+
+                        <div class="mt-3">
+                            <button onclick="location.reload()" class="btn btn-sm btn-secondary">
+                                <i class="bi bi-arrow-clockwise"></i> Re-check Requirements
+                            </button>
+                        </div>
                     </div>
                 <?php endif; ?>
 
                 <div class="d-grid gap-2 mt-4">
                     <a href="?step=2" class="btn btn-primary btn-lg <?= !$all_passed ? 'disabled' : '' ?>">
-                        Continue to Database Setup <i class="bi bi-arrow-right"></i>
+                        Continue to Application Settings <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
 
             <?php elseif ($step == 2): ?>
-                <!-- Step 2: Database Configuration -->
+                <!-- Step 2: Application Settings -->
+                <h3 class="mb-4">Application Settings</h3>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Configure your application name and basic settings. These will be used throughout the system.
+                </div>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Application Name</label>
+                        <input type="text" class="form-control" name="app_name"
+                               value="Nautilus Dive Shop" required>
+                        <small class="form-text text-muted">
+                            This appears in page titles, emails, and system notifications
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Company/Dive Shop Name</label>
+                        <input type="text" class="form-control" name="company_name"
+                               placeholder="Ocean Adventures Dive Shop" required>
+                        <small class="form-text text-muted">
+                            Your business name for invoices, certificates, and customer communications
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Timezone</label>
+                        <select class="form-control" name="timezone" required>
+                            <?php foreach (get_timezones() as $tz => $label): ?>
+                                <option value="<?= $tz ?>" <?= $tz === 'America/New_York' ? 'selected' : '' ?>>
+                                    <?= $label ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small class="form-text text-muted">
+                            Used for scheduling, reports, and timestamps
+                        </small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Continue to Database <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </form>
+
+            <?php elseif ($step == 3): ?>
+                <!-- Step 3: Database Configuration -->
                 <h3 class="mb-4">Database Configuration</h3>
 
                 <?php if (isset($_SESSION['db_error'])): ?>
                     <div class="alert alert-danger">
+                        <strong>Connection Failed:</strong><br>
                         <?= htmlspecialchars($_SESSION['db_error']) ?>
                         <?php unset($_SESSION['db_error']); ?>
                     </div>
@@ -454,13 +810,13 @@ function check_requirements() {
 
                     <div class="mb-3">
                         <label class="form-label">Database Username</label>
-                        <input type="text" class="form-control" name="db_username" value="nautilus_user" required>
+                        <input type="text" class="form-control" name="db_username" value="root" required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Database Password</label>
                         <input type="password" class="form-control" name="db_password">
-                        <small class="form-text text-muted">Leave empty if no password</small>
+                        <small class="form-text text-muted">Leave empty if no password set</small>
                     </div>
 
                     <div class="d-grid gap-2">
@@ -470,21 +826,21 @@ function check_requirements() {
                     </div>
                 </form>
 
-            <?php elseif ($step == 3): ?>
-                <!-- Step 3: Run Migrations -->
-                <h3 class="mb-4">Running Database Migrations</h3>
+            <?php elseif ($step == 4): ?>
+                <!-- Step 4: Run Migrations -->
+                <h3 class="mb-4">Creating Database Tables</h3>
 
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle"></i>
-                    This will create all database tables. Please wait...
+                    Setting up your database with all required tables. This will take a moment...
                 </div>
 
                 <div id="migration-progress">
                     <div class="text-center py-4">
-                        <div class="spinner-border text-primary" role="status">
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
                             <span class="visually-hidden">Running migrations...</span>
                         </div>
-                        <p class="mt-3">Processing migrations...</p>
+                        <p class="mt-3">Creating tables and setting up structure...</p>
                     </div>
                 </div>
 
@@ -495,22 +851,26 @@ function check_requirements() {
                         form.method = 'POST';
                         document.body.appendChild(form);
                         form.submit();
-                    }, 1000);
+                    }, 1500);
                 </script>
 
-            <?php elseif ($step == 4): ?>
-                <!-- Step 4: Admin Account Creation -->
-                <h3 class="mb-4">Create Admin Account</h3>
+            <?php elseif ($step == 5): ?>
+                <!-- Step 5: Admin Account Creation -->
+                <h3 class="mb-4">Create Administrator Account</h3>
 
                 <?php if (isset($_SESSION['migration_results'])): ?>
                     <?php
                     $results = $_SESSION['migration_results'];
                     $success_count = count(array_filter($results, fn($r) => $r['success']));
                     $total_count = count($results);
+                    $skipped_count = count(array_filter($results, fn($r) => $r['skipped'] ?? false));
                     ?>
                     <div class="alert alert-success">
                         <i class="bi bi-check-circle"></i>
-                        Successfully ran <?= $success_count ?> of <?= $total_count ?> migrations
+                        Successfully created <?= $success_count ?> of <?= $total_count ?> tables
+                        <?php if ($skipped_count > 0): ?>
+                            (<?= $skipped_count ?> already existed)
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
 
@@ -521,12 +881,12 @@ function check_requirements() {
                     </div>
                 <?php endif; ?>
 
-                <form method="POST">
-                    <div class="mb-3">
-                        <label class="form-label">Company/Dive Shop Name</label>
-                        <input type="text" class="form-control" name="company_name" placeholder="Ocean Adventures Dive Shop" required>
-                    </div>
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-info-circle"></i>
+                    Company: <strong><?= htmlspecialchars($_SESSION['app_config']['company_name'] ?? 'Not set') ?></strong>
+                </div>
 
+                <form method="POST">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">First Name</label>
@@ -540,12 +900,15 @@ function check_requirements() {
 
                     <div class="mb-3">
                         <label class="form-label">Admin Email</label>
-                        <input type="email" class="form-control" name="admin_email" required>
+                        <input type="email" class="form-control" name="admin_email"
+                               placeholder="admin@example.com" required>
+                        <small class="form-text text-muted">You'll use this to login</small>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Admin Password</label>
-                        <input type="password" class="form-control" name="admin_password" minlength="8" required>
+                        <input type="password" class="form-control" name="admin_password"
+                               minlength="8" required>
                         <small class="form-text text-muted">Minimum 8 characters</small>
                     </div>
 
@@ -556,16 +919,20 @@ function check_requirements() {
                     </div>
                 </form>
 
-            <?php elseif ($step == 5): ?>
-                <!-- Step 5: Installation Complete -->
+            <?php elseif ($step == 6): ?>
+                <!-- Step 6: Installation Complete -->
                 <div class="text-center py-5">
                     <div style="font-size: 5rem; color: #10b981;">✓</div>
                     <h2 class="mb-4">Installation Complete!</h2>
 
+                    <?php
+                    $app_name = $_SESSION['app_config']['app_name'] ?? 'Nautilus';
+                    $company_name = $_SESSION['app_config']['company_name'] ?? 'Your Dive Shop';
+                    ?>
+
                     <div class="alert alert-success text-start">
-                        <h5><i class="bi bi-info-circle"></i> Your Nautilus System is Ready</h5>
-                        <p class="mb-2"><strong>Access your dashboard:</strong></p>
-                        <p class="mb-2"><a href="/" class="btn btn-sm btn-primary">Go to Dashboard</a></p>
+                        <h5><i class="bi bi-info-circle"></i> <?= htmlspecialchars($app_name) ?> is Ready!</h5>
+                        <p class="mb-2"><strong>Company:</strong> <?= htmlspecialchars($company_name) ?></p>
 
                         <hr>
 
@@ -573,8 +940,9 @@ function check_requirements() {
                         <ul class="mb-0">
                             <li>Login with your admin credentials</li>
                             <li>Configure your dive shop settings</li>
-                            <li>Add products and courses</li>
-                            <li>Start managing your business!</li>
+                            <li>Add instructors and staff</li>
+                            <li>Setup courses and pricing</li>
+                            <li>Start managing bookings!</li>
                         </ul>
                     </div>
 
@@ -582,6 +950,12 @@ function check_requirements() {
                         <a href="/" class="btn btn-primary btn-lg">
                             <i class="bi bi-speedometer2"></i> Go to Dashboard
                         </a>
+                    </div>
+
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            The installer has been disabled. Delete /public/install.php for extra security.
+                        </small>
                     </div>
                 </div>
             <?php endif; ?>
