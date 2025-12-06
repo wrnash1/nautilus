@@ -6,13 +6,7 @@ use App\Middleware\CsrfMiddleware;
 
 $router = new Router();
 
-// Installation Routes (no middleware - accessible before installation)
-$router->get('/install', 'Install\InstallController@index');
-$router->get('/install/configure', 'Install\InstallController@configure');
-$router->post('/install/test-database', 'Install\InstallController@testDatabase');
-$router->post('/install/process', 'Install\InstallController@install');
-$router->get('/install/progress', 'Install\InstallController@progress');
-$router->get('/install/complete', 'Install\InstallController@complete');
+// Installation handled by /public/install.php (not routed)
 
 // Deployment Route (for running migrations and seeders)
 $router->get('/deploy', 'Install\DeploymentController@run');

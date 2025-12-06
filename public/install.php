@@ -151,6 +151,7 @@ function handle_database_setup() {
         $dsn = "mysql:host={$host};port={$port}";
         $pdo = new PDO($dsn, $username, $password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true); // Fix for MariaDB unbuffered query error
 
         // Create database if it doesn't exist
         $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
@@ -158,6 +159,8 @@ function handle_database_setup() {
         // Test connection to new database
         $dsn_with_db = "mysql:host={$host};port={$port};dbname={$database}";
         $pdo_test = new PDO($dsn_with_db, $username, $password);
+        $pdo_test->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo_test->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true); // Fix for MariaDB unbuffered query error
 
         // Store config in session
         $_SESSION['db_config'] = [
@@ -235,6 +238,11 @@ ENV;
  * Run database migrations
  */
 function handle_migrations() {
+    // Increase PHP limits for migration processing
+    set_time_limit(600); // 10 minutes
+    ini_set('memory_limit', '512M');
+    ini_set('max_execution_time', '600');
+
     require_once ROOT_DIR . '/vendor/autoload.php';
 
     try {
@@ -248,6 +256,7 @@ function handle_migrations() {
         $dsn = "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']}";
         $pdo = new PDO($dsn, $config['username'], $config['password']);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true); // Fix for MariaDB unbuffered query error
 
         // Create migrations table
         $pdo->exec("
@@ -267,7 +276,9 @@ function handle_migrations() {
         $files = glob(ROOT_DIR . '/database/migrations/*.sql');
         sort($files);
 
-        $batch = $pdo->query("SELECT COALESCE(MAX(batch), 0) + 1 as batch FROM migrations")->fetch()['batch'];
+        $stmt = $pdo->query("SELECT COALESCE(MAX(batch), 0) + 1 as batch FROM migrations");
+        $batchResult = $stmt->fetch(PDO::FETCH_ASSOC);
+        $batch = $batchResult['batch'];
 
         $results = [];
         foreach ($files as $file) {
@@ -302,7 +313,8 @@ function handle_migrations() {
                 } catch (PDOException $e) {
                     $success = false;
                     $error = $e->getMessage();
-                    // Continue on error - log but don't stop
+                    // Log error but continue
+                    error_log("Migration $filename failed: " . $e->getMessage());
                 }
             }
 
@@ -316,6 +328,11 @@ function handle_migrations() {
                 'error' => $error,
                 'skipped' => false
             ];
+
+            // Flush output and keep connection alive
+            if (connection_status() == CONNECTION_NORMAL) {
+                flush();
+            }
         }
 
         $_SESSION['migration_results'] = $results;
@@ -348,6 +365,7 @@ function handle_admin_creation() {
         $dsn = "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']}";
         $pdo = new PDO($dsn, $config['username'], $config['password']);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true); // Fix for MariaDB unbuffered query error
 
         $company = $app_config['company_name'];
         $email = $_POST['admin_email'];
@@ -356,16 +374,32 @@ function handle_admin_creation() {
         $lastName = $_POST['last_name'];
 
         // Create default tenant with company name from settings
-        $stmt = $pdo->prepare("INSERT INTO tenants (id, tenant_uuid, company_name, subdomain, contact_email, status)
-                   VALUES (1, UUID(), ?, 'default', ?, 'active')
-                   ON DUPLICATE KEY UPDATE company_name = VALUES(company_name), contact_email = VALUES(contact_email)");
-        $stmt->execute([$company, $email]);
+        // Note: tenants table uses 'name' not 'company_name' (from 000_CORE_SCHEMA.sql)
+        $stmt = $pdo->prepare("INSERT INTO tenants (id, name, subdomain, status)
+                   VALUES (1, ?, 'default', 'active')
+                   ON DUPLICATE KEY UPDATE name = VALUES(name)");
+        $stmt->execute([$company]);
 
-        // Create admin user
-        $pdo->prepare("INSERT INTO users (tenant_id, role_id, email, password_hash, first_name, last_name, is_active)
-                      VALUES (1, 1, ?, ?, ?, ?, 1)
-                      ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash)")
-            ->execute([$email, $password, $firstName, $lastName]);
+        // Create admin user (users table doesn't have role_id - uses user_roles junction table)
+        $stmt = $pdo->prepare("INSERT INTO users (tenant_id, email, password_hash, first_name, last_name, is_active)
+                      VALUES (1, ?, ?, ?, ?, 1)
+                      ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), first_name = VALUES(first_name), last_name = VALUES(last_name)");
+        $stmt->execute([$email, $password, $firstName, $lastName]);
+
+        // Get the user ID (either just inserted or existing)
+        $userId = $pdo->lastInsertId();
+        if (!$userId) {
+            // If no insert happened (duplicate key), get existing user ID
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $userId = $result['id'] ?? null;
+        }
+
+        // Assign Super Admin role (role_id = 1) via user_roles junction table
+        $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, 1)
+                      ON DUPLICATE KEY UPDATE role_id = VALUES(role_id)")
+            ->execute([$userId]);
 
         // Mark installation complete
         file_put_contents(INSTALLED_FILE, "Installed: " . date('Y-m-d H:i:s') . "\n" .
@@ -388,6 +422,15 @@ function handle_admin_creation() {
  * Check system requirements
  */
 function check_requirements() {
+    // Check if virtual host DocumentRoot is properly configured
+    $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
+    $currentDir = __DIR__; // This is /path/to/nautilus/public
+    $expectedPublicDir = realpath($currentDir);
+    $actualDocRoot = realpath($documentRoot);
+
+    // Virtual host is correctly configured if DocumentRoot points to /public folder
+    $vhostConfigured = ($actualDocRoot === $expectedPublicDir);
+
     $checks = [
         'PHP Version >= 8.0' => version_compare(PHP_VERSION, '8.0.0', '>='),
         'PDO Extension' => extension_loaded('pdo'),
@@ -402,7 +445,8 @@ function check_requirements() {
         'XML Extension' => extension_loaded('xml'),
         'Storage Writable' => is_writable(ROOT_DIR . '/storage'),
         'Vendor Directory Exists' => is_dir(ROOT_DIR . '/vendor'),
-        '.env File Writable' => is_writable(ROOT_DIR) || is_writable(ROOT_DIR . '/.env')
+        '.env File Writable' => is_writable(ROOT_DIR) || is_writable(ROOT_DIR . '/.env'),
+        'Virtual Host Configured (DocumentRoot = /public)' => $vhostConfigured
     ];
 
     return $checks;
@@ -832,26 +876,212 @@ function get_timezones() {
 
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle"></i>
-                    Setting up your database with all required tables. This will take a moment...
+                    Setting up your database with all required tables. This will take approximately 3-4 minutes...
+                </div>
+
+                <!-- Warning for final migrations (shown when reaching migration 100) -->
+                <div id="final-migrations-warning" class="alert alert-warning" style="display: none;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Almost done!</strong> The final migrations (101-107) modify existing database tables and may take 2-3 minutes each.
+                    <strong>Please be patient - the installer is still working!</strong>
                 </div>
 
                 <div id="migration-progress">
-                    <div class="text-center py-4">
-                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                            <span class="visually-hidden">Running migrations...</span>
+                    <!-- Overall Progress Bar -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Overall Progress:</label>
+                        <div class="progress" style="height: 30px;">
+                            <div id="overall-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                 role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                <span id="overall-progress-text">Preparing...</span>
+                            </div>
                         </div>
-                        <p class="mt-3">Creating tables and setting up structure...</p>
+                        <small class="text-muted" id="overall-status">Initializing database setup...</small>
+                    </div>
+
+                    <!-- Current Migration Progress Bar -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Current Migration:</label>
+                        <div class="progress" style="height: 25px;">
+                            <div id="current-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-info"
+                                 role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                <span id="current-progress-text">Waiting...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Messages -->
+                    <div id="migration-status" class="mb-3" style="max-height: 200px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px;">
+                        <div class="text-muted">Initializing database setup...</div>
+                    </div>
+
+                    <!-- Spinner (hidden after progress starts) -->
+                    <div id="initial-spinner" class="text-center py-2">
+                        <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;">
+                            <span class="visually-hidden">Starting...</span>
+                        </div>
                     </div>
                 </div>
 
                 <script>
-                    // Auto-submit to run migrations
+                    let migrationStartTime = Date.now();
+
+                    // Simulate migration progress with dual progress bars
+                    function simulateMigrationProgress() {
+                        const totalMigrations = 107;
+
+                        // Different timing for different migration ranges
+                        // Migrations 1-89: fast (800ms each)
+                        // Migrations 90-100: medium (2 seconds each)
+                        // Migrations 101-107: slow (20 seconds each) - these are the large ALTER TABLE operations
+                        const timings = {
+                            fast: 800,      // Migrations 1-89
+                            medium: 2000,   // Migrations 90-100
+                            slow: 20000     // Migrations 101-107 (the problematic ones!)
+                        };
+
+                        // Calculate total estimated time
+                        const totalTimeMs = (89 * timings.fast) + (11 * timings.medium) + (7 * timings.slow);
+                        const intervalMs = 500; // Update UI every 500ms
+
+                        let currentMigration = 0;
+                        let currentMigrationProgress = 0;
+                        let progressInterval;
+
+                        // Hide spinner after 1 second
+                        setTimeout(() => {
+                            document.getElementById('initial-spinner').style.display = 'none';
+                        }, 1000);
+
+                        progressInterval = setInterval(() => {
+                            const elapsed = Date.now() - migrationStartTime;
+
+                            // Calculate which migration we should be on based on elapsed time
+                            let timeAccumulated = 0;
+                            let calculatedMigration = 0;
+
+                            for (let i = 1; i <= totalMigrations; i++) {
+                                let migrationTime;
+                                if (i <= 89) {
+                                    migrationTime = timings.fast;
+                                } else if (i <= 100) {
+                                    migrationTime = timings.medium;
+                                } else {
+                                    migrationTime = timings.slow;
+                                }
+
+                                if (timeAccumulated + migrationTime <= elapsed) {
+                                    timeAccumulated += migrationTime;
+                                    calculatedMigration = i;
+                                } else {
+                                    // We're in the middle of this migration
+                                    currentMigrationProgress = ((elapsed - timeAccumulated) / migrationTime) * 100;
+                                    break;
+                                }
+                            }
+
+                            currentMigration = calculatedMigration;
+
+                            // Calculate overall progress
+                            const overallPercent = Math.min(98, (currentMigration / totalMigrations) * 100);
+
+                            // Update overall progress bar
+                            const overallBar = document.getElementById('overall-progress-bar');
+                            overallBar.style.width = overallPercent + '%';
+                            overallBar.setAttribute('aria-valuenow', overallPercent);
+                            document.getElementById('overall-progress-text').textContent =
+                                `Migration ${currentMigration} of ${totalMigrations} (${Math.floor(overallPercent)}%)`;
+
+                            // Update overall status
+                            document.getElementById('overall-status').textContent =
+                                `Processing migration ${currentMigration} of ${totalMigrations}...`;
+
+                            // Update current migration progress bar
+                            const currentBar = document.getElementById('current-progress-bar');
+                            currentBar.style.width = currentMigrationProgress + '%';
+                            currentBar.setAttribute('aria-valuenow', currentMigrationProgress);
+
+                            let currentMigrationName = `migration_${String(currentMigration).padStart(3, '0')}.sql`;
+                            if (currentMigration > 100) {
+                                currentMigrationName += ' (Large - modifying tables)';
+                            }
+
+                            document.getElementById('current-progress-text').textContent =
+                                `${currentMigrationName} - ${Math.floor(currentMigrationProgress)}%`;
+
+                            // Show warning when reaching migration 100
+                            if (currentMigration >= 100 && document.getElementById('final-migrations-warning').style.display === 'none') {
+                                document.getElementById('final-migrations-warning').style.display = 'block';
+
+                                const statusDiv = document.getElementById('migration-status');
+                                const warningMessage = document.createElement('div');
+                                warningMessage.className = 'text-warning fw-bold';
+                                warningMessage.innerHTML = `⚠ Starting final migrations (101-107). These modify existing tables and will take longer...`;
+                                statusDiv.appendChild(warningMessage);
+                                statusDiv.scrollTop = statusDiv.scrollHeight;
+                            }
+
+                            // Add status messages at milestones
+                            if (currentMigration > 0 && currentMigration % 10 === 0 && currentMigrationProgress < 10) {
+                                const statusDiv = document.getElementById('migration-status');
+                                const newMessage = document.createElement('div');
+                                newMessage.className = 'text-success';
+                                newMessage.innerHTML = `✓ Completed ${currentMigration} migrations...`;
+                                statusDiv.appendChild(newMessage);
+                                statusDiv.scrollTop = statusDiv.scrollHeight;
+                            }
+
+                            // Stop at 98% and wait for actual completion
+                            if (overallPercent >= 98) {
+                                clearInterval(progressInterval);
+                                document.getElementById('overall-progress-text').textContent =
+                                    'Finalizing database setup... Almost done!';
+                                document.getElementById('current-progress-text').textContent =
+                                    'Completing final steps...';
+                            }
+                        }, intervalMs);
+                    }
+
+                    // Start progress simulation
+                    simulateMigrationProgress();
+
+                    // Auto-submit to run migrations in a hidden iframe
+                    // This allows the progress bars to continue animating while migrations run
+                    const iframe = document.createElement('iframe');
+                    iframe.name = 'migration-frame';
+                    iframe.style.display = 'none';
+                    document.body.appendChild(iframe);
+
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.target = 'migration-frame';
+                    document.body.appendChild(form);
+                    form.submit();
+
+                    // Poll to detect when migrations complete
+                    // When migrations finish, the session will change and we redirect to step 5
+                    const checkCompletionInterval = setInterval(() => {
+                        fetch(window.location.href)
+                            .then(response => response.text())
+                            .then(html => {
+                                // Check if we've been redirected to step 5
+                                if (html.includes('Create Administrator Account') ||
+                                    html.includes('step=5') ||
+                                    html.includes('Admin Account')) {
+                                    clearInterval(checkCompletionInterval);
+                                    window.location.href = '?step=5';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error checking completion:', error);
+                            });
+                    }, 3000); // Check every 3 seconds
+
+                    // Safety timeout - redirect after 6 minutes no matter what
                     setTimeout(() => {
-                        const form = document.createElement('form');
-                        form.method = 'POST';
-                        document.body.appendChild(form);
-                        form.submit();
-                    }, 1500);
+                        clearInterval(checkCompletionInterval);
+                        window.location.href = '?step=5';
+                    }, 360000); // 6 minutes
                 </script>
 
             <?php elseif ($step == 5): ?>

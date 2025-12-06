@@ -84,14 +84,11 @@ $installedFile = __DIR__ . '/../.installed';
 $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $scriptName = basename($_SERVER['SCRIPT_FILENAME'] ?? '');
 
-// If not installed and not accessing installer, redirect to new installer
+// If not installed and not accessing installer, redirect to installer
 if (!file_exists($installedFile) && $scriptName !== 'install.php') {
-    // Allow install routes
-    if (strpos($requestUri, '/install') !== 0 && $requestUri !== '/install.php') {
-        // Redirect to new installer
-        header('Location: /install');
-        exit;
-    }
+    // Redirect to standalone installer (install.php)
+    header('Location: /install.php');
+    exit;
 }
 
 // Load routes
