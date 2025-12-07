@@ -231,7 +231,7 @@ MAIL_FROM_NAME="{$app_config['app_name']}"
 ENV;
 
     file_put_contents(ROOT_DIR . '/.env', $env_content);
-    chmod(ROOT_DIR . '/.env', 0600); // More secure permissions
+    @chmod(ROOT_DIR . '/.env', 0600); // More secure permissions (@ suppresses errors in containers)
 }
 
 /**
@@ -837,8 +837,8 @@ function get_timezones() {
                 <form method="POST">
                     <div class="mb-3">
                         <label class="form-label">Database Host</label>
-                        <input type="text" class="form-control" name="db_host" value="127.0.0.1" required>
-                        <small class="form-text text-muted">Usually 127.0.0.1 or localhost</small>
+                        <input type="text" class="form-control" name="db_host" value="<?= gethostbyname('database') !== 'database' ? 'database' : '127.0.0.1' ?>" required>
+                        <small class="form-text text-muted">Use 'database' for containers, or 127.0.0.1/localhost for regular hosting</small>
                     </div>
 
                     <div class="mb-3">

@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Web Server (Apache + PHP 8.2)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nautilus-web
+    ports:
+      - "8080:80"
+    volumes:
+      # Mount entire application directory (with SELinux label for Fedora)
+      - .:/var/www/html:Z
+      # Mount composer cache for faster rebuilds
+      - composer-cache:/root/.composer
+    environment:
+      - PHP_IDE_CONFIG=serverName=nautilus-docker
+    depends_on:
+      - database
+    networks:
+      - nautilus-network
+    restart: unless-stopped
+
+  # Database (MariaDB 11.6)
+  database:
+    image: docker.io/library/mariadb:11.6
+    container_name: nautilus-db
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: Frogman09!
+      MYSQL_DATABASE: nautilus
+      MYSQL_USER: nautilus
+      MYSQL_PASSWORD: nautilus123
+    volumes:
+      # Persist database data (comment out for fresh DB on each start)
+      - mariadb-data:/var/lib/mysql
+      # Custom MariaDB configuration for better performance
+      - ./docker/mariadb-config.cnf:/etc/mysql/conf.d/nautilus.cnf:ro
+    networks:
+      - nautilus-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # phpMyAdmin (Optional - for database management)
+  phpmyadmin:
+    image: docker.io/phpmyadmin:latest
+    container_name: nautilus-phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: Frogman09!
+      UPLOAD_LIMIT: 20M
+    depends_on:
+      - database
+    networks:
+      - nautilus-network
+    restart: unless-stopped
+
+volumes:
+  mariadb-data:
+    name: nautilus-mariadb-data
+  composer-cache:
+    name: nautilus-composer-cache
+
+networks:
+  nautilus-network:
+    name: nautilus-network
+    driver: bridge
