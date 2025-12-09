@@ -75,8 +75,15 @@ RUN mkdir -p /var/www/html/storage/logs \
     /var/www/html/public/uploads \
     && chown -R www-data:www-data /var/www/html
 
+# Copy entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Expose port 80
 EXPOSE 80
+
+# Use entrypoint to fix permissions on startup
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Start Apache
 CMD ["apache2-foreground"]

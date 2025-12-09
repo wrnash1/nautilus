@@ -14,7 +14,7 @@ define('ROOT_DIR', dirname(__DIR__));
 
 // Prevent access after installation
 if (file_exists(ROOT_DIR . '/.installed')) {
-    die('Nautilus is already installed. Delete .installed file to reinstall.');
+    header('Location: /'); exit;
 }
 
 $step = $_GET['step'] ?? 1;
@@ -49,7 +49,7 @@ if ($step == 2 && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'port' => $_POST['db_port'] ?? 3306,
         'database' => $_POST['db_name'],
         'username' => $_POST['db_user'],
-        'password' => $_POST['db_pass']
+        'password' => 'Frogman09!'  // Hardcoded for container
     ];
 
     try {
@@ -76,8 +76,17 @@ if ($step == 2 && $_SERVER['REQUEST_METHOD'] === 'POST') {
  */
 if ($step == 3) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $config = $_SESSION['db_config'];
+        // Redirect to CLI-based migration runner
+        header('Location: run_migrations.php');
+        exit;
+    }
+}
 
+// ORIGINAL STEP 3 PDO CODE - REPLACED WITH REDIRECT ABOVE
+/*
+if ($step == 3) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $config = $_SESSION['db_config'];
         try {
             set_time_limit(300); // 5 minutes for migration
             
@@ -191,7 +200,7 @@ if ($step == 4 && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->exec("UPDATE tenants SET name = " . $pdo->quote($company) . " WHERE id = 1");
 
         // Update admin user
-        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, password = ? WHERE id = 1");
+        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, password_hash = ? WHERE id = 1");
         $stmt->execute([$username, $email, $password]);
 
         // Mark as installed
@@ -283,10 +292,6 @@ if ($step == 4 && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="mb-3">
                         <label>Username</label>
                         <input type="text" name="db_user" class="form-control" value="root" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Password</label>
-                        <input type="password" name="db_pass" class="form-control" required>
                     </div>
                     <button type="submit" class="btn btn-primary btn-lg w-100">Test Connection & Continue →</button>
                 </form>

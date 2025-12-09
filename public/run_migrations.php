@@ -1,77 +1,93 @@
 <?php
 /**
- * AJAX Migration Runner - Processes migrations in small batches
+ * Migration runner - executes SQL files via MariaDB CLI
+ * Shows user-friendly progress instead of technical details
  */
-set_time_limit(30);
-require_once __DIR__ . '/../vendor/autoload.php';
-
-if (file_exists(__DIR__ . '/../.env')) {
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-    $dotenv->load();
-}
-
 session_start();
-$config = $_SESSION['db_config'] ?? [
-    'host' => $_ENV['DB_HOST'] ?? 'database',
-    'port' => $_ENV['DB_PORT'] ?? 3306,
-    'database' => $_ENV['DB_DATABASE'] ?? 'nautilus',
-    'username' => $_ENV['DB_USERNAME'] ?? 'root',
-    'password' => $_ENV['DB_PASSWORD'] ?? 'Frogman09!'
+
+// Get DB config from session or env
+$config = $_SESSION["db_config"] ?? [
+    "host" => getenv("DB_HOST") ?: "database",
+    "port" => getenv("DB_PORT") ?: "3306", 
+    "database" => getenv("DB_DATABASE") ?: "nautilus",
+    "username" => getenv("DB_USERNAME") ?: "root",
+    "password" => getenv("DB_PASSWORD") ?: "Frogman09!"
 ];
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installing Nautilus Database</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 50px 0; }
+        .install-card { max-width: 600px; margin: 0 auto; background: white; border-radius: 15px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .progress { height: 30px; }
+        .spinner-border { width: 3rem; height: 3rem; }
+        #status { font-size: 18px; color: #667eea; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="install-card text-center">
+            <h2 class="mb-4">🌊 Installing Nautilus Database</h2>
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="progress mb-3">
+                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                     role="progressbar" style="width: 0%">0%</div>
+            </div>
+            <div id="status">Initializing...</div>
+        </div>
+    </div>
 
-try {
-    $pdo = new PDO("mysql:host={$config['host']};port={$config['port']};dbname={$config['database']}",
-                   $config['username'], $config['password']);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    <script>
+    let processed = 0;
+    let total = 0;
+    let startTime = Date.now();
 
-    $pdo->exec("CREATE TABLE IF NOT EXISTS migrations (
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        migration VARCHAR(255) NOT NULL UNIQUE,
-        batch INT NOT NULL,
-        executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )");
+    async function runMigrations() {
+        try {
+            const response = await fetch('run_migrations_backend.php');
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
 
-    $executed = $pdo->query("SELECT migration FROM migrations")->fetchAll(PDO::FETCH_COLUMN);
-    $files = glob(__DIR__ . '/../database/migrations/*.sql');
-    sort($files);
+            while (true) {
+                const {done, value} = await reader.read();
+                if (done) break;
 
-    $batch_size = 5;
-    $processed = 0;
-    $results = [];
+                const text = decoder.decode(value);
+                const lines = text.split("\n");
 
-    foreach ($files as $file) {
-        $filename = basename($file);
-        if (in_array($filename, $executed) || $processed >= $batch_size) {
-            if ($processed >= $batch_size) break;
-            continue;
+                for (const line of lines) {
+                    if (line.startsWith("TOTAL:")) {
+                        total = parseInt(line.split(":")[1]);
+                    } else if (line.startsWith("PROGRESS:")) {
+                        processed = parseInt(line.split(":")[1]);
+                        const percent = Math.round((processed / total) * 100);
+                        document.getElementById("progressBar").style.width = percent + "%";
+                        document.getElementById("progressBar").textContent = percent + "%";
+                        
+                        const elapsed = Math.round((Date.now() - startTime) / 1000);
+                        document.getElementById("status").textContent = 
+                            `Processing migration ${processed} of ${total} (${elapsed}s elapsed)`;
+                    } else if (line.startsWith("COMPLETE")) {
+                        document.getElementById("status").innerHTML = 
+                            '<strong class="text-success">✓ Database installed successfully!</strong><br>Redirecting...';
+                        setTimeout(() => window.location = 'install.php?step=4', 2000);
+                    }
+                }
+            }
+        } catch (error) {
+            document.getElementById("status").innerHTML = 
+                '<span class="text-danger">Error: '+error.message+'</span>';
         }
-
-        $sql = file_get_contents($file);
-        $statements = array_filter(array_map('trim', explode(';', $sql)),
-            fn($s) => !empty($s) && !preg_match('/^\s*--/', $s));
-
-        foreach ($statements as $stmt) {
-            if (empty(trim($stmt))) continue;
-            try { $pdo->exec($stmt); } catch (PDOException $e) { }
-        }
-
-        $pdo->exec("INSERT IGNORE INTO migrations (migration, batch) VALUES ('{$filename}', 1)");
-        $results[] = $filename;
-        $processed++;
     }
 
-    $completed = count($pdo->query("SELECT migration FROM migrations")->fetchAll());
-
-    header('Content-Type: application/json');
-    echo json_encode([
-        'success' => true,
-        'processed' => $processed,
-        'completed' => $completed,
-        'total' => count($files),
-        'done' => $completed >= count($files),
-        'results' => $results
-    ]);
-} catch (Exception $e) {
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
-}
+    runMigrations();
+    </script>
+</body>
+</html>
