@@ -37,6 +37,11 @@ case "${1:-up}" in
         echo "🚀 Starting Nautilus development environment..."
         echo ""
         $COMPOSE_CMD up -d
+
+        # Fix file ownership for git/development (Podman user namespace issue)
+        echo "🔧 Fixing file permissions for development..."
+        podman unshare chown -R 0:0 .
+
         echo ""
         echo "✓ Containers started!"
         echo ""
