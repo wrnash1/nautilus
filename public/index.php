@@ -8,10 +8,14 @@
 // Define base path constant for the application
 define('BASE_PATH', dirname(__DIR__));
 
-// Check if application is installed
-if (!file_exists(BASE_PATH . '/.env') && !file_exists(BASE_PATH . '/.installed')) {
-    // Redirect to installer
-    header('Location: /install.php');
+// Check if application is installed - BOTH files must exist
+$envExists = file_exists(BASE_PATH . '/.env');
+$installedExists = file_exists(BASE_PATH . '/.installed');
+
+if (!$envExists || !$installedExists) {
+    // If either file is missing, redirect to installer
+    // This prevents redirect loops from partial installations
+    header('Location: /install_streamlined.php');
     exit;
 }
 
@@ -22,15 +26,9 @@ error_reporting(E_ALL);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// Only load .env if it exists (graceful handling)
-if (file_exists(BASE_PATH . '/.env')) {
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
-    $dotenv->load();
-} else {
-    // Redirect to installer if .env is missing
-    header('Location: /install.php');
-    exit;
-}
+// Load .env - already checked above
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
 
 // Set error reporting based on environment
 if ($_ENV['APP_ENV'] === 'production') {
@@ -84,10 +82,10 @@ $installedFile = __DIR__ . '/../.installed';
 $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $scriptName = basename($_SERVER['SCRIPT_FILENAME'] ?? '');
 
-// If not installed and not accessing installer, redirect to installer
-if (!file_exists($installedFile) && $scriptName !== 'install.php') {
-    // Redirect to standalone installer (install.php)
-    header('Location: /install.php');
+// Additional check: if not installed and not accessing installer
+// This is redundant now but kept for safety
+if (!file_exists($installedFile) && $scriptName !== 'install_streamlined.php' && $scriptName !== 'install.php' && $scriptName !== 'run_migrations.php' && $scriptName !== 'run_migrations_backend.php') {
+    header('Location: /install_streamlined.php');
     exit;
 }
 

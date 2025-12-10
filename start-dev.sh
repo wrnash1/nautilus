@@ -52,6 +52,14 @@ case "${1:-up}" in
         podman exec nautilus-web find /var/www/html -type f -name "*.php" -exec chmod 644 {} \;
         podman exec nautilus-web find /var/www/html/public -type d -exec chmod 755 {} \;
 
+        # Ensure storage directories exist and are writable
+        podman exec nautilus-web mkdir -p /var/www/html/storage/logs
+        podman exec nautilus-web mkdir -p /var/www/html/storage/cache
+        podman exec nautilus-web mkdir -p /var/www/html/storage/sessions
+        podman exec nautilus-web mkdir -p /var/www/html/storage/backups
+        podman exec nautilus-web chown -R www-data:www-data /var/www/html/storage
+        podman exec nautilus-web chmod -R 775 /var/www/html/storage
+
         echo ""
         echo "✓ Containers started!"
         echo ""
@@ -79,7 +87,14 @@ case "${1:-up}" in
         echo "🔄 Restarting Nautilus development environment..."
         $COMPOSE_CMD down
         $COMPOSE_CMD up -d
-        echo "✓ Containers restarted!"
+
+        # Fix permissions after restart
+        echo "🔧 Fixing file permissions..."
+        podman unshare chown -R 0:0 .
+        podman exec nautilus-web chown -R www-data:www-data /var/www/html/storage
+        podman exec nautilus-web chmod -R 775 /var/www/html/storage
+
+        echo "✓ Containers restarted and permissions fixed!"
         ;;
 
     reset|fresh)
@@ -94,9 +109,16 @@ case "${1:-up}" in
             echo ""
             echo "Starting fresh environment..."
             $COMPOSE_CMD up -d
+
+            # Fix permissions after fresh install
+            echo "🔧 Fixing file permissions..."
+            podman unshare chown -R 0:0 .
+            podman exec nautilus-web chown -R www-data:www-data /var/www/html/storage
+            podman exec nautilus-web chmod -R 775 /var/www/html/storage
+
             echo ""
             echo "✓ Fresh install ready!"
-            echo "  Visit: http://localhost:8080/install.php"
+            echo "  Visit: http://localhost:8080/install_streamlined.php"
         else
             echo "Cancelled."
         fi
@@ -136,20 +158,39 @@ case "${1:-up}" in
         echo "✓ Build complete!"
         ;;
 
+    fix-permissions|perms)
+        echo "🔧 Fixing file permissions..."
+        echo ""
+        echo "  Fixing host file ownership (for git)..."
+        podman unshare chown -R 0:0 .
+        echo "  ✓ Host files owned by your user"
+        echo ""
+        echo "  Fixing container file permissions (for web server)..."
+        podman exec nautilus-web chown -R www-data:www-data /var/www/html/storage
+        podman exec nautilus-web chmod -R 775 /var/www/html/storage
+        podman exec nautilus-web find /var/www/html -type f -name "*.php" -exec chmod 644 {} \;
+        podman exec nautilus-web find /var/www/html/public -type d -exec chmod 755 {} \;
+        echo "  ✓ Container files readable by web server"
+        echo ""
+        echo "✓ All permissions fixed!"
+        echo "  You can now use git commands and the web application will work."
+        ;;
+
     help|*)
         echo "Nautilus Development Environment - Quick Start"
         echo ""
         echo "Usage: ./start-dev.sh [command]"
         echo ""
         echo "Commands:"
-        echo "  up, start    Start the development environment (default)"
-        echo "  down, stop   Stop all containers"
-        echo "  restart      Restart all containers"
-        echo "  reset, fresh Destroy all data and start fresh (for clean install testing)"
-        echo "  logs         Show container logs"
-        echo "  shell, bash  Open shell in web container"
-        echo "  db, mysql    Connect to MariaDB database"
-        echo "  status, ps   Show container status"
+        echo "  up, start         Start the development environment (default)"
+        echo "  down, stop        Stop all containers"
+        echo "  restart           Restart all containers (fixes permissions automatically)"
+        echo "  fix-permissions   Fix git and web server file permissions"
+        echo "  reset, fresh      Destroy all data and start fresh (for clean install testing)"
+        echo "  logs              Show container logs"
+        echo "  shell, bash       Open shell in web container"
+        echo "  db, mysql         Connect to MariaDB database"
+        echo "  status, ps        Show container status"
         echo "  build        Rebuild containers from scratch"
         echo "  help         Show this help message"
         echo ""

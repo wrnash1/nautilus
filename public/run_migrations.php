@@ -5,14 +5,21 @@
  */
 session_start();
 
+// Check if this is a quick install from streamlined installer
+$isQuickInstall = isset($_GET['quick_install']) && $_SESSION['install_data'] ?? false;
+
 // Get DB config from session or env
-$config = $_SESSION["db_config"] ?? [
-    "host" => getenv("DB_HOST") ?: "database",
-    "port" => getenv("DB_PORT") ?: "3306", 
-    "database" => getenv("DB_DATABASE") ?: "nautilus",
-    "username" => getenv("DB_USERNAME") ?: "root",
-    "password" => getenv("DB_PASSWORD") ?: "Frogman09!"
-];
+if ($isQuickInstall) {
+    $config = $_SESSION['install_data'];
+} else {
+    $config = $_SESSION["db_config"] ?? [
+        "host" => getenv("DB_HOST") ?: "database",
+        "port" => getenv("DB_PORT") ?: "3306",
+        "database" => getenv("DB_DATABASE") ?: "nautilus",
+        "username" => getenv("DB_USERNAME") ?: "root",
+        "password" => getenv("DB_PASSWORD") ?: "Frogman09!"
+    ];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -75,9 +82,14 @@ $config = $_SESSION["db_config"] ?? [
                         document.getElementById("status").textContent = 
                             `Processing migration ${processed} of ${total} (${elapsed}s elapsed)`;
                     } else if (line.startsWith("COMPLETE")) {
-                        document.getElementById("status").innerHTML = 
+                        document.getElementById("status").innerHTML =
                             '<strong class="text-success">✓ Database installed successfully!</strong><br>Redirecting...';
-                        setTimeout(() => window.location = 'install.php?step=4', 2000);
+                        const isQuickInstall = <?= json_encode($isQuickInstall) ?>;
+                        if (isQuickInstall) {
+                            setTimeout(() => window.location = '/', 2000);
+                        } else {
+                            setTimeout(() => window.location = 'install.php?step=4', 2000);
+                        }
                     }
                 }
             }
