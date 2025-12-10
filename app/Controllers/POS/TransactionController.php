@@ -39,20 +39,21 @@ class TransactionController
 
             // Get rental equipment
             $stmt = $db->query("
-                SELECT id, name, daily_rate, stock_quantity, sku
+                SELECT id, name, daily_rate, equipment_code as sku, status
                 FROM rental_equipment
-                WHERE is_active = 1 AND stock_quantity > 0
+                WHERE status = 'available'
                 ORDER BY name
             ");
             $rentals = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             // Get upcoming trips
             $stmt = $db->query("
-                SELECT t.id, t.name, t.price, t.start_date, t.max_spots,
-                       (SELECT COUNT(*) FROM trip_bookings WHERE trip_id = t.id AND status != 'cancelled') as booked_spots
+                SELECT t.id, t.name, t.price, ts.departure_date as start_date,
+                       ts.max_participants as max_spots, ts.current_bookings as booked_spots
                 FROM trips t
-                WHERE t.start_date >= CURDATE() AND t.status = 'scheduled'
-                ORDER BY t.start_date
+                INNER JOIN trip_schedules ts ON t.id = ts.trip_id
+                WHERE ts.departure_date >= CURDATE() AND ts.status = 'scheduled' AND t.is_active = 1
+                ORDER BY ts.departure_date
             ");
             $trips = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 

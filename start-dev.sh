@@ -42,6 +42,16 @@ case "${1:-up}" in
         echo "🔧 Fixing file permissions for development..."
         podman unshare chown -R 0:0 .
 
+        # Fix container permissions for web server
+        podman exec nautilus-web chown -R www-data:www-data /var/www/html/storage
+        podman exec nautilus-web chmod -R 775 /var/www/html/storage
+        podman exec nautilus-web chgrp www-data /var/www/html
+        podman exec nautilus-web chmod 775 /var/www/html
+
+        # Fix PHP file permissions (readable by web server)
+        podman exec nautilus-web find /var/www/html -type f -name "*.php" -exec chmod 644 {} \;
+        podman exec nautilus-web find /var/www/html/public -type d -exec chmod 755 {} \;
+
         echo ""
         echo "✓ Containers started!"
         echo ""
