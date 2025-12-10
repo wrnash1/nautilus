@@ -2,19 +2,33 @@
 # Nautilus Docker entrypoint script
 set -e
 
-echo "Nautilus: Setting up permissions..."
+echo "Nautilus: Setting up permissions and directories..."
 
-# Fix ownership - the mounted volume might be owned by host user
-chown -R www-data:www-data /var/www/html
+# Create storage directories if they don't exist
+mkdir -p /var/www/html/storage/logs
+mkdir -p /var/www/html/storage/sessions
+mkdir -p /var/www/html/storage/cache
+mkdir -p /var/www/html/storage/backups
+mkdir -p /var/www/html/public/uploads
+
+# Fix ownership - CRITICAL: www-data must be able to write .env and .installed
+chown www-data:www-data /var/www/html
+chown -R www-data:www-data /var/www/html/storage
+chown -R www-data:www-data /var/www/html/public/uploads
 
 # Ensure directories are writable
 chmod 775 /var/www/html
-chmod -R 775 /var/www/html/storage 2>/dev/null || true
-chmod -R 775 /var/www/html/public/uploads 2>/dev/null || true
+chmod -R 775 /var/www/html/storage
+chmod -R 775 /var/www/html/public/uploads
+
+# Fix PHP files to be readable by web server
+find /var/www/html/public -type f -name "*.php" -exec chmod 644 {} \; 2>/dev/null || true
+find /var/www/html/app -type f -name "*.php" -exec chmod 644 {} \; 2>/dev/null || true
 
 # Fix .env and .installed if they exist
 [ -f /var/www/html/.env ] && chown www-data:www-data /var/www/html/.env && chmod 664 /var/www/html/.env
-[ -f /var/www/html/.installed ] && chown www-data:www-data /var/www/html/.installed
+[ -f /var/www/html/.installed ] && chown www-data:www-data /var/www/html/.installed && chmod 664 /var/www/html/.installed
 
+echo "Nautilus: Permissions set. Storage is writable by www-data."
 echo "Nautilus: Starting Apache..."
 exec "$@"

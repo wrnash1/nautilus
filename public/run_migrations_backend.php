@@ -33,14 +33,21 @@ $processed = 0;
 
 foreach ($files as $file) {
     $filename = basename($file);
-    
+
+    // Support both old installer format and streamlined installer format
+    $host = $config["host"] ?? $config["db_host"] ?? "database";
+    $port = $config["port"] ?? $config["db_port"] ?? "3306";
+    $database = $config["database"] ?? $config["db_name"] ?? "nautilus";
+    $username = $config["username"] ?? $config["db_user"] ?? "nautilus";
+    $password = $config["password"] ?? $config["db_pass"] ?? "nautilus123";
+
     $cmd = sprintf(
         "mariadb -h%s -P%s -u%s -p%s %s < %s 2>&1",
-        escapeshellarg($config["host"]),
-        escapeshellarg($config["port"]),
-        escapeshellarg($config["username"]),
-        escapeshellarg($config["password"]),
-        escapeshellarg($config["database"]),
+        escapeshellarg($host),
+        escapeshellarg($port),
+        escapeshellarg($username),
+        escapeshellarg($password),
+        escapeshellarg($database),
         escapeshellarg($file)
     );
     

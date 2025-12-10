@@ -12,6 +12,13 @@
 session_start();
 define('ROOT_DIR', dirname(__DIR__));
 
+// Redirect to streamlined installer by default
+// Users can still access this by going directly to install.php?legacy=1
+if (!isset($_GET['legacy'])) {
+    header('Location: /install_streamlined.php');
+    exit;
+}
+
 // Prevent access after installation
 if (file_exists(ROOT_DIR . '/.installed')) {
     header('Location: /'); exit;
