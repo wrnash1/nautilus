@@ -73,7 +73,7 @@ RUN mkdir -p /var/www/html/storage/logs \
     /var/www/html/storage/sessions \
     /var/www/html/storage/cache \
     /var/www/html/public/uploads \
-    && chown -R www-data:www-data /var/www/html
+    /var/www/html/public/uploads
 
 # Copy entrypoint script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh

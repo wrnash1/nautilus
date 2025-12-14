@@ -12,7 +12,8 @@ mkdir -p /var/www/html/storage/backups
 mkdir -p /var/www/html/public/uploads
 
 # Fix ownership - CRITICAL: www-data must be able to write .env and .installed
-chown www-data:www-data /var/www/html
+# We DO NOT chown the entire /var/www/html to avoid breaking git permissions for the host user
+# chown www-data:www-data /var/www/html
 chown -R www-data:www-data /var/www/html/storage
 chown -R www-data:www-data /var/www/html/public/uploads
 
