@@ -47,6 +47,8 @@ case "${1:-up}" in
         podman exec nautilus-web chmod -R 775 /var/www/html/storage
         podman exec nautilus-web chgrp www-data /var/www/html
         podman exec nautilus-web chmod 775 /var/www/html
+        touch .env .installed
+        chmod 666 .env .installed
 
         # Fix PHP file permissions (readable by web server)
         podman exec nautilus-web find /var/www/html -type f -name "*.php" -exec chmod 644 {} \;
@@ -93,6 +95,8 @@ case "${1:-up}" in
         podman unshare chown -R 0:0 .
         podman exec nautilus-web chown -R www-data:www-data /var/www/html/storage
         podman exec nautilus-web chmod -R 775 /var/www/html/storage
+        touch .env .installed
+        chmod 666 .env .installed
 
         echo "✓ Containers restarted and permissions fixed!"
         ;;
@@ -115,6 +119,8 @@ case "${1:-up}" in
             podman unshare chown -R 0:0 .
             podman exec nautilus-web chown -R www-data:www-data /var/www/html/storage
             podman exec nautilus-web chmod -R 775 /var/www/html/storage
+            touch .env .installed
+            chmod 666 .env .installed
 
             echo ""
             echo "✓ Fresh install ready!"
@@ -170,6 +176,11 @@ case "${1:-up}" in
         podman exec nautilus-web chmod -R 775 /var/www/html/storage
         podman exec nautilus-web find /var/www/html -type f -name "*.php" -exec chmod 644 {} \;
         podman exec nautilus-web find /var/www/html/public -type d -exec chmod 755 {} \;
+        # CRITICAL: Ensure .env and .installed are writable by container regardless of ownership
+        # This fixes the redirect loop where installer cannot persist state
+        touch .env .installed
+        chmod 666 .env .installed
+        echo "  ✓ .env and .installed are world-writable"
         echo "  ✓ Container files readable by web server"
         echo ""
         echo "✓ All permissions fixed!"

@@ -5,4 +5,4 @@
 -- Keeping this file for migration order, but it does nothing
 -- ============================================================================
 
-SELECT 'Migration 015b: Skipped (handled by migration 101)' AS status;
+-- SELECT 'Migration 015b: Skipped (handled by migration 101)' AS status;

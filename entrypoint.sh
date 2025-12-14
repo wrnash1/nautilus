@@ -26,9 +26,12 @@ chmod -R 775 /var/www/html/public/uploads
 find /var/www/html/public -type f -name "*.php" -exec chmod 644 {} \; 2>/dev/null || true
 find /var/www/html/app -type f -name "*.php" -exec chmod 644 {} \; 2>/dev/null || true
 
-# Fix .env and .installed if they exist
-[ -f /var/www/html/.env ] && chown www-data:www-data /var/www/html/.env && chmod 664 /var/www/html/.env
-[ -f /var/www/html/.installed ] && chown www-data:www-data /var/www/html/.installed && chmod 664 /var/www/html/.installed
+# Fix .env and .installed - ensure they exist and are writable by www-data
+# This allows the installer to overwrite them since it cannot write to the root directory
+touch /var/www/html/.env
+touch /var/www/html/.installed
+chown www-data:www-data /var/www/html/.env /var/www/html/.installed
+chmod 664 /var/www/html/.env /var/www/html/.installed
 
 echo "Nautilus: Permissions set. Storage is writable by www-data."
 echo "Nautilus: Starting Apache..."

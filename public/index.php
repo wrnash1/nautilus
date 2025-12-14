@@ -8,14 +8,15 @@
 // Define base path constant for the application
 define('BASE_PATH', dirname(__DIR__));
 
-// Check if application is installed - BOTH files must exist
+// Check if application is installed - BOTH files must exist and .installed must have content
 $envExists = file_exists(BASE_PATH . '/.env');
 $installedExists = file_exists(BASE_PATH . '/.installed');
+$installedValid = $installedExists && filesize(BASE_PATH . '/.installed') > 0;
 
-if (!$envExists || !$installedExists) {
+if (!$envExists || !$installedValid) {
     // If either file is missing, redirect to installer
     // This prevents redirect loops from partial installations
-    header('Location: /install_streamlined.php');
+    header('Location: /install.php');
     exit;
 }
 

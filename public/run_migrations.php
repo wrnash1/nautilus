@@ -6,7 +6,8 @@
 session_start();
 
 // Check if this is a quick install from streamlined installer
-$isQuickInstall = isset($_GET['quick_install']) && $_SESSION['install_data'] ?? false;
+// Fix: Use isset() for both to avoid undefined index warnings and ensure boolean result
+$isQuickInstall = isset($_GET['quick_install']) && isset($_SESSION['install_data']);
 
 // Get DB config from session or env
 if ($isQuickInstall) {
@@ -28,26 +29,59 @@ if ($isQuickInstall) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Installing Nautilus Database</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 50px 0; }
-        .install-card { max-width: 600px; margin: 0 auto; background: white; border-radius: 15px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .progress { height: 30px; }
-        .spinner-border { width: 3rem; height: 3rem; }
-        #status { font-size: 18px; color: #667eea; margin-top: 20px; }
+        body { margin: 0; overflow-x: hidden; font-family: 'Inter', sans-serif; height: 100vh; }
+        .installer-container { display: flex; height: 100vh; width: 100vw; }
+        .side-panel { flex: 1; position: relative; overflow: hidden; display: none; }
+        .side-panel img { width: 100%; height: 100%; object-fit: cover; }
+        .main-panel { flex: 0 0 100%; padding: 40px; display: flex; flex-direction: column; justify-content: center; background: white; z-index: 10; }
+        
+        @media (min-width: 992px) {
+            .side-panel { display: block; flex: 0 0 25%; }
+            .main-panel { flex: 0 0 50%; box-shadow: 0 0 50px rgba(0,0,0,0.1); }
+        }
+
+        h1 { font-family: 'Cinzel', serif; color: #1a365d; font-weight: 600; margin-bottom: 20px; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.5)); }
+        
+        .progress { height: 20px; border-radius: 10px; background-color: #edf2f7; overflow: hidden; }
+        .progress-bar { background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%); transition: width 0.3s ease; }
+        .status-text { color: #4a5568; font-weight: 500; min-height: 24px; }
+        .stage-title { color: #2d3748; font-weight: 600; margin-bottom: 30px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="install-card text-center">
-            <h2 class="mb-4">🌊 Installing Nautilus Database</h2>
-            <div class="spinner-border text-primary mb-3" role="status">
-                <span class="visually-hidden">Loading...</span>
+    <div class="installer-container">
+        <!-- Left Panel: Diver -->
+        <div class="side-panel">
+            <img src="/images/diver.png" alt="Diver">
+            <div class="overlay"></div>
+        </div>
+
+        <!-- Center Panel: Progress -->
+        <div class="main-panel">
+            <div style="max-width: 500px; margin: 0 auto; width: 100%; text-align: center;">
+                <h1 class="display-6">INITIALIZING</h1>
+                <p class="stage-title">Setting up your dive shop database...</p>
+
+                <div class="spinner-border text-primary mb-4" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                
+                <div class="progress mb-3 shadow-sm">
+                    <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%"></div>
+                </div>
+                
+                <div id="status" class="status-text">Starting installation...</div>
             </div>
-            <div class="progress mb-3">
-                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
-                     role="progressbar" style="width: 0%">0%</div>
-            </div>
-            <div id="status">Initializing...</div>
+        </div>
+
+        <!-- Right Panel: Coral -->
+        <div class="side-panel">
+            <img src="/images/coral.png" alt="Coral">
+            <div class="overlay"></div>
         </div>
     </div>
 
@@ -76,14 +110,13 @@ if ($isQuickInstall) {
                         processed = parseInt(line.split(":")[1]);
                         const percent = Math.round((processed / total) * 100);
                         document.getElementById("progressBar").style.width = percent + "%";
-                        document.getElementById("progressBar").textContent = percent + "%";
                         
                         const elapsed = Math.round((Date.now() - startTime) / 1000);
                         document.getElementById("status").textContent = 
-                            `Processing migration ${processed} of ${total} (${elapsed}s elapsed)`;
+                            `Processing table ${processed} of ${total} (${elapsed}s)`;
                     } else if (line.startsWith("COMPLETE")) {
                         document.getElementById("status").innerHTML =
-                            '<strong class="text-success">✓ Database installed successfully!</strong><br>Redirecting...';
+                            '<strong class="text-success">✓ Setup Complete! Launching...</strong>';
                         const isQuickInstall = <?= json_encode($isQuickInstall) ?>;
                         if (isQuickInstall) {
                             setTimeout(() => window.location = '/', 2000);

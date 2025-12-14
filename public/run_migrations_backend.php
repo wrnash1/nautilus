@@ -8,8 +8,12 @@ header("X-Accel-Buffering: no"); // Disable nginx buffering
 ob_implicit_flush(true);
 
 // Check if this is a quick install from streamlined installer
-$isQuickInstall = isset($_SESSION['install_data']);
+$debugMsg = "Backend started. Session ID: " . session_id() . "\n";
+$debugMsg .= "Session Data: " . print_r($_SESSION, true) . "\n";
+file_put_contents('/tmp/debug_install.log', $debugMsg, FILE_APPEND);
+file_put_contents('/var/www/html/storage/logs/install_debug.log', $debugMsg, FILE_APPEND);
 
+$isQuickInstall = isset($_SESSION['install_data']);
 if ($isQuickInstall) {
     $config = $_SESSION['install_data'];
 } else {
@@ -23,6 +27,11 @@ if ($isQuickInstall) {
 }
 
 $files = glob("/var/www/html/database/migrations/*.sql");
+$globError = error_get_last();
+file_put_contents('/var/www/html/storage/logs/install_debug.log', "Glob result count: " . count($files) . "\n", FILE_APPEND);
+if ($files === false) {
+    file_put_contents('/var/www/html/storage/logs/install_debug.log', "Glob failed! Error: " . print_r($globError, true) . "\n", FILE_APPEND);
+}
 sort($files);
 
 $total = count($files);
@@ -33,29 +42,39 @@ $processed = 0;
 
 foreach ($files as $file) {
     $filename = basename($file);
-
-    // Support both old installer format and streamlined installer format
-    $host = $config["host"] ?? $config["db_host"] ?? "database";
-    $port = $config["port"] ?? $config["db_port"] ?? "3306";
-    $database = $config["database"] ?? $config["db_name"] ?? "nautilus";
-    $username = $config["username"] ?? $config["db_user"] ?? "nautilus";
-    $password = $config["password"] ?? $config["db_pass"] ?? "nautilus123";
-
-    $cmd = sprintf(
-        "mariadb -h%s -P%s -u%s -p%s %s < %s 2>&1",
-        escapeshellarg($host),
-        escapeshellarg($port),
-        escapeshellarg($username),
-        escapeshellarg($password),
-        escapeshellarg($database),
-        escapeshellarg($file)
-    );
+    // Use MySQLi for migrations to avoid PDO "unbuffered query" issues with multi-statement SQL
+    $mysqli = new mysqli($config['db_host'], $config['db_user'], $config['db_pass'], $config['db_name'], $config['db_port']);
     
-    exec($cmd, $output, $return_code);
+    if ($mysqli->connect_error) {
+         $error = "Connection failed: " . $mysqli->connect_error;
+         file_put_contents('/var/www/html/storage/logs/install_debug.log', $error . "\n", FILE_APPEND);
+         echo "ERROR:$error\n";
+         exit;
+    }
+
+    $sql = file_get_contents($file);
     
-    $processed++;
-    echo "PROGRESS:$processed\n";
-    flush();
+    if ($mysqli->multi_query($sql)) {
+        do {
+            // consume results to clear stack
+            if ($result = $mysqli->store_result()) {
+                $result->free();
+            }
+        } while ($mysqli->more_results() && $mysqli->next_result());
+        
+        $processed++;
+        echo "PROGRESS:$processed\n";
+        flush();
+        file_put_contents('/var/www/html/storage/logs/install_debug.log', "Executed: $filename\n", FILE_APPEND);
+    } else {
+        $error = "Migration failed ($filename): " . $mysqli->error;
+        file_put_contents('/var/www/html/storage/logs/install_debug.log', $error . "\n", FILE_APPEND);
+        echo "ERROR:$error\n";
+        $mysqli->close();
+        exit;
+    }
+    
+    $mysqli->close();
     
     usleep(50000); // Small delay so user can see progress
 }
@@ -65,6 +84,7 @@ $_SESSION["db_installed"] = true;
 
 // If quick install, create .env file and admin account
 if ($isQuickInstall) {
+    file_put_contents('/var/www/html/storage/logs/install_debug.log', "Quick install block entered\n", FILE_APPEND);
     $rootDir = dirname(__DIR__);
 
     // Create .env file
@@ -79,7 +99,8 @@ if ($isQuickInstall) {
     $envContent .= "DB_USERNAME={$config['db_user']}\n";
     $envContent .= "DB_PASSWORD={$config['db_pass']}\n";
 
-    file_put_contents($rootDir . '/.env', $envContent);
+    $envResult = file_put_contents($rootDir . '/.env', $envContent);
+    file_put_contents('/var/www/html/storage/logs/install_debug.log', "Env write result: " . ($envResult === false ? "FALSE" : $envResult) . "\n", FILE_APPEND);
 
     // Create admin account
     try {
@@ -101,9 +122,13 @@ if ($isQuickInstall) {
         ]);
 
         // Mark as installed
-        file_put_contents($rootDir . '/.installed', date('Y-m-d H:i:s'));
+        $instResult = file_put_contents($rootDir . '/.installed', date('Y-m-d H:i:s'));
+        file_put_contents('/var/www/html/storage/logs/install_debug.log', "Installed write result: " . ($instResult === false ? "FALSE" : $instResult) . "\n", FILE_APPEND);
 
     } catch (PDOException $e) {
+        file_put_contents('/var/www/html/storage/logs/install_debug.log', "DB Error: " . $e->getMessage() . "\n", FILE_APPEND);
         echo "ERROR:Failed to create admin: " . $e->getMessage() . "\n";
     }
+} else {
+    file_put_contents('/var/www/html/storage/logs/install_debug.log', "Quick install block SKIPPED. Session: " . print_r($_SESSION, true) . "\n", FILE_APPEND);
 }
