@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `email_queue` (
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`campaign_id`) REFERENCES `marketing_campaigns`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`campaign_id`) REFERENCES `email_campaigns`(`id`) ON DELETE SET NULL,
 
     INDEX `idx_status` (`status`),
     INDEX `idx_priority` (`priority`, `created_at`),
@@ -67,156 +67,18 @@ CREATE TABLE IF NOT EXISTS `email_queue` (
     INDEX `idx_tracking` (`tracking_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Email Templates
--- Email Templates (Created in 011)
--- CREATE TABLE IF NOT EXISTS `email_templates` (
---     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
---     `tenant_id` INT UNSIGNED NULL,
--- 
---     -- Template Identity
---     `name` VARCHAR(100) NOT NULL COMMENT 'Unique template identifier',
---     `display_name` VARCHAR(255) NOT NULL,
---     `description` TEXT NULL,
---     `category` VARCHAR(100) NULL COMMENT 'transactional, marketing, notification',
--- 
---     -- Template Content
---     `subject` VARCHAR(500) NOT NULL,
---     `body_html` LONGTEXT NULL,
---     `body_text` LONGTEXT NULL,
--- 
---     -- Default Settings
---     `from_email` VARCHAR(255) NULL,
---     `from_name` VARCHAR(255) NULL,
---     `reply_to` VARCHAR(255) NULL,
--- 
---     -- Variables & Customization
---     `available_variables` JSON NULL COMMENT 'List of available template variables',
---     `preview_data` JSON NULL COMMENT 'Sample data for previewing',
--- 
---     -- Status
---     `is_active` BOOLEAN DEFAULT TRUE,
---     `is_system` BOOLEAN DEFAULT FALSE COMMENT 'System templates cannot be deleted',
--- 
---     -- Versioning
---     `version` INT DEFAULT 1,
--- 
---     -- Timestamps
---     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---     `created_by` INT UNSIGNED NULL,
--- 
---     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
---     FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
--- 
---     UNIQUE KEY `unique_template_name` (`tenant_id`, `name`),
---     INDEX `idx_category` (`category`),
---     INDEX `idx_active` (`is_active`)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- Update email_templates table to match requirements
-SET @dbname = DATABASE();
-SET @tablename = "email_templates";
-
--- Add tenant_id
-SET @columnname = "tenant_id";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE email_templates ADD COLUMN tenant_id INT UNSIGNED NULL AFTER id;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
-
--- Add display_name
-SET @columnname = "display_name";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE email_templates ADD COLUMN display_name VARCHAR(255) NOT NULL AFTER name;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
-
--- Add description
-SET @columnname = "description";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE email_templates ADD COLUMN description TEXT NULL AFTER display_name;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
-
--- Add category
-SET @columnname = "category";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE email_templates ADD COLUMN category VARCHAR(100) NULL AFTER description;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
-
--- Add body_html
-SET @columnname = "body_html";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE email_templates ADD COLUMN body_html LONGTEXT NULL AFTER subject;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
-
--- Add body_text
-SET @columnname = "body_text";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE email_templates ADD COLUMN body_text LONGTEXT NULL AFTER body_html;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
-
--- Add is_system
-SET @columnname = "is_system";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE email_templates ADD COLUMN is_system BOOLEAN DEFAULT FALSE AFTER is_active;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
-
--- Add available_variables
-SET @columnname = "available_variables";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE email_templates ADD COLUMN available_variables JSON NULL AFTER is_system;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS display_name VARCHAR(255) NOT NULL AFTER name;
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS description TEXT NULL AFTER display_name;
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS category VARCHAR(100) NULL AFTER description;
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS body_html LONGTEXT NULL AFTER subject;
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS body_text LONGTEXT NULL AFTER body_html;
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS is_system BOOLEAN DEFAULT FALSE AFTER is_active;
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS available_variables JSON NULL AFTER is_system;
 
 -- Make content nullable as we are using body_html/body_text now
-SET @dbname = DATABASE();
-SET @tablename = "email_templates";
-SET @columnname = "content";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "ALTER TABLE email_templates MODIFY COLUMN content LONGTEXT NULL;",
-  "SELECT 1"
-));
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+ALTER TABLE email_templates MODIFY COLUMN content LONGTEXT NULL;
 
 -- Email Log (for sent emails)
 CREATE TABLE IF NOT EXISTS `email_log` (
@@ -253,7 +115,7 @@ CREATE TABLE IF NOT EXISTS `email_log` (
 
     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE SET NULL,
-    FOREIGN KEY (`campaign_id`) REFERENCES `marketing_campaigns`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`campaign_id`) REFERENCES `email_campaigns`(`id`) ON DELETE SET NULL,
 
     INDEX `idx_to_email` (`to_email`),
     INDEX `idx_sent` (`sent_at`),
@@ -303,44 +165,44 @@ CREATE TABLE IF NOT EXISTS `email_automation_rules` (
     INDEX `idx_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Seed Default Email Templates
-INSERT INTO `email_templates` (`name`, `display_name`, `description`, `category`, `subject`, `body_html`, `body_text`, `is_system`, `available_variables`) VALUES
+-- Seed Default Email Templates (Using INSERT IGNORE to prevent duplicates)
+INSERT IGNORE INTO `email_templates` (`name`, `display_name`, `description`, `category`, `subject`, `body_html`, `body_text`, `is_system`, `available_variables`) VALUES
 ('order_confirmation', 'Order Confirmation', 'Sent when a customer places an order', 'transactional', 'Order Confirmation - {{order_number}}',
 '<h1>Thank you for your order!</h1><p>Order #{{order_number}}</p><p>Total: {{order_total}}</p>',
 'Thank you for your order! Order #{{order_number}}. Total: {{order_total}}',
-TRUE, '["customer_name", "order_number", "order_total", "order_date", "items"]'),
+1, '["customer_name", "order_number", "order_total", "order_date", "items"]'),
 
 ('cert_expiring_soon', 'Certification Expiring Soon', 'Reminds customers their certification is expiring', 'notification', 'Your {{cert_name}} Expires Soon',
 '<h2>Certification Renewal Reminder</h2><p>Hi {{customer_name}},</p><p>Your {{cert_name}} certification expires on {{expiry_date}}.</p>',
 'Hi {{customer_name}}, Your {{cert_name}} certification expires on {{expiry_date}}.',
-TRUE, '["customer_name", "cert_name", "cert_number", "expiry_date"]'),
+1, '["customer_name", "cert_name", "cert_number", "expiry_date"]'),
 
 ('course_completion', 'Course Completion', 'Congratulates student on course completion', 'transactional', 'Congratulations on Completing {{course_name}}!',
 '<h1>Congratulations!</h1><p>You have successfully completed {{course_name}}.</p><p>Certification Number: {{cert_number}}</p>',
 'Congratulations! You completed {{course_name}}. Certification Number: {{cert_number}}',
-TRUE, '["customer_name", "course_name", "completion_date", "cert_number"]'),
+1, '["customer_name", "course_name", "completion_date", "cert_number"]'),
 
 ('medical_form_reminder', 'Medical Form Reminder', 'Reminds customers to complete medical form', 'notification', 'Medical Form Required',
 '<h2>Medical Form Required</h2><p>Hi {{customer_name}},</p><p>Please complete your medical form before your next dive.</p>',
 'Hi {{customer_name}}, Please complete your medical form before your next dive.',
-TRUE, '["customer_name", "form_link"]'),
+1, '["customer_name", "form_link"]'),
 
 ('waiver_reminder', 'Waiver Reminder', 'Reminds customers to sign waiver', 'notification', 'Liability Waiver Required',
 '<h2>Liability Waiver Required</h2><p>Hi {{customer_name}},</p><p>Please sign your liability waiver: {{waiver_link}}</p>',
 'Hi {{customer_name}}, Please sign your liability waiver: {{waiver_link}}',
-TRUE, '["customer_name", "waiver_link"]'),
+1, '["customer_name", "waiver_link"]'),
 
 ('booking_confirmation', 'Booking Confirmation', 'Confirms trip/dive booking', 'transactional', 'Booking Confirmed - {{trip_name}}',
 '<h1>Booking Confirmed!</h1><p>Trip: {{trip_name}}</p><p>Date: {{trip_date}}</p><p>Total: {{total}}</p>',
 'Booking Confirmed! Trip: {{trip_name}}, Date: {{trip_date}}, Total: {{total}}',
-TRUE, '["customer_name", "trip_name", "trip_date", "trip_location", "total"]'),
+1, '["customer_name", "trip_name", "trip_date", "trip_location", "total"]'),
 
 ('password_reset', 'Password Reset', 'Password reset instructions', 'transactional', 'Reset Your Password',
 '<h2>Password Reset Request</h2><p>Click here to reset your password: {{reset_link}}</p><p>This link expires in 24 hours.</p>',
 'Click here to reset your password: {{reset_link}}. This link expires in 24 hours.',
-TRUE, '["customer_name", "reset_link"]'),
+1, '["customer_name", "reset_link"]'),
 
 ('welcome_email', 'Welcome Email', 'Welcome new customers', 'marketing', 'Welcome to Our Dive Shop!',
 '<h1>Welcome {{customer_name}}!</h1><p>We are excited to have you join our diving community.</p>',
 'Welcome {{customer_name}}! We are excited to have you join our diving community.',
-TRUE, '["customer_name", "dive_shop_name"]');
+1, '["customer_name", "dive_shop_name"]');

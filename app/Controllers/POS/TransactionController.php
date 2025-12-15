@@ -28,7 +28,7 @@ class TransactionController
             $customers = Customer::all(100, 0);
 
             // Get active courses for enrollment
-            $db = Database::getInstance();
+            $db = Database::getInstance()->getConnection();
             $stmt = $db->query("
                 SELECT id, course_code, name, price, duration_days, max_students
                 FROM courses
@@ -192,5 +192,31 @@ class TransactionController
         }
         
         redirect('/pos');
+    }
+
+    public function setCustomer()
+    {
+        if (!hasPermission('pos.view')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        $customerId = (int)($_POST['customer_id'] ?? 0);
+        
+        if ($customerId > 0) {
+            $_SESSION['active_customer_id'] = $customerId;
+            jsonResponse(['success' => true]);
+        } else {
+            jsonResponse(['error' => 'Invalid customer ID'], 400);
+        }
+    }
+
+    public function clearCustomer()
+    {
+        if (!hasPermission('pos.view')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        unset($_SESSION['active_customer_id']);
+        jsonResponse(['success' => true]);
     }
 }

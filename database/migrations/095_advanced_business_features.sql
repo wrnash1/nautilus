@@ -168,7 +168,13 @@ CREATE TABLE IF NOT EXISTS `cash_drawer_operations` (
 
 -- Loyalty Programs
 -- Drop the old loyalty_programs table if it exists (from migration 011) and recreate with new schema
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS `loyalty_points`; -- Dependent table from 011
+DROP TABLE IF EXISTS `loyalty_tiers`;  -- Dependent table from 011
+DROP TABLE IF EXISTS `coupon_usage`;   -- Might reference things
 DROP TABLE IF EXISTS `loyalty_programs`;
+SET FOREIGN_KEY_CHECKS = 1;
+
 CREATE TABLE `loyalty_programs` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `tenant_id` INT UNSIGNED NOT NULL,
@@ -521,37 +527,37 @@ CREATE TABLE IF NOT EXISTS `customer_memberships` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- Sample Data
+-- Sample Data (Commented out to prevent FK errors if tenant 1 doesn't exist)
 -- =====================================================
 
 -- Sample POS Terminal
-INSERT INTO `pos_terminals` (
-    `tenant_id`, `terminal_name`, `terminal_number`, `register_number`,
-    `device_type`, `has_cash_drawer`, `has_barcode_scanner`, `status`
-) VALUES
-(1, 'Main Register', 'POS-001', 1, 'ipad', TRUE, TRUE, 'active'),
-(1, 'Rental Desk', 'POS-002', 2, 'ipad', FALSE, TRUE, 'active');
+-- INSERT INTO `pos_terminals` (
+--     `tenant_id`, `terminal_name`, `terminal_number`, `register_number`,
+--     `device_type`, `has_cash_drawer`, `has_barcode_scanner`, `status`
+-- ) VALUES
+-- (1, 'Main Register', 'POS-001', 1, 'ipad', TRUE, TRUE, 'active'),
+-- (1, 'Rental Desk', 'POS-002', 2, 'ipad', FALSE, TRUE, 'active');
 
 -- Sample Loyalty Program
-INSERT INTO `loyalty_programs` (
-    `tenant_id`, `program_name`, `program_type`, `earn_rate`, `redemption_rate`,
-    `signup_bonus_points`, `birthday_bonus_points`, `is_active`
-) VALUES
-(1, 'Dive Rewards', 'points', 1.00, 0.01, 100, 50, TRUE);
+-- INSERT INTO `loyalty_programs` (
+--     `tenant_id`, `program_name`, `program_type`, `earn_rate`, `redemption_rate`,
+--     `signup_bonus_points`, `birthday_bonus_points`, `is_active`
+-- ) VALUES
+-- (1, 'Dive Rewards', 'points', 1.00, 0.01, 100, 50, TRUE);
 
 -- Sample Membership Plans
-INSERT INTO `membership_plans` (
-    `tenant_id`, `plan_name`, `plan_type`, `billing_cycle`, `price`,
-    `benefits`, `discount_percentage`, `is_active`
-) VALUES
-(1, 'Dive Club Monthly', 'dive_club', 'monthly', 49.99,
-    '["10% off all courses", "Free air fills", "Priority booking", "Monthly newsletter"]',
-    10.00, TRUE),
-
-(1, 'VIP Annual Membership', 'vip', 'annual', 499.99,
-    '["20% off courses", "Free equipment rental (1/month)", "Unlimited air fills", "Free boat dives (2/month)", "Private events access"]',
-    20.00, TRUE),
-
-(1, 'Unlimited Air Fills', 'unlimited_air', 'monthly', 29.99,
-    '["Unlimited air fills", "10% off equipment purchases"]',
-    10.00, TRUE);
+-- INSERT INTO `membership_plans` (
+--     `tenant_id`, `plan_name`, `plan_type`, `billing_cycle`, `price`,
+--     `benefits`, `discount_percentage`, `is_active`
+-- ) VALUES
+-- (1, 'Dive Club Monthly', 'dive_club', 'monthly', 49.99,
+--     '["10% off all courses", "Free air fills", "Priority booking", "Monthly newsletter"]',
+--     10.00, TRUE),
+-- 
+-- (1, 'VIP Annual Membership', 'vip', 'annual', 499.99,
+--     '["20% off courses", "Free equipment rental (1/month)", "Unlimited air fills", "Free boat dives (2/month)", "Private events access"]',
+--     20.00, TRUE),
+-- 
+-- (1, 'Unlimited Air Fills', 'unlimited_air', 'monthly', 29.99,
+--     '["Unlimited air fills", "10% off equipment purchases"]',
+--     10.00, TRUE);

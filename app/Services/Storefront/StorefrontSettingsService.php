@@ -14,7 +14,7 @@ class StorefrontSettingsService
 
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        $this->db = Database::getInstance()->getConnection();
         $this->cache = Cache::getInstance();
     }
 
@@ -99,6 +99,46 @@ class StorefrontSettingsService
         }
 
         return $settings;
+    }
+
+    /**
+     * Get store statistics for frontend display
+     */
+    public function getStoreStats(): array
+    {
+        $stats = [
+            'certified_divers' => 0,
+            'years_experience' => 0,
+            'customer_rating' => 5.0,
+            'dive_destinations' => 0
+        ];
+
+        try {
+            // Certified Divers
+            $stats['certified_divers'] = $this->db->query("SELECT COUNT(*) FROM customer_certifications")->fetchColumn();
+
+            // Years Experience
+            $foundingYear = $this->get('founding_year', 'general');
+            if ($foundingYear) {
+                $stats['years_experience'] = date('Y') - (int)$foundingYear;
+            } else {
+                // Fallback attempt to guess or default
+                $stats['years_experience'] = 10; // Default placeholder
+            }
+
+            // Customer Rating
+            $rating = $this->get('social_google_rating', 'social');
+            $stats['customer_rating'] = $rating ? (float)$rating : 5.0;
+
+            // Dive Trips (This Year) - Interpreting "Dive destinations" as "Trips this year" per user request
+            $currentYear = date('Y');
+            $stats['dive_destinations'] = $this->db->query("SELECT COUNT(*) FROM trip_schedules WHERE YEAR(start_date) = '$currentYear'")->fetchColumn();
+
+        } catch (\PDOException $e) {
+            // Keep defaults on error
+        }
+
+        return $stats;
     }
 
     /**
@@ -470,6 +510,102 @@ class StorefrontSettingsService
     {
         $stmt = $this->db->prepare("UPDATE promotional_banners SET click_count = click_count + 1 WHERE id = ?");
         return $stmt->execute([$bannerId]);
+    }
+
+    /**
+     * Get all banners (for admin)
+     */
+    public function getAllBanners(): array
+    {
+        try {
+            $stmt = $this->db->query("SELECT * FROM promotional_banners ORDER BY created_at DESC");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Get banner by ID
+     */
+    public function getBanner(int $id)
+    {
+        $stmt = $this->db->prepare("SELECT * FROM promotional_banners WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Create banner
+     */
+    public function createBanner(array $data): int
+    {
+        $stmt = $this->db->prepare("
+            INSERT INTO promotional_banners (
+                banner_type, title, content, button_text, button_url,
+                is_active, start_date, end_date, show_on_pages, display_order, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+
+        $stmt->execute([
+            $data['banner_type'] ?? 'info',
+            $data['title'] ?? null,
+            $data['content'],
+            $data['button_text'] ?? null,
+            $data['button_url'] ?? null,
+            $data['is_active'] ?? true,
+            $data['start_date'] ?? null,
+            $data['end_date'] ?? null,
+            isset($data['show_on_pages']) ? json_encode($data['show_on_pages']) : null,
+            $data['display_order'] ?? 0,
+            $_SESSION['user_id'] ?? null
+        ]);
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    /**
+     * Update banner
+     */
+    public function updateBanner(int $id, array $data): bool
+    {
+        $fields = [];
+        $values = [];
+        
+        $allowedFields = [
+            'banner_type', 'title', 'content', 'button_text', 'button_url',
+            'is_active', 'start_date', 'end_date', 'show_on_pages', 'display_order'
+        ];
+
+        foreach ($allowedFields as $field) {
+            if (array_key_exists($field, $data)) {
+                $fields[] = "$field = ?";
+                if ($field === 'show_on_pages' && is_array($data[$field])) {
+                     $values[] = json_encode($data[$field]);
+                } else {
+                     $values[] = $data[$field];
+                }
+            }
+        }
+
+        if (empty($fields)) {
+            return false;
+        }
+
+        $values[] = $id;
+        $sql = "UPDATE promotional_banners SET " . implode(', ', $fields) . " WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute($values);
+    }
+
+    /**
+     * Delete banner
+     */
+    public function deleteBanner(int $id): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM promotional_banners WHERE id = ?");
+        return $stmt->execute([$id]);
     }
 
     /**

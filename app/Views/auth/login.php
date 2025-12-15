@@ -166,6 +166,9 @@
                 
                 <form method="POST" action="<?= url('/store/login') ?>">
                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                    <?php if (isset($_GET['redirect']) || isset($_POST['redirect'])): ?>
+                    <input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? $_POST['redirect']) ?>">
+                    <?php endif; ?>
                     
                     <div class="mb-3">
                         <label for="email" class="form-label">Email Address</label>

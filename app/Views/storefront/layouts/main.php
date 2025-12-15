@@ -14,17 +14,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <!-- Dynamic Theme CSS -->
-    <style id="theme-variables">
-        <?php
-        if (isset($themeEngine) && isset($theme)) {
-            echo $themeEngine->generateThemeCSS($theme);
-        }
-        ?>
-    </style>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Storefront CSS -->
     <link rel="stylesheet" href="/assets/css/storefront.css">
+
+    <!-- Modern Theme Variables & Utilities (Loaded last to override) -->
+    <link rel="stylesheet" href="/assets/css/modern-theme.css">
 
     <?php if (!empty($theme['custom_head_html'])): ?>
     <?= $theme['custom_head_html'] ?>

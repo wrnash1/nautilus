@@ -9,7 +9,8 @@ class LoginController
     public function showLogin()
     {
         if (Auth::check()) {
-            redirect('/store');
+            $redirect = $_GET['redirect'] ?? '/store';
+            redirect($redirect);
         }
 
         require __DIR__ . '/../../Views/auth/login.php';
@@ -26,11 +27,12 @@ class LoginController
         }
 
         if (Auth::attempt($email, $password)) {
-            redirect('/store');
+            $redirect = $_POST['redirect'] ?? '/store';
+            redirect($redirect);
         }
 
         $_SESSION['flash_error'] = 'Invalid email or password';
-        redirect('/store/login');
+        redirect('/store/login' . (isset($_POST['redirect']) ? '?redirect=' . urlencode($_POST['redirect']) : ''));
     }
 
     public function logout()

@@ -62,6 +62,13 @@ class SettingsController
             $this->settings->set('business_state', $_POST['business_state'] ?? '');
             $this->settings->set('business_zip', $_POST['business_zip'] ?? '');
             $this->settings->set('business_country', $_POST['business_country'] ?? 'US');
+            $this->settings->set('business_hours', $_POST['business_hours'] ?? '');
+            
+            // Regional Settings
+            $this->settings->set('timezone', $_POST['timezone'] ?? 'America/New_York');
+            $this->settings->set('currency', $_POST['currency'] ?? 'USD');
+            $this->settings->set('date_format', $_POST['date_format'] ?? 'Y-m-d');
+            $this->settings->set('time_format', $_POST['time_format'] ?? 'g:i A');
             
             // Update branding
             $this->settings->set('brand_primary_color', $_POST['brand_primary_color'] ?? '#0066cc');

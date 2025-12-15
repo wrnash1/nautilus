@@ -1,3 +1,0 @@
-Quick install block entered
-Env write result: FALSE
-DB Error: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nautilus.tenants' doesn't exist

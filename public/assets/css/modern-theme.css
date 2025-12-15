@@ -85,13 +85,27 @@
     --radius-full: 9999px;
 
     /* Typography */
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
     /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Storefront Compatibility Mappings */
+    --primary-color: var(--primary-500);
+    --secondary-color: var(--gray-500);
+    --accent-color: var(--primary-400);
+    --link-color: var(--primary-600);
+    --link-hover-color: var(--primary-700);
+    --font-primary: var(--font-sans);
+    --heading-color: var(--text-primary);
+    --text-color: var(--text-primary);
+    --body-bg: var(--bg-secondary);
+    --footer-bg: var(--gray-900);
+    --header-bg: rgba(255, 255, 255, 0.85);
 }
 
 /* Dark Theme */
@@ -115,6 +129,10 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+
+    /* Storefront Dark Mode Mappings */
+    --header-bg: rgba(17, 24, 39, 0.85);
+    --footer-bg: #111827;
 }
 
 /* Global Styles */
@@ -128,6 +146,16 @@ body {
     color: var(--text-primary);
     line-height: 1.5;
     transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
 }
 
 /* Modern Card Component */
@@ -487,7 +515,9 @@ body {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Modern Modal */
@@ -548,34 +578,76 @@ body {
 
 /* Glassmorphism Effect */
 .glass {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-nav {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 [data-theme="dark"] .glass {
     background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .glass-nav {
+    background: rgba(17, 24, 39, 0.85);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Gradient Text */
 .gradient-text {
-    background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-400));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
 /* Utility Classes */
-.shadow-sm { box-shadow: var(--shadow-sm); }
-.shadow-md { box-shadow: var(--shadow-md); }
-.shadow-lg { box-shadow: var(--shadow-lg); }
-.shadow-xl { box-shadow: var(--shadow-xl); }
+.shadow-sm {
+    box-shadow: var(--shadow-sm);
+}
 
-.rounded-sm { border-radius: var(--radius-sm); }
-.rounded-md { border-radius: var(--radius-md); }
-.rounded-lg { border-radius: var(--radius-lg); }
-.rounded-xl { border-radius: var(--radius-xl); }
-.rounded-full { border-radius: var(--radius-full); }
+.shadow-md {
+    box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+    box-shadow: var(--shadow-lg);
+}
+
+.shadow-xl {
+    box-shadow: var(--shadow-xl);
+}
+
+.rounded-sm {
+    border-radius: var(--radius-sm);
+}
+
+.rounded-md {
+    border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+    border-radius: var(--radius-lg);
+}
+
+.rounded-xl {
+    border-radius: var(--radius-xl);
+}
+
+.rounded-full {
+    border-radius: var(--radius-full);
+}
 
 /* Responsive Grid */
 .grid-modern {
@@ -583,12 +655,24 @@ body {
     gap: var(--spacing-lg);
 }
 
-.grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
-.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-cols-1 {
+    grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
 
 @media (max-width: 768px) {
+
     .grid-cols-2,
     .grid-cols-3,
     .grid-cols-4 {
@@ -597,6 +681,7 @@ body {
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
+
     .grid-cols-3,
     .grid-cols-4 {
         grid-template-columns: repeat(2, 1fr);
@@ -609,8 +694,13 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .slide-up {
@@ -622,6 +712,7 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -630,6 +721,7 @@ body {
 
 /* Print Styles */
 @media print {
+
     .theme-toggle,
     .no-print {
         display: none !important;

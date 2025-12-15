@@ -641,27 +641,28 @@
     </section>
 
     <!-- Stats Section -->
+    <!-- Stats Section -->
     <section class="stats-section">
         <div class="container">
             <div class="stats-grid">
                 <div class="stat-item">
                     <i class="fas fa-users"></i>
-                    <div class="stat-number">5,000+</div>
+                    <div class="stat-number"><?= number_format($data['store_stats']['certified_divers'] ?? 5000) ?>+</div>
                     <div class="stat-label">Certified Divers</div>
                 </div>
                 <div class="stat-item">
                     <i class="fas fa-trophy"></i>
-                    <div class="stat-number">25+</div>
+                    <div class="stat-number"><?= $data['store_stats']['years_experience'] ?? 25 ?>+</div>
                     <div class="stat-label">Years Experience</div>
                 </div>
                 <div class="stat-item">
                     <i class="fas fa-star"></i>
-                    <div class="stat-number">4.9/5</div>
+                    <div class="stat-number"><?= $data['store_stats']['customer_rating'] ?? 4.9 ?>/5</div>
                     <div class="stat-label">Customer Rating</div>
                 </div>
                 <div class="stat-item">
                     <i class="fas fa-globe"></i>
-                    <div class="stat-number">50+</div>
+                    <div class="stat-number"><?= $data['store_stats']['dive_destinations'] ?? 50 ?>+</div>
                     <div class="stat-label">Dive Destinations</div>
                 </div>
             </div>
@@ -685,10 +686,18 @@
                     <h4>About Nautilus</h4>
                     <p>Your premier destination for scuba diving training, equipment, and unforgettable underwater adventures since 1999.</p>
                     <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <?php if(!empty($data['social_links']['social_facebook'])): ?>
+                            <a href="<?= htmlspecialchars($data['social_links']['social_facebook']) ?>" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <?php endif; ?>
+                        <?php if(!empty($data['social_links']['social_instagram'])): ?>
+                            <a href="<?= htmlspecialchars($data['social_links']['social_instagram']) ?>" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <?php endif; ?>
+                        <?php if(!empty($data['social_links']['social_twitter'])): ?>
+                            <a href="<?= htmlspecialchars($data['social_links']['social_twitter']) ?>" target="_blank"><i class="fab fa-twitter"></i></a>
+                        <?php endif; ?>
+                        <?php if(!empty($data['social_links']['social_youtube'])): ?>
+                            <a href="<?= htmlspecialchars($data['social_links']['social_youtube']) ?>" target="_blank"><i class="fab fa-youtube"></i></a>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div>

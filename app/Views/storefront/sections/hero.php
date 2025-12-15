@@ -43,14 +43,14 @@ $ctaSecondaryUrl = $config['cta_secondary_url'] ?? null;
                 <?php if ($showCTA): ?>
                 <div class="hero-cta">
                     <a href="<?= htmlspecialchars($ctaPrimaryUrl) ?>"
-                       class="btn btn-lg btn-primary me-3 px-5 py-3"
+                       class="btn btn-lg btn-primary btn-modern me-3 px-5 py-3 shadow-lg"
                        style="font-size: 1.2rem;">
                         <?= htmlspecialchars($ctaPrimaryText) ?>
                     </a>
 
                     <?php if ($ctaSecondaryText && $ctaSecondaryUrl): ?>
                     <a href="<?= htmlspecialchars($ctaSecondaryUrl) ?>"
-                       class="btn btn-lg btn-outline-light px-5 py-3"
+                       class="btn btn-lg btn-outline-light btn-modern px-5 py-3 glass"
                        style="font-size: 1.2rem;">
                         <?= htmlspecialchars($ctaSecondaryText) ?>
                     </a>

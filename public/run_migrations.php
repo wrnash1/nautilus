@@ -106,14 +106,13 @@ if ($isQuickInstall) {
                 for (const line of lines) {
                     if (line.startsWith("TOTAL:")) {
                         total = parseInt(line.split(":")[1]);
+                    } else if (line.startsWith("START:")) {
+                        const name = line.split(":")[1];
+                        document.getElementById("status").textContent = `Installing: ${name}...`;
                     } else if (line.startsWith("PROGRESS:")) {
                         processed = parseInt(line.split(":")[1]);
                         const percent = Math.round((processed / total) * 100);
                         document.getElementById("progressBar").style.width = percent + "%";
-                        
-                        const elapsed = Math.round((Date.now() - startTime) / 1000);
-                        document.getElementById("status").textContent = 
-                            `Processing table ${processed} of ${total} (${elapsed}s)`;
                     } else if (line.startsWith("COMPLETE")) {
                         document.getElementById("status").innerHTML =
                             '<strong class="text-success">✓ Setup Complete! Launching...</strong>';

@@ -134,8 +134,8 @@ CREATE TABLE IF NOT EXISTS compliance_snapshots (
 -- These help with audit queries that join to other tables
 
 -- Index on permission_audit_log if it exists (from previous migration)
-CREATE INDEX IF NOT EXISTS idx_permission_audit_action ON permission_audit_log(action);
-CREATE INDEX IF NOT EXISTS idx_permission_audit_created ON permission_audit_log(created_at);
+-- Redundant as table is created in 060 with indexes
+-- Skipping duplicate index creation to prevent errors
 
 -- Insert sample audit report templates
 INSERT INTO audit_report_templates (tenant_id, template_name, description, report_type, filters, is_scheduled)

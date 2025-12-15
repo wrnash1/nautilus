@@ -36,8 +36,16 @@ $router->get('/product/{id}', 'Storefront\StorefrontController@productDetail');
 // Courses & Trips (Public)
 $router->get('/courses', 'Storefront\StorefrontController@courses');
 $router->get('/course/{id}', 'Storefront\StorefrontController@courseDetail');
+$router->get('/courses/first-aid', 'Storefront\StorefrontController@firstAid');
 $router->get('/trips', 'Storefront\StorefrontController@trips');
 $router->get('/trip/{id}', 'Storefront\StorefrontController@tripDetail');
+$router->get('/liveaboard', 'Storefront\StorefrontController@liveaboard');
+$router->get('/resorts', 'Storefront\StorefrontController@resorts');
+
+// Services & Rentals (Public)
+$router->get('/services/repair', 'Storefront\StorefrontController@repair');
+$router->get('/services/fills', 'Storefront\StorefrontController@fills');
+$router->get('/rentals', 'Storefront\StorefrontController@rentals');
 
 // Shopping Cart (Public)
 $router->get('/cart', 'Storefront\ModernStorefrontController@cart');
@@ -104,11 +112,20 @@ $router->get('/store/storefront/navigation', 'Admin\Storefront\StorefrontControl
 $router->post('/store/storefront/assets/upload', 'Admin\Storefront\StorefrontController@uploadAsset', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/storefront/preview', 'Admin\Storefront\StorefrontController@previewTheme', [AuthMiddleware::class]);
 
+// Announcements / Promotional Banners
+$router->get('/store/storefront/announcements', 'Admin\Storefront\AnnouncementController@index', [AuthMiddleware::class]);
+$router->get('/store/storefront/announcements/create', 'Admin\Storefront\AnnouncementController@create', [AuthMiddleware::class]);
+$router->post('/store/storefront/announcements', 'Admin\Storefront\AnnouncementController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/storefront/announcements/{id}/edit', 'Admin\Storefront\AnnouncementController@edit', [AuthMiddleware::class]);
+$router->post('/store/storefront/announcements/{id}', 'Admin\Storefront\AnnouncementController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/storefront/announcements/{id}/delete', 'Admin\Storefront\AnnouncementController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
 // POS (Point of Sale)
 $router->get('/store/pos', 'POS\TransactionController@index', [AuthMiddleware::class]);
 $router->get('/store/pos/search', 'POS\TransactionController@searchProducts', [AuthMiddleware::class]);
 $router->post('/store/pos/checkout', 'POS\TransactionController@checkout', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/pos/receipt/{id}', 'POS\TransactionController@receipt', [AuthMiddleware::class]);
+$router->post('/store/pos/set-customer', 'POS\TransactionController@setCustomer', [AuthMiddleware::class]);
+$router->post('/store/pos/clear-customer', 'POS\TransactionController@clearCustomer', [AuthMiddleware::class]);
 
 // CRM - Customers
 $router->get('/store/customers', 'CRM\CustomerController@index', [AuthMiddleware::class]);

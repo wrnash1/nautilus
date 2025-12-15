@@ -39,7 +39,7 @@ if (!isset($config['db_host']) && isset($config['host'])) {
     $config['db_pass'] = $config['password'];
 }
 
-$files = glob("/var/www/html/database/migrations/*.sql");
+$files = glob("/var/www/html/database/migrations/080_create_system_settings.sql");
 $globError = error_get_last();
 file_put_contents('/var/www/html/storage/logs/install_debug.log', "Glob result count: " . count($files) . "\n", FILE_APPEND);
 if ($files === false) {

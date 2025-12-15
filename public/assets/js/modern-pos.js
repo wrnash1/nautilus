@@ -30,6 +30,13 @@ const debounce = (func, wait) => {
 
 const showToast = (message, type = 'info') => {
     const toast = document.getElementById('posToast');
+    // If toast element doesn't exist, create it or fallback to alert/console
+    if (!toast) {
+        // Fallback to console if toast is missing, but keep it clean
+        // console.log(`[${type}] ${message}`);
+        return;
+    }
+
     const toastBody = toast.querySelector('.toast-body');
 
     toast.classList.remove('toast-success', 'toast-error', 'toast-info');
@@ -48,12 +55,24 @@ const updateClock = () => {
         minute: '2-digit',
         second: '2-digit'
     });
-    document.getElementById('currentTime').textContent = timeString;
+    const dateString = now.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+    });
+
+    const timeEl = document.getElementById('posCurrentTime');
+    if (timeEl) timeEl.textContent = timeString;
+
+    const dateEl = document.getElementById('posCurrentDate');
+    if (dateEl) dateEl.textContent = dateString;
 };
 
 // Confetti Animation
 const triggerConfetti = () => {
     const canvas = document.getElementById('confettiCanvas');
+    if (!canvas) return; // Guard clause
+
     const ctx = canvas.getContext('2d');
 
     canvas.style.display = 'block';
@@ -145,25 +164,29 @@ const updateCart = () => {
     const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
     // Update badges
-    // Update badges
     const cartItemCount = document.getElementById('cartItemCount');
-    if (cartItemCount) cartItemCount.textContent = `${itemCount} items`;
+    if (cartItemCount) cartItemCount.textContent = `${itemCount}`;
 
     const fabBadge = document.getElementById('fabBadge');
     if (fabBadge) fabBadge.textContent = itemCount;
 
-    const container = document.getElementById('cartItemsContainer');
+    const container = document.getElementById('cartItemsList');
+    if (!container) return; // Safety check
 
     if (cart.length === 0) {
         container.innerHTML = `
             <div class="empty-cart-state">
                 <i class="bi bi-cart-x"></i>
                 <p>Your cart is empty</p>
-                <small>Start adding products to begin</small>
+                <small>Click items on the left to add them</small>
             </div>
         `;
-        document.getElementById('clearCartBtn').disabled = true;
-        document.getElementById('checkoutBtn').disabled = true;
+        const clearBtn = document.getElementById('clearCartBtn');
+        if (clearBtn) clearBtn.disabled = true;
+
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        if (checkoutBtn) checkoutBtn.disabled = true;
+
         document.getElementById('cartSubtotal').textContent = '$0.00';
         document.getElementById('cartTax').textContent = '$0.00';
         document.getElementById('cartTotal').textContent = '$0.00';
@@ -211,8 +234,11 @@ const updateCart = () => {
     document.getElementById('cartTax').textContent = formatCurrency(tax);
     document.getElementById('cartTotal').textContent = formatCurrency(total);
 
-    document.getElementById('clearCartBtn').disabled = false;
-    document.getElementById('checkoutBtn').disabled = false;
+    const clearBtn = document.getElementById('clearCartBtn');
+    if (clearBtn) clearBtn.disabled = false;
+
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) checkoutBtn.disabled = false;
 
     // Add event listeners to new cart item buttons
     attachCartEventListeners();
@@ -251,6 +277,11 @@ const attachCartEventListeners = () => {
 };
 
 const addToCart = (productData, event) => {
+    // Ensure price is a number
+    if (typeof productData.price === 'string') {
+        productData.price = parseFloat(productData.price);
+    }
+
     const existingItem = cart.find(item => item.product_id === productData.product_id);
 
     if (existingItem) {
@@ -260,7 +291,7 @@ const addToCart = (productData, event) => {
         cart.push({
             product_id: productData.product_id,
             name: productData.name,
-            price: parseFloat(productData.price),
+            price: productData.price,
             sku: productData.sku,
             quantity: 1
         });
@@ -291,7 +322,8 @@ const clearCart = () => {
 const processCheckout = async () => {
     const customerIdInput = document.getElementById('selectedCustomerId');
     const customerId = customerIdInput ? customerIdInput.value : null;
-    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    const paymentElement = document.querySelector('input[name="paymentMethod"]:checked');
+    const paymentMethod = paymentElement ? paymentElement.value : 'cash';
 
     if (!customerId) {
         showToast('Please select a customer', 'error');
@@ -307,9 +339,14 @@ const processCheckout = async () => {
     const total = Math.round((subtotal * (1 + TAX_RATE)) * 100) / 100;
 
     // Show loading overlay
-    document.getElementById('loadingOverlay').classList.add('active');
-    document.getElementById('checkoutBtn').disabled = true;
-    document.getElementById('checkoutBtn').innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.classList.add('active');
+
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
+    }
 
     try {
         const response = await fetch('/pos/checkout', {
@@ -321,7 +358,6 @@ const processCheckout = async () => {
                 customer_id: customerId,
                 items: JSON.stringify(cart),
                 payment_method: paymentMethod,
-                amount_paid: total,
                 amount_paid: total,
                 csrf_token: typeof csrfToken !== 'undefined' ? csrfToken : ''
             })
@@ -338,15 +374,17 @@ const processCheckout = async () => {
 
             // Redirect after a brief delay
             setTimeout(() => {
-                window.location.href = data.redirect;
+                window.location.href = data.redirect || '/store/pos';
             }, 1500);
         } else {
             throw new Error(data.error || 'Checkout failed');
         }
     } catch (error) {
-        document.getElementById('loadingOverlay').classList.remove('active');
-        document.getElementById('checkoutBtn').disabled = false;
-        document.getElementById('checkoutBtn').innerHTML = '<i class="bi bi-check-circle-fill"></i> Complete Sale';
+        if (overlay) overlay.classList.remove('active');
+        if (checkoutBtn) {
+            checkoutBtn.disabled = false;
+            checkoutBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Complete Sale';
+        }
         showToast(error.message || 'An error occurred during checkout', 'error');
     }
 };
@@ -357,19 +395,19 @@ const searchProducts = debounce(async (query) => {
     const clearBtn = document.getElementById('clearSearch');
 
     if (query.length < 2) {
-        resultsContainer.innerHTML = '';
-        clearBtn.style.display = 'none';
+        if (resultsContainer) resultsContainer.innerHTML = '';
+        if (clearBtn) clearBtn.style.display = 'none';
         return;
     }
 
-    clearBtn.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'block';
 
     try {
         const response = await fetch(`/pos/search?q=${encodeURIComponent(query)}`);
         const products = await response.json();
 
         if (products.length === 0) {
-            resultsContainer.innerHTML = '<p class="text-muted text-center py-3">No products found</p>';
+            if (resultsContainer) resultsContainer.innerHTML = '<p class="text-muted text-center py-3">No products found</p>';
             return;
         }
 
@@ -393,7 +431,7 @@ const searchProducts = debounce(async (query) => {
         });
         html += '</div>';
 
-        resultsContainer.innerHTML = html;
+        if (resultsContainer) resultsContainer.innerHTML = html;
 
         // Add click listeners to search results
         document.querySelectorAll('.search-result-item').forEach(item => {
@@ -407,12 +445,12 @@ const searchProducts = debounce(async (query) => {
 
                 // Clear search
                 document.getElementById('productSearch').value = '';
-                resultsContainer.innerHTML = '';
-                clearBtn.style.display = 'none';
+                if (resultsContainer) resultsContainer.innerHTML = '';
+                if (clearBtn) clearBtn.style.display = 'none';
             });
         });
     } catch (error) {
-        resultsContainer.innerHTML = '<p class="text-danger text-center py-3">Error loading products</p>';
+        if (resultsContainer) resultsContainer.innerHTML = '<p class="text-danger text-center py-3">Error loading products</p>';
     }
 }, 300);
 
@@ -422,7 +460,7 @@ const filterByCategory = (category) => {
 
     products.forEach(product => {
         if (category === 'all' || product.dataset.category === category) {
-            product.style.display = 'block';
+            product.style.display = ''; // Revert to CSS default (block)
         } else {
             product.style.display = 'none';
         }
@@ -441,41 +479,52 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 250));
 
     // Product card click handlers
-    document.querySelectorAll('.product-card-modern').forEach(card => {
+    const cards = document.querySelectorAll('.product-card-modern');
+    cards.forEach(card => {
         const addBtn = card.querySelector('.btn-add-product');
 
-        addBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
+        if (addBtn) {
+            addBtn.addEventListener('click', function (e) {
+                e.preventDefault(); // Prevent default button action
+                e.stopPropagation();
+                addToCart({
+                    product_id: card.dataset.productId,
+                    name: card.dataset.productName,
+                    price: card.dataset.productPrice,
+                    sku: card.dataset.productSku
+                }, e);
+            });
+        }
+
+        // Double click on card to add
+        card.addEventListener('dblclick', function (e) {
+            e.preventDefault();
             addToCart({
-                product_id: parseInt(card.dataset.productId),
+                product_id: card.dataset.productId,
                 name: card.dataset.productName,
                 price: card.dataset.productPrice,
                 sku: card.dataset.productSku
             }, e);
         });
-
-        // Double click on card to add
-        card.addEventListener('dblclick', function (e) {
-            addToCart({
-                product_id: parseInt(this.dataset.productId),
-                name: this.dataset.productName,
-                price: this.dataset.productPrice,
-                sku: this.dataset.productSku
-            }, e);
-        });
     });
 
     // Search input
-    document.getElementById('productSearch').addEventListener('input', function (e) {
-        searchProducts(e.target.value);
-    });
+    const searchInput = document.getElementById('productSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function (e) {
+            searchProducts(e.target.value);
+        });
+    }
 
     // Clear search button
-    document.getElementById('clearSearch').addEventListener('click', function () {
-        document.getElementById('productSearch').value = '';
-        document.getElementById('searchResults').innerHTML = '';
-        this.style.display = 'none';
-    });
+    const clearSearchBtn = document.getElementById('clearSearch');
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function () {
+            document.getElementById('productSearch').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+            this.style.display = 'none';
+        });
+    }
 
     // Category filters
     document.querySelectorAll('.btn-category').forEach(btn => {
@@ -487,10 +536,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Clear cart button
-    document.getElementById('clearCartBtn').addEventListener('click', clearCart);
+    const clearCartBtn = document.getElementById('clearCartBtn');
+    if (clearCartBtn) clearCartBtn.addEventListener('click', clearCart);
 
     // Checkout button
-    document.getElementById('checkoutBtn').addEventListener('click', processCheckout);
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) checkoutBtn.addEventListener('click', processCheckout);
 
     // Mobile FAB cart button
     const fabCart = document.getElementById('fabCart');
@@ -508,47 +559,29 @@ document.addEventListener('DOMContentLoaded', function () {
         // Ctrl/Cmd + F for search
         if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
             e.preventDefault();
-            document.getElementById('productSearch').focus();
+            const search = document.getElementById('productSearch');
+            if (search) search.focus();
         }
 
         // Ctrl/Cmd + Enter for checkout
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            e.preventDefault();
-            if (!document.getElementById('checkoutBtn').disabled) {
+            const btn = document.getElementById('checkoutBtn');
+            if (btn && !btn.disabled) {
+                e.preventDefault();
                 processCheckout();
             }
         }
 
         // Escape to clear search
         if (e.key === 'Escape') {
-            document.getElementById('productSearch').value = '';
-            document.getElementById('searchResults').innerHTML = '';
-            document.getElementById('clearSearch').style.display = 'none';
-        }
-    });
+            const search = document.getElementById('productSearch');
+            if (search) search.value = '';
 
-    // Barcode scanner button (placeholder)
-    document.getElementById('scanBarcodeBtn').addEventListener('click', function () {
-        showToast('Barcode scanner feature coming soon!', 'info');
-        document.getElementById('productSearch').focus();
-    });
+            const results = document.getElementById('searchResults');
+            if (results) results.innerHTML = '';
 
-    // History button (placeholder)
-    document.getElementById('viewHistoryBtn').addEventListener('click', function () {
-        showToast('Transaction history feature coming soon!', 'info');
-    });
-
-    // Toggle view button (placeholder for list/grid view)
-    document.getElementById('toggleViewBtn').addEventListener('click', function () {
-        const icon = this.querySelector('i');
-        if (icon.classList.contains('bi-grid-3x3-gap')) {
-            icon.classList.remove('bi-grid-3x3-gap');
-            icon.classList.add('bi-list-ul');
-            this.innerHTML = '<i class="bi bi-list-ul"></i> List';
-        } else {
-            icon.classList.remove('bi-list-ul');
-            icon.classList.add('bi-grid-3x3-gap');
-            this.innerHTML = '<i class="bi bi-grid-3x3-gap"></i> Grid';
+            const clearBtn = document.getElementById('clearSearch');
+            if (clearBtn) clearBtn.style.display = 'none';
         }
     });
 
@@ -564,18 +597,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const resetTimer = () => {
         timeLeft = LOGOUT_TIME;
-        timerDisplay.style.display = 'none';
+        if (timerDisplay) timerDisplay.style.display = 'none';
     };
 
     const updateLogoutTimer = () => {
         timeLeft--;
 
-        if (timeLeft <= 60) {
+        if (timeLeft <= 60 && timerDisplay) {
             timerDisplay.style.display = 'block';
             const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
             const seconds = (timeLeft % 60).toString().padStart(2, '0');
-            countdownDisplay.textContent = `${minutes}:${seconds}`;
-        } else {
+            if (countdownDisplay) countdownDisplay.textContent = `${minutes}:${seconds}`;
+        } else if (timerDisplay) {
             timerDisplay.style.display = 'none';
         }
 
@@ -589,6 +622,77 @@ document.addEventListener('DOMContentLoaded', function () {
     activityEvents.forEach(event => {
         document.addEventListener(event, resetTimer);
     });
+
+    // Customer Selection Logic (New)
+    const setCustomer = async (id, name) => {
+        try {
+            await fetch('/store/pos/set-customer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    customer_id: id,
+                    csrf_token: typeof csrfToken !== 'undefined' ? csrfToken : ''
+                })
+            });
+
+            // Update UI
+            document.getElementById('customerSearchInput').value = name;
+            document.getElementById('selectedCustomerId').value = id;
+            document.getElementById('clearCustomerBtn').style.display = 'block';
+
+            // Also update badge text
+            const display = document.getElementById('customerNameDisplay');
+            if (display) {
+                display.textContent = name;
+                document.getElementById('activeCustomerBadge').classList.remove('d-none');
+                document.getElementById('activeCustomerBadge').classList.add('d-flex');
+            }
+
+            showToast(`Customer set to ${name}`, 'success');
+        } catch (error) {
+            console.error('Failed to set customer context', error);
+        }
+    };
+
+    const clearCustomer = async () => {
+        try {
+            await fetch('/store/pos/clear-customer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    csrf_token: typeof csrfToken !== 'undefined' ? csrfToken : ''
+                })
+            });
+
+            // Update UI
+            document.getElementById('customerSearchInput').value = '';
+            document.getElementById('selectedCustomerId').value = '';
+            document.getElementById('clearCustomerBtn').style.display = 'none';
+
+            const display = document.getElementById('customerNameDisplay');
+            if (display) {
+                display.textContent = 'Walk-In';
+                document.getElementById('activeCustomerBadge').classList.add('d-none');
+                document.getElementById('activeCustomerBadge').classList.remove('d-flex');
+            }
+
+            showToast('Customer cleared', 'info');
+        } catch (error) {
+            console.error('Failed to clear customer context', error);
+        }
+    };
+
+    const clearCustomerBtn = document.getElementById('clearCustomerBtn');
+    if (clearCustomerBtn) {
+        clearCustomerBtn.addEventListener('click', clearCustomer);
+    }
+
+    // Expose for usage in HTML onclicks if needed
+    window.setPosCustomer = setCustomer;
 
     // Start timer
     setInterval(updateLogoutTimer, 1000);

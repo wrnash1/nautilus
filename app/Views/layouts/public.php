@@ -23,6 +23,12 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <link href="/assets/css/modern-theme.css" rel="stylesheet">
     
     <style>
@@ -32,33 +38,8 @@
         }
 
         /* Public Navigation */
-        .public-navbar {
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 1rem 0;
-        }
+        /* Replaced by glass-nav and utility classes in modern-theme.css */
 
-        .public-navbar .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-
-        .public-navbar .nav-link {
-            color: #333;
-            font-weight: 500;
-            margin: 0 0.5rem;
-            transition: color 0.2s;
-        }
-
-        .public-navbar .nav-link:hover {
-            color: var(--primary-color);
-        }
-
-        .public-navbar .btn-primary {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
-        }
 
         /* Hero Section */
         .hero-section {
@@ -99,22 +80,22 @@
 </head>
 <body>
     <!-- Public Navigation -->
-    <nav class="navbar navbar-expand-lg public-navbar">
+    <nav class="navbar navbar-expand-lg glass-nav">
         <div class="container">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand font-heading" href="/">
                 <?php if ($company['logo_small']): ?>
                     <img src="<?= htmlspecialchars($company['logo_small']) ?>" alt="<?= htmlspecialchars($company['name']) ?>" style="height: 40px;">
                 <?php else: ?>
-                    <i class="bi bi-water"></i> <?= htmlspecialchars($company['name']) ?>
+                    <i class="bi bi-water text-primary"></i> <span class="gradient-text"><?= htmlspecialchars($company['name']) ?></span>
                 <?php endif; ?>
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#publicNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#publicNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
             <div class="collapse navbar-collapse" id="publicNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto fw-medium">
                     <li class="nav-item">
                         <a class="nav-link" href="/">Home</a>
                     </li>
@@ -133,14 +114,14 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/contact">Contact</a>
                     </li>
-                    <li class="nav-item ms-3">
-                        <a class="btn btn-outline-primary btn-sm" href="/account/login">
-                            <i class="bi bi-person"></i> Customer Login
+                    <li class="nav-item ms-lg-3">
+                        <a class="btn btn-outline-primary btn-sm rounded-pill px-3" href="/account/login">
+                            <i class="bi bi-person"></i> Customer
                         </a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a class="btn btn-primary btn-sm" href="/store/login">
-                            <i class="bi bi-shield-lock"></i> Staff Login
+                        <a class="btn btn-primary btn-sm rounded-pill px-3" href="/store/login">
+                            <i class="bi bi-shield-lock"></i> Staff
                         </a>
                     </li>
                 </ul>

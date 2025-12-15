@@ -5,8 +5,16 @@ namespace App\Controllers\Storefront;
 use App\Core\Controller;
 use App\Core\Database;
 
+use App\Services\Storefront\StorefrontSettingsService;
+
 class StorefrontController extends Controller
 {
+    private StorefrontSettingsService $settingsService;
+
+    public function __construct()
+    {
+        $this->settingsService = new StorefrontSettingsService();
+    }
     /**
      * Homepage - Modern storefront with carousel
      */
@@ -44,6 +52,22 @@ class StorefrontController extends Controller
      */
     private function renderStorefront(string $view, array $data = []): void
     {
+        // Global Storefront Data
+        $data['active_announcements'] = $this->settingsService->getActiveBanners();
+        $data['social_links'] = $this->settingsService->getByCategory('social'); // Get social links
+        $data['store_stats'] = $this->settingsService->getStoreStats(); // Get dynamic stats
+        
+        // Pass settings service for direct access
+        $data['settings'] = $this->settingsService;
+
+        // Pass flattened theme settings (using general category as fallback source)
+        $generalSettings = $this->settingsService->getByCategory('general');
+        $theme = [];
+        foreach ($generalSettings as $key => $val) {
+             $theme[$key] = $val['value'];
+        }
+        $data['theme'] = $theme;
+
         extract($data);
         require __DIR__ . '/../../Views/' . $view . '.php';
     }
@@ -115,6 +139,78 @@ class StorefrontController extends Controller
         ];
 
         $this->renderStorefront('storefront/contact', $data);
+    }
+
+    /**
+     * Liveaboard page
+     */
+    public function liveaboard(): void
+    {
+        $data = [
+            'business_name' => $this->getBusinessName()
+        ];
+
+        $this->renderStorefront('storefront/liveaboard', $data);
+    }
+
+    /**
+     * Resorts page
+     */
+    public function resorts(): void
+    {
+        $data = [
+            'business_name' => $this->getBusinessName()
+        ];
+
+        $this->renderStorefront('storefront/resorts', $data);
+    }
+
+    /**
+     * Repair Services page
+     */
+    public function repair(): void
+    {
+        $data = [
+            'business_name' => $this->getBusinessName()
+        ];
+
+        $this->renderStorefront('storefront/services/repair', $data);
+    }
+
+    /**
+     * Air Fills Services page
+     */
+    public function fills(): void
+    {
+        $data = [
+            'business_name' => $this->getBusinessName()
+        ];
+
+        $this->renderStorefront('storefront/services/fills', $data);
+    }
+
+    /**
+     * Rentals page
+     */
+    public function rentals(): void
+    {
+        $data = [
+            'business_name' => $this->getBusinessName()
+        ];
+
+        $this->renderStorefront('storefront/rentals', $data);
+    }
+
+    /**
+     * First Aid Course page
+     */
+    public function firstAid(): void
+    {
+        $data = [
+            'business_name' => $this->getBusinessName()
+        ];
+
+        $this->renderStorefront('storefront/courses/first_aid', $data);
     }
 
     /**

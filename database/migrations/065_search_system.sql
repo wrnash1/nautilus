@@ -80,52 +80,14 @@ CREATE TABLE IF NOT EXISTS popular_searches (
 
 -- Create full-text indexes for better search performance (conditional)
 -- These enable faster text searching on key fields
-SET @dbname = DATABASE();
-
 -- Products full-text search
-SET @tablename = "products";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'ft_products_search') > 0,
-  "SELECT 1",
-  "ALTER TABLE products ADD FULLTEXT INDEX ft_products_search (name, sku, description)"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+CREATE FULLTEXT INDEX IF NOT EXISTS ft_products_search ON products(name, sku, description);
 
 -- Customers full-text search
-SET @tablename = "customers";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'ft_customers_search') > 0,
-  "SELECT 1",
-  "ALTER TABLE customers ADD FULLTEXT INDEX ft_customers_search (first_name, last_name, email)"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+CREATE FULLTEXT INDEX IF NOT EXISTS ft_customers_search ON customers(first_name, last_name, email);
 
 -- Courses full-text search
-SET @tablename = "courses";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'ft_courses_search') > 0,
-  "SELECT 1",
-  "ALTER TABLE courses ADD FULLTEXT INDEX ft_courses_search (name, description)"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+CREATE FULLTEXT INDEX IF NOT EXISTS ft_courses_search ON courses(name, description);
 
 -- Equipment full-text search
-SET @tablename = "equipment";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-    WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'ft_equipment_search') > 0,
-  "SELECT 1",
-  "ALTER TABLE equipment ADD FULLTEXT INDEX ft_equipment_search (name, serial_number, description)"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+CREATE FULLTEXT INDEX IF NOT EXISTS ft_equipment_search ON equipment(name, serial_number, description);

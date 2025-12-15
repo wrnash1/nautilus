@@ -31,23 +31,23 @@
     </div>
 
     <!-- Main Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light py-3" style="<?= ($theme['header_style'] ?? 'solid') === 'sticky' ? 'position: sticky; top: 0; z-index: 1000;' : '' ?>">
+    <nav class="navbar navbar-expand-lg glass-nav" style="<?= ($theme['header_style'] ?? 'solid') === 'sticky' ? 'position: sticky; top: 0; z-index: 1000;' : '' ?>">
         <div class="container">
             <!-- Logo -->
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand font-heading" href="/">
                 <?php if (!empty($logo['file_path'])): ?>
                 <img src="<?= htmlspecialchars($logo['file_path']) ?>"
                      alt="<?= htmlspecialchars($storeName ?? 'Logo') ?>"
                      height="50">
                 <?php else: ?>
-                <h3 class="mb-0" style="color: var(--primary-color); font-family: var(--font-heading);">
-                    <?= htmlspecialchars($storeName ?? 'Nautilus') ?>
+                <h3 class="mb-0 gradient-text d-flex align-items-center gap-2" style="font-family: var(--font-heading);">
+                    <i class="bi bi-water text-primary"></i> <?= htmlspecialchars($storeName ?? 'Nautilus') ?>
                 </h3>
                 <?php endif; ?>
             </a>
 
             <!-- Mobile Toggle -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 

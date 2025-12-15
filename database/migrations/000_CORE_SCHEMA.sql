@@ -1,3 +1,4 @@
+SET FOREIGN_KEY_CHECKS=0;
 -- ============================================================================
 -- NAUTILUS DIVE SHOP - CORE SCHEMA
 -- Essential tables for application to function
@@ -24,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `tenants` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert default tenant
-INSERT INTO `tenants` (`id`, `name`, `subdomain`, `status`) VALUES (1, 'Default Tenant', 'default', 'active');
+INSERT IGNORE INTO `tenants` (`id`, `name`, `subdomain`, `status`) VALUES (1, 'Default Tenant', 'default', 'active');
 
 CREATE TABLE IF NOT EXISTS `roles` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -35,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `roles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert default roles
-INSERT INTO `roles` (`name`, `description`) VALUES
+INSERT IGNORE INTO `roles` (`name`, `description`) VALUES
 ('Super Admin', 'Full system access'),
 ('Admin', 'Store administrator'),
 ('Manager', 'Store manager'),
@@ -137,7 +138,7 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Grant all permissions to Super Admin
-INSERT INTO `role_permissions` (`role_id`, `permission_id`)
+INSERT IGNORE INTO `role_permissions` (`role_id`, `permission_id`)
 SELECT 1, id FROM `permissions`;
 
 CREATE TABLE IF NOT EXISTS `users` (
@@ -176,11 +177,11 @@ CREATE TABLE IF NOT EXISTS `user_roles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Create default admin user (password: admin123)
-INSERT INTO `users` (`tenant_id`, `username`, `email`, `password_hash`, `first_name`, `last_name`) VALUES
+INSERT IGNORE INTO `users` (`tenant_id`, `username`, `email`, `password_hash`, `first_name`, `last_name`) VALUES
 (1, 'admin', 'admin@nautilus.local', '$2y$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5Bf/6H/T3CQLC', 'Admin', 'User');
 
 -- Assign Super Admin role to default user
-INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES (1, 1);
+INSERT IGNORE INTO `user_roles` (`user_id`, `role_id`) VALUES (1, 1);
 
 CREATE TABLE IF NOT EXISTS `sessions` (
     `id` VARCHAR(255) PRIMARY KEY,
@@ -208,3 +209,4 @@ CREATE TABLE IF NOT EXISTS `password_resets` (
 -- COMPLETE
 -- ============================================================================
 SELECT 'Core schema installation complete!' as status;
+SET FOREIGN_KEY_CHECKS=1;

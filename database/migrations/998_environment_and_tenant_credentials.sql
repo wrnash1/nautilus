@@ -129,13 +129,13 @@ INSERT INTO `environment_settings` (`environment`, `setting_key`, `setting_value
 -- Add Example Tenant Database Config (for reference - update for your needs)
 -- ============================================================================
 -- For the default tenant, keep using shared database
-INSERT INTO `tenant_database_credentials`
-    (`tenant_id`, `environment`, `use_dedicated_db`, `db_host`, `db_database`, `db_username`, `db_password`)
-VALUES
-    (1, 'development', 0, 'database', 'nautilus', 'nautilus', 'nautilus123')
-ON DUPLICATE KEY UPDATE
-    `use_dedicated_db` = 0,
-    `db_host` = 'database';
+-- INSERT INTO `tenant_database_credentials`
+--     (`tenant_id`, `environment`, `use_dedicated_db`, `db_host`, `db_database`, `db_username`, `db_password`)
+-- VALUES
+--     (1, 'development', 0, 'database', 'nautilus', 'nautilus', 'nautilus123')
+-- ON DUPLICATE KEY UPDATE
+--     `use_dedicated_db` = 0,
+--     `db_host` = 'database';
 
 -- ============================================================================
 -- Add Helpful Views
@@ -158,5 +158,3 @@ SELECT
 FROM tenants t
 LEFT JOIN tenant_database_credentials tdc ON t.id = tdc.tenant_id
 WHERE t.status = 'active';
-
-COMMIT;

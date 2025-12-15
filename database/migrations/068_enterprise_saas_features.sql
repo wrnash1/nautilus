@@ -70,76 +70,32 @@ CREATE TABLE IF NOT EXISTS tax_nexus (
 
 -- Tax Rates
 -- Tax Rates (Created in 004)
--- CREATE TABLE IF NOT EXISTS tax_rates (
---     id INT AUTO_INCREMENT PRIMARY KEY,
---     country VARCHAR(2) NOT NULL,
---     state VARCHAR(50) NULL,
---     zip_code VARCHAR(10) NULL,
---     rate DECIMAL(8, 4) NOT NULL,
---     tax_type VARCHAR(20) DEFAULT 'sales' COMMENT 'sales, vat, gst, pst',
---     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---     INDEX idx_tax_location (country, state, zip_code)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Ensure tax_type exists in tax_rates (from 004)
-SET @dbname = DATABASE();
-SET @tablename = "tax_rates";
-SET @columnname = "tax_type";
-SET @preparedStatement = (SELECT IF(
-  (
-    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE
-      (table_name = @tablename)
-      AND (table_schema = @dbname)
-      AND (column_name = @columnname)
-  ) > 0,
-  "SELECT 1",
-  "ALTER TABLE tax_rates ADD COLUMN tax_type VARCHAR(20) DEFAULT 'sales';"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+-- We ensure the column exists
+ALTER TABLE tax_rates ADD COLUMN IF NOT EXISTS tax_type VARCHAR(20) DEFAULT 'sales';
 
 -- Subscription Plans
--- Subscription Plans (Created in 058)
--- CREATE TABLE IF NOT EXISTS subscription_plans (
---     id INT AUTO_INCREMENT PRIMARY KEY,
---     name VARCHAR(100) NOT NULL,
---     description TEXT NULL,
---     amount DECIMAL(10, 2) NOT NULL,
---     currency VARCHAR(3) DEFAULT 'USD',
---     billing_period VARCHAR(20) DEFAULT 'month' COMMENT 'month, year',
---     trial_days INT DEFAULT 0,
---     features TEXT NULL COMMENT 'JSON array of features',
---     is_active BOOLEAN DEFAULT TRUE,
---     max_users INT NULL,
---     max_products INT NULL,
---     max_storage_mb INT NULL,
---     api_rate_limit INT DEFAULT 1000,
---     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---     INDEX idx_plan_active (is_active)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Subscription Plans (Was in 058 backup, restoring here)
+CREATE TABLE IF NOT EXISTS subscription_plans (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'USD',
+    billing_period VARCHAR(20) DEFAULT 'month' COMMENT 'month, year',
+    trial_days INT DEFAULT 0,
+    features TEXT NULL COMMENT 'JSON array of features',
+    is_active BOOLEAN DEFAULT TRUE,
+    max_users INT NULL,
+    max_products INT NULL,
+    max_storage_mb INT NULL,
+    api_rate_limit INT DEFAULT 1000,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_plan_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Ensure api_rate_limit exists in subscription_plans (from 058)
-SET @dbname = DATABASE();
-SET @tablename = "subscription_plans";
-SET @columnname = "api_rate_limit";
-SET @preparedStatement = (SELECT IF(
-  (
-    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE
-      (table_name = @tablename)
-      AND (table_schema = @dbname)
-      AND (column_name = @columnname)
-  ) > 0,
-  "SELECT 1",
-  "ALTER TABLE subscription_plans ADD COLUMN api_rate_limit INT DEFAULT 1000;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+-- Ensure api_rate_limit exists in subscription_plans (redundant now but safe)
+ALTER TABLE subscription_plans ADD COLUMN IF NOT EXISTS api_rate_limit INT DEFAULT 1000;
 
 -- Tenant Subscriptions
 CREATE TABLE IF NOT EXISTS tenant_subscriptions (

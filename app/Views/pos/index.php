@@ -11,329 +11,319 @@ $additionalCss = '
 ob_start();
 ?>
 
-<!-- POS Header Bar -->
-<div class="pos-header-bar">
-    <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center py-2">
-            <div class="pos-store-logo">
-                <?php
-                $logoPath = getSettingValue('store_logo') ?? '/assets/images/nautilus-logo.png';
-                $storeName = getSettingValue('store_name') ?? 'Nautilus Dive Shop';
-                ?>
-                <img src="<?= $logoPath ?>" alt="<?= htmlspecialchars($storeName) ?>" style="height: 50px; max-width: 200px; object-fit: contain;">
-            </div>
-            <div class="pos-datetime-display">
-                <div class="text-end">
-                    <div id="posCurrentDate" class="fw-bold" style="font-size: 1.1rem;"></div>
-                    <div id="posCurrentTime" class="text-muted" style="font-size: 1.5rem; font-family: 'Courier New', monospace;"></div>
-                    <div class="text-danger small mt-1" id="autoLogoutTimer" style="display: none;">
-                        <i class="bi bi-hourglass-split"></i> Auto-logout in <span id="logoutCountdown">00:00</span>
+<div class="container-fluid p-3">
+    <!-- Top Control Bar (Customer & Info) -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="modern-card p-3">
+                <div class="row align-items-center">
+                    <!-- Customer Selection -->
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small text-uppercase fw-bold"><i class="bi bi-people-fill me-1"></i> Customer</label>
+                        <div class="search-wrapper">
+                            <i class="bi bi-search search-icon"></i>
+                            <input type="text" id="customerSearchInput" class="search-input form-control" placeholder="Search customer (Name, Phone, Email)..." autocomplete="off">
+                            <button type="button" id="clearCustomerBtn" class="btn-clear-search" style="display: none;">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </button>
+                            <input type="hidden" id="selectedCustomerId" value="">
+                            <div id="customerSearchResults" class="search-results shadow-sm" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; z-index:1000; border-radius:0 0 12px 12px;"></div>
+                        </div>
+                        <div class="mt-2 d-flex gap-2">
+                             <a href="/store/customers/create?return_to=pos" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                <i class="bi bi-person-plus-fill"></i> New Profile
+                            </a>
+                            <span id="activeCustomerBadge" class="badge bg-soft-primary text-primary d-none align-items-center p-2 rounded-pill">
+                                <i class="bi bi-person-check-fill me-1"></i> <span id="customerNameDisplay">Walk-In</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Store Stats / Time -->
+                    <div class="col-md-7 text-end">
+                        <div class="d-flex justify-content-end align-items-center gap-4">
+                            <div class="text-end">
+                                <div class="text-muted small">Date</div>
+                                <div class="fw-bold" id="posCurrentDate"></div>
+                            </div>
+                            <div class="text-end">
+                                <div class="text-muted small">Time</div>
+                                <div class="fw-bold font-monospace fs-5" id="posCurrentTime"></div>
+                            </div>
+                             <div class="text-end text-danger" id="autoLogoutTimer" style="display: none;">
+                                <div class="small">Auto-logout</div>
+                                <div id="logoutCountdown" class="fw-bold">00:00</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Customer Selection Bar (Fixed at Top) -->
-<div class="pos-customer-bar">
-    <div class="container-fluid">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <label class="customer-label">
-                    <i class="bi bi-person-circle"></i> Customer
-                </label>
-                <div class="customer-select-wrapper">
-                    <div class="position-relative" style="flex: 1;">
-                        <input type="text" id="customerSearchInput" class="form-control customer-select" placeholder="Search customer or Walk-In..." autocomplete="off" style="padding-right: 2.5rem;" aria-label="Search customer">
-                        <button type="button" id="clearCustomerBtn" class="btn btn-sm btn-link position-absolute" style="right: 0.5rem; top: 50%; transform: translateY(-50%); display: none;" aria-label="Clear customer search">
-                            <i class="bi bi-x-circle-fill text-muted" aria-hidden="true"></i>
+    <div class="row g-3">
+        <!-- Left Column: Products -->
+        <div class="col-lg-8">
+            <div class="modern-card h-100 d-flex flex-column">
+                <!-- Product Controls -->
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <div class="row g-2">
+                        <div class="col-md-12">
+                             <div class="category-filter">
+                                <div class="btn-group-horizontal" role="group">
+                                    <button class="btn-category active" data-category="all"><i class="bi bi-grid-fill"></i> All</button>
+                                    <button class="btn-category" data-category="gear"><i class="bi bi-backpack-fill"></i> Gear</button>
+                                    <button class="btn-category" data-category="courses"><i class="bi bi-mortarboard-fill"></i> Courses</button>
+                                    <button class="btn-category" data-category="trips"><i class="bi bi-airplane-fill"></i> Trips</button>
+                                    <button class="btn-category" data-category="fills"><i class="bi bi-wind"></i> Fills</button>
+                                    <button class="btn-category" data-category="rentals"><i class="bi bi-briefcase-fill"></i> Rentals</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 search-wrapper">
+                         <i class="bi bi-search search-icon"></i>
+                         <input type="text" id="productSearch" class="search-input w-100" placeholder="Search products, SKUs, or scan barcode..." autocomplete="off">
+                          <button class="btn btn-light position-absolute end-0 me-2" id="aiSearchBtn" title="AI Search" style="z-index: 3;">
+                            <i class="bi bi-camera-fill text-primary"></i>
                         </button>
-                        <input type="hidden" id="selectedCustomerId" value="">
-                        <div id="customerSearchResults" class="search-dropdown"></div>
-                    </div>
-                    <a href="/store/customers/create?return_to=pos" class="btn btn-success btn-add-customer">
-                        <i class="bi bi-person-plus-fill"></i> New
-                    </a>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="customer-info-panel" id="customerInfo" style="display: none;">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            <div id="customerPhoto" class="customer-photo-container">
-                                <i class="bi bi-person-circle" style="font-size: 4rem; color: #6c757d;"></i>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="customer-details">
-                                <div class="customer-name fw-bold mb-1" id="customerName"></div>
-                                <div class="customer-contact small">
-                                    <span class="me-3">
-                                        <i class="bi bi-envelope"></i> <span id="customerEmail">-</span>
-                                    </span>
-                                    <span>
-                                        <i class="bi bi-telephone"></i> <span id="customerPhone">-</span>
-                                    </span>
-                                </div>
-                                <div id="customerCertifications" class="customer-certs mt-2">
-                                    <!-- Certification badges will be inserted here -->
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Main POS Container -->
-<div class="pos-professional-layout">
-    <!-- Left Side: Products/Items -->
-    <div class="pos-products-panel">
-        <!-- Category Tabs -->
-        <div class="category-tabs">
-            <button class="category-tab active" data-category="all">
-                <i class="bi bi-grid-fill"></i> All Items
-            </button>
-            <button class="category-tab" data-category="gear">
-                <i class="bi bi-backpack-fill"></i> Gear
-            </button>
-            <button class="category-tab" data-category="courses">
-                <i class="bi bi-mortarboard-fill"></i> Courses
-            </button>
-            <button class="category-tab" data-category="trips">
-                <i class="bi bi-airplane-fill"></i> Trips
-            </button>
-            <button class="category-tab" data-category="fills">
-                <i class="bi bi-wind"></i> Air Fills
-            </button>
-            <button class="category-tab" data-category="rentals">
-                <i class="bi bi-briefcase-fill"></i> Rentals
-            </button>
-        </div>
+                <!-- Product Grid -->
+                <div class="card-body bg-light mt-3 flex-grow-1" style="overflow-y: auto; max-height: calc(100vh - 280px);">
+                    <div class="products-grid" id="productGrid">
+                        <!-- Products Loop -->
+                        <?php foreach ($products as $product): ?>
+                        <div class="product-card-modern"
+                             data-product-id="<?= $product['id'] ?>"
+                             data-product-name="<?= htmlspecialchars($product['name']) ?>"
+                             data-product-price="<?= $product['price'] ?>"
+                             data-product-sku="<?= htmlspecialchars($product['sku']) ?>"
+                             data-category="gear">
+                            <div class="product-image">
+                                <i class="bi bi-box-seam product-icon"></i>
+                                <?php if ($product['track_inventory'] && $product['quantity_in_stock'] <= $product['low_stock_threshold']): ?>
+                                <div class="product-badge bg-danger">
+                                    <i class="bi bi-exclamation-circle"></i> Low Stock
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name"><?= htmlspecialchars($product['name']) ?></div>
+                                <div class="product-sku"><?= htmlspecialchars($product['sku']) ?></div>
+                                <div class="product-footer">
+                                    <div class="product-price"><?= formatCurrency($product['price']) ?></div>
+                                    <div class="product-stock">
+                                        <?php if($product['track_inventory']): ?>
+                                            <i class="bi bi-box"></i> <?= $product['quantity_in_stock'] ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-add-product"><i class="bi bi-plus"></i></button>
+                        </div>
+                        <?php endforeach; ?>
 
-        <!-- Search Bar -->
-        <div class="product-search-bar">
-            <div class="search-input-group">
-                <i class="bi bi-search"></i>
-                <input type="text" id="productSearch" class="search-input" placeholder="Search products, courses, or scan barcode..." autocomplete="off" aria-label="Search products">
-                <button class="btn btn-primary btn-sm ms-2" id="aiSearchBtn" title="AI Visual Search - Take or upload photo">
-                    <i class="bi bi-camera-fill"></i> AI Search
-                </button>
-                <button class="btn-clear-search" id="clearSearch" style="display: none;" aria-label="Clear product search">
-                    <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
-                </button>
-            </div>
-            <div id="searchResults" class="search-dropdown"></div>
-        </div>
+                        <!-- Courses -->
+                        <?php foreach ($courses as $course): ?>
+                        <div class="product-card-modern"
+                             data-category="courses"
+                             data-product-id="course_<?= $course['id'] ?>"
+                             data-course-id="<?= $course['id'] ?>"
+                             data-product-name="<?= htmlspecialchars($course['name']) ?>"
+                             data-product-price="<?= $course['price'] ?>"
+                             data-product-sku="<?= htmlspecialchars($course['course_code']) ?>">
+                            <div class="product-image course-item">
+                                <i class="bi bi-mortarboard-fill product-icon"></i>
+                                <div class="product-badge bg-info text-white">Course</div>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name"><?= htmlspecialchars($course['name']) ?></div>
+                                <div class="product-footer">
+                                    <div class="product-price"><?= formatCurrency($course['price']) ?></div>
+                                </div>
+                            </div>
+                            <button class="btn-add-product"><i class="bi bi-plus"></i></button>
+                        </div>
+                        <?php endforeach; ?>
 
-        <!-- Products Grid -->
-        <div class="products-grid-pro" id="productGrid">
-            <?php foreach ($products as $product): ?>
-            <div class="product-tile"
-                 data-product-id="<?= $product['id'] ?>"
-                 data-product-name="<?= htmlspecialchars($product['name']) ?>"
-                 data-product-price="<?= $product['price'] ?>"
-                 data-product-sku="<?= htmlspecialchars($product['sku']) ?>"
-                 data-category="gear">
-                <div class="product-tile-image">
-                    <i class="bi bi-box-seam"></i>
-                </div>
-                <div class="product-tile-info">
-                    <div class="product-tile-name"><?= htmlspecialchars($product['name']) ?></div>
-                    <div class="product-tile-price"><?= formatCurrency($product['price']) ?></div>
-                </div>
-                <?php if ($product['track_inventory'] && $product['quantity_in_stock'] <= $product['low_stock_threshold']): ?>
-                <div class="low-stock-indicator">
-                    <i class="bi bi-exclamation-triangle-fill"></i> <?= $product['quantity_in_stock'] ?>
-                </div>
-                <?php endif; ?>
-            </div>
-            <?php endforeach; ?>
+                         <!-- Trips -->
+                        <?php foreach ($trips as $trip): ?>
+                        <div class="product-card-modern"
+                             data-category="trips"
+                             data-product-id="trip_<?= $trip['id'] ?>"
+                             data-trip-id="<?= $trip['id'] ?>"
+                             data-product-name="<?= htmlspecialchars($trip['name']) ?>"
+                             data-product-price="<?= $trip['price'] ?>"
+                             data-product-sku="TRIP-<?= $trip['id'] ?>">
+                            <div class="product-image trip-item">
+                                <i class="bi bi-airplane-fill product-icon"></i>
+                                <div class="product-badge" style="background-color: #8b5cf6;">Trip</div>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name"><?= htmlspecialchars($trip['name']) ?></div>
+                                <div class="product-footer">
+                                    <div class="product-price"><?= formatCurrency($trip['price']) ?></div>
+                                </div>
+                            </div>
+                            <button class="btn-add-product"><i class="bi bi-plus"></i></button>
+                        </div>
+                        <?php endforeach; ?>
 
-            <!-- Course Tiles -->
-            <?php foreach ($courses as $course): ?>
-            <div class="product-tile course-tile"
-                 data-category="courses"
-                 data-product-id="course_<?= $course['id'] ?>"
-                 data-course-id="<?= $course['id'] ?>"
-                 data-product-name="<?= htmlspecialchars($course['name']) ?>"
-                 data-product-price="<?= $course['price'] ?>"
-                 data-product-sku="<?= htmlspecialchars($course['course_code']) ?>">
-                <div class="product-tile-image course-item">
-                    <i class="bi bi-mortarboard-fill"></i>
-                </div>
-                <div class="product-tile-info">
-                    <div class="product-tile-name"><?= htmlspecialchars($course['name']) ?></div>
-                    <div class="product-tile-price"><?= formatCurrency($course['price']) ?></div>
-                </div>
-                <div class="course-badge">Course</div>
-            </div>
-            <?php endforeach; ?>
+                        <!-- Rentals -->
+                        <?php foreach ($rentals as $rental): ?>
+                        <div class="product-card-modern"
+                             data-category="rentals"
+                             data-product-id="rental_<?= $rental['id'] ?>"
+                             data-rental-id="<?= $rental['id'] ?>"
+                             data-product-name="<?= htmlspecialchars($rental['name']) ?>"
+                             data-product-price="<?= $rental['daily_rate'] ?>"
+                             data-product-sku="<?= htmlspecialchars($rental['sku']) ?>">
+                            <div class="product-image rental-item">
+                                <i class="bi bi-briefcase-fill product-icon"></i>
+                                <div class="product-badge bg-warning text-dark">Rental</div>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name"><?= htmlspecialchars($rental['name']) ?></div>
+                                <div class="product-footer">
+                                    <div class="product-price"><?= formatCurrency($rental['daily_rate']) ?>/day</div>
+                                </div>
+                            </div>
+                            <button class="btn-add-product"><i class="bi bi-plus"></i></button>
+                        </div>
+                        <?php endforeach; ?>
 
-            <!-- Trip Tiles -->
-            <?php foreach ($trips as $trip): ?>
-            <div class="product-tile trip-tile"
-                 data-category="trips"
-                 data-product-id="trip_<?= $trip['id'] ?>"
-                 data-trip-id="<?= $trip['id'] ?>"
-                 data-product-name="<?= htmlspecialchars($trip['name']) ?>"
-                 data-product-price="<?= $trip['price'] ?>"
-                 data-product-sku="TRIP-<?= $trip['id'] ?>">
-                <div class="product-tile-image trip-item">
-                    <i class="bi bi-airplane-fill"></i>
-                </div>
-                <div class="product-tile-info">
-                    <div class="product-tile-name"><?= htmlspecialchars($trip['name']) ?></div>
-                    <div class="product-tile-price"><?= formatCurrency($trip['price']) ?></div>
-                </div>
-                <div class="course-badge" style="background: var(--pos-info);">Trip</div>
-            </div>
-            <?php endforeach; ?>
+                        <!-- Fills -->
+                        <div class="product-card-modern" data-category="fills" data-product-id="fill_air" data-product-name="Air Fill" data-product-price="8.00" data-product-sku="FILL-AIR">
+                            <div class="product-image fill-item">
+                                <i class="bi bi-wind product-icon"></i>
+                                <div class="product-badge bg-success">Service</div>
+                            </div>
+                             <div class="product-info">
+                                <div class="product-name">Air Fill</div>
+                                <div class="product-footer">
+                                    <div class="product-price">$8.00</div>
+                                </div>
+                            </div>
+                            <button class="btn-add-product"><i class="bi bi-plus"></i></button>
+                        </div>
+                        <div class="product-card-modern" data-category="fills" data-product-id="fill_nitrox" data-product-name="Nitrox Fill" data-product-price="12.00" data-product-sku="FILL-NITROX">
+                            <div class="product-image fill-item">
+                                <i class="bi bi-wind product-icon"></i>
+                                <div class="product-badge bg-success">Service</div>
+                            </div>
+                             <div class="product-info">
+                                <div class="product-name">Nitrox Fill</div>
+                                <div class="product-footer">
+                                    <div class="product-price">$12.00</div>
+                                </div>
+                            </div>
+                            <button class="btn-add-product"><i class="bi bi-plus"></i></button>
+                        </div>
 
-            <!-- Rental Tiles -->
-            <?php foreach ($rentals as $rental): ?>
-            <div class="product-tile rental-tile"
-                 data-category="rentals"
-                 data-product-id="rental_<?= $rental['id'] ?>"
-                 data-rental-id="<?= $rental['id'] ?>"
-                 data-product-name="<?= htmlspecialchars($rental['name']) ?>"
-                 data-product-price="<?= $rental['daily_rate'] ?>"
-                 data-product-sku="<?= htmlspecialchars($rental['sku']) ?>">
-                <div class="product-tile-image rental-item">
-                    <i class="bi bi-briefcase-fill"></i>
-                </div>
-                <div class="product-tile-info">
-                    <div class="product-tile-name"><?= htmlspecialchars($rental['name']) ?></div>
-                    <div class="product-tile-price"><?= formatCurrency($rental['daily_rate']) ?>/day</div>
-                </div>
-                <div class="course-badge" style="background: var(--pos-warning);">Rental</div>
-            </div>
-            <?php endforeach; ?>
-
-            <!-- Air Fill Tiles -->
-            <div class="product-tile" data-category="fills" data-product-id="fill_air" data-product-name="Air Fill" data-product-price="8.00" data-product-sku="FILL-AIR">
-                <div class="product-tile-image fill-item">
-                    <i class="bi bi-wind"></i>
-                </div>
-                <div class="product-tile-info">
-                    <div class="product-tile-name">Air Fill</div>
-                    <div class="product-tile-price">$8.00</div>
-                </div>
-            </div>
-
-            <div class="product-tile" data-category="fills" data-product-id="fill_nitrox" data-product-name="Nitrox Fill" data-product-price="12.00" data-product-sku="FILL-NITROX">
-                <div class="product-tile-image fill-item">
-                    <i class="bi bi-wind"></i>
-                </div>
-                <div class="product-tile-info">
-                    <div class="product-tile-name">Nitrox Fill</div>
-                    <div class="product-tile-price">$12.00</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Right Side: Cart/Checkout -->
-    <div class="pos-cart-panel">
-        <div class="cart-header">
-            <h3><i class="bi bi-cart3"></i> Current Sale</h3>
-            <div class="d-flex flex-column align-items-end">
-                <span class="cart-item-count" id="cartItemCount">0 items</span>
-                <small class="text-muted mt-1" id="posDateTime" style="font-size: 0.75rem;"></small>
-            </div>
-        </div>
-
-        <div class="cart-items-list" id="cartItemsList">
-            <div class="empty-cart-message">
-                <i class="bi bi-cart-x"></i>
-                <p>No items in cart</p>
-                <small>Add products to begin checkout</small>
-            </div>
-        </div>
-
-        <!-- Discount/Coupon Section -->
-        <div class="discount-section" style="padding: 1rem; border-bottom: 1px solid var(--border-color);">
-            <div class="input-group input-group-sm">
-                <input type="text" class="form-control" id="couponCode" placeholder="Enter coupon or promo code" style="text-transform: uppercase;">
-                <button class="btn btn-outline-primary" type="button" id="applyCouponBtn">
-                    <i class="bi bi-tag-fill"></i> Apply
-                </button>
-            </div>
-            <div id="couponMessage" style="margin-top: 0.5rem; font-size: 0.875rem;"></div>
-            <div id="appliedCoupon" style="display: none; margin-top: 0.5rem;">
-                <div class="d-flex justify-content-between align-items-center p-2 bg-success bg-opacity-10 rounded">
-                    <span class="text-success">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <strong id="appliedCouponCode"></strong> applied
-                    </span>
-                    <button type="button" class="btn btn-sm btn-outline-danger" id="removeCouponBtn">
-                        <i class="bi bi-x"></i>
-                    </button>
+                    </div>
+                    <div id="noResultsMsg" class="text-center py-5 d-none">
+                        <i class="bi bi-search text-muted fs-1"></i>
+                        <p class="text-muted mt-2">No items found matching your search.</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Cart Totals -->
-        <div class="cart-totals">
-            <div class="total-row subtotal-row">
-                <span>Subtotal:</span>
-                <span id="cartSubtotal">$0.00</span>
-            </div>
-            <div class="total-row discount-row" id="discountRow" style="display: none; color: var(--success);">
-                <span>Discount:</span>
-                <span id="cartDiscount">-$0.00</span>
-            </div>
-            <div class="total-row tax-row">
-                <span>Tax (8%):</span>
-                <span id="cartTax">$0.00</span>
-            </div>
-            <div class="total-row grand-total-row">
-                <span>Total:</span>
-                <span class="grand-total-amount" id="cartTotal">$0.00</span>
-            </div>
-        </div>
+        <!-- Right Column: Cart -->
+        <div class="col-lg-4">
+            <div class="sticky-cart">
+                <div class="modern-card h-100 d-flex flex-column border-primary" style="box-shadow: 0 0 20px rgba(0,0,0,0.05);">
+                    <!-- Cart Header -->
+                    <div class="cart-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-cart3 fs-4"></i>
+                                <h5 class="mb-0">Current Sale</h5>
+                            </div>
+                            <span class="cart-count-badge" id="cartItemCount">0</span>
+                        </div>
+                    </div>
 
-        <!-- Payment Methods -->
-        <div class="payment-methods-section">
-            <label class="payment-label">Payment Method</label>
-            <div class="payment-buttons">
-                <input type="radio" class="btn-check" name="paymentMethod" id="paymentCash" value="cash" checked>
-                <label class="payment-method-btn" for="paymentCash">
-                    <i class="bi bi-cash-stack"></i>
-                    <span>Cash</span>
-                </label>
+                    <!-- Cart Items -->
+                    <div class="cart-items-container p-3" id="cartItemsList">
+                        <div class="empty-cart-state">
+                            <i class="bi bi-cart-x"></i>
+                            <p>Your cart is empty</p>
+                            <small>Click items on the left to add them</small>
+                        </div>
+                    </div>
 
-                <input type="radio" class="btn-check" name="paymentMethod" id="paymentCard" value="card">
-                <label class="payment-method-btn" for="paymentCard">
-                    <i class="bi bi-credit-card-fill"></i>
-                    <span>Card</span>
-                </label>
+                    <!-- Cart Footer -->
+                    <div class="bg-white p-3 border-top">
+                        <!-- Coupon -->
+                         <div class="input-group mb-3">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-tag-fill"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-0" id="couponCode" placeholder="Promo Code">
+                            <button class="btn btn-outline-secondary" type="button" id="applyCouponBtn">Apply</button>
+                        </div>
+                        <div id="appliedCoupon" class="d-none alert alert-success d-flex justify-content-between align-items-center py-2 px-3 mb-2 font-monospace">
+                            <span><strong id="appliedCouponCode">CODE</strong> Applied</span>
+                            <button type="button" class="btn-close btn-sm" id="removeCouponBtn"></button>
+                        </div>
 
-                <input type="radio" class="btn-check" name="paymentMethod" id="paymentCheck" value="check">
-                <label class="payment-method-btn" for="paymentCheck">
-                    <i class="bi bi-receipt"></i>
-                    <span>Check</span>
-                </label>
+                        <!-- Totals -->
+                        <div class="cart-summary">
+                            <div class="summary-row text-muted">
+                                <span>Subtotal</span>
+                                <span id="cartSubtotal">$0.00</span>
+                            </div>
+                            <div class="summary-row text-success d-none" id="discountRow">
+                                <span>Discount</span>
+                                <span id="cartDiscount">-$0.00</span>
+                            </div>
+                             <div class="summary-row text-muted">
+                                <span>Tax (8%)</span>
+                                <span id="cartTax">$0.00</span>
+                            </div>
+                            <div class="summary-total d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">TOTAL</span>
+                                <span class="total-amount fw-bold" id="cartTotal">$0.00</span>
+                            </div>
+                        </div>
 
-                <input type="radio" class="btn-check" name="paymentMethod" id="paymentBitcoin" value="bitcoin">
-                <label class="payment-method-btn" for="paymentBitcoin">
-                    <i class="bi bi-currency-bitcoin"></i>
-                    <span>Bitcoin</span>
-                </label>
+                        <!-- Payment Methods -->
+                        <div class="payment-section mt-3">
+                            <label class="form-label small text-uppercase text-muted">Payment Method</label>
+                            <div class="payment-methods">
+                                <input type="radio" class="btn-check" name="paymentMethod" id="paymentCash" value="cash" checked>
+                                <label class="payment-btn" for="paymentCash">
+                                    <i class="bi bi-cash-stack"></i>
+                                    <span>Cash</span>
+                                </label>
+
+                                <input type="radio" class="btn-check" name="paymentMethod" id="paymentCard" value="card">
+                                <label class="payment-btn" for="paymentCard">
+                                    <i class="bi bi-credit-card-fill"></i>
+                                    <span>Card</span>
+                                </label>
+
+                                <input type="radio" class="btn-check" name="paymentMethod" id="paymentOther" value="other">
+                                <label class="payment-btn" for="paymentOther">
+                                    <i class="bi bi-wallet2"></i>
+                                    <span>Other</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="cart-actions mt-3">
+                            <button id="clearCartBtn" class="btn-clear" disabled>
+                                <i class="bi bi-trash"></i> Cancel
+                            </button>
+                            <button id="checkoutBtn" class="btn-checkout w-100" disabled>
+                                <span>Checkout</span> <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="checkout-actions">
-            <button id="clearCartBtn" class="btn-action btn-clear-cart" disabled>
-                <i class="bi bi-trash3-fill"></i> Clear
-            </button>
-            <button id="checkoutBtn" class="btn-action btn-checkout-primary" disabled>
-                <i class="bi bi-check-circle-fill"></i> Complete Sale
-            </button>
         </div>
     </div>
 </div>
@@ -350,281 +340,43 @@ ob_start();
             </div>
             <form id="addCustomerForm">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Customer Type *</label>
-                        <div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="customer_type"
-                                       id="posTypeB2C" value="B2C" checked onchange="togglePosCustomerType()">
-                                <label class="form-check-label" for="posTypeB2C">B2C (Individual)</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="customer_type"
-                                       id="posTypeB2B" value="B2B" onchange="togglePosCustomerType()">
-                                <label class="form-check-label" for="posTypeB2B">B2B (Business)</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="posB2bFields" style="display: none;" class="mb-3">
-                        <label for="companyName" class="form-label">Company Name *</label>
-                        <input type="text" class="form-control" id="companyName">
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="firstName" class="form-label">First Name *</label>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name</label>
                             <input type="text" class="form-control" id="firstName" required>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="lastName" class="form-label">Last Name *</label>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name</label>
                             <input type="text" class="form-control" id="lastName" required>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email</label>
+                        <div class="col-12">
+                            <label class="form-label">Email</label>
                             <input type="email" class="form-control" id="email">
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label">Phone</label>
+                         <div class="col-12">
+                            <label class="form-label">Phone</label>
                             <input type="tel" class="form-control" id="phone">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="mobile" class="form-label">Mobile</label>
-                            <input type="tel" class="form-control" id="mobile">
-                        </div>
-                        <div class="col-md-6 mb-3" id="posBirthDateField">
-                            <label for="birthDate" class="form-label">Date of Birth</label>
-                            <input type="date" class="form-control" id="birthDate">
-                        </div>
-                    </div>
-
-                    <div id="posB2cFields">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="emergencyContactName" class="form-label">Emergency Contact Name</label>
-                                <input type="text" class="form-control" id="emergencyContactName">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="emergencyContactPhone" class="form-label">Emergency Contact Phone</label>
-                                <input type="tel" class="form-control" id="emergencyContactPhone">
-                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Save Customer
-                    </button>
+                    <button type="submit" class="btn btn-primary">Save Customer</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Course Add-ons Modal -->
-<div class="modal fade" id="courseAddonsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-mortarboard-fill"></i> <span id="courseTitle">Course Options</span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted">Select add-ons and materials for this course:</p>
-
-                <div class="addon-section mb-4">
-                    <h6><i class="bi bi-book-fill"></i> Course Materials</h6>
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input course-addon" id="addonManual" data-price="45.00" data-name="Student Manual">
-                        <label class="form-check-label" for="addonManual">
-                            Student Manual - <strong>$45.00</strong>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input course-addon" id="addonElearning" data-price="195.00" data-name="eLearning Access">
-                        <label class="form-check-label" for="addonElearning">
-                            eLearning Access - <strong>$195.00</strong>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input course-addon" id="addonLogbook" data-price="25.00" data-name="Logbook">
-                        <label class="form-check-label" for="addonLogbook">
-                            Logbook - <strong>$25.00</strong>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="addon-section mb-4">
-                    <h6><i class="bi bi-patch-check-fill"></i> Certification</h6>
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input course-addon" id="addonCert" data-price="35.00" data-name="Certification Card" checked>
-                        <label class="form-check-label" for="addonCert">
-                            Certification Card - <strong>$35.00</strong>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input course-addon" id="addonEcard" data-price="0.00" data-name="eCard (Digital)">
-                        <label class="form-check-label" for="addonEcard">
-                            eCard (Digital) - <strong>Free</strong>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="addon-section">
-                    <h6><i class="bi bi-gear-fill"></i> Equipment</h6>
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input course-addon" id="addonMask" data-price="75.00" data-name="Mask & Snorkel Set">
-                        <label class="form-check-label" for="addonMask">
-                            Mask & Snorkel Set - <strong>$75.00</strong>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input course-addon" id="addonFins" data-price="95.00" data-name="Fins">
-                        <label class="form-check-label" for="addonFins">
-                            Fins - <strong>$95.00</strong>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="alert alert-info mt-3">
-                    <strong>Course Total with Add-ons:</strong> <span id="courseAddonTotal" class="float-end">$0.00</span>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="addCourseToCart">
-                    <i class="bi bi-cart-plus-fill"></i> Add to Cart
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Course Schedule Selection Modal -->
-<div class="modal fade" id="courseScheduleModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="bi bi-calendar-check"></i> Select Course Schedule
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i>
-                    <strong>Course:</strong> <span id="modalCourseName"></span><br>
-                    <strong>Price:</strong> <span id="modalCoursePrice"></span>
-                </div>
-
-                <p class="text-muted mb-3">Please select which class schedule to enroll the student in:</p>
-
-                <div id="schedulesList" class="schedules-list">
-                    <!-- Schedules will be loaded here dynamically -->
-                </div>
-
-                <div id="schedulesLoading" class="text-center py-5" style="display: none;">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="text-muted mt-2">Loading available schedules...</p>
-                </div>
-
-                <div id="schedulesEmpty" class="text-center py-5" style="display: none;">
-                    <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
-                    <p class="text-muted mt-3">No schedules available for this course.</p>
-                    <small>Please contact administration to schedule a new class.</small>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- AI Visual Search Modal -->
-<div class="modal fade" id="aiSearchModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="bi bi-camera-fill"></i> AI Visual Search
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="mb-3">Capture or Upload Image</h6>
-
-                        <!-- Camera Input -->
-                        <div class="mb-3">
-                            <input type="file" id="aiSearchImageInput" accept="image/*" capture="environment" class="form-control" style="display: none;">
-                            <button type="button" class="btn btn-primary w-100 mb-2" onclick="document.getElementById('aiSearchImageInput').click()">
-                                <i class="bi bi-camera"></i> Take Photo / Upload Image
-                            </button>
-                        </div>
-
-                        <!-- Image Preview -->
-                        <div id="aiSearchImagePreview" style="display: none;">
-                            <img id="aiSearchPreviewImg" src="" alt="Search Image" class="img-fluid rounded mb-2" style="max-height: 300px; width: 100%; object-fit: contain; border: 2px solid #dee2e6;">
-                            <button type="button" class="btn btn-success w-100" id="aiSearchExecuteBtn">
-                                <i class="bi bi-search"></i> Search Similar Products
-                            </button>
-                        </div>
-
-                        <!-- Loading State -->
-                        <div id="aiSearchLoading" style="display: none;" class="text-center py-5">
-                            <div class="spinner-border text-primary mb-3" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p class="text-muted">AI is analyzing your image...</p>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <h6 class="mb-3">Search Results</h6>
-                        <div id="aiSearchResults" class="ai-search-results-container">
-                            <div class="text-center text-muted py-5">
-                                <i class="bi bi-image" style="font-size: 3rem;"></i>
-                                <p class="mt-2">Upload an image to find matching products</p>
-                                <small>Works best with clear photos of diving equipment</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <div class="text-muted small me-auto">
-                    <i class="bi bi-shield-check"></i> All processing happens locally - your images never leave this device
-                </div>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-content">
-        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;"></div>
-        <p class="mt-3">Processing Payment...</p>
+    <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <h4 class="mt-4">Processing Transaction...</h4>
     </div>
 </div>
-
-<!-- Floating Action Button for Mobile -->
-<button id="fabCart" class="fab-cart d-lg-none">
-    <i class="bi bi-cart3"></i>
-    <span id="fabBadge" class="fab-badge">0</span>
-</button>
 
 <?php
 $content = ob_get_clean();
@@ -634,8 +386,8 @@ $additionalJs = '
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
 <script src="/assets/js/ai-image-search.js"></script>
 <script src="/assets/js/pos-course-enrollment.js"></script>
-<script src="/assets/js/modern-pos.js"></script>
+<script src="/assets/js/modern-pos.js?v=' . time() . '"></script>
 ';
 
-require __DIR__ . '/../layouts/app.php';
+require __DIR__ . '/../layouts/admin.php';
 ?>

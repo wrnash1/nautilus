@@ -1,6 +1,0 @@
-User: root (0)
-.env exists: NO
-.env writable: NO
-.installed exists: NO
-.installed writable: NO
-Root writable: NO
