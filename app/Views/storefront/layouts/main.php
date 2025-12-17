@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <?php
+    if (!isset($storeName) || !isset($favicon)) {
+        // Fallback: Get company branding settings directly if not passed by controller
+        $settingsService = new \App\Services\Admin\SettingsService();
+        $brandingSettings = $settingsService->getSettingsByCategory('general');
+        $storeName = $storeName ?? ($brandingSettings['business_name'] ?? 'Nautilus Dive Shop');
+        $favicon = $favicon ?? ($brandingSettings['company_favicon_path'] ?? '');
+    }
+    ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle ?? $storeName ?? 'Nautilus Dive Shop') ?></title>
+    <title><?= htmlspecialchars($pageTitle ?? $storeName) ?></title>
     <meta name="description" content="<?= htmlspecialchars($metaDescription ?? '') ?>">
 
     <?php if (!empty($favicon['file_path'])): ?>

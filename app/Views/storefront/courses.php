@@ -19,65 +19,30 @@
     <div class="container">
         <div class="row g-4">
             
-            <!-- Open Water Diver -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm hover-lift transition-base">
-                    <img src="https://images.unsplash.com/photo-1544551763-46a8723ba1f9?auto=format&fit=crop&q=80&w=800" class="card-img-top" alt="Open Water Diver" style="height: 200px; object-fit: cover;">
-                    <div class="card-body d-flex flex-column p-4">
-                        <h3 class="h5 font-heading fw-bold mb-2">Open Water Diver</h3>
-                        <p class="text-muted small flex-grow-1">The world's most popular scuba course. Get certified to dive anywhere in the world.</p>
-                        <div class="d-flex align-items-center justify-content-between mt-3">
-                            <span class="h5 text-primary mb-0 fw-bold">$399.00</span>
-                            <a href="#" class="btn btn-primary btn-sm btn-modern rounded-pill px-4">Book Now</a>
+            <?php if (empty($courses)): ?>
+                <div class="col-12 text-center py-5">
+                    <p class="lead text-muted">No courses available at the moment.</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($courses as $course): ?>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm hover-lift transition-base">
+                        <?php 
+                        $img = !empty($course['image_url']) ? $course['image_url'] : 'https://images.unsplash.com/photo-1544551763-46a8723ba1f9?auto=format&fit=crop&q=80&w=800'; 
+                        ?>
+                        <img src="<?= htmlspecialchars($img) ?>" class="card-img-top" alt="<?= htmlspecialchars($course['name']) ?>" style="height: 200px; object-fit: cover;">
+                        <div class="card-body d-flex flex-column p-4">
+                            <h3 class="h5 font-heading fw-bold mb-2"><?= htmlspecialchars($course['name']) ?></h3>
+                            <p class="text-muted small flex-grow-1"><?= htmlspecialchars(mb_strimwidth($course['description'] ?? '', 0, 100, '...')) ?></p>
+                            <div class="d-flex align-items-center justify-content-between mt-3">
+                                <span class="h5 text-primary mb-0 fw-bold">$<?= number_format($course['price'] ?? 0, 2) ?></span>
+                                <a href="/course/<?= $course['id'] ?>" class="btn btn-primary btn-sm btn-modern rounded-pill px-4">Book Now</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Advanced Open Water -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm hover-lift transition-base">
-                    <img src="https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?auto=format&fit=crop&q=80&w=800" class="card-img-top" alt="Advanced Open Water" style="height: 200px; object-fit: cover;">
-                    <div class="card-body d-flex flex-column p-4">
-                        <h3 class="h5 font-heading fw-bold mb-2">Advanced Open Water</h3>
-                        <p class="text-muted small flex-grow-1">Advance your skills with 5 adventure dives including Deep and Navigation.</p>
-                        <div class="d-flex align-items-center justify-content-between mt-3">
-                            <span class="h5 text-primary mb-0 fw-bold">$349.00</span>
-                            <a href="#" class="btn btn-primary btn-sm btn-modern rounded-pill px-4">Book Now</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Rescue Diver -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm hover-lift transition-base">
-                    <img src="https://images.unsplash.com/photo-1588612143573-2a54972be3f5?auto=format&fit=crop&q=80&w=800" class="card-img-top" alt="Rescue Diver" style="height: 200px; object-fit: cover;">
-                    <div class="card-body d-flex flex-column p-4">
-                        <h3 class="h5 font-heading fw-bold mb-2">Rescue Diver</h3>
-                        <p class="text-muted small flex-grow-1">Learn to prevent and manage problems in the water. Serious fun.</p>
-                        <div class="d-flex align-items-center justify-content-between mt-3">
-                            <span class="h5 text-primary mb-0 fw-bold">$379.00</span>
-                            <a href="#" class="btn btn-primary btn-sm btn-modern rounded-pill px-4">Book Now</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Divemaster -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm hover-lift transition-base">
-                    <img src="https://images.unsplash.com/photo-1510662145379-13537db782dc?auto=format&fit=crop&q=80&w=800" class="card-img-top" alt="Divemaster" style="height: 200px; object-fit: cover;">
-                    <div class="card-body d-flex flex-column p-4">
-                        <h3 class="h5 font-heading fw-bold mb-2">Divemaster</h3>
-                        <p class="text-muted small flex-grow-1">Go pro! The first level of professional training. Mentor other divers.</p>
-                        <div class="d-flex align-items-center justify-content-between mt-3">
-                            <span class="h5 text-primary mb-0 fw-bold">$999.00</span>
-                            <a href="#" class="btn btn-primary btn-sm btn-modern rounded-pill px-4">Book Now</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
 
         </div>
     </div>

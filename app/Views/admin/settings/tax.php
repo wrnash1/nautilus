@@ -5,11 +5,8 @@
  */
 
 $pageTitle = 'Tax Settings';
-require BASE_PATH . '/app/Views/layouts/app.php';
-?>
-
-<?php function pageContent() { 
-    global $company, $taxRate;
+ob_start();
+global $company, $taxRate;
 ?>
 
 <div class="container-fluid">
@@ -63,4 +60,7 @@ require BASE_PATH . '/app/Views/layouts/app.php';
     </div>
 </div>
 
-<?php } ?>
+<?php
+$content = ob_get_clean();
+require BASE_PATH . '/app/Views/layouts/admin.php';
+?>

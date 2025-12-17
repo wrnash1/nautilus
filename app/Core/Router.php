@@ -69,7 +69,21 @@ class Router
         }
 
         http_response_code(404);
-        echo json_encode(['error' => 'Route not found']);
+        
+        // Return JSON for API requests
+        if (str_starts_with($uri, '/api') || str_starts_with($uri, '/store/api')) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Route not found']);
+            return;
+        }
+
+        // Return HTML view for everything else
+        if (file_exists(__DIR__ . '/../Views/errors/404.php')) {
+            require __DIR__ . '/../Views/errors/404.php';
+        } else {
+            // Fallback if view doesn't exist
+            echo "<h1>404 - Page Not Found</h1><p>The page you are looking for could not be found.</p>";
+        }
     }
 
     private function matchPath(string $pattern, string $uri, &$params): bool

@@ -135,6 +135,68 @@
     --footer-bg: #111827;
 }
 
+/* Sidebar Styling */
+.sidebar {
+    background: linear-gradient(180deg, #1a1d21 0%, #212529 100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-brand {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 1rem;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-header {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0.6rem 1.5rem;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
+.sidebar .nav-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar .nav-link.active {
+    color: #fff;
+    background: linear-gradient(90deg, rgba(14, 165, 233, 0.15) 0%, rgba(14, 165, 233, 0) 100%);
+    border-left-color: var(--primary-400);
+}
+
+.sidebar .nav-link i {
+    width: 24px;
+    font-size: 1.1em;
+    opacity: 0.8;
+}
+
+.sidebar .nav-link.active i {
+    color: var(--primary-400);
+    opacity: 1;
+}
+
+.sidebar .collapse {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar .collapse .nav-link {
+    padding-left: 3.5rem !important;
+    font-size: 0.85rem;
+}
+
 /* Global Styles */
 * {
     box-sizing: border-box;

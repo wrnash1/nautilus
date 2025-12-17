@@ -5,11 +5,8 @@
  */
 
 $pageTitle = 'Integration Settings';
-require BASE_PATH . '/app/Views/layouts/app.php';
-?>
-
-<?php function pageContent() { 
-    global $company;
+ob_start();
+global $company;
 ?>
 
 <div class="container-fluid">
@@ -97,4 +94,7 @@ require BASE_PATH . '/app/Views/layouts/app.php';
     </div>
 </div>
 
-<?php } ?>
+<?php
+$content = ob_get_clean();
+require BASE_PATH . '/app/Views/layouts/admin.php';
+?>

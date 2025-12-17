@@ -22,6 +22,9 @@ ob_start();
             <div class="card-body">
                 <form method="POST" action="/store/customers" id="customerForm" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+            <?php if (!empty($_GET['return_to'])): ?>
+            <input type="hidden" name="return_to" value="<?= htmlspecialchars($_GET['return_to']) ?>">
+            <?php endif; ?>
                     
                     <div class="mb-3">
                         <label class="form-label">Customer Type <span class="text-danger">*</span></label>

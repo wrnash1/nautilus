@@ -23,6 +23,11 @@ class Database
         return self::getPdo();
     }
 
+    public function prepare(string $sql, array $options = []): \PDOStatement
+    {
+        return self::getPdo()->prepare($sql, $options);
+    }
+
     public static function getPdo(): PDO
     {
         if (self::$instance === null) {
@@ -99,6 +104,14 @@ class Database
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
         return $stmt;
+    }
+
+    /**
+     * Alias for query, used for INSERT/UPDATE/DELETE where result verification might be implicit
+     */
+    public static function execute(string $sql, array $params = []): \PDOStatement
+    {
+        return self::query($sql, $params);
     }
 
     public static function fetchOne(string $sql, array $params = []): ?array

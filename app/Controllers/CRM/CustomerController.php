@@ -43,7 +43,7 @@ class CustomerController
     {
         if (!hasPermission('customers.create')) {
             $_SESSION['flash_error'] = 'Access denied';
-            redirect('/customers');
+            redirect('/store/customers');
         }
         
         require __DIR__ . '/../../Views/customers/create.php';
@@ -85,10 +85,18 @@ class CustomerController
             $customerId = $this->customerService->createCustomer($data);
             
             $_SESSION['flash_success'] = 'Customer created successfully';
-            redirect("/customers/{$customerId}");
+
+            $returnTo = $_POST['return_to'] ?? '';
+            if ($returnTo === 'pos') {
+                // If returning to POS, we should set the new customer as active in POS session
+                $_SESSION['pos_customer_id'] = $customerId;
+                redirect('/store/pos');
+            }
+
+            redirect("/store/customers/{$customerId}");
         } catch (\Exception $e) {
             $_SESSION['flash_error'] = $e->getMessage();
-            redirect('/customers/create');
+            redirect('/store/customers/create');
         }
     }
     
@@ -103,7 +111,7 @@ class CustomerController
 
         if (empty($data)) {
             $_SESSION['flash_error'] = 'Customer not found';
-            redirect('/customers');
+            redirect('/store/customers');
         }
 
         // Use EXTR_SKIP to prevent overwriting existing variables (security measure)
@@ -116,7 +124,7 @@ class CustomerController
     {
         if (!hasPermission('customers.edit')) {
             $_SESSION['flash_error'] = 'Access denied';
-            redirect('/customers');
+            redirect('/store/customers');
         }
 
         $customer = Customer::find($id);
@@ -124,7 +132,7 @@ class CustomerController
 
         if (!$customer) {
             $_SESSION['flash_error'] = 'Customer not found';
-            redirect('/customers');
+            redirect('/store/customers');
         }
 
         // Load certification agencies
@@ -178,10 +186,10 @@ class CustomerController
             $this->customerService->updateCustomer($id, $data);
             
             $_SESSION['flash_success'] = 'Customer updated successfully';
-            redirect("/customers/{$id}");
+            redirect("/store/customers/{$id}");
         } catch (\Exception $e) {
             $_SESSION['flash_error'] = $e->getMessage();
-            redirect("/customers/{$id}/edit");
+            redirect("/store/customers/{$id}/edit");
         }
     }
     
@@ -189,13 +197,13 @@ class CustomerController
     {
         if (!hasPermission('customers.delete')) {
             $_SESSION['flash_error'] = 'Access denied';
-            redirect('/customers');
+            redirect('/store/customers');
         }
         
         Customer::delete($id);
         
         $_SESSION['flash_success'] = 'Customer deleted successfully';
-        redirect('/customers');
+        redirect('/store/customers');
     }
     
     public function search()
@@ -218,7 +226,7 @@ class CustomerController
     {
         if (!hasPermission('customers.export')) {
             $_SESSION['flash_error'] = 'Access denied';
-            redirect('/customers');
+            redirect('/store/customers');
         }
         
         $customers = Customer::all(10000, 0);
@@ -276,10 +284,10 @@ class CustomerController
             Customer::createAddress($id, $data);
             
             $_SESSION['flash_success'] = 'Address added successfully';
-            redirect("/customers/{$id}");
+            redirect("/store/customers/{$id}");
         } catch (\Exception $e) {
             $_SESSION['flash_error'] = $e->getMessage();
-            redirect("/customers/{$id}");
+            redirect("/store/customers/{$id}");
         }
     }
     
@@ -308,10 +316,10 @@ class CustomerController
             Customer::updateAddress($address_id, $data);
             
             $_SESSION['flash_success'] = 'Address updated successfully';
-            redirect("/customers/{$id}");
+            redirect("/store/customers/{$id}");
         } catch (\Exception $e) {
             $_SESSION['flash_error'] = $e->getMessage();
-            redirect("/customers/{$id}");
+            redirect("/store/customers/{$id}");
         }
     }
     
@@ -319,13 +327,13 @@ class CustomerController
     {
         if (!hasPermission('customers.edit')) {
             $_SESSION['flash_error'] = 'Access denied';
-            redirect("/customers/{$id}");
+            redirect("/store/customers/{$id}");
         }
 
         Customer::deleteAddress($address_id);
 
         $_SESSION['flash_success'] = 'Address deleted successfully';
-        redirect("/customers/{$id}");
+        redirect("/store/customers/{$id}");
     }
 
     // ========== Phone Number Management ==========

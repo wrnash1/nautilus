@@ -2,16 +2,15 @@
 
 namespace App\Controllers;
 
-use App\Core\Auth;
-use App\Services\Search\GlobalSearchService;
+use App\Services\Search\SearchService;
 
 class SearchController
 {
-    private GlobalSearchService $searchService;
+    private SearchService $searchService;
 
     public function __construct()
     {
-        $this->searchService = new GlobalSearchService();
+        $this->searchService = new SearchService();
     }
 
     /**
@@ -28,8 +27,16 @@ class SearchController
         }
 
         // Perform search
-        $results = $this->searchService->search($query, $modules);
-        $totalResults = $this->searchService->getResultCount($results);
+        // Pass specific modules if selected, otherwise service defaults to likely all relevant
+        $options = [];
+        if (!empty($modules)) {
+            $options['entities'] = $modules;
+        }
+
+        $searchResponse = $this->searchService->universalSearch($query, $options);
+        
+        $results = $searchResponse['results'] ?? [];
+        $totalResults = $searchResponse['total_results'] ?? 0;
 
         require __DIR__ . '/../Views/search/results.php';
     }
@@ -40,6 +47,7 @@ class SearchController
     public function suggestions()
     {
         $query = $_GET['q'] ?? '';
+        $type = $_GET['type'] ?? 'products'; // Default to products if not specified
 
         if (empty($query) || strlen($query) < 2) {
             header('Content-Type: application/json');
@@ -47,7 +55,35 @@ class SearchController
             return;
         }
 
-        $suggestions = $this->searchService->getSuggestions($query, 10);
+        // New service expects (query, entity, limit)
+        // If type is not one supported by suggestions, it might return empty or error.
+        // The view JS seems to query ?q=... without type, need to check that.
+        // View JS: fetch(`/store/search/suggestions?q=${encodeURIComponent(query)}`)
+        // It provides a single list. The new service provides suggestions per entity.
+        // To maintain compatibility with the view which expects a mixed list, we might need to query multiple.
+        
+        $suggestions = [];
+        
+        // If type is specified, query just that.
+        if (isset($_GET['type'])) {
+             $result = $this->searchService->getSearchSuggestions($query, $type, 10);
+             if ($result['success']) {
+                 $suggestions = $result['suggestions'];
+             }
+        } else {
+            // Aggregate from common types if no type specified (legacy behavior compat)
+            $types = ['products', 'customers', 'courses'];
+            foreach ($types as $t) {
+                $res = $this->searchService->getSearchSuggestions($query, $t, 3);
+                if ($res['success']) {
+                    // Add type label if not present in suggestion data
+                    foreach ($res['suggestions'] as &$s) {
+                        $s['type'] = $t; 
+                    }
+                    $suggestions = array_merge($suggestions, $res['suggestions']);
+                }
+            }
+        }
 
         header('Content-Type: application/json');
         echo json_encode($suggestions);

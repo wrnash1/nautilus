@@ -94,8 +94,7 @@ CREATE TABLE IF NOT EXISTS subscription_plans (
     INDEX idx_plan_active (is_active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Ensure api_rate_limit exists in subscription_plans (redundant now but safe)
-ALTER TABLE subscription_plans ADD COLUMN IF NOT EXISTS api_rate_limit INT DEFAULT 1000;
+
 
 -- Tenant Subscriptions
 CREATE TABLE IF NOT EXISTS tenant_subscriptions (

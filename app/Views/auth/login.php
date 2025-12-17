@@ -204,6 +204,7 @@
                 
                 <?php
                 // Check if SSO is enabled
+                /* SSO Disabled by Request
                 $ssoEnabled = $_ENV['SSO_ENABLED'] ?? 'true';
                 if ($ssoEnabled === 'true' || $ssoEnabled === true):
                 ?>
@@ -229,7 +230,7 @@
                     </a>
                 </div>
                 
-                <?php endif; ?>
+                <?php endif; */ ?>
                 
                 <hr class="my-4">
                 

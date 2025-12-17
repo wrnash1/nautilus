@@ -27,7 +27,7 @@ class CustomerTagController
             // Get tag usage counts
             foreach ($tags as &$tag) {
                 try {
-                    $stmt = $db->prepare("SELECT COUNT(*) as count FROM customer_tag_assignments WHERE tag_id = ?");
+                    $stmt = $db->getConnection()->prepare("SELECT COUNT(*) as count FROM customer_tag_assignments WHERE tag_id = ?");
                     $stmt->execute([$tag['id']]);
                     $tag['customer_count'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
                 } catch (\PDOException $e) {
@@ -62,7 +62,14 @@ class CustomerTagController
             redirect('/store/customers/tags');
         }
 
+        $pageTitle = 'Create Customer Tag';
+        $activeMenu = 'customers';
+
+        ob_start();
         require __DIR__ . '/../../Views/customers/tags/create.php';
+        $content = ob_get_clean();
+
+        require BASE_PATH . '/app/Views/layouts/app.php';
     }
 
     /**
@@ -86,7 +93,7 @@ class CustomerTagController
             }
 
             $db = Database::getInstance();
-            $stmt = $db->prepare("
+            $stmt = $db->getConnection()->prepare("
                 INSERT INTO customer_tags (name, slug, color, icon, description, created_by)
                 VALUES (?, ?, ?, ?, ?, ?)
             ");
@@ -118,7 +125,7 @@ class CustomerTagController
             }
 
             $db = Database::getInstance();
-            $stmt = $db->prepare("
+            $stmt = $db->getConnection()->prepare("
                 INSERT INTO customer_tag_assignments (customer_id, tag_id, assigned_by, notes)
                 VALUES (?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE notes = VALUES(notes)
@@ -142,7 +149,7 @@ class CustomerTagController
 
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("DELETE FROM customer_tag_assignments WHERE customer_id = ? AND tag_id = ?");
+            $stmt = $db->getConnection()->prepare("DELETE FROM customer_tag_assignments WHERE customer_id = ? AND tag_id = ?");
             $stmt->execute([$customerId, $tagId]);
 
             jsonResponse(['success' => true, 'message' => 'Tag removed successfully']);
@@ -157,7 +164,7 @@ class CustomerTagController
     public function getCustomerTags(int $customerId)
     {
         $db = Database::getInstance();
-        $stmt = $db->prepare("
+        $stmt = $db->getConnection()->prepare("
             SELECT t.*, cta.assigned_at, cta.notes,
                    CONCAT(u.first_name, ' ', u.last_name) as assigned_by_name
             FROM customer_tag_assignments cta
@@ -192,7 +199,7 @@ class CustomerTagController
             }
 
             $db = Database::getInstance();
-            $stmt = $db->prepare("
+            $stmt = $db->getConnection()->prepare("
                 UPDATE customer_tags
                 SET name = ?, color = ?, icon = ?, description = ?, is_active = ?
                 WHERE id = ?

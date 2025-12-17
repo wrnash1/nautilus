@@ -98,11 +98,54 @@ class StorefrontController extends Controller
      */
     public function courses(): void
     {
+        // Get active courses
+        $courses = Database::fetchAll("
+            SELECT * FROM courses 
+            WHERE is_active = 1 
+            ORDER BY name ASC
+        ") ?? [];
+
         $data = [
+            'courses' => $courses,
             'business_name' => $this->getBusinessName()
         ];
 
         $this->renderStorefront('storefront/courses', $data);
+    }
+
+    /**
+     * Course Detail page
+     */
+    public function courseDetail($id): void
+    {
+        // Get course details
+        $course = Database::fetchOne("
+            SELECT * FROM courses 
+            WHERE id = ? AND is_active = 1
+        ", [$id]);
+
+        if (!$course) {
+            http_response_code(404);
+            echo "Course not found"; // In a real app, render 404 view
+            return;
+        }
+
+        // Get upcoming schedules for this course
+        $schedules = Database::fetchAll("
+            SELECT cs.*, u.first_name as instructor_name 
+            FROM course_schedules cs
+            LEFT JOIN users u ON cs.instructor_id = u.id
+            WHERE cs.course_id = ? AND cs.start_date >= CURDATE()
+            ORDER BY cs.start_date ASC
+        ", [$id]) ?? [];
+
+        $data = [
+            'course' => $course,
+            'schedules' => $schedules,
+            'business_name' => $this->getBusinessName()
+        ];
+
+        $this->renderStorefront('storefront/course_detail', $data);
     }
 
     /**

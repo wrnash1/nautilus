@@ -23,6 +23,35 @@ $router->get('/health/alive', 'HealthCheckController@alive');
 // PUBLIC STOREFRONT ROUTES (Customer-facing website)
 // ============================================================================
 
+$router->get('/debug-courses', function() {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    try {
+        echo "<h1>Debug Courses (Self-Healing)</h1>";
+        echo "<pre>";
+        
+        // 1. Show Config
+        echo "DB_HOST: " . ($_ENV['DB_HOST'] ?? 'NOT SET') . "\n";
+        echo "DB_DATABASE: " . ($_ENV['DB_DATABASE'] ?? 'NOT SET') . "\n";
+
+        // 2. Force Insert (The Fix)
+        $conn = \App\Core\Database::getInstance()->getConnection();
+        $conn->exec("INSERT INTO courses (name, course_code, description, price, max_students, duration_days, is_active, created_at) 
+                    VALUES ('Open Water Diver', 'OWD-001', 'Description', 399.00, 10, 3, 1, NOW()) 
+                    ON DUPLICATE KEY UPDATE is_active=1");
+        echo "INSERT COMMAND EXECUTED (PDO exec)\n\n";
+
+        // 3. Read Verification
+        $sql = "SELECT * FROM courses WHERE is_active = 1";
+        $courses = \App\Core\Database::fetchAll($sql);
+        echo "Count After Insert: " . count($courses) . "\n";
+        print_r($courses);
+        
+    } catch (\Throwable $e) {
+        echo "ERROR: " . $e->getMessage() . "\n" . $e->getTraceAsString();
+    }
+});
+
 // Homepage - Modern Public Storefront (NO SIDEBAR - Public facing)
 $router->get('/', 'Storefront\StorefrontController@index');
 $router->get('/about', 'Storefront\StorefrontController@about');

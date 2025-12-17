@@ -25,8 +25,8 @@ if ($isQuickInstall) {
         "db_host" => "nautilus-db",
         "db_port" => getenv("DB_PORT") ?: "3306",
         "db_name" => getenv("DB_DATABASE") ?: "nautilus",
-        "db_user" => getenv("DB_USERNAME") ?: "root",
-        "db_pass" => getenv("DB_PASSWORD") ?: "Frogman09!"
+        "db_user" => "root",
+        "db_pass" => "Frogman09!"
     ];
 }
 

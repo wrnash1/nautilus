@@ -1,6 +1,7 @@
 <?php
 $pageTitle = 'Settings';
 $company = getCompanyInfo();
+ob_start();
 ?>
 
 <div class="container-fluid">
@@ -247,3 +248,8 @@ document.getElementById('brand_secondary_color')?.addEventListener('input', func
     this.nextElementSibling.value = e.target.value;
 });
 </script>
+
+<?php
+$content = ob_get_clean();
+require BASE_PATH . '/app/Views/layouts/admin.php';
+?>

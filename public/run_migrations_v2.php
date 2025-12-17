@@ -39,13 +39,31 @@ if (!isset($config['db_host']) && isset($config['host'])) {
     $config['db_pass'] = $config['password'];
 }
 
-$files = glob("/var/www/html/database/migrations/080_create_system_settings.sql");
+// Override with root for migration runner privileges
+$config['db_host'] = 'nautilus-db'; // Or 127.0.0.1 if local
+$config['db_user'] = 'root';
+$config['db_pass'] = 'Frogman09!';
+$config['db_name'] = 'nautilus';
+
+$targetFile = $_GET['file'] ?? null;
+if ($targetFile) {
+    // Security: sanitize filename to prevent directory traversal
+    $targetFile = basename($targetFile);
+    $files = glob("/var/www/html/database/migrations/" . $targetFile);
+} else {
+    $files = glob("/var/www/html/database/migrations/*.sql");
+}
+
 $globError = error_get_last();
 file_put_contents('/var/www/html/storage/logs/install_debug.log', "Glob result count: " . count($files) . "\n", FILE_APPEND);
 if ($files === false) {
     file_put_contents('/var/www/html/storage/logs/install_debug.log', "Glob failed! Error: " . print_r($globError, true) . "\n", FILE_APPEND);
 }
-sort($files);
+if ($files) {
+    sort($files);
+} else {
+    $files = [];
+}
 
 $total = count($files);
 echo "TOTAL:$total\n";

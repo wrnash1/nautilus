@@ -141,7 +141,7 @@ DEALLOCATE PREPARE alterIfNotExists;
 
 
 -- OAuth provider configurations (tenant-specific)
-CREATE TABLE oauth_providers (
+CREATE TABLE IF NOT EXISTS oauth_providers (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     tenant_id INT UNSIGNED NOT NULL,
     provider VARCHAR(50) NOT NULL COMMENT 'google, microsoft, github, oidc, saml',
@@ -191,7 +191,7 @@ CREATE TABLE oauth_providers (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- SSO login sessions (for security auditing)
-CREATE TABLE sso_login_sessions (
+CREATE TABLE IF NOT EXISTS sso_login_sessions (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     tenant_id INT UNSIGNED NOT NULL,
     user_id INT UNSIGNED NOT NULL,
@@ -226,7 +226,7 @@ CREATE TABLE sso_login_sessions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- SSO account linking (for users with multiple auth methods)
-CREATE TABLE sso_account_links (
+CREATE TABLE IF NOT EXISTS sso_account_links (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     tenant_id INT UNSIGNED NOT NULL,
     user_id INT UNSIGNED NOT NULL,
@@ -254,7 +254,7 @@ CREATE TABLE sso_account_links (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- SSO audit log
-CREATE TABLE sso_audit_log (
+CREATE TABLE IF NOT EXISTS sso_audit_log (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     tenant_id INT UNSIGNED NOT NULL,
     user_id INT UNSIGNED NULL,
@@ -284,7 +284,7 @@ CREATE TABLE sso_audit_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert default OAuth provider configurations
-INSERT INTO oauth_providers (tenant_id, provider, display_name, client_id, client_secret, redirect_uri, scopes, is_enabled)
+INSERT IGNORE INTO oauth_providers (tenant_id, provider, display_name, client_id, client_secret, redirect_uri, scopes, is_enabled)
 SELECT 
     id,
     'google',
@@ -297,7 +297,7 @@ SELECT
 FROM tenants
 WHERE id = 1;
 
-INSERT INTO oauth_providers (tenant_id, provider, display_name, client_id, client_secret, redirect_uri, scopes, is_enabled)
+INSERT IGNORE INTO oauth_providers (tenant_id, provider, display_name, client_id, client_secret, redirect_uri, scopes, is_enabled)
 SELECT 
     id,
     'microsoft',
@@ -310,7 +310,7 @@ SELECT
 FROM tenants
 WHERE id = 1;
 
-INSERT INTO oauth_providers (tenant_id, provider, display_name, client_id, client_secret, redirect_uri, scopes, is_enabled)
+INSERT IGNORE INTO oauth_providers (tenant_id, provider, display_name, client_id, client_secret, redirect_uri, scopes, is_enabled)
 SELECT 
     id,
     'github',
@@ -336,6 +336,19 @@ CREATE TABLE IF NOT EXISTS system_settings (
     INDEX idx_setting_key (setting_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- Add is_public column to system_settings if it doesn't exist
+SET @dbname = DATABASE();
+SET @tablename = 'system_settings';
+SET @columnname = 'is_public';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE system_settings ADD COLUMN is_public BOOLEAN DEFAULT FALSE COMMENT 'Can be accessed by frontend'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Add system setting for SSO
 INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public, created_at)
