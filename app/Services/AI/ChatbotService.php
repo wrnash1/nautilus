@@ -496,7 +496,7 @@ class ChatbotService
     {
         return TenantDatabase::fetchOneTenant(
             "SELECT transaction_number, transaction_date as date, total_amount as total, status
-             FROM pos_transactions
+             FROM transactions
              WHERE transaction_number = ?",
             [$orderNumber]
         );
@@ -506,7 +506,7 @@ class ChatbotService
     {
         return TenantDatabase::fetchAllTenant(
             "SELECT transaction_number, transaction_date as date, total_amount as total, status
-             FROM pos_transactions
+             FROM transactions
              WHERE customer_id = ?
              ORDER BY transaction_date DESC
              LIMIT 5",

@@ -45,6 +45,9 @@ class CustomerController
             $_SESSION['flash_error'] = 'Access denied';
             redirect('/store/customers');
         }
+
+        // Load certification agencies
+        $certificationAgencies = \App\Core\Database::fetchAll("SELECT id, name, code FROM certification_agencies WHERE is_active = 1 ORDER BY name");
         
         require __DIR__ . '/../../Views/customers/create.php';
     }
@@ -83,6 +86,28 @@ class CustomerController
             ];
 
             $customerId = $this->customerService->createCustomer($data);
+            
+            // Handle initial certification if provided
+            if (!empty($_POST['certification_agency_id'])) {
+                try {
+                    $db = \App\Core\Database::getInstance();
+                    $stmt = $db->prepare("
+                        INSERT INTO customer_certifications (customer_id, certification_agency_id, certification_level, certification_number, issue_date, notes)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmt->execute([
+                        $customerId,
+                        (int)$_POST['certification_agency_id'],
+                        sanitizeInput($_POST['certification_level'] ?? ''),
+                        sanitizeInput($_POST['certification_number'] ?? ''),
+                        !empty($_POST['certification_issue_date']) ? $_POST['certification_issue_date'] : null,
+                        sanitizeInput($_POST['certification_notes'] ?? '')
+                    ]);
+                } catch (\Exception $e) {
+                    // Log error but don't fail customer creation
+                    error_log("Failed to add initial certification: " . $e->getMessage());
+                }
+            }
             
             $_SESSION['flash_success'] = 'Customer created successfully';
 
@@ -220,6 +245,24 @@ class CustomerController
         
         $customers = $this->customerService->search($query);
         jsonResponse($customers);
+    }
+    
+    public function transactions(int $id)
+    {
+        if (!hasPermission('customers.view')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+        
+        // Fetch transactions for this customer
+        $db = \App\Core\Database::getInstance();
+        $transactions = $db->fetchAll("
+            SELECT t.id, t.transaction_number, t.created_at, t.payment_method, t.status, t.total
+            FROM transactions t
+            WHERE t.customer_id = ?
+            ORDER BY t.created_at DESC
+        ", [$id]);
+        
+        jsonResponse($transactions);
     }
     
     public function exportCsv()
@@ -619,6 +662,57 @@ class CustomerController
             $stmt->execute([$certId, $id]);
 
             jsonResponse(['success' => true, 'message' => 'Certification deleted successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+    // ========== Equipment Management ==========
+
+    public function addEquipment(int $id)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("
+                INSERT INTO customer_equipment (customer_id, serial_number, manufacturer, model, size, material, last_vip_date, last_hydro_date, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $id,
+                sanitizeInput($_POST['serial_number'] ?? ''),
+                sanitizeInput($_POST['manufacturer'] ?? ''),
+                sanitizeInput($_POST['model'] ?? ''),
+                sanitizeInput($_POST['size'] ?? ''),
+                sanitizeInput($_POST['material'] ?? ''),
+                !empty($_POST['last_vip_date']) ? $_POST['last_vip_date'] : null,
+                !empty($_POST['last_hydro_date']) ? $_POST['last_hydro_date'] : null,
+                sanitizeInput($_POST['notes'] ?? '')
+            ]);
+
+            $_SESSION['flash_success'] = 'Equipment added successfully';
+            jsonResponse(['success' => true, 'message' => 'Equipment added successfully']);
+        } catch (\Exception $e) {
+            jsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function deleteEquipment(int $id, int $equipId)
+    {
+        if (!hasPermission('customers.edit')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $db = \App\Core\Database::getInstance();
+            // Optional: Check if used in air fills? For now just delete.
+            // Ideally we soft delete or block if used.
+            $stmt = $db->prepare("DELETE FROM customer_equipment WHERE id = ? AND customer_id = ?");
+            $stmt->execute([$equipId, $id]);
+
+            jsonResponse(['success' => true, 'message' => 'Equipment deleted successfully']);
         } catch (\Exception $e) {
             jsonResponse(['error' => $e->getMessage()], 400);
         }

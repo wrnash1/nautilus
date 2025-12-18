@@ -156,19 +156,25 @@ class AirFillService
     /**
      * Create new air fill
      */
+    /**
+     * Create new air fill
+     */
     public function createAirFill(array $data): int
     {
         Database::beginTransaction();
 
         try {
             $sql = "INSERT INTO air_fills (
-                        customer_id, equipment_id, fill_type, fill_pressure,
-                        nitrox_percentage, cost, notes, filled_by, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                        customer_id, equipment_id, customer_equipment_id, compressor_id, 
+                        fill_type, fill_pressure, nitrox_percentage, cost, 
+                        notes, filled_by, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
             $params = [
                 $data['customer_id'],
                 $data['equipment_id'] ?? null,
+                $data['customer_equipment_id'] ?? null,
+                $data['compressor_id'] ?? null,
                 $data['fill_type'],
                 $data['fill_pressure'],
                 $data['nitrox_percentage'],
@@ -179,6 +185,29 @@ class AirFillService
 
             Database::execute($sql, $params);
             $airFillId = Database::lastInsertId();
+
+            // Compressor Maintenance Logic
+            if (!empty($data['compressor_id']) && !empty($data['run_time_minutes'])) {
+                $hours = $data['run_time_minutes'] / 60;
+                
+                // Update Compressor Hours
+                Database::execute(
+                    "UPDATE compressors SET current_hours = current_hours + ? WHERE id = ?",
+                    [$hours, $data['compressor_id']]
+                );
+
+                // Log Usage
+                Database::execute(
+                    "INSERT INTO compressor_logs (compressor_id, user_id, type, hours_recorded, description, created_at) 
+                     VALUES (?, ?, 'fill_run', ?, ?, NOW())",
+                    [
+                        $data['compressor_id'],
+                        $data['filled_by'],
+                        $hours,
+                        "Air Fill #$airFillId (" . $data['run_time_minutes'] . " mins)"
+                    ]
+                );
+            }
 
             // Create transaction if requested
             if (!empty($data['create_transaction']) && $data['cost'] > 0 && $data['customer_id']) {
@@ -193,11 +222,13 @@ class AirFillService
 
             Database::commit();
 
-            // Log the action
-            logAudit('air_fill', 'create', $airFillId, [
-                'fill_type' => $data['fill_type'],
-                'cost' => $data['cost']
-            ]);
+            // Log the action (existing audit)
+            if (function_exists('logAudit')) {
+                logAudit('air_fill', 'create', $airFillId, [
+                    'fill_type' => $data['fill_type'],
+                    'cost' => $data['cost']
+                ]);
+            }
 
             return $airFillId;
 

@@ -145,7 +145,7 @@ class CustomerPortalController extends Controller
         $branding = $this->whiteLabel->getBranding($_SESSION['tenant_id'] ?? 1);
 
         $invoices = TenantDatabase::fetchAllTenant("
-            SELECT * FROM pos_transactions
+            SELECT * FROM transactions
             WHERE customer_id = ? AND status = 'completed'
             ORDER BY created_at DESC
             LIMIT 50
@@ -169,7 +169,7 @@ class CustomerPortalController extends Controller
         $branding = $this->whiteLabel->getBranding($_SESSION['tenant_id'] ?? 1);
 
         $invoice = TenantDatabase::fetchOneTenant("
-            SELECT * FROM pos_transactions
+            SELECT * FROM transactions
             WHERE id = ? AND customer_id = ?
         ", [$invoiceId, $customerId]);
 
@@ -180,7 +180,7 @@ class CustomerPortalController extends Controller
 
         $invoiceItems = TenantDatabase::fetchAllTenant("
             SELECT ti.*, p.name as product_name, p.sku
-            FROM pos_transaction_items ti
+            FROM transaction_items ti
             LEFT JOIN products p ON ti.product_id = p.id
             WHERE ti.transaction_id = ?
         ", [$invoiceId]) ?? [];
@@ -367,7 +367,7 @@ class CustomerPortalController extends Controller
         );
 
         $totalSpent = TenantDatabase::fetchOneTenant(
-            "SELECT SUM(total_amount) as total FROM pos_transactions WHERE customer_id = ? AND status = 'completed'",
+            "SELECT SUM(total_amount) as total FROM transactions WHERE customer_id = ? AND status = 'completed'",
             [$customerId]
         );
 

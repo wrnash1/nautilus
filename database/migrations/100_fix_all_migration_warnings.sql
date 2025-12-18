@@ -5,4 +5,4 @@
 -- Keeping this file for migration order, but it does nothing
 -- ============================================================================
 
-SELECT 'Migration 100: Skipped (handled by migration 101)' AS status;
+-- (Removed SELECT statement to prevent PDO unbuffered query errors)

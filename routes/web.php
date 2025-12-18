@@ -165,6 +165,7 @@ $router->post('/store/customers', 'CRM\CustomerController@store', [AuthMiddlewar
 $router->get('/store/customers/search', 'CRM\CustomerController@search', [AuthMiddleware::class]);
 $router->get('/store/customers/export', 'CRM\CustomerController@exportCsv', [AuthMiddleware::class]);
 $router->get('/store/customers/{id}', 'CRM\CustomerController@show', [AuthMiddleware::class]);
+$router->get('/store/customers/{id}/transactions', 'CRM\CustomerController@transactions', [AuthMiddleware::class]);
 $router->get('/store/customers/{id}/edit', 'CRM\CustomerController@edit', [AuthMiddleware::class]);
 $router->post('/store/customers/{id}', 'CRM\CustomerController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/customers/{id}/delete', 'CRM\CustomerController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
@@ -251,6 +252,7 @@ $router->get('/store/air-fills/quick-fill', 'AirFills\AirFillController@quickFil
 $router->post('/store/air-fills/quick-fill', 'AirFills\AirFillController@processQuickFill', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/air-fills/export', 'AirFills\AirFillController@export', [AuthMiddleware::class]);
 $router->get('/store/air-fills/pricing', 'AirFills\AirFillController@getPricing', [AuthMiddleware::class]);
+$router->get('/store/air-fills/customer-equipment', 'AirFills\AirFillController@getCustomerEquipment', [AuthMiddleware::class]);
 $router->get('/store/air-fills/{id}', 'AirFills\AirFillController@show', [AuthMiddleware::class]);
 $router->get('/store/air-fills/{id}/edit', 'AirFills\AirFillController@edit', [AuthMiddleware::class]);
 $router->post('/store/air-fills/{id}', 'AirFills\AirFillController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
@@ -266,12 +268,21 @@ $router->post('/store/courses/transfer-student', 'Courses\CourseController@trans
 $router->get('/store/courses/enrollments', 'Courses\CourseController@enrollments', [AuthMiddleware::class]);
 $router->get('/store/courses/enrollments/{id}', 'Courses\CourseController@showEnrollment', [AuthMiddleware::class]);
 $router->post('/store/courses/enrollments/{id}/attendance', 'Courses\CourseController@markAttendance', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Instructor Skills Checkoff
+$router->get('/instructor/skills', 'Instructor\SkillsCheckoffController@index', [AuthMiddleware::class]);
+$router->get('/instructor/skills/student/{id}', 'Instructor\SkillsCheckoffController@studentRecord', [AuthMiddleware::class]);
+$router->get('/instructor/skills/session/{id}/{type}/{num}', 'Instructor\SkillsCheckoffController@session', [AuthMiddleware::class]);
+$router->post('/instructor/skills/update', 'Instructor\SkillsCheckoffController@updateSkill', [AuthMiddleware::class]); // CSRF?
+$router->post('/instructor/skills/complete', 'Instructor\SkillsCheckoffController@completeSession', [AuthMiddleware::class]);
+$router->post('/instructor/skills/notes', 'Instructor\SkillsCheckoffController@addNotes', [AuthMiddleware::class]);
 $router->post('/store/courses/enrollments/{id}/grade', 'Courses\CourseController@updateGrade', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/courses', 'Courses\CourseController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/courses/{id}', 'Courses\CourseController@show', [AuthMiddleware::class]);
 $router->get('/store/courses/{id}/edit', 'Courses\CourseController@edit', [AuthMiddleware::class]);
 $router->post('/store/courses/{id}', 'Courses\CourseController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/courses/{id}/delete', 'Courses\CourseController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/api/courses/queue', 'Courses\CourseQueueController@addToQueue', [AuthMiddleware::class]); // Add to Queue (No CSRF for now or handle in JS)
 
 // Certifications
 $router->get('/certifications', 'Certifications\CertificationController@index', [AuthMiddleware::class]);
@@ -412,6 +423,7 @@ $router->post('/store/staff/schedules', 'Staff\ScheduleController@store', [AuthM
 $router->post('/store/staff/schedules/{id}/delete', 'Staff\ScheduleController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 $router->get('/store/staff/timeclock', 'Staff\TimeClockController@index', [AuthMiddleware::class]);
+$router->get('/store/staff/timeclock/status', 'Staff\TimeClockController@getStatus', [AuthMiddleware::class]);
 $router->post('/store/staff/timeclock/clockin', 'Staff\TimeClockController@clockIn', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/staff/timeclock/clockout', 'Staff\TimeClockController@clockOut', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/staff/timeclock/reports', 'Staff\TimeClockController@reports', [AuthMiddleware::class]);
@@ -446,6 +458,10 @@ $router->post('/store/admin/settings/upload-logo', 'Admin\SettingsController@upl
 $router->post('/store/admin/settings/tax/rates', 'Admin\SettingsController@storeTaxRate', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/admin/settings/tax/rates/{id}', 'Admin\SettingsController@updateTaxRate', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/admin/settings/tax/rates/{id}/delete', 'Admin\SettingsController@deleteTaxRate', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// Update Management
+$router->get('/store/admin/settings/updates', 'Admin\SettingsController@updates', [AuthMiddleware::class]);
+$router->post('/store/admin/settings/updates/run', 'Admin\SettingsController@runUpdate', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 // Admin User Management
 $router->get('/store/admin/users', 'Admin\UserController@index', [AuthMiddleware::class]);
@@ -649,8 +665,20 @@ $router->get('/store/communication/campaigns', 'CommunicationController@campaign
 $router->get('/store/communication/preferences/{customerId}', 'CommunicationController@getPreferences', [AuthMiddleware::class]);
 $router->post('/store/communication/preferences/{customerId}', 'CommunicationController@updatePreferences', [AuthMiddleware::class, CsrfMiddleware::class]);
 
-// Equipment Maintenance
-$router->get('/store/maintenance', 'MaintenanceController@index', [AuthMiddleware::class]);
+// Equipment// Maintenance Routes (existing)
+$router->get('/admin/maintenance', 'MaintenanceController@index', [AuthMiddleware::class]);
+
+// Compressor Management
+$router->get('/admin/compressors', 'Admin\CompressorController@index', [AuthMiddleware::class]);
+$router->post('/admin/compressors', 'Admin\CompressorController@store', [AuthMiddleware::class]);
+$router->post('/admin/compressors/{id}/maintenance', 'Admin\CompressorController@logMaintenance', [AuthMiddleware::class]);
+
+// System Update (Phase 9)
+$router->get('/admin/system/update', 'Admin\SystemController@index', [AuthMiddleware::class]);
+$router->post('/admin/system/update', 'Admin\SystemController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// POS Routes
+$router->get('/pos', 'POS\PosController@index', [AuthMiddleware::class]);
 $router->get('/store/maintenance/create', 'MaintenanceController@create', [AuthMiddleware::class]);
 $router->post('/store/maintenance/record', 'MaintenanceController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/maintenance/schedule', 'MaintenanceController@schedule', [AuthMiddleware::class]);
@@ -699,6 +727,7 @@ $router->get('/store/analytics/dashboard-metrics', 'AnalyticsController@dashboar
 
 // Customer Tags
 $router->get('/store/customers/tags', 'CRM\CustomerTagController@index', [AuthMiddleware::class]);
+$router->get('/store/customers/tags/list', 'CRM\CustomerTagController@list', [AuthMiddleware::class]);
 $router->get('/store/customers/tags/create', 'CRM\CustomerTagController@create', [AuthMiddleware::class]);
 $router->post('/store/customers/tags', 'CRM\CustomerTagController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/customers/tags/{id}', 'CRM\CustomerTagController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
@@ -717,6 +746,8 @@ $router->post('/store/customers/{id}/emails/{emailId}/delete', 'CRM\CustomerCont
 $router->post('/store/customers/{id}/contacts', 'CRM\CustomerController@addContact', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/customers/{id}/contacts/{contactId}', 'CRM\CustomerController@updateContact', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/customers/{id}/contacts/{contactId}/delete', 'CRM\CustomerController@deleteContact', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/equipment', 'CRM\CustomerController@addEquipment', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/customers/{id}/equipment/{eid}/delete', 'CRM\CustomerController@deleteEquipment', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/customers/{id}/certifications', 'CRM\CustomerController@addCertification', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/customers/{id}/certifications/{certId}/delete', 'CRM\CustomerController@deleteCertification', [AuthMiddleware::class, CsrfMiddleware::class]);
 

@@ -1,0 +1,1 @@
+Error: Database connection failed: SQLSTATE[HY000] [2002] php_network_getaddresses: getaddrinfo for database failed: Temporary failure in name resolution

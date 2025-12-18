@@ -21,6 +21,17 @@ ob_start();
     </div>
 </div>
 
+<?php if (isset($debug_info)): ?>
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-danger">
+            <h4>Debug Data</h4>
+            <pre><?= json_encode($debug_info, JSON_PRETTY_PRINT) ?></pre>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Key Metrics Row 1 -->
 <div class="row g-4 mb-4">
     <!-- Today's Sales -->

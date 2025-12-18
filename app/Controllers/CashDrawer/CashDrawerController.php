@@ -60,8 +60,10 @@ class CashDrawerController
     /**
      * Open a new cash drawer session
      */
-    public function open(int $drawerId)
+    public function open(int $id)
     {
+        $drawerId = $id;
+
         if (!hasPermission('pos.access')) {
             $_SESSION['flash_error'] = 'Access denied';
             redirect('/store/cash-drawer');

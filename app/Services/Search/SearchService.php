@@ -189,7 +189,7 @@ class SearchService
                     COUNT(DISTINCT t.id) as transaction_count,
                     COALESCE(SUM(t.total_amount), 0) as lifetime_value
              FROM customers c
-             LEFT JOIN pos_transactions t ON c.id = t.customer_id AND t.status = 'completed'
+             LEFT JOIN transactions t ON c.id = t.customer_id AND t.status = 'completed'
              WHERE {$whereClause}
              GROUP BY c.id
              ORDER BY c.last_name, c.first_name
@@ -262,7 +262,7 @@ class SearchService
             "SELECT t.*,
                     CONCAT(c.first_name, ' ', c.last_name) as customer_name,
                     CONCAT(u.first_name, ' ', u.last_name) as cashier_name
-             FROM pos_transactions t
+             FROM transactions t
              LEFT JOIN customers c ON t.customer_id = c.id
              LEFT JOIN users u ON t.user_id = u.id
              WHERE {$whereClause}

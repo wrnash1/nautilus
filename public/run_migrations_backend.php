@@ -1,36 +1,53 @@
 <?php
 /**
  * Backend migration processor - streams progress updates
+ * REFACTORED: Uses PDO and fixes installation completion logic
  */
 session_start();
+@ini_set('output_buffering', 'Off');
+@ini_set('implicit_flush', 1);
+@ini_set('zlib.output_compression', 0);
 set_time_limit(0);
 ignore_user_abort(true);
 ini_set('memory_limit', '512M');
 header("Content-Type: text/plain");
 header("X-Accel-Buffering: no"); // Disable nginx buffering
+header("Cache-Control: no-cache, must-revalidate"); // Disable browser caching
 ob_implicit_flush(true);
 
-// Check if this is a quick install from streamlined installer
-$debugMsg = "Backend started. Session ID: " . session_id() . "\n";
-$debugMsg .= "Session Data: " . print_r($_SESSION, true) . "\n";
-file_put_contents('/tmp/debug_install.log', $debugMsg, FILE_APPEND);
-file_put_contents('/var/www/html/storage/logs/install_debug.log', $debugMsg, FILE_APPEND);
+while (ob_get_level()) ob_end_clean(); // Clean any existing buffers
 
-$isQuickInstall = false; // isset($_SESSION['install_data']);
-if ($isQuickInstall) {
-    $config = $_SESSION['install_data'];
-} else {
-    // $config = $_SESSION["db_config"] ?? [
-    $config = [
-        "db_host" => "nautilus-db",
-        "db_port" => getenv("DB_PORT") ?: "3306",
-        "db_name" => getenv("DB_DATABASE") ?: "nautilus",
-        "db_user" => "root",
-        "db_pass" => "Frogman09!"
-    ];
+// Logging Helper
+$rootDir = dirname(__DIR__);
+$logCwd = is_dir($rootDir . '/storage/logs') ? $rootDir . '/storage/logs' : '/tmp';
+
+function logMsg($msg) {
+    global $logCwd;
+    $date = date('Y-m-d H:i:s');
+    file_put_contents($logCwd . '/install_debug.log', "[$date] $msg\n", FILE_APPEND);
 }
 
-// Normalize config keys if coming from session with old format
+logMsg("Backend started. Session ID: " . session_id());
+
+// Check if this is a quick install from streamlined installer
+$isQuickInstall = isset($_GET['quick_install']) || isset($_SESSION['install_data']);
+
+if ($isQuickInstall && isset($_SESSION['install_data'])) {
+    $config = $_SESSION['install_data'];
+    logMsg("Loaded config from session.");
+} else {
+    // Fallback or Env config
+    $config = [
+        "db_host" => getenv("DB_HOST") ?: "nautilus-db",
+        "db_port" => getenv("DB_PORT") ?: "3306",
+        "db_name" => getenv("DB_DATABASE") ?: "nautilus",
+        "db_user" => getenv("DB_USERNAME") ?: "root",
+        "db_pass" => getenv("DB_PASSWORD") ?: "Frogman09!"
+    ];
+    logMsg("Loaded config from defaults/env.");
+}
+
+// Normalize config
 if (!isset($config['db_host']) && isset($config['host'])) {
     $config['db_host'] = $config['host'];
     $config['db_port'] = $config['port'];
@@ -39,11 +56,12 @@ if (!isset($config['db_host']) && isset($config['host'])) {
     $config['db_pass'] = $config['password'];
 }
 
-$files = glob("/var/www/html/database/migrations/*.sql");
-$globError = error_get_last();
-file_put_contents('/var/www/html/storage/logs/install_debug.log', "Glob result count: " . count($files) . "\n", FILE_APPEND);
+// Get Migration Files
+$files = glob($rootDir . "/database/migrations/*.sql");
 if ($files === false) {
-    file_put_contents('/var/www/html/storage/logs/install_debug.log', "Glob failed! Error: " . print_r($globError, true) . "\n", FILE_APPEND);
+    logMsg("Glob failed for: " . $rootDir . "/database/migrations/*.sql");
+    echo "ERROR:Glob failed\n";
+    exit;
 }
 sort($files);
 
@@ -51,90 +69,60 @@ $total = count($files);
 echo "TOTAL:$total\n";
 flush();
 
+// Connect to DB via PDO
+try {
+    $dsn = "mysql:host={$config['db_host']};port={$config['db_port']};dbname={$config['db_name']};charset=utf8mb4";
+    $pdo = new PDO($dsn, $config['db_user'], $config['db_pass']);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Important for multiple statements in one file
+    $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, true); 
+    $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true); 
+} catch (PDOException $e) {
+    logMsg("Connection failed: " . $e->getMessage());
+    echo "ERROR:Connection failed: " . $e->getMessage() . "\n";
+    exit;
+}
+
 $processed = 0;
 
 foreach ($files as $file) {
     $filename = basename($file);
-    // Use MySQLi for migrations to avoid PDO "unbuffered query" issues with multi-statement SQL
-    $mysqli = new mysqli($config['db_host'], $config['db_user'], $config['db_pass'], $config['db_name'], $config['db_port']);
     
-    if ($mysqli->connect_error) {
-         $error = "Connection failed: " . $mysqli->connect_error;
-         file_put_contents('/var/www/html/storage/logs/install_debug.log', $error . "\n", FILE_APPEND);
-         echo "ERROR:$error\n";
-         exit;
-    }
-
-    // Generate friendly name
+    // Friendly Name Logic
     $friendlyName = ucwords(str_replace(['_', '.sql'], [' ', ''], substr($filename, 4)));
-    if (strpos($filename, 'pos') !== false) $friendlyName = 'Point of Sale System';
-    if (strpos($filename, 'audit') !== false) $friendlyName = 'Audit Trail System';
-    if (strpos($filename, 'customer') !== false) $friendlyName = 'Customer Profiles';
-    if (strpos($filename, 'inventory') !== false) $friendlyName = 'Inventory System';
-    if (strpos($filename, 'ecommerce') !== false) $friendlyName = 'E-Commerce & AI';
-    if (strpos($filename, 'courses') !== false) $friendlyName = 'Course Management';
-    if (strpos($filename, 'core') !== false) $friendlyName = 'Core Database Schema';
-
     echo "START:$friendlyName\n";
     flush();
 
-    $sql = trim(file_get_contents($file));
-    if (empty($sql)) {
-        file_put_contents('/var/www/html/storage/logs/install_debug.log', "Skipping empty file: $filename\n", FILE_APPEND);
+    $sql = file_get_contents($file);
+    if (trim($sql) === '') {
+        logMsg("Skipping empty file: $filename");
         continue;
     }
-    file_put_contents('/var/www/html/storage/logs/install_debug.log', "Processing: $filename ($friendlyName)\n", FILE_APPEND);
-    
-    // Enable exception reporting for mysqli
-    $mysqli_driver = new mysqli_driver();
-    $mysqli_driver->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
 
     try {
-        if ($mysqli->multi_query($sql)) {
-            do {
-                // consume results to clear stack
-                if ($result = $mysqli->store_result()) {
-                    $result->free();
-                }
-            } while ($mysqli->more_results() && $mysqli->next_result());
-            
-            $processed++;
-            echo "PROGRESS:$processed\n";
-            flush();
-            file_put_contents('/var/www/html/storage/logs/install_debug.log', "Executed: $filename\n", FILE_APPEND);
-        } else {
-             throw new Exception($mysqli->error);
-        }
-    } catch (Exception $e) {
-        // Ignore "Query was empty" error which can happen with trailing comments/whitespace in multi_query
-        if ($e->getMessage() == 'Query was empty') {
-             file_put_contents('/var/www/html/storage/logs/install_debug.log', "Warning: Ignored 'Query was empty' for $filename\n", FILE_APPEND);
-             $processed++; // Treat as success
-             echo "PROGRESS:$processed\n";
-             flush();
-        } else {
-            $error = "Migration failed ($filename): " . $e->getMessage();
-            file_put_contents('/var/www/html/storage/logs/install_debug.log', $error . "\n", FILE_APPEND);
-            echo "ERROR:$error\n";
-            $mysqli->close();
-            exit;
-        }
+        $pdo->exec($sql);
+        $processed++;
+        echo "PROGRESS:$processed\n";
+        flush();
+        logMsg("Executed: $filename");
+    } catch (PDOException $e) {
+        $error = "Migration failed ($filename): " . $e->getMessage();
+        logMsg($error);
+        echo "ERROR:$error\n";
+        exit;
     }
     
-    $mysqli->close();
-    
-    usleep(50000); // Small delay so user can see progress
+    usleep(50000); // Visual delay
 }
 
 echo "COMPLETE\n";
 $_SESSION["db_installed"] = true;
 
-// If quick install, create .env file and admin account
+// Finalize Installation (Create .env and .installed)
 if ($isQuickInstall) {
-    file_put_contents('/var/www/html/storage/logs/install_debug.log', "Quick install block entered\n", FILE_APPEND);
-    $rootDir = dirname(__DIR__);
-
-    // Create .env file
+    logMsg("Finalizing Quick Install...");
+    
+    // 1. Create .env
     $envContent = "APP_NAME=\"Nautilus Dive Shop\"\n";
     $envContent .= "APP_ENV=development\n";
     $envContent .= "APP_DEBUG=true\n";
@@ -146,36 +134,35 @@ if ($isQuickInstall) {
     $envContent .= "DB_USERNAME={$config['db_user']}\n";
     $envContent .= "DB_PASSWORD={$config['db_pass']}\n";
 
-    $envResult = file_put_contents($rootDir . '/.env', $envContent);
-    file_put_contents('/var/www/html/storage/logs/install_debug.log', "Env write result: " . ($envResult === false ? "FALSE" : $envResult) . "\n", FILE_APPEND);
+    if (file_put_contents($rootDir . '/.env', $envContent) !== false) {
+        logMsg("Created .env file.");
+    } else {
+        logMsg("Failed to create .env file!");
+    }
 
-    // Create admin account
+    // 2. Update Admin Account
     try {
-        $pdo = new PDO(
-            "mysql:host={$config['db_host']};port={$config['db_port']};dbname={$config['db_name']}",
-            $config['db_user'],
-            $config['db_pass']
-        );
-
         // Update tenant
-        $pdo->exec("UPDATE tenants SET name = " . $pdo->quote($config['company']) . " WHERE id = 1");
+        $stmt = $pdo->prepare("UPDATE tenants SET name = ? WHERE id = 1");
+        $stmt->execute([$config['company'] ?? 'Nautilus']);
 
         // Update admin user
         $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, password_hash = ? WHERE id = 1");
         $stmt->execute([
-            $config['username'],
-            $config['email'],
-            $config['password']
+            $config['username'] ?? 'admin',
+            $config['email'] ?? 'admin@nautilus.local',
+            $config['password'] ?? password_hash('password', PASSWORD_DEFAULT)
         ]);
-
-        // Mark as installed
-        $instResult = file_put_contents($rootDir . '/.installed', date('Y-m-d H:i:s'));
-        file_put_contents('/var/www/html/storage/logs/install_debug.log', "Installed write result: " . ($instResult === false ? "FALSE" : $instResult) . "\n", FILE_APPEND);
-
+        logMsg("Updated admin account.");
     } catch (PDOException $e) {
-        file_put_contents('/var/www/html/storage/logs/install_debug.log', "DB Error: " . $e->getMessage() . "\n", FILE_APPEND);
-        echo "ERROR:Failed to create admin: " . $e->getMessage() . "\n";
+        logMsg("Failed to update admin/tenant: " . $e->getMessage());
     }
-} else {
-    file_put_contents('/var/www/html/storage/logs/install_debug.log', "Quick install block SKIPPED. Session: " . print_r($_SESSION, true) . "\n", FILE_APPEND);
+
+    // 3. Create .installed file
+    if (file_put_contents($rootDir . '/.installed', date('Y-m-d H:i:s')) !== false) {
+        logMsg("Created .installed file. Setup Complete.");
+    } else {
+        logMsg("Failed to create .installed file!");
+    }
 }
+?>

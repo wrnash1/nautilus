@@ -8,38 +8,45 @@ use App\Services\Courses\EnrollmentService;
 
 class TransactionService
 {
-    private const TAX_RATE = 0.08;
-    private EnrollmentService $enrollmentService;
-
-    public function __construct()
+    public function getTaxRate(): float
     {
-        $this->enrollmentService = new EnrollmentService();
+        try {
+            $setting = Database::fetchOne("SELECT setting_value FROM system_settings WHERE setting_key = 'tax_rate'");
+            return $setting ? (float)$setting['setting_value'] : 0.08;
+        } catch (\Exception $e) {
+            return 0.08;
+        }
     }
 
-    public function createTransaction(?int $customerId, array $items): int
+    public function createTransaction(?int $customerId, array $items, string $type = 'sale'): int
     {
+        $taxRate = $this->getTaxRate();
         $subtotal = 0;
         foreach ($items as $item) {
             $subtotal += $item['price'] * $item['quantity'];
         }
         
-        $tax = round($subtotal * self::TAX_RATE, 2);
+        $tax = round($subtotal * $taxRate, 2);
         $total = round($subtotal + $tax, 2);
         
         $transactionNumber = 'TXN-' . date('Ymd-His') . '-' . substr(uniqid(), -4);
         
+        $status = 'pending';
+
         Database::query(
-            "INSERT INTO transactions (transaction_number, customer_id, subtotal, tax, total, status, cashier_id) 
-             VALUES (?, ?, ?, ?, ?, 'pending', ?)",
-            [$transactionNumber, $customerId, $subtotal, $tax, $total, $_SESSION['user_id']]
+            "INSERT INTO transactions (transaction_number, customer_id, subtotal, tax, total, status, cashier_id, transaction_type) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [$transactionNumber, $customerId, $subtotal, $tax, $total, $status, $_SESSION['user_id'], $type]
         );
+        
+        $transactionId = (int)Database::lastInsertId();
         
         $transactionId = (int)Database::lastInsertId();
         
         foreach ($items as $item) {
             $product = Product::find($item['product_id']);
             $itemSubtotal = $item['price'] * $item['quantity'];
-            $itemTax = $itemSubtotal * self::TAX_RATE;
+            $itemTax = $itemSubtotal * $taxRate;
             $itemTotal = $itemSubtotal + $itemTax;
             
             Database::query(
@@ -64,38 +71,79 @@ class TransactionService
         return $transactionId;
     }
     
-    public function processPayment(int $transactionId, string $method, float $amount): bool
+    public function processPayment(int $transactionId, string $method, float $amount, ?string $note = null): bool
     {
         $transaction = Database::fetchOne(
             "SELECT * FROM transactions WHERE id = ?",
             [$transactionId]
         );
         
-        if (!$transaction || $transaction['status'] !== 'pending') {
+        if (!$transaction) {
+            return false;
+        }
+
+        if ($transaction['transaction_type'] === 'quote') {
+            Database::query(
+                "UPDATE transactions SET notes = ? WHERE id = ?",
+                [$note, $transactionId]
+            );
+            return true;
+        }
+        
+        if ($transaction['transaction_type'] === 'layaway') {
+            if ($amount > 0) {
+                 Database::query(
+                    "INSERT INTO payments (transaction_id, payment_method, amount, status) 
+                     VALUES (?, ?, ?, 'completed')",
+                    [$transactionId, $method, $amount]
+                );
+                
+                if ($method === 'cash') {
+                    $this->recordCashDrawerTransaction($transactionId, $amount);
+                }
+            }
+            
+            Database::query(
+                "UPDATE transactions SET notes = ? WHERE id = ?",
+                [$note, $transactionId]
+            );
+            
+            return true;
+        }
+
+        if ($transaction['status'] !== 'pending') {
             return false;
         }
         
-        if ($amount < $transaction['total']) {
+        // Use epsilon for float comparison to avoid precision issues
+        if (($transaction['total'] - $amount) > 0.005) {
             return false;
         }
         
         $paymentStatus = 'completed';
+
+        // Cap recorded payment at transaction total to prevent negative balances (credit)
+        // when change is given for cash payments
+        $recordedAmount = $amount;
+        if ($amount > $transaction['total']) {
+            $recordedAmount = $transaction['total'];
+        }
         
         Database::query(
             "INSERT INTO payments (transaction_id, payment_method, amount, status) 
              VALUES (?, ?, ?, ?)",
-            [$transactionId, $method, $amount, $paymentStatus]
+            [$transactionId, $method, $recordedAmount, $paymentStatus]
         );
         
         Database::query(
-            "UPDATE transactions SET status = 'completed'
+            "UPDATE transactions SET status = 'completed', notes = ?
              WHERE id = ?",
-            [$transactionId]
+            [$note, $transactionId]
         );
 
         // Record cash drawer transaction if payment is cash and there's an open session
         if ($method === 'cash') {
-            $this->recordCashDrawerTransaction($transactionId, $amount);
+            $this->recordCashDrawerTransaction($transactionId, $recordedAmount);
         }
 
         $items = Database::fetchAll(

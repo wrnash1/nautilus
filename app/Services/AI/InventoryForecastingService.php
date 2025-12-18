@@ -112,8 +112,8 @@ class InventoryForecastingService
                 SUM(ti.quantity) as quantity,
                 COUNT(DISTINCT t.id) as transaction_count,
                 AVG(ti.price) as avg_price
-             FROM pos_transaction_items ti
-             JOIN pos_transactions t ON ti.transaction_id = t.id
+             FROM transaction_items ti
+             JOIN transactions t ON ti.transaction_id = t.id
              WHERE ti.product_id = ?
              AND t.transaction_date >= ?
              AND t.status = 'completed'

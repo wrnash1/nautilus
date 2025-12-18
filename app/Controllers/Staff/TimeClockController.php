@@ -36,12 +36,39 @@ class TimeClockController
     }
 
     /**
+     * Get current clock status
+     */
+    public function getStatus()
+    {
+        $staffId = Auth::id();
+        $currentShift = $this->timeClockService->getCurrentShift($staffId);
+        
+        // Return JSON directly as this is primarily for AJAX
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => $currentShift ? 'clocked_in' : 'clocked_out',
+            'shift' => $currentShift
+        ]);
+        exit;
+    }
+
+    /**
      * Clock in
      */
     public function clockIn()
     {
         $staffId = Auth::id();
         $success = $this->timeClockService->clockIn($staffId);
+
+        if ($this->wantsJson()) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => $success, 
+                'message' => $success ? 'Clocked in successfully.' : 'Failed to clock in. You may already be clocked in.',
+                'status' => 'clocked_in'
+            ]);
+            exit;
+        }
 
         if ($success) {
             $_SESSION['success'] = 'Clocked in successfully.';
@@ -60,6 +87,16 @@ class TimeClockController
         $staffId = Auth::id();
         $success = $this->timeClockService->clockOut($staffId);
 
+        if ($this->wantsJson()) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => $success, 
+                'message' => $success ? 'Clocked out successfully.' : 'Failed to clock out. You may not be clocked in.',
+                'status' => 'clocked_out'
+            ]);
+            exit;
+        }
+
         if ($success) {
             $_SESSION['success'] = 'Clocked out successfully.';
         } else {
@@ -67,6 +104,12 @@ class TimeClockController
         }
 
         redirect('/store/staff/timeclock');
+    }
+
+    private function wantsJson()
+    {
+        return isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false
+            || isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest';
     }
 
     /**

@@ -228,8 +228,8 @@ class StockManagementService
                     CEIL(? * (COALESCE(SUM(ti.quantity) / ?, 0))) as suggested_reorder_qty,
                     CEIL(? * (COALESCE(SUM(ti.quantity) / ?, 0)) * p.cost) as estimated_cost
                 FROM products p
-                LEFT JOIN pos_transaction_items ti ON p.id = ti.product_id
-                LEFT JOIN pos_transactions t ON ti.transaction_id = t.id
+                LEFT JOIN transaction_items ti ON p.id = ti.product_id
+                LEFT JOIN transactions t ON ti.transaction_id = t.id
                     AND t.transaction_date BETWEEN ? AND ?
                     AND t.status = 'completed'
                 WHERE p.is_active = 1
@@ -276,8 +276,8 @@ class StockManagementService
                     COALESCE(SUM(ti.quantity), 0) as units_sold,
                     DATEDIFF(NOW(), MAX(t.transaction_date)) as days_since_last_sale
                 FROM products p
-                LEFT JOIN pos_transaction_items ti ON p.id = ti.product_id
-                LEFT JOIN pos_transactions t ON ti.transaction_id = t.id
+                LEFT JOIN transaction_items ti ON p.id = ti.product_id
+                LEFT JOIN transactions t ON ti.transaction_id = t.id
                     AND t.transaction_date BETWEEN ? AND ?
                     AND t.status = 'completed'
                 WHERE p.is_active = 1
@@ -325,8 +325,8 @@ class StockManagementService
                     COALESCE(SUM(ti.quantity), 0) as total_sold,
                     COALESCE(SUM(ti.quantity) / ?, 0) as daily_average
                 FROM products p
-                LEFT JOIN pos_transaction_items ti ON p.id = ti.product_id
-                LEFT JOIN pos_transactions t ON ti.transaction_id = t.id
+                LEFT JOIN transaction_items ti ON p.id = ti.product_id
+                LEFT JOIN transactions t ON ti.transaction_id = t.id
                     AND t.transaction_date BETWEEN ? AND ?
                     AND t.status = 'completed'
                 WHERE p.id = ?
@@ -395,8 +395,8 @@ class StockManagementService
                     END as turnover_ratio
                 FROM products p
                 LEFT JOIN product_categories pc ON p.category_id = pc.id
-                LEFT JOIN pos_transaction_items ti ON p.id = ti.product_id
-                LEFT JOIN pos_transactions t ON ti.transaction_id = t.id
+                LEFT JOIN transaction_items ti ON p.id = ti.product_id
+                LEFT JOIN transactions t ON ti.transaction_id = t.id
                     AND t.transaction_date BETWEEN ? AND ?
                     AND t.status = 'completed'
                 WHERE p.is_active = 1

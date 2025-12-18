@@ -27,7 +27,7 @@ class TimeClockService
         }
 
         $stmt = $this->db->prepare("
-            INSERT INTO time_clock (staff_id, clock_in, created_at)
+            INSERT INTO time_clock_entries (user_id, clock_in, created_at)
             VALUES (?, NOW(), NOW())
         ");
         
@@ -53,7 +53,7 @@ class TimeClockService
         $hours = $interval->h + ($interval->days * 24) + ($interval->i / 60);
 
         $stmt = $this->db->prepare("
-            UPDATE time_clock 
+            UPDATE time_clock_entries 
             SET clock_out = NOW(), total_hours = ?, updated_at = NOW()
             WHERE id = ?
         ");
@@ -70,8 +70,8 @@ class TimeClockService
     public function getCurrentShift($staffId)
     {
         $stmt = $this->db->prepare("
-            SELECT * FROM time_clock
-            WHERE staff_id = ? AND clock_out IS NULL
+            SELECT * FROM time_clock_entries
+            WHERE user_id = ? AND clock_out IS NULL
             ORDER BY clock_in DESC
             LIMIT 1
         ");
@@ -89,8 +89,8 @@ class TimeClockService
     public function getRecentEntries($staffId, $limit = 10)
     {
         $stmt = $this->db->prepare("
-            SELECT * FROM time_clock
-            WHERE staff_id = ?
+            SELECT * FROM time_clock_entries
+            WHERE user_id = ?
             ORDER BY clock_in DESC
             LIMIT ?
         ");
@@ -110,15 +110,15 @@ class TimeClockService
     {
         $sql = "
             SELECT tc.*, u.first_name, u.last_name
-            FROM time_clock tc
-            JOIN users u ON tc.staff_id = u.id
+            FROM time_clock_entries tc
+            JOIN users u ON tc.user_id = u.id
             WHERE DATE(tc.clock_in) BETWEEN ? AND ?
         ";
         
         $params = [$startDate, $endDate];
         
         if ($staffId) {
-            $sql .= " AND tc.staff_id = ?";
+            $sql .= " AND tc.user_id = ?";
             $params[] = $staffId;
         }
         
@@ -141,8 +141,8 @@ class TimeClockService
     {
         $stmt = $this->db->prepare("
             SELECT SUM(total_hours) as total
-            FROM time_clock
-            WHERE staff_id = ? AND DATE(clock_in) BETWEEN ? AND ?
+            FROM time_clock_entries
+            WHERE user_id = ? AND DATE(clock_in) BETWEEN ? AND ?
         ");
         $stmt->execute([$staffId, $startDate, $endDate]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);

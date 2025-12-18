@@ -54,18 +54,46 @@
             transition: all 0.3s ease;
         }
 
+
         .sidebar {
             position: fixed;
             top: 0;
             left: 0;
             height: 100vh;
             width: var(--sidebar-width);
-            background: #212529;
-            padding-top: 56px;
+            background: linear-gradient(180deg, #083344 0%, #0891b2 100%); /* Deep Ocean Theme */
+            padding-top: 0; /* Handled by brand */
             overflow-y: auto;
             overflow-x: hidden;
             z-index: 1000;
             transition: all 0.3s ease;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            /* position: relative; Removed to fix layout - fixed provides containing block */
+        }
+        /* Fish Animation Container */
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .fish {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 1;
+            /* Simple fish shape using emoji or icon for now, usually SVGs */
+        }
+        @keyframes swimLeft {
+            from { transform: translateX(100%); left: 100%; }
+            to { transform: translateX(-100%); left: -50px; }
+        }
+        @keyframes swimRight {
+            from { transform: translateX(-100%) scaleX(-1); left: -50px; }
+            to { transform: translateX(100%) scaleX(-1); left: 100%; }
         }
 
         .sidebar.collapsed {
@@ -73,10 +101,28 @@
         }
 
         .sidebar.collapsed .nav-link span,
-        .sidebar.collapsed .nav-link .bi-chevron-down {
+        .sidebar.collapsed .nav-link .bi-chevron-down,
+        .sidebar.collapsed .sidebar-header,
+        .sidebar.collapsed .sidebar-brand small {
             opacity: 0;
             width: 0;
             overflow: hidden;
+            display: none;
+        }
+        
+        .sidebar.collapsed .sidebar-brand h6 {
+            display: none;
+        }
+        
+        .sidebar.collapsed .sidebar-brand i {
+            margin: 0 auto;
+            font-size: 1.5rem;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
         }
 
         .sidebar.collapsed .nav-link i:first-child {
@@ -86,36 +132,60 @@
         .sidebar.collapsed .collapse {
             display: none !important;
         }
+        
+        .sidebar-brand {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-header {
+            color: #93c5fd; /* Blue 300 */
+            font-size: 0.70rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            padding: 1.5rem 1.25rem 0.5rem;
+            text-transform: uppercase;
+        }
 
         .sidebar .nav-link {
-            color: rgba(255, 255, 255, 0.75);
-            padding: 0.75rem 1rem;
+            color: #e2e8f0; /* Slate 200 */
+            padding: 0.65rem 1.25rem;
             border-left: 3px solid transparent;
             white-space: nowrap;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
+            font-weight: 500;
         }
 
         .sidebar .nav-link span {
             transition: opacity 0.3s ease, width 0.3s ease;
         }
 
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
+        .sidebar .nav-link:hover {
             color: #fff;
             background: rgba(255, 255, 255, 0.1);
-            border-left-color: #0d6efd;
+        }
+        
+        .sidebar .nav-link.active {
+            color: #fff;
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0.15), transparent); /* Sky 500 alpha */
+            border-left-color: #38bdf8; /* Sky 400 */
         }
 
         .sidebar .nav-link i {
-            width: 20px;
+            width: 24px;
             text-align: center;
             transition: margin 0.3s ease;
+            opacity: 0.9;
         }
 
         .sidebar .nav-link i:first-child {
-            margin-right: 0.5rem;
+            margin-right: 0.75rem;
         }
 
         .main-content {
@@ -246,6 +316,29 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             <?php unset($_SESSION['flash_warning']); ?>
+            <?php endif; ?>
+
+            <?php 
+            // Mock Update Check for User Feedback Demo
+            $updateAvailable = true; 
+            $serverVersion = "1.2.0"; 
+            $latestVersion = "1.3.0"; // Simulated newer version
+            if ($updateAvailable): 
+            ?>
+            <div class="alert alert-info alert-dismissible fade show shadow-sm border-info mt-3" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-cloud-arrow-down-fill fs-4 me-3"></i>
+                    <div>
+                        <strong>Update Available!</strong> A new version of Nautilus (v<?= $latestVersion ?>) is available. 
+                        Your version: v<?= $serverVersion ?>.
+                        <div class="mt-1">
+                            <a href="/store/admin/system/update" class="btn btn-sm btn-light text-info fw-bold border">Update Now</a>
+                            <button type="button" class="btn btn-sm btn-link text-decoration-none text-info" data-bs-dismiss="alert">Remind me later</button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
             <?php endif; ?>
 
             <?php

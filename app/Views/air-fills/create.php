@@ -79,23 +79,63 @@ ob_start();
                         </div>
                     </div>
 
-                    <!-- Equipment/Tank (Optional) -->
+                    <!-- Compressor Tracking -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="compressor_id" class="form-label">Compressor Used <span class="text-danger">*</span></label>
+                            <select name="compressor_id" id="compressor_id" class="form-select" required>
+                                <option value="">-- Select Compressor --</option>
+                                <?php foreach ($compressors as $comp): ?>
+                                    <option value="<?= $comp['id'] ?>"><?= htmlspecialchars($comp['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="run_time" class="form-label">Run Time (Minutes)</label>
+                            <input type="number" name="run_time_minutes" id="run_time" class="form-control" min="0" placeholder="e.g. 15">
+                            <small class="text-muted">Updates compressor hours automatically</small>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Equipment Selection -->
                     <div class="mb-3">
-                        <label for="equipment_id" class="form-label">
-                            Tank/Equipment <span class="text-muted">(Optional)</span>
-                        </label>
+                        <label class="form-label fw-bold">Tank Source</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="equipment_source" id="source_rental" value="rental" checked>
+                                <label class="form-check-label" for="source_rental">Rental Tank</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="equipment_source" id="source_customer" value="customer">
+                                <label class="form-check-label" for="source_customer">Customer Owned</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rental Tank Select -->
+                    <div class="mb-3" id="rental_equip_div">
+                        <label for="equipment_id" class="form-label">Rental Tank</label>
                         <select name="equipment_id" id="equipment_id" class="form-select">
-                            <option value="">-- Select Tank (Optional) --</option>
+                            <option value="">-- Select Rental Tank --</option>
                             <?php foreach ($tanks as $tank): ?>
                             <option value="<?= $tank['id'] ?>">
                                 <?= htmlspecialchars($tank['name']) ?> - <?= htmlspecialchars($tank['equipment_code']) ?>
-                                <?php if ($tank['category_name']): ?>
-                                    (<?= htmlspecialchars($tank['category_name']) ?>)
-                                <?php endif; ?>
                             </option>
                             <?php endforeach; ?>
                         </select>
-                        <small class="text-muted">Track which tank was filled (if using rental equipment)</small>
+                    </div>
+
+                    <!-- Customer Tank Select -->
+                    <div class="mb-3" id="customer_equip_div" style="display: none;">
+                        <label for="customer_equipment_id" class="form-label">Customer Tank</label>
+                        <select name="customer_equipment_id" id="customer_equipment_id" class="form-select">
+                            <option value="">-- Select Customer First --</option>
+                        </select>
+                        <!-- Alert Box for Validation Status -->
+                        <div id="tank_status_alert" style="display:none;" class="alert mt-2"></div>
+                        <small class="text-muted">Requires customer selection above.</small>
                     </div>
 
                     <!-- Notes -->
@@ -195,6 +235,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const pressureInput = document.getElementById('fill_pressure');
     const costInput = document.getElementById('cost');
     const suggestedPrice = document.getElementById('suggested_price');
+    
+    // New Elements
+    const customerSelect = document.getElementById('customer_id');
+    const equipSourceRadios = document.getElementsByName('equipment_source');
+    const rentalDiv = document.getElementById('rental_equip_div');
+    const customerDiv = document.getElementById('customer_equip_div');
+    const customerEquipSelect = document.getElementById('customer_equipment_id');
+    const tankStatusAlert = document.getElementById('tank_status_alert');
 
     // Show/hide nitrox percentage field
     fillTypeSelect.addEventListener('change', function() {
@@ -205,8 +253,6 @@ document.addEventListener('DOMContentLoaded', function() {
             nitroxField.style.display = 'none';
             nitroxInput.required = false;
         }
-
-        // Update pricing
         updatePricing();
     });
 
@@ -217,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const fillType = fillTypeSelect.value;
         const pressure = parseInt(pressureInput.value) || 3000;
 
-        fetch(`/air-fills/pricing?fill_type=${fillType}&pressure=${pressure}`)
+        fetch(`/store/air-fills/pricing?fill_type=${fillType}&pressure=${pressure}`)
             .then(response => response.json())
             .then(data => {
                 costInput.value = data.adjusted_price.toFixed(2);
@@ -226,15 +272,97 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(err => console.error('Failed to fetch pricing:', err));
     }
 
+    // Toggle Equipment Source
+    function toggleEquipmentSource() {
+        let source = 'rental';
+        for(const radio of equipSourceRadios) {
+            if(radio.checked) source = radio.value;
+        }
+
+        if(source === 'customer') {
+            rentalDiv.style.display = 'none';
+            customerDiv.style.display = 'block';
+            // Trigger fetch if customer selected
+            if(customerSelect.value) fetchCustomerTanks(customerSelect.value);
+        } else {
+            rentalDiv.style.display = 'block';
+            customerDiv.style.display = 'none';
+            tankStatusAlert.style.display = 'none';
+        }
+    }
+
+    equipSourceRadios.forEach(radio => radio.addEventListener('change', toggleEquipmentSource));
+
+    // Fetch Customer Tanks
+    customerSelect.addEventListener('change', function() {
+        if(this.value && document.querySelector('input[name="equipment_source"][value="customer"]').checked) {
+            fetchCustomerTanks(this.value);
+        } else {
+            customerEquipSelect.innerHTML = '<option value="">-- Select Customer First --</option>';
+        }
+    });
+
+    function fetchCustomerTanks(customerId) {
+        customerEquipSelect.innerHTML = '<option value="">Loading...</option>';
+        fetch(`/store/air-fills/customer-equipment?customer_id=${customerId}`)
+            .then(res => res.json())
+            .then(data => {
+                customerEquipSelect.innerHTML = '<option value="">-- Select Customer Tank --</option>';
+                if(data.length === 0) {
+                    customerEquipSelect.innerHTML += '<option value="" disabled>No tanks found for customer</option>';
+                }
+                data.forEach(tank => {
+                    const statusIcon = tank.status === 'Valid' ? '✅' : '❌';
+                    const option = document.createElement('option');
+                    option.value = tank.id;
+                    option.textContent = `${statusIcon} ${tank.serial_number} (${tank.manufacturer})`;
+                    option.dataset.status = tank.status;
+                    option.dataset.vip = tank.last_vip_date;
+                    option.dataset.hydro = tank.last_hydro_date;
+                    customerEquipSelect.appendChild(option);
+                });
+            });
+    }
+
+    // Validate Selected Customer Tank
+    customerEquipSelect.addEventListener('change', function() {
+        const selected = this.options[this.selectedIndex];
+        if(selected && selected.dataset.status === 'Expired') {
+            tankStatusAlert.className = 'alert alert-danger mt-2';
+            tankStatusAlert.style.display = 'block';
+            tankStatusAlert.innerHTML = `
+                <strong>Warning: Tank Expired!</strong><br>
+                VIP: ${selected.dataset.vip} (Limit: 1yr)<br>
+                Hydro: ${selected.dataset.hydro} (Limit: 5yrs)<br>
+                <em>You cannot fill this tank until inspected.</em>
+            `;
+            // Optional: Disable submit button or clear selection
+        } else if (selected && selected.value) {
+            tankStatusAlert.className = 'alert alert-success mt-2';
+            tankStatusAlert.style.display = 'block';
+            tankStatusAlert.innerHTML = 'Tank is Valid for Fill.';
+        } else {
+            tankStatusAlert.style.display = 'none';
+        }
+    });
+
     // Validate transaction checkbox
     const createTransactionCheck = document.getElementById('create_transaction');
-    const customerSelect = document.getElementById('customer_id');
 
     document.getElementById('airFillForm').addEventListener('submit', function(e) {
         if (createTransactionCheck.checked && !customerSelect.value) {
             e.preventDefault();
             alert('Please select a customer to create a transaction, or uncheck "Create transaction"');
             customerSelect.focus();
+            return;
+        }
+
+        // Prevent filling expired tanks
+        const selectedTank = customerEquipSelect.options[customerEquipSelect.selectedIndex];
+        if(document.querySelector('input[name="equipment_source"][value="customer"]').checked && 
+           selectedTank && selectedTank.dataset.status === 'Expired') {
+            e.preventDefault();
+            alert('STOP: Cannot fill an expired tank. Please perform Visual or Hydro inspection first.');
         }
     });
 });

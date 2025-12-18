@@ -78,7 +78,7 @@ class AdvancedAnalyticsService
                     COUNT(*) as order_count,
                     MIN(created_at) as first_purchase,
                     MAX(created_at) as last_purchase
-                FROM pos_transactions
+                FROM transactions
                 WHERE status = 'completed'
                 GROUP BY customer_id
             ) customer_revenue ON c.id = customer_revenue.customer_id
@@ -114,7 +114,7 @@ class AdvancedAnalyticsService
             // Get customers who made first purchase in this cohort
             $cohortCustomers = TenantDatabase::fetchAllTenant("
                 SELECT customer_id, MIN(created_at) as first_purchase
-                FROM pos_transactions
+                FROM transactions
                 WHERE status = 'completed'
                 GROUP BY customer_id
                 HAVING first_purchase >= ? AND first_purchase <= ?
@@ -137,7 +137,7 @@ class AdvancedAnalyticsService
 
                 $activeCustomers = TenantDatabase::fetchOneTenant("
                     SELECT COUNT(DISTINCT customer_id) as count
-                    FROM pos_transactions
+                    FROM transactions
                     WHERE customer_id IN ($placeholders)
                     AND created_at >= ? AND created_at <= ?
                     AND status = 'completed'
@@ -177,7 +177,7 @@ class AdvancedAnalyticsService
                 SUM(t.total_amount) as total_spent,
                 DATEDIFF(NOW(), MAX(t.created_at)) as days_since_purchase
             FROM customers c
-            LEFT JOIN pos_transactions t ON c.id = t.customer_id
+            LEFT JOIN transactions t ON c.id = t.customer_id
             WHERE t.status = 'completed'
             GROUP BY c.id
             HAVING last_purchase < ? AND last_purchase IS NOT NULL
@@ -215,7 +215,7 @@ class AdvancedAnalyticsService
                 DATE_FORMAT(created_at, '%Y-%m') as month,
                 SUM(total_amount) as revenue,
                 COUNT(*) as transactions
-            FROM pos_transactions
+            FROM transactions
             WHERE status = 'completed'
             AND created_at >= DATE_SUB(NOW(), INTERVAL 24 MONTH)
             GROUP BY month
@@ -288,8 +288,8 @@ class AdvancedAnalyticsService
                 p.stock_quantity as current_stock
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
-            LEFT JOIN pos_transaction_items ti ON p.id = ti.product_id
-            LEFT JOIN pos_transactions t ON ti.transaction_id = t.id
+            LEFT JOIN transaction_items ti ON p.id = ti.product_id
+            LEFT JOIN transactions t ON ti.transaction_id = t.id
             WHERE t.created_at >= ? AND t.status = 'completed'
             GROUP BY p.id
             ORDER BY revenue DESC
@@ -372,7 +372,7 @@ class AdvancedAnalyticsService
                 SUM(total_amount) as revenue,
                 COUNT(*) as transactions,
                 AVG(total_amount) as avg_order_value
-            FROM pos_transactions
+            FROM transactions
             WHERE created_at >= ? AND status = 'completed'
         ", [$dateFilter]);
 
@@ -380,7 +380,7 @@ class AdvancedAnalyticsService
             SELECT
                 SUM(total_amount) as revenue,
                 COUNT(*) as transactions
-            FROM pos_transactions
+            FROM transactions
             WHERE created_at >= DATE_SUB(?, INTERVAL 30 DAY)
             AND created_at < ?
             AND status = 'completed'
@@ -404,7 +404,7 @@ class AdvancedAnalyticsService
 
         $activeCustomers = TenantDatabase::fetchOneTenant("
             SELECT COUNT(DISTINCT customer_id) as count
-            FROM pos_transactions
+            FROM transactions
             WHERE created_at >= ? AND status = 'completed'
         ", [$dateFilter]);
 
@@ -421,8 +421,8 @@ class AdvancedAnalyticsService
             SELECT
                 COUNT(DISTINCT ti.product_id) as products_sold,
                 SUM(ti.quantity) as units_sold
-            FROM pos_transaction_items ti
-            JOIN pos_transactions t ON ti.transaction_id = t.id
+            FROM transaction_items ti
+            JOIN transactions t ON ti.transaction_id = t.id
             WHERE t.created_at >= ? AND t.status = 'completed'
         ", [$dateFilter]);
 
@@ -481,7 +481,7 @@ class AdvancedAnalyticsService
                 COUNT(*) as order_count,
                 MIN(created_at) as first_purchase,
                 MAX(created_at) as last_purchase
-            FROM pos_transactions
+            FROM transactions
             WHERE customer_id = ? AND status = 'completed'
         ", [$customerId]);
 
@@ -565,7 +565,7 @@ class AdvancedAnalyticsService
     private function getOrdersCompleted(string $dateFilter): int
     {
         $orders = TenantDatabase::fetchOneTenant("
-            SELECT COUNT(*) as count FROM pos_transactions WHERE created_at >= ? AND status = 'completed'
+            SELECT COUNT(*) as count FROM transactions WHERE created_at >= ? AND status = 'completed'
         ", [$dateFilter]);
 
         return (int) $orders['count'];

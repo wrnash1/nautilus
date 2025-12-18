@@ -125,7 +125,7 @@ class TenantProvisioningService
         // Just need to ensure indexes are created
         $tables = [
             'users', 'customers', 'products', 'categories',
-            'pos_transactions', 'pos_transaction_items',
+            'transactions', 'transaction_items',
             'rentals', 'courses', 'course_enrollments',
             'trips', 'work_orders'
         ];
@@ -434,7 +434,7 @@ class TenantProvisioningService
             $itemCount = rand(1, 4);
             $subtotal = 0;
 
-            $transactionId = TenantDatabase::insertTenant('pos_transactions', [
+            $transactionId = TenantDatabase::insertTenant('transactions', [
                 'tenant_id' => $tenantId,
                 'customer_id' => $customer['id'],
                 'subtotal' => 0,
@@ -452,7 +452,7 @@ class TenantProvisioningService
                 $itemSubtotal = $price * $quantity;
                 $subtotal += $itemSubtotal;
 
-                TenantDatabase::insertTenant('pos_transaction_items', [
+                TenantDatabase::insertTenant('transaction_items', [
                     'transaction_id' => $transactionId,
                     'product_id' => $product['id'],
                     'quantity' => $quantity,
@@ -464,7 +464,7 @@ class TenantProvisioningService
             $tax = $subtotal * 0.08;
             $total = $subtotal + $tax;
 
-            TenantDatabase::updateTenant('pos_transactions', [
+            TenantDatabase::updateTenant('transactions', [
                 'subtotal' => $subtotal,
                 'tax_amount' => $tax,
                 'total_amount' => $total

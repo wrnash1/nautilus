@@ -275,7 +275,7 @@ class TenantService
             case 'transactions':
                 $startOfMonth = date('Y-m-01');
                 $currentCount = Database::fetchOne(
-                    "SELECT COUNT(*) as count FROM pos_transactions
+                    "SELECT COUNT(*) as count FROM transactions
                      WHERE tenant_id = ? AND created_at >= ?",
                     [$tenantId, $startOfMonth]
                 )['count'] ?? 0;
@@ -320,7 +320,7 @@ class TenantService
 
         $transactionsToday = Database::fetchOne(
             "SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as value
-             FROM pos_transactions
+             FROM transactions
              WHERE tenant_id = ? AND DATE(created_at) = ?",
             [$tenantId, $usageDate]
         );

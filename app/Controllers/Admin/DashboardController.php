@@ -10,32 +10,36 @@ class DashboardController
     {
         $metrics = [
             'today_sales' => $this->getTodaySales(),
-            'total_sales' => $this->getTotalSales(),
             'total_customers' => $this->getTotalCustomers(),
-            'low_stock_count' => $this->getLowStockCount(),
-            'total_products' => $this->getTotalProducts(),
             'active_rentals' => $this->getActiveRentals(),
             'upcoming_courses' => $this->getUpcomingCoursesCount(),
             'upcoming_trips' => $this->getUpcomingTripsCount(),
             'equipment_maintenance' => $this->getEquipmentMaintenanceCount(),
             'pending_certifications' => $this->getPendingCertifications(),
             'today_air_fills' => $this->getTodayAirFills(),
-            'open_cash_sessions' => $this->getOpenCashSessions(),
-            'today_cash_variance' => $this->getTodayCashVariance(),
-            'new_customers_this_month' => $this->getNewCustomersThisMonth(),
+            'sales_trend' => $this->getSalesTrend(),
+            'customer_trend' => $this->getCustomerTrend()
         ];
 
-        // Add trend data
-        $metrics['sales_trend'] = $this->getSalesTrend();
-        $metrics['customer_trend'] = $this->getCustomerTrend();
-
-        $recent_transactions = $this->getRecentTransactions(10);
         $sales_chart_data = $this->getSalesChartData(7);
         $revenue_breakdown = $this->getRevenueBreakdown();
-        $equipment_status = $this->getEquipmentStatus();
         $upcoming_events = $this->getUpcomingEvents();
-        $alerts = $this->getAlerts();
+        $equipment_status = $this->getEquipmentStatus();
         $top_products = $this->getTopProducts(5);
+        $recent_transactions = $this->getRecentTransactions(10);
+        $alerts = $this->getAlerts(); // Assuming getAlerts based on grep
+
+        
+        // System Updates
+        $updates = ['has_update' => false];
+        try {
+            $updateService = new \App\Services\System\UpdateService();
+             $updates = $updateService->checkForUpdates();
+        } catch (\Exception $e) {
+             error_log("Update check failed: " . $e->getMessage());
+        }
+
+
 
         require __DIR__ . '/../../Views/dashboard/index.php';
     }
@@ -173,7 +177,7 @@ class DashboardController
         $result = Database::fetchOne(
             "SELECT COUNT(*) as count
              FROM air_fills
-             WHERE DATE(created_at) = CURDATE()"
+             WHERE created_at >= CURDATE()"
         );
         return (int)($result['count'] ?? 0);
     }

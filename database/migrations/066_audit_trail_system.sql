@@ -2,7 +2,7 @@
 -- Comprehensive audit logging for compliance and security
 
 -- Main Audit Log Table
-CREATE TABLE IF NOT EXISTS audit_log (
+CREATE TABLE IF NOT EXISTS audit_logs (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id INT UNSIGNED,
     user_id INT UNSIGNED,

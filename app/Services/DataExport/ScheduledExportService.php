@@ -351,7 +351,7 @@ class ScheduledExportService
         }
 
         return TenantDatabase::fetchAllTenant("
-            SELECT * FROM pos_transactions WHERE 1=1 {$dateFilter}
+            SELECT * FROM transactions WHERE 1=1 {$dateFilter}
         ") ?? [];
     }
 

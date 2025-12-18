@@ -26,6 +26,17 @@ class TransactionController
 
             $products = Product::all(50, 0);
             $customers = Customer::all(100, 0);
+            
+            // Get settings
+            $taxRate = $this->transactionService->getTaxRate();
+
+            // Check for bitcoin setting
+            try {
+                 $btcSetting = Database::fetchOne("SELECT setting_value FROM system_settings WHERE setting_key = 'bitcoin_enabled'");
+                 $bitcoinEnabled = $btcSetting && $btcSetting['setting_value'] === '1';
+            } catch (\Exception $e) {
+                 $bitcoinEnabled = false;
+            }
 
             // Get active courses for enrollment
             $db = Database::getInstance()->getConnection();
@@ -92,6 +103,7 @@ class TransactionController
         $items = json_decode($_POST['items'] ?? '[]', true);
         $paymentMethod = sanitizeInput($_POST['payment_method'] ?? 'cash');
         $amountPaid = (float)($_POST['amount_paid'] ?? 0);
+        $action = sanitizeInput($_POST['action'] ?? 'pay'); // 'pay', 'quote', 'layaway'
 
         // Allow empty customer_id for walk-in customers (will be set to NULL in transaction)
         if (empty($items)) {
@@ -103,33 +115,54 @@ class TransactionController
             $customerId = null;
         }
         
+        // Map action to transaction type
+        $transactionType = 'sale';
+        if ($action === 'quote') $transactionType = 'quote';
+        if ($action === 'layaway') $transactionType = 'layaway';
+        
         try {
-            $transactionId = $this->transactionService->createTransaction($customerId, $items);
+            $transactionId = $this->transactionService->createTransaction($customerId, $items, $transactionType);
             
             $transaction = Database::fetchOne(
                 "SELECT total FROM transactions WHERE id = ?",
                 [$transactionId]
             );
             
-            if ($amountPaid < $transaction['total']) {
-                jsonResponse(['error' => 'Insufficient payment amount'], 400);
+            // Check payment sufficiency only for standard sales
+            if ($action === 'pay') {
+                if ($amountPaid < $transaction['total']) {
+                    jsonResponse(['error' => 'Insufficient payment amount'], 400);
+                }
+            } else {
+                // For quotes/layaways, amountPaid might be deposit or 0.
+                if ($action === 'quote') $amountPaid = 0;
             }
             
             $success = $this->transactionService->processPayment(
                 $transactionId,
                 $paymentMethod,
-                $amountPaid
+                $amountPaid,
+                sanitizeInput($_POST['note'] ?? '')
             );
             
             if ($success) {
-                $_SESSION['flash_success'] = 'Transaction completed successfully';
+                $sessionKey = 'flash_success';
+                $msg = 'Transaction completed successfully';
+                if ($action === 'quote') $msg = 'Quote saved successfully';
+                if ($action === 'layaway') $msg = 'Layaway created successfully';
+                
+                $_SESSION[$sessionKey] = $msg;
+                
                 jsonResponse([
                     'success' => true,
                     'transaction_id' => $transactionId,
-                    'redirect' => "/pos/receipt/{$transactionId}"
+                    'redirect' => "/store/pos/receipt/{$transactionId}"
                 ]);
             } else {
-                jsonResponse(['error' => 'Payment processing failed'], 500);
+                // Auto-void the pending transaction to prevent "phantom" outstanding balances
+                $this->transactionService->voidTransaction($transactionId, "Payment Failed/Cancelled");
+                
+                jsonResponse(['error' => 'Payment processing failed. Transaction has been voided.'], 500);
             }
         } catch (\Exception $e) {
             jsonResponse(['error' => $e->getMessage()], 500);
@@ -204,9 +237,39 @@ class TransactionController
         
         if ($customerId > 0) {
             $_SESSION['active_customer_id'] = $customerId;
-            jsonResponse(['success' => true]);
+            
+            try {
+                $customerService = new \App\Services\CRM\CustomerService();
+                $status = $customerService->getCustomerStatus($customerId);
+                
+                // Fetch full profile for UI
+                $customer = \App\Models\Customer::find($customerId);
+                
+                // Get certification (simplified logic or reuse service)
+                $highestCert = Database::fetchOne("
+                    SELECT cc.certification_level as certification_name, 0 as level, NULL as logo_path, ca.name as agency_name
+                    FROM customer_certifications cc
+                    LEFT JOIN certification_agencies ca ON cc.certification_agency_id = ca.id
+                    WHERE cc.customer_id = ?
+                    ORDER BY cc.issue_date DESC LIMIT 1
+                ", [$customerId]);
+
+                $customer['certification'] = $highestCert;
+
+                jsonResponse([
+                    'success' => true, 
+                    'status' => $status,
+                    'customer' => $customer
+                ]);
+            } catch (\Exception $e) {
+                error_log("Failed to fetch customer data: " . $e->getMessage());
+                // Still return success if session set, but empty data
+                jsonResponse(['success' => true, 'status' => [], 'customer' => []]);
+            }
         } else {
-            jsonResponse(['error' => 'Invalid customer ID'], 400);
+            // Clearing customer
+            unset($_SESSION['active_customer_id']);
+            jsonResponse(['success' => true]);
         }
     }
 

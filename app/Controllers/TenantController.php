@@ -325,7 +325,7 @@ class TenantController
         )['count'] ?? 0;
 
         $transactionCount = Database::fetchOne(
-            "SELECT COUNT(*) as count FROM pos_transactions
+            "SELECT COUNT(*) as count FROM transactions
              WHERE tenant_id = ? AND created_at >= ?",
             [$tenantId, date('Y-m-01')]
         )['count'] ?? 0;

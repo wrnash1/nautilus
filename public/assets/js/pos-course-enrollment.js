@@ -3,7 +3,7 @@
  * Handles course selection and schedule assignment during checkout
  */
 
-(function() {
+(function () {
     'use strict';
 
     // Store selected course schedules
@@ -12,13 +12,15 @@
     /**
      * Show course schedule selection modal
      */
-    window.showCourseScheduleModal = function(courseId, courseName, coursePrice) {
+    window.showCourseScheduleModal = function (courseId, courseName, coursePrice) {
         // Fetch available schedules for this course
         fetch(`/store/api/courses/${courseId}/schedules`)
             .then(response => response.json())
             .then(schedules => {
                 if (schedules.length === 0) {
-                    alert('No available schedules for this course. Please create a schedule first.');
+                    if (confirm('No available schedules for this course. Would you like to add this customer to the interest queue?')) {
+                        addToQueue(courseId);
+                    }
                     return;
                 }
 
@@ -37,7 +39,7 @@
                                     <h6 class="mb-3">${courseName} - $${parseFloat(coursePrice).toFixed(2)}</h6>
                                     <p class="text-muted mb-3">Please select which class schedule to enroll the customer in:</p>
 
-                                    <div class="list-group">
+                                    <div class="list-group mb-3">
                                         ${schedules.map(schedule => `
                                             <button type="button"
                                                     class="list-group-item list-group-item-action schedule-option"
@@ -73,6 +75,12 @@
                                             </button>
                                         `).join('')}
                                     </div>
+                                    
+                                    <div class="text-center border-top pt-3">
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="addToQueue(${courseId})">
+                                            <i class="bi bi-hourglass-split"></i> Add to Interest Queue
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -97,7 +105,7 @@
 
                 // Add click handlers to schedule options
                 document.querySelectorAll('.schedule-option').forEach(button => {
-                    button.addEventListener('click', function() {
+                    button.addEventListener('click', function () {
                         const scheduleId = this.dataset.scheduleId;
                         const courseId = this.dataset.courseId;
                         const courseName = this.dataset.courseName;
@@ -112,13 +120,58 @@
                 });
 
                 // Clean up modal after it's hidden
-                document.getElementById('courseScheduleModal').addEventListener('hidden.bs.modal', function() {
+                document.getElementById('courseScheduleModal').addEventListener('hidden.bs.modal', function () {
                     this.remove();
                 });
             })
             .catch(error => {
                 console.error('Error fetching course schedules:', error);
                 alert('Failed to load course schedules. Please try again.');
+            });
+    };
+
+    /**
+     * Add student to interest queue
+     */
+    window.addToQueue = function (courseId) {
+        // Build FormData
+        const formData = new FormData();
+        formData.append('course_id', courseId);
+
+        // Get customer ID from hidden input
+        const customerId = document.getElementById('selectedCustomerId')?.value;
+        if (!customerId || customerId == '0') {
+            alert('Please select a customer first to add them to the queue.');
+            // Close modal if open?
+            const modalEl = document.getElementById('courseScheduleModal');
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+            return;
+        }
+        formData.append('customer_id', customerId);
+
+        fetch('/store/api/courses/queue', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', 'Added to interest queue successfully!');
+                    const modalEl = document.getElementById('courseScheduleModal');
+                    if (modalEl) {
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                    }
+                } else {
+                    alert(data.error || 'Failed to add to queue');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error connecting to server');
             });
     };
 

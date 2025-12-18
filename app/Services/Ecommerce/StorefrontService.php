@@ -493,8 +493,8 @@ class StorefrontService
             "SELECT p.*, COUNT(ti.id) as sales_count,
                     (SELECT image_url FROM product_images WHERE product_id = p.id AND is_primary = 1 LIMIT 1) as primary_image
              FROM products p
-             JOIN pos_transaction_items ti ON p.id = ti.product_id
-             JOIN pos_transactions t ON ti.transaction_id = t.id
+             JOIN transaction_items ti ON p.id = ti.product_id
+             JOIN transactions t ON ti.transaction_id = t.id
              WHERE t.transaction_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
              AND t.status = 'completed'
              AND p.is_active = 1

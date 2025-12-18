@@ -46,7 +46,7 @@ class CustomerPortalService
                     COALESCE(SUM(total_amount), 0) as total_spent,
                     COALESCE(AVG(total_amount), 0) as average_order,
                     MAX(transaction_date) as last_purchase_date
-                 FROM pos_transactions
+                 FROM transactions
                  WHERE customer_id = ?
                  AND status = 'completed'",
                 [$customerId]
@@ -132,7 +132,7 @@ class CustomerPortalService
                     t.total_amount,
                     t.payment_method,
                     t.status
-                 FROM pos_transactions t
+                 FROM transactions t
                  WHERE t.customer_id = ?
                  ORDER BY t.transaction_date DESC
                  LIMIT ? OFFSET ?",
@@ -147,7 +147,7 @@ class CustomerPortalService
                         ti.quantity,
                         ti.unit_price,
                         ti.line_total
-                     FROM pos_transaction_items ti
+                     FROM transaction_items ti
                      WHERE ti.transaction_id = ?",
                     [$transaction['id']]
                 );
@@ -380,7 +380,7 @@ class CustomerPortalService
         try {
             // Verify transaction belongs to customer
             $transaction = TenantDatabase::fetchOneTenant(
-                "SELECT * FROM pos_transactions
+                "SELECT * FROM transactions
                  WHERE id = ? AND customer_id = ?",
                 [$transactionId, $customerId]
             );
@@ -391,7 +391,7 @@ class CustomerPortalService
 
             // Get items
             $items = TenantDatabase::fetchAllTenant(
-                "SELECT * FROM pos_transaction_items WHERE transaction_id = ?",
+                "SELECT * FROM transaction_items WHERE transaction_id = ?",
                 [$transactionId]
             );
 

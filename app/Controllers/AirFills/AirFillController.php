@@ -75,9 +75,17 @@ class AirFillController
              ORDER BY first_name, last_name"
         );
 
+        // Get active compressors
+        $compressors = Database::fetchAll(
+            "SELECT id, name, status FROM compressors WHERE status != 'maintenance'"
+        );
+
         require __DIR__ . '/../../Views/air-fills/create.php';
     }
 
+    /**
+     * Store new air fill
+     */
     /**
      * Store new air fill
      */
@@ -87,6 +95,9 @@ class AirFillController
             $data = [
                 'customer_id' => $_POST['customer_id'] ?? null,
                 'equipment_id' => $_POST['equipment_id'] ?? null,
+                'customer_equipment_id' => $_POST['customer_equipment_id'] ?? null,
+                'compressor_id' => $_POST['compressor_id'] ?? null,
+                'run_time_minutes' => $_POST['run_time_minutes'] ?? 0,
                 'fill_type' => $_POST['fill_type'] ?? 'air',
                 'fill_pressure' => $_POST['fill_pressure'] ?? 3000,
                 'nitrox_percentage' => $_POST['nitrox_percentage'] ?? null,
@@ -95,6 +106,28 @@ class AirFillController
                 'filled_by' => currentUser()['id'],
                 'create_transaction' => isset($_POST['create_transaction'])
             ];
+
+            // 1. Validate Customer Tank (VIP/Hydro)
+            if ($data['customer_equipment_id']) {
+                $equip = Database::fetchOne("SELECT * FROM customer_equipment WHERE id = ?", [$data['customer_equipment_id']]);
+                if ($equip) {
+                    $vipDate = new \DateTime($equip['last_vip_date'] ?? '2000-01-01');
+                    $hydroDate = new \DateTime($equip['last_hydro_date'] ?? '2000-01-01');
+                    $now = new \DateTime();
+                    
+                    if ($vipDate < (clone $now)->modify('-1 year')) {
+                        throw new \Exception("Tank VIP is expired (Last: " . $vipDate->format('Y-m-d') . "). Visual Inspection required.");
+                    }
+                    if ($hydroDate < (clone $now)->modify('-5 years')) {
+                        throw new \Exception("Tank Hydro is expired (Last: " . $hydroDate->format('Y-m-d') . "). Hydrostatic Test required.");
+                    }
+                }
+            }
+
+            // 2. Track Compressor Logic
+            if ($data['compressor_id'] && $data['run_time_minutes'] > 0) {
+                 // Logic handled in Service
+            }
 
             $airFillId = $this->service->createAirFill($data);
 
@@ -196,10 +229,33 @@ class AirFillController
                 'fill_pressure' => $_POST['fill_pressure'] ?? 3000,
                 'nitrox_percentage' => $_POST['nitrox_percentage'] ?? null,
                 'cost' => $_POST['cost'] ?? 0,
-                'notes' => $_POST['notes'] ?? ''
+                'notes' => $_POST['notes'] ?? '',
+                'status' => $_POST['status'] ?? $airFill['status']
             ];
 
             $this->service->updateAirFill($id, $data);
+
+            // Email Notification Logic
+            if ($data['status'] === 'ready_for_pickup' && $airFill['status'] !== 'ready_for_pickup' && $data['customer_id']) {
+                try {
+                    $commService = new \App\Services\Communication\CommunicationService();
+                    $customer = Database::fetchOne("SELECT * FROM customers WHERE id = ?", [$data['customer_id']]);
+                    if ($customer && !empty($customer['email'])) {
+                        $commService->sendEmail(
+                            $customer['email'],
+                            "Your Air Fill is Ready for Pickup",
+                            "Hello {$customer['first_name']},\n\nYour air fill (Job #{$id}) is ready for pickup at the store.\n\nThank you,\nNautilus Team"
+                        );
+                        setFlashMessage('success', 'Air fill updated and customer notified!');
+                        header('Location: /air-fills/' . $id);
+                        exit;
+                    }
+                } catch (\Exception $e) {
+                    // Log error but don't fail the update
+                    error_log("Failed to send pickup email: " . $e->getMessage());
+                    setFlashMessage('warning', 'Air fill updated, but failed to send email notification.');
+                }
+            }
 
             setFlashMessage('success', 'Air fill updated successfully!');
             header('Location: /air-fills/' . $id);
@@ -341,5 +397,38 @@ class AirFillController
 
         header('Content-Type: application/json');
         echo json_encode($pricing);
+    }
+    /**
+     * Get customer equipment (AJAX)
+     */
+    public function getCustomerEquipment()
+    {
+        $customerId = (int)($_GET['customer_id'] ?? 0);
+        
+        if (!$customerId) {
+            echo json_encode([]);
+            return;
+        }
+
+        $equipment = Database::fetchAll(
+            "SELECT * FROM customer_equipment 
+             WHERE customer_id = ? 
+             ORDER BY serial_number",
+            [$customerId]
+        );
+
+        // Calculate statuses
+        foreach ($equipment as &$item) {
+            $vipDate = new \DateTime($item['last_vip_date'] ?? '2000-01-01');
+            $hydroDate = new \DateTime($item['last_hydro_date'] ?? '2000-01-01');
+            $now = new \DateTime();
+            
+            $item['vip_valid'] = $vipDate >= (clone $now)->modify('-1 year');
+            $item['hydro_valid'] = $hydroDate >= (clone $now)->modify('-5 years');
+            $item['status'] = ($item['vip_valid'] && $item['hydro_valid']) ? 'Valid' : 'Expired';
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($equipment);
     }
 }

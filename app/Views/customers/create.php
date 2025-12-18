@@ -185,7 +185,34 @@ ob_start();
                         <div class="form-text">Upload customer photo (JPG, PNG, GIF - Max 5MB). Optional.</div>
                     </div>
 
-                    <div class="d-flex justify-content-between">
+                    <h5 class="mt-4 mb-3">Primary Certification (Optional)</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="certification_agency_id" class="form-label">Agency</label>
+                            <select class="form-select" id="certification_agency_id" name="certification_agency_id">
+                                <option value="">Select Agency</option>
+                                <?php if (!empty($certificationAgencies)): ?>
+                                    <?php foreach ($certificationAgencies as $agency): ?>
+                                        <option value="<?= $agency['id'] ?>"><?= htmlspecialchars($agency['name']) ?> (<?= htmlspecialchars($agency['code']) ?>)</option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="certification_level" class="form-label">Level</label>
+                            <input type="text" class="form-control" id="certification_level" name="certification_level" placeholder="e.g. Open Water Diver">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="certification_number" class="form-label">Certification #</label>
+                            <input type="text" class="form-control" id="certification_number" name="certification_number">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="certification_issue_date" class="form-label">Issue Date</label>
+                            <input type="date" class="form-control" id="certification_issue_date" name="certification_issue_date">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
                         <a href="/store/customers" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle"></i> Create Customer

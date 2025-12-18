@@ -209,4 +209,52 @@ class SettingsController
         
         require BASE_PATH . '/app/Views/admin/settings/integrations.php';
     }
+
+    /**
+     * Updates page
+     */
+    public function updates()
+    {
+        if (!hasPermission('settings.edit')) {
+            redirect('/store/dashboard');
+        }
+
+        $company = getCompanyInfo();
+        $updateService = new \App\Services\System\UpdateService();
+        
+        $current = $updateService->getCurrentVersion();
+        $updates = $updateService->checkForUpdates();
+        
+        require BASE_PATH . '/app/Views/admin/settings/updates.php';
+    }
+
+    /**
+     * Run system update
+     */
+    public function runUpdate()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('/admin/settings/updates');
+        }
+
+        if (!hasPermission('settings.edit')) {
+            $_SESSION['flash_error'] = 'Access denied. Super Admin required.';
+            redirect('/store/dashboard');
+        }
+
+        try {
+            $updateService = new \App\Services\System\UpdateService();
+            $result = $updateService->performUpdate();
+            
+            if ($result['success']) {
+                $_SESSION['flash_success'] = 'System updated successfully! ' . substr($result['message'], 0, 100) . '...';
+            } else {
+                $_SESSION['flash_error'] = 'Update failed: ' . $result['message'];
+            }
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'An unexpected error occurred: ' . $e->getMessage();
+        }
+        
+        redirect('/admin/settings/updates');
+    }
 }

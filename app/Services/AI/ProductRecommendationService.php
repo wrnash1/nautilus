@@ -212,8 +212,8 @@ class ProductRecommendationService
     {
         return TenantDatabase::fetchAllTenant(
             "SELECT ti.product_id, p.name, p.category_id, COUNT(*) as purchase_count
-             FROM pos_transaction_items ti
-             JOIN pos_transactions t ON ti.transaction_id = t.id
+             FROM transaction_items ti
+             JOIN transactions t ON ti.transaction_id = t.id
              JOIN products p ON ti.product_id = p.id
              WHERE t.customer_id = ?
              AND t.status = 'completed'
@@ -255,8 +255,8 @@ class ProductRecommendationService
 
         $similarCustomers = TenantDatabase::fetchAllTenant(
             "SELECT t.customer_id, COUNT(DISTINCT ti.product_id) as common_products
-             FROM pos_transaction_items ti
-             JOIN pos_transactions t ON ti.transaction_id = t.id
+             FROM transaction_items ti
+             JOIN transactions t ON ti.transaction_id = t.id
              WHERE ti.product_id IN ({$placeholders})
              AND t.customer_id != ?
              AND t.status = 'completed'
@@ -295,8 +295,8 @@ class ProductRecommendationService
         $recommendations = TenantDatabase::fetchAllTenant(
             "SELECT ti.product_id, p.name, p.price, p.image_url,
                     COUNT(*) as recommendation_strength
-             FROM pos_transaction_items ti
-             JOIN pos_transactions t ON ti.transaction_id = t.id
+             FROM transaction_items ti
+             JOIN transactions t ON ti.transaction_id = t.id
              JOIN products p ON ti.product_id = p.id
              WHERE {$whereClause}
              AND t.status = 'completed'
@@ -383,8 +383,8 @@ class ProductRecommendationService
                 "SELECT p.id, p.name, p.price, p.image_url,
                         COUNT(ti.id) as sales_count
                  FROM products p
-                 JOIN pos_transaction_items ti ON p.id = ti.product_id
-                 JOIN pos_transactions t ON ti.transaction_id = t.id
+                 JOIN transaction_items ti ON p.id = ti.product_id
+                 JOIN transactions t ON ti.transaction_id = t.id
                  WHERE t.transaction_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)
                  AND t.status = 'completed'
                  AND p.is_active = 1
@@ -424,8 +424,8 @@ class ProductRecommendationService
 
         $bundleProducts = TenantDatabase::fetchAllTenant(
             "SELECT p.id, p.name, p.price, p.image_url, COUNT(*) as bundle_frequency
-             FROM pos_transaction_items ti1
-             JOIN pos_transaction_items ti2 ON ti1.transaction_id = ti2.transaction_id
+             FROM transaction_items ti1
+             JOIN transaction_items ti2 ON ti1.transaction_id = ti2.transaction_id
              JOIN products p ON ti2.product_id = p.id
              WHERE ti1.product_id IN ({$placeholders})
              AND ti2.product_id NOT IN ({$placeholders})
@@ -455,8 +455,8 @@ class ProductRecommendationService
     {
         $bundleProducts = TenantDatabase::fetchAllTenant(
             "SELECT p.id, p.name, p.price, p.image_url, COUNT(*) as bundle_frequency
-             FROM pos_transaction_items ti1
-             JOIN pos_transaction_items ti2 ON ti1.transaction_id = ti2.transaction_id
+             FROM transaction_items ti1
+             JOIN transaction_items ti2 ON ti1.transaction_id = ti2.transaction_id
              JOIN products p ON ti2.product_id = p.id
              WHERE ti1.product_id = ?
              AND ti2.product_id != ?

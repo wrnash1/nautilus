@@ -23,7 +23,35 @@ class CustomerService
     
     public function search(string $query): array
     {
-        return Customer::search($query);
+        $customers = Customer::search($query);
+        
+        // Enrich with certification info
+        foreach ($customers as &$customer) {
+            // Get highest certification
+            $highestCert = Database::fetchOne("
+                SELECT
+                    c.name as certification_name,
+                    c.level as certification_level,
+                    ca.id as agency_id,
+                    ca.name as agency_name,
+                    ca.logo_path
+                FROM customer_certifications cc
+                JOIN certifications c ON cc.certification_id = c.id
+                JOIN certification_agencies ca ON c.agency_id = ca.id
+                WHERE cc.customer_id = ?
+                ORDER BY c.level DESC, cc.issue_date DESC
+                LIMIT 1
+            ", [$customer['id']]);
+            
+            $customer['certification'] = $highestCert ?: null;
+            
+            // Add placeholder photo if missing
+            if (empty($customer['photo_url'])) {
+                $customer['photo_url'] = '/assets/img/default-avatar.png'; // Ensure this exists or handle on frontend
+            }
+        }
+        
+        return $customers;
     }
     
     public function getCustomer360(int $id): array
@@ -99,7 +127,11 @@ class CustomerService
             'phones' => $phones,
             'emails' => $emails,
             'contacts' => $contacts,
-            'customerTags' => $customerTags
+            'customerTags' => $customerTags,
+            'equipment'    => Database::fetchAll(
+                "SELECT * FROM customer_equipment WHERE customer_id = ? ORDER BY serial_number", 
+                [$id]
+            )
         ];
     }
     
@@ -137,5 +169,56 @@ class CustomerService
         if (!empty($errors)) {
             throw new \Exception(implode(', ', $errors));
         }
+    }
+
+    public function getCustomerStatus(int $id): array
+    {
+        // 1. Outstanding Balance (Pending transactions)
+        $outstanding = Database::fetchOne("
+            SELECT COALESCE(SUM(total), 0) as total
+            FROM transactions
+            WHERE customer_id = ? AND status = 'pending'
+        ", [$id]);
+        
+        // 2. Active Work Orders
+        $workOrders = Database::fetchAll("
+            SELECT id, work_order_number, equipment_type, status, estimated_cost
+            FROM work_orders
+            WHERE customer_id = ? 
+            AND status NOT IN ('completed', 'cancelled', 'picked_up')
+        ", [$id]);
+
+        // 3. Upcoming Courses
+        // Assuming table 'course_enrollments' and 'course_schedules'
+        $courses = Database::fetchAll("
+            SELECT cs.id, c.name, cs.start_date, ce.status
+            FROM course_enrollments ce
+            JOIN course_schedules cs ON ce.schedule_id = cs.id
+            JOIN courses c ON cs.course_id = c.id
+            WHERE ce.student_id = ?
+            AND cs.start_date >= CURDATE()
+            AND ce.status IN ('enrolled', 'confirmed')
+            ORDER BY cs.start_date ASC
+        ", [$id]);
+
+        // 4. Upcoming Trips
+        // Assuming 'trip_bookings' and 'trip_schedules'
+        $trips = Database::fetchAll("
+            SELECT ts.id, t.name, ts.departure_date, tb.status
+            FROM trip_bookings tb
+            JOIN trip_schedules ts ON tb.trip_schedule_id = ts.id
+            JOIN trips t ON ts.trip_id = t.id
+            WHERE tb.customer_id = ?
+            AND ts.departure_date >= CURDATE()
+            AND tb.status IN ('confirmed', 'paid')
+            ORDER BY ts.departure_date ASC
+        ", [$id]);
+
+        return [
+            'outstanding_balance' => (float)($outstanding['total'] ?? 0),
+            'work_orders' => $workOrders ?? [],
+            'upcoming_courses' => $courses ?? [],
+            'upcoming_trips' => $trips ?? []
+        ];
     }
 }

@@ -155,7 +155,7 @@ class ExportService
                         CONCAT(c.first_name, ' ', c.last_name) as customer_name,
                         t.subtotal, t.tax_amount, t.discount_amount, t.total_amount,
                         t.payment_method, t.status, t.created_at
-                 FROM pos_transactions t
+                 FROM transactions t
                  LEFT JOIN customers c ON t.customer_id = c.id
                  WHERE t.transaction_date BETWEEN ? AND ?
                  ORDER BY t.transaction_date DESC",

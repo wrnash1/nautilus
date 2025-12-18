@@ -20,29 +20,183 @@ ob_start();
                     <!-- Customer Selection -->
                     <div class="col-md-5">
                         <label class="form-label text-muted small text-uppercase fw-bold"><i class="bi bi-people-fill me-1"></i> Customer</label>
-                        <div class="search-wrapper">
-                            <i class="bi bi-search search-icon"></i>
-                            <input type="text" id="customerSearchInput" class="search-input form-control" placeholder="Search customer (Name, Phone, Email)..." autocomplete="off">
-                            <button type="button" id="clearCustomerBtn" class="btn-clear-search" style="display: none;">
-                                <i class="bi bi-x-circle-fill"></i>
-                            </button>
-                            <input type="hidden" id="selectedCustomerId" value="">
-                            <div id="customerSearchResults" class="search-results shadow-sm" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; z-index:1000; border-radius:0 0 12px 12px;"></div>
-                        </div>
-                        <div class="mt-2 d-flex gap-2">
-                             <a href="/store/customers/create?return_to=pos" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                                <i class="bi bi-person-plus-fill"></i> New Profile
-                            </a>
-                            <span id="activeCustomerBadge" class="badge bg-soft-primary text-primary d-none align-items-center p-2 rounded-pill">
-                                <i class="bi bi-person-check-fill me-1"></i> <span id="customerNameDisplay">Walk-In</span>
-                            </span>
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="flex-grow-1 position-relative">
+                                <div class="search-wrapper mb-2">
+                                    <i class="bi bi-search search-icon"></i>
+                                    <input type="text" id="customerSearchInput" class="search-input form-control form-control-sm" placeholder="Search customer (Name, Phone, Email)..." autocomplete="off">
+                                    <button type="button" id="clearCustomerBtn" class="btn-clear-search" style="display: none;">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </button>
+                                     <div id="customerSearchResults" class="search-results shadow-sm" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; z-index:1000; border-radius:0 0 12px 12px;"></div>
+                                </div>
+                                <div class="d-flex gap-2">
+    <script>
+        window.posConfig = {
+            taxRate: <?= json_encode($taxRate) ?>,
+            bitcoinEnabled: <?= json_encode($bitcoinEnabled ?? false) ?>
+        };
+    </script>
+    <style>
+        /* Professional POS Modernization */
+        :root {
+            --pos-primary: #4f46e5;
+            --pos-secondary: #64748b;
+            --pos-bg: #f3f4f6;
+            --pos-card-bg: #ffffff;
+            --pos-border-radius: 12px;
+        }
+        
+        body {
+            background-color: var(--pos-bg);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .pos-container {
+            padding: 1.5rem;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+
+        .product-card-modern {
+            border: none;
+            border-radius: var(--pos-border-radius);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease-in-out;
+            background: var(--pos-card-bg);
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .product-card-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: var(--pos-primary);
+        }
+
+        .btn-category {
+            border-radius: 50px;
+            padding: 0.5rem 1.2rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: var(--pos-secondary);
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-category.active {
+            background-color: var(--pos-primary);
+            color: white;
+            border-color: var(--pos-primary);
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+        }
+
+        .cart-panel {
+            background: white;
+            border-radius: var(--pos-border-radius);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #e5e7eb;
+        }
+
+        .cart-header {
+            background: var(--pos-primary);
+            color: white;
+            padding: 1.25rem;
+            border-top-left-radius: var(--pos-border-radius);
+            border-top-right-radius: var(--pos-border-radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-items-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .cart-footer {
+            background: #f8fafc;
+            padding: 1.25rem;
+            border-top: 1px solid #e2e8f0;
+            border-bottom-left-radius: var(--pos-border-radius);
+            border-bottom-right-radius: var(--pos-border-radius);
+        }
+
+        .payment-method-btn {
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .btn-check:checked + .payment-method-btn {
+            background-color: #eef2ff;
+            border-color: var(--pos-primary);
+            color: var(--pos-primary);
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+        
+        .customer-display-card {
+            background: white;
+            border-radius: 10px;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+        }
+    </style>
+                                     <a href="/store/customers/create?return_to=pos" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                        <i class="bi bi-person-plus-fill"></i> New
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Enhanced Customer Display -->
+                            <div id="customerDisplayCard" class="d-none w-100 mt-2">
+                                <div class="d-flex align-items-center gap-3 p-3 rounded border bg-white shadow-sm position-relative" style="min-height: 80px;">
+                                    <img id="activeCustomerImg" src="/assets/img/default-avatar.png" class="rounded-circle shadow-sm" style="width: 60px; height: 60px; object-fit: cover;">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h5 class="fw-bold mb-0 text-primary" id="customerNameDisplay">Customer Name</h5>
+                                                <div class="d-flex align-items-center gap-2 text-muted small mt-1">
+                                                    <span id="customerEmailDisplay"><i class="bi bi-envelope"></i> email@example.com</span>
+                                                    <span class="mx-1">•</span>
+                                                    <span id="customerPhoneDisplay"><i class="bi bi-telephone"></i> (555) 123-4567</span>
+                                                </div>
+                                            </div>
+                                            <div id="customerCertDisplay" class="d-flex flex-column align-items-end">
+                                                <!-- Cert Info Injected JS -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="clearSelectedCustomerBtn" class="btn btn-outline-danger btn-sm position-absolute top-0 end-0 m-2 rounded-circle" style="width: 24px; height: 24px; padding: 0; line-height: 0;" title="Clear Customer">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                    <input type="hidden" id="selectedCustomerId" value="">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Store Stats / Time -->
                     <div class="col-md-7 text-end">
                         <div class="d-flex justify-content-end align-items-center gap-4">
-                            <div class="text-end">
+                            <div class="text-end" style="display:none;">
                                 <div class="text-muted small">Date</div>
                                 <div class="fw-bold" id="posCurrentDate"></div>
                             </div>
@@ -50,16 +204,28 @@ ob_start();
                                 <div class="text-muted small">Time</div>
                                 <div class="fw-bold font-monospace fs-5" id="posCurrentTime"></div>
                             </div>
-                             <div class="text-end text-danger" id="autoLogoutTimer" style="display: none;">
+                            <!-- Time Clock -->
+                            <button id="timeClockBtn" class="btn btn-outline-secondary d-flex align-items-center gap-2" title="Time Clock">
+                                <i class="bi bi-clock"></i>
+                                <span id="timeClockLabel" class="d-none d-md-inline">Checking...</span>
+                            </button>
+
+                            <div class="vr mx-1"></div>
+
+                            <div class="vr mx-1"></div>
+
+                            <div class="text-end text-danger" id="autoLogoutTimer" style="display: none;">
                                 <div class="small">Auto-logout</div>
                                 <div id="logoutCountdown" class="fw-bold">00:00</div>
                             </div>
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
 
     <div class="row g-3">
         <!-- Left Column: Products -->
@@ -242,7 +408,15 @@ ob_start();
                                 <i class="bi bi-cart3 fs-4"></i>
                                 <h5 class="mb-0">Current Sale</h5>
                             </div>
-                            <span class="cart-count-badge" id="cartItemCount">0</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="cart-count-badge" id="cartItemCount">0</span>
+                                <!-- Voice Toggle -->
+                                <div class="form-check form-switch mb-0" title="Toggle Voice Feedback">
+                                    <input class="form-check-input" type="checkbox" id="voiceFeedbackToggle" style="cursor: pointer;">
+                                    <label class="form-check-label text-white ms-1" for="voiceFeedbackToggle"><i class="bi bi-mic-fill"></i></label>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
 
@@ -279,7 +453,7 @@ ob_start();
                                 <span id="cartDiscount">-$0.00</span>
                             </div>
                              <div class="summary-row text-muted">
-                                <span>Tax (8%)</span>
+                                <span>Tax (<?= number_format($taxRate * 100, 0) ?>%)</span>
                                 <span id="cartTax">$0.00</span>
                             </div>
                             <div class="summary-total d-flex justify-content-between align-items-center">
@@ -312,11 +486,22 @@ ob_start();
                             </div>
                         </div>
 
-                        <!-- Actions -->
+                         <!-- Action Buttons -->
                         <div class="cart-actions mt-3">
-                            <button id="clearCartBtn" class="btn-clear" disabled>
-                                <i class="bi bi-trash"></i> Cancel
-                            </button>
+                             <div class="d-flex gap-2 mb-2">
+                                <button id="layawayBtn" class="btn btn-outline-primary flex-grow-1" disabled title="Layaway">
+                                    <i class="bi bi-calendar-event"></i> Layaway
+                                </button>
+                                <button id="saveQuoteBtn" class="btn btn-outline-info flex-grow-1" disabled title="Save Quote">
+                                    <i class="bi bi-file-earmark-text"></i> Quote
+                                </button>
+                                <button id="holdBtn" class="btn btn-outline-warning" disabled title="Hold/Park Sale">
+                                    <i class="bi bi-pause-circle"></i>
+                                </button>
+                                <button id="clearCartBtn" class="btn btn-outline-danger" disabled title="Clear Cart">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                             <button id="checkoutBtn" class="btn-checkout w-100" disabled>
                                 <span>Checkout</span> <i class="bi bi-arrow-right"></i>
                             </button>
@@ -382,6 +567,11 @@ ob_start();
 $content = ob_get_clean();
 
 $additionalJs = '
+<script>
+    window.posConfig = {
+        taxRate: ' . $taxRate . '
+    };
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
 <script src="/assets/js/ai-image-search.js"></script>

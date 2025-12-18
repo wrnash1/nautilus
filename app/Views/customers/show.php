@@ -9,7 +9,7 @@ ob_start();
 <div class="mb-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/customers">Customers</a></li>
+            <li class="breadcrumb-item"><a href="/store/customers">Customers</a></li>
             <li class="breadcrumb-item active"><?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?></li>
         </ol>
     </nav>
@@ -67,7 +67,7 @@ ob_start();
 
         <div>
             <?php if (hasPermission('customers.edit')): ?>
-            <a href="/customers/<?= $customer['id'] ?>/edit" class="btn btn-primary">
+            <a href="/store/customers/<?= $customer['id'] ?>/edit" class="btn btn-primary">
                 <i class="bi bi-pencil"></i> Edit
             </a>
             <?php endif; ?>
@@ -99,6 +99,11 @@ ob_start();
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="certifications-tab" data-bs-toggle="tab" data-bs-target="#certifications" type="button">
             <i class="bi bi-award"></i> Certifications (<?= count($certifications) ?>)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="equipment-tab" data-bs-toggle="tab" data-bs-target="#equipment" type="button">
+            <i class="bi bi-tools"></i> Equipment (<?= count($equipment) ?>)
         </button>
     </li>
     <li class="nav-item" role="presentation">
@@ -240,7 +245,7 @@ ob_start();
                                         onclick="editAddress(<?= $addr['id'] ?>, <?= htmlspecialchars(json_encode($addr)) ?>)">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <form method="POST" action="/customers/<?= $customer['id'] ?>/addresses/<?= $addr['id'] ?>/delete" 
+                                <form method="POST" action="/store/customers/<?= $customer['id'] ?>/addresses/<?= $addr['id'] ?>/delete" 
                                       class="d-inline" onsubmit="return confirm('Delete this address?')">
                                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                                     <button type="submit" class="btn btn-outline-danger">
@@ -484,6 +489,89 @@ ob_start();
         <?php endif; ?>
     </div>
 
+    <!-- Equipment Tab -->
+    <div class="tab-pane fade" id="equipment" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-tools"></i> Customer Equipment</h5>
+                <?php if (hasPermission('customers.edit')): ?>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addEquipmentModal">
+                    <i class="bi bi-plus-circle"></i> Add Equipment
+                </button>
+                <?php endif; ?>
+            </div>
+            <div class="card-body">
+                <?php if (empty($equipment)): ?>
+                <p class="text-muted text-center py-4">No equipment found.</p>
+                <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Serial #</th>
+                                <th>Manufacturer/Model</th>
+                                <th>Specs</th>
+                                <th>VIP Status</th>
+                                <th>Hydro Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($equipment as $item): 
+                                $vipDate = !empty($item['last_vip_date']) ? strtotime($item['last_vip_date']) : 0;
+                                $hydroDate = !empty($item['last_hydro_date']) ? strtotime($item['last_hydro_date']) : 0;
+                                $vipValid = $vipDate >= strtotime('-1 year');
+                                $hydroValid = $hydroDate >= strtotime('-5 years');
+                            ?>
+                            <tr>
+                                <td class="fw-bold"><?= htmlspecialchars($item['serial_number']) ?></td>
+                                <td>
+                                    <?= htmlspecialchars($item['manufacturer']) ?> 
+                                    <br><small class="text-muted"><?= htmlspecialchars($item['model']) ?></small>
+                                </td>
+                                <td>
+                                    <?= htmlspecialchars($item['size']) ?> 
+                                    <?= htmlspecialchars($item['material']) ?>
+                                </td>
+                                <td>
+                                    <?php if ($vipValid): ?>
+                                        <span class="badge bg-success">Valid</span>
+                                        <br><small><?= date('M Y', $vipDate) ?></small>
+                                    <?php else: ?>
+                                        <span class="badge bg-danger">Expired</span>
+                                        <br><small><?= $vipDate ? date('M Y', $vipDate) : 'Never' ?></small>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($hydroValid): ?>
+                                        <span class="badge bg-success">Valid</span>
+                                        <br><small><?= date('M Y', $hydroDate) ?></small>
+                                    <?php else: ?>
+                                        <span class="badge bg-danger">Expired</span>
+                                        <br><small><?= $hydroDate ? date('M Y', $hydroDate) : 'Never' ?></small>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (hasPermission('customers.edit')): ?>
+                                    <form method="POST" action="/store/customers/<?= $customer['id'] ?>/equipment/<?= $item['id'] ?>/delete" 
+                                          class="d-inline" onsubmit="return confirm('Delete this equipment? This cannot be undone if logs exist.')">
+                                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
     <div class="tab-pane fade" id="contact" role="tabpanel">
         <!-- Phones -->
         <div class="card mb-4">
@@ -498,7 +586,7 @@ ob_start();
             <div class="card-body">
                 <?php
                 // Fetch phones - in real implementation, controller would pass this
-                $phones = [];
+                // $phones = []; (Removed)
                 ?>
                 <?php if (empty($phones)): ?>
                 <p class="text-muted">No phone numbers on file.</p>
@@ -538,7 +626,7 @@ ob_start();
             <div class="card-body">
                 <?php
                 // Fetch emails - in real implementation, controller would pass this
-                $emails = [];
+                // $emails = []; (Removed)
                 ?>
                 <?php if (empty($emails)): ?>
                 <p class="text-muted">No email addresses on file.</p>
@@ -578,7 +666,7 @@ ob_start();
             <div class="card-body">
                 <?php
                 // Fetch contacts - in real implementation, controller would pass this
-                $contacts = [];
+                // $contacts = []; (Removed)
                 ?>
                 <?php if (empty($contacts)): ?>
                 <p class="text-muted">No emergency contacts on file.</p>
@@ -701,7 +789,7 @@ ob_start();
             <div class="card-body">
                 <?php
                 // Fetch customer tags - in real implementation, controller would pass this
-                $customerTags = [];
+                // $customerTags = []; (Removed to use controller data)
                 ?>
                 <?php if (empty($customerTags)): ?>
                 <p class="text-muted">No tags assigned to this customer.</p>
@@ -745,7 +833,7 @@ ob_start();
 <div class="modal fade" id="addAddressModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="/customers/<?= $customer['id'] ?>/addresses">
+            <form method="POST" action="/store/customers/<?= $customer['id'] ?>/addresses">
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                 <div class="modal-header">
                     <h5 class="modal-title">Add Address</h5>
@@ -850,14 +938,279 @@ ob_start();
     </div>
 </div>
 
+<!-- Add Equipment Modal -->
+<div class="modal fade" id="addEquipmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/store/customers/<?= $customer['id'] ?>/equipment" id="addEquipmentForm">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Equipment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Serial Number <span class="text-danger">*</span></label>
+                            <input type="text" name="serial_number" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Manufacturer</label>
+                            <input type="text" name="manufacturer" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Model</label>
+                            <input type="text" name="model" class="form-control">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Size</label>
+                            <input type="text" name="size" class="form-control" placeholder="e.g. 80">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Material</label>
+                            <select name="material" class="form-select">
+                                <option value="AL">AL</option>
+                                <option value="Steel">Steel</option>
+                                <option value="Composite">Comp</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last VIP Date</label>
+                            <input type="date" name="last_vip_date" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last Hydro Date</label>
+                            <input type="date" name="last_hydro_date" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Equipment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add Certification Modal -->
+<div class="modal fade" id="addCertificationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/store/customers/<?= $customer['id'] ?>/certifications" id="addCertificationForm">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Certification</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Agency <span class="text-danger">*</span></label>
+                        <select name="certification_agency_id" class="form-select" required>
+                            <!-- Populated from controller or AJAX -->
+                            <?php 
+                            foreach(($certificationAgencies ?? []) as $agency): ?>
+                                <option value="<?= $agency['id'] ?>"><?= htmlspecialchars($agency['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Certification Level <span class="text-danger">*</span></label>
+                        <input type="text" name="certification_level" class="form-control" placeholder="e.g. Open Water Diver" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Cert Number</label>
+                            <input type="text" name="certification_number" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Issue Date</label>
+                            <input type="date" name="issue_date" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Instructor Name</label>
+                        <input type="text" name="instructor_name" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Certification</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Phone Modal -->
+<div class="modal fade" id="addPhoneModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/store/customers/<?= $customer['id'] ?>/phones" id="addPhoneForm">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Phone Number</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Phone Type</label>
+                        <select name="phone_type" class="form-select">
+                            <option value="mobile">Mobile</option>
+                            <option value="home">Home</option>
+                            <option value="work">Work</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+                        <input type="text" name="phone_number" class="form-control" required>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="is_default" class="form-check-input" id="phoneDefault">
+                        <label class="form-check-label" for="phoneDefault">Primary Number</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Phone</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Email Modal -->
+<div class="modal fade" id="addEmailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/store/customers/<?= $customer['id'] ?>/emails/add" id="addEmailForm">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Email Address</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Email Type</label>
+                        <select name="email_type" class="form-select">
+                            <option value="personal">Personal</option>
+                            <option value="work">Work</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="is_default" class="form-check-input" id="emailDefault">
+                        <label class="form-check-label" for="emailDefault">Primary Email</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Email</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Contact Modal -->
+<div class="modal fade" id="addContactModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/store/customers/<?= $customer['id'] ?>/contacts" id="addContactForm">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Emergency Contact</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                            <input type="text" name="last_name" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Relationship <span class="text-danger">*</span></label>
+                        <input type="text" name="relationship" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone <span class="text-danger">*</span></label>
+                        <input type="text" name="phone" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Tag Modal -->
+<div class="modal fade" id="assignTagModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/store/customers/<?= $customer['id'] ?>/tags/assign" id="assignTagForm">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                <div class="modal-header">
+                    <h5 class="modal-title">Assign Tag</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Tag</label>
+                        <select name="tag_id" class="form-select" required>
+                            <!-- Populated via JS or PHP if available -->
+                            <option value="">Loading tags...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Assign Tag</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php
 $content = ob_get_clean();
 
 $customerId = $customer['id'];
+$csrfToken = $_SESSION['csrf_token'] ?? '';
+
 $additionalJs = <<<JS
 <script>
 function editAddress(addressId, address) {
-    document.getElementById('editAddressForm').action = `/customers/{$customerId}/addresses/\${addressId}`;
+    document.getElementById('editAddressForm').action = `/store/customers/{$customerId}/addresses/\${addressId}`;
     document.getElementById('editAddressType').value = address.address_type;
     document.getElementById('editAddressLine1').value = address.address_line1 || '';
     document.getElementById('editAddressLine2').value = address.address_line2 || '';
@@ -868,8 +1221,159 @@ function editAddress(addressId, address) {
     
     new bootstrap.Modal(document.getElementById('editAddressModal')).show();
 }
+
+// Transactions Tab Loader
+document.getElementById('transactions-tab').addEventListener('click', function() {
+    const tbody = document.querySelector('#transactions tbody');
+    if (!tbody) return; // Empty state
+    
+    // Check if valid data loaded (hacky check for empty state row)
+    if(tbody.rows.length <= 1 && tbody.innerText.includes('No transactions')) return;
+
+    fetch(`/store/customers/{$customerId}/transactions`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data || data.length === 0) {
+                 document.getElementById('transactions').innerHTML = '<p class="text-muted text-center py-4">No transactions found.</p>';
+                 return;
+            }
+            
+            let html = '<div class="table-responsive"><table class="table table-hover"><thead><tr><th>Date</th><th>Transaction #</th><th>Payment</th><th>Status</th><th>Total</th><th>Actions</th></tr></thead><tbody>';
+            
+            data.forEach(t => {
+                const date = new Date(t.created_at).toLocaleDateString();
+                const statusBadge = t.status === 'completed' ? 'success' : 'warning';
+                html += `
+                    <tr>
+                        <td>\${date}</td>
+                        <td>\${t.transaction_number || t.id}</td>
+                        <td>\${t.payment_method || '-'}</td>
+                        <td><span class="badge bg-\${statusBadge}">\${t.status}</span></td>
+                        <td>\${parseFloat(t.total).toFixed(2)}</td>
+                        <td>
+                            <a href="/store/pos/receipt/\${t.id}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-receipt"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            });
+            html += '</tbody></table></div>';
+            document.getElementById('transactions').innerHTML = html;
+        })
+        .catch(err => console.error('Failed to load transactions', err));
+});
+
+// Load Tags for Modal
+document.getElementById('assignTagModal').addEventListener('show.bs.modal', function() {
+    const select = this.querySelector('select[name="tag_id"]');
+    fetch('/store/customers/tags/list') 
+        .then(res => {
+            if(!res.ok) throw new Error('No tag list endpoint');
+            return res.json();
+        })
+        .then(data => {
+            select.innerHTML = '';
+            data.forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag.id;
+                option.textContent = tag.name;
+                select.appendChild(option);
+            });
+        })
+        .catch(err => {
+            console.warn('Could not load tags via ajax', err);
+            if(select.options.length <= 1) {
+                 select.innerHTML = '<option value="">Failed to load tags</option>';
+            }
+        });
+});
+
+function deletePhone(id) {
+    if(confirm('Are you sure you want to delete this phone number?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/store/customers/{$customerId}/phones/\${id}/delete`;
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrf_token';
+        csrf.value = '{$csrfToken}';
+        form.appendChild(csrf);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function deleteEmail(id) {
+    if(confirm('Are you sure you want to delete this email address?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/store/customers/{$customerId}/emails/\${id}/delete`;
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrf_token';
+        csrf.value = '{$csrfToken}';
+        form.appendChild(csrf);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function removeTag(tagId) {
+    if(confirm('Remove this tag from the customer?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/store/customers/{$customerId}/tags/\${tagId}/remove`;
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrf_token';
+        csrf.value = '{$csrfToken}';
+        form.appendChild(csrf);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Generic AJAX Form Handler for Modals
+function handleModalFormSubmit(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); 
+            } else {
+                alert(data.error || 'Operation failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An unexpected error occurred');
+        });
+    });
+}
+
+// Initialize handlers
+document.addEventListener('DOMContentLoaded', function() {
+    handleModalFormSubmit('addCertificationForm');
+    handleModalFormSubmit('addPhoneForm');
+    handleModalFormSubmit('addEmailForm');
+    handleModalFormSubmit('addContactForm');
+    handleModalFormSubmit('assignTagForm');
+    handleModalFormSubmit('addEquipmentForm');
+});
 </script>
 JS;
 
 require __DIR__ . '/../layouts/app.php';
 ?>
+

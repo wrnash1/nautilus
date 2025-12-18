@@ -53,6 +53,25 @@ class CustomerTagController
     }
 
     /**
+     * Get list of tags for AJAX
+     */
+    public function list()
+    {
+        if (!hasPermission('customers.view')) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        $db = Database::getInstance();
+        try {
+            $stmt = $db->query("SELECT id, name, color, icon FROM customer_tags WHERE is_active = 1 ORDER BY name");
+            jsonResponse($stmt->fetchAll(PDO::FETCH_ASSOC));
+        } catch (\Exception $e) {
+            jsonResponse([], 500);
+        }
+    }
+
+
+    /**
      * Show create tag form
      */
     public function create()
@@ -110,7 +129,7 @@ class CustomerTagController
     /**
      * Assign tag to customer
      */
-    public function assignToCustomer(int $customerId)
+    public function assignToCustomer(int $id)
     {
         if (!hasPermission('customers.edit')) {
             jsonResponse(['error' => 'Access denied'], 403);
@@ -130,7 +149,7 @@ class CustomerTagController
                 VALUES (?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE notes = VALUES(notes)
             ");
-            $stmt->execute([$customerId, $tagId, $_SESSION['user_id'], $notes]);
+            $stmt->execute([$id, $tagId, $_SESSION['user_id'], $notes]);
 
             jsonResponse(['success' => true, 'message' => 'Tag assigned successfully']);
         } catch (\Exception $e) {
@@ -141,7 +160,7 @@ class CustomerTagController
     /**
      * Remove tag from customer
      */
-    public function removeFromCustomer(int $customerId, int $tagId)
+    public function removeFromCustomer(int $id, int $tagId)
     {
         if (!hasPermission('customers.edit')) {
             jsonResponse(['error' => 'Access denied'], 403);
@@ -150,7 +169,7 @@ class CustomerTagController
         try {
             $db = Database::getInstance();
             $stmt = $db->getConnection()->prepare("DELETE FROM customer_tag_assignments WHERE customer_id = ? AND tag_id = ?");
-            $stmt->execute([$customerId, $tagId]);
+            $stmt->execute([$id, $tagId]);
 
             jsonResponse(['success' => true, 'message' => 'Tag removed successfully']);
         } catch (\Exception $e) {
@@ -161,7 +180,7 @@ class CustomerTagController
     /**
      * Get customer's tags
      */
-    public function getCustomerTags(int $customerId)
+    public function getCustomerTags(int $id)
     {
         $db = Database::getInstance();
         $stmt = $db->getConnection()->prepare("
@@ -173,7 +192,7 @@ class CustomerTagController
             WHERE cta.customer_id = ?
             ORDER BY t.display_order, t.name
         ");
-        $stmt->execute([$customerId]);
+        $stmt->execute([$id]);
 
         jsonResponse($stmt->fetchAll(PDO::FETCH_ASSOC));
     }

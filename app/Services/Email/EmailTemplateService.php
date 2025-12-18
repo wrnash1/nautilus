@@ -254,7 +254,7 @@ class EmailTemplateService
     private function formatTransactionItems(int $transactionId): string
     {
         $items = \App\Core\TenantDatabase::fetchAllTenant(
-            "SELECT * FROM pos_transaction_items WHERE transaction_id = ?",
+            "SELECT * FROM transaction_items WHERE transaction_id = ?",
             [$transactionId]
         );
 

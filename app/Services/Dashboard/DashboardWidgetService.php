@@ -115,7 +115,7 @@ class DashboardWidgetService
                 COUNT(*) as transaction_count,
                 COALESCE(SUM(total_amount), 0) as total_sales,
                 COALESCE(AVG(total_amount), 0) as average_sale
-             FROM pos_transactions
+             FROM transactions
              WHERE DATE(transaction_date) = ?
              AND status = 'completed'",
             [$today]
@@ -125,7 +125,7 @@ class DashboardWidgetService
         $yesterday = date('Y-m-d', strtotime('-1 day'));
         $yesterdayStats = TenantDatabase::fetchOneTenant(
             "SELECT COALESCE(SUM(total_amount), 0) as total_sales
-             FROM pos_transactions
+             FROM transactions
              WHERE DATE(transaction_date) = ?
              AND status = 'completed'",
             [$yesterday]
@@ -161,7 +161,7 @@ class DashboardWidgetService
                 COUNT(*) as transaction_count,
                 COALESCE(SUM(total_amount), 0) as total_sales,
                 COALESCE(SUM(total_amount - tax_amount), 0) as subtotal
-             FROM pos_transactions
+             FROM transactions
              WHERE transaction_date BETWEEN ? AND ?
              AND status = 'completed'
              GROUP BY DATE(transaction_date)
@@ -204,8 +204,8 @@ class DashboardWidgetService
                 SUM(ti.quantity) as units_sold,
                 SUM(ti.subtotal) as revenue,
                 COUNT(DISTINCT ti.transaction_id) as transaction_count
-             FROM pos_transaction_items ti
-             JOIN pos_transactions t ON ti.transaction_id = t.id
+             FROM transaction_items ti
+             JOIN transactions t ON ti.transaction_id = t.id
              JOIN products p ON ti.product_id = p.id
              WHERE t.transaction_date BETWEEN ? AND ?
              AND t.status = 'completed'
@@ -268,7 +268,7 @@ class DashboardWidgetService
                 t.payment_method,
                 CONCAT(c.first_name, ' ', c.last_name) as customer_name,
                 CONCAT(u.first_name, ' ', u.last_name) as cashier_name
-             FROM pos_transactions t
+             FROM transactions t
              LEFT JOIN customers c ON t.customer_id = c.id
              LEFT JOIN users u ON t.user_id = u.id
              WHERE t.status = 'completed'
@@ -300,7 +300,7 @@ class DashboardWidgetService
                     WHEN t.transaction_date >= ? THEN t.customer_id
                 END) as active_customers
              FROM customers c
-             LEFT JOIN pos_transactions t ON c.id = t.customer_id
+             LEFT JOIN transactions t ON c.id = t.customer_id
                 AND t.status = 'completed'",
             [$startDate, $startDate]
         );
@@ -312,7 +312,7 @@ class DashboardWidgetService
                 COUNT(t.id) as transaction_count,
                 SUM(t.total_amount) as total_spent
              FROM customers c
-             JOIN pos_transactions t ON c.id = t.customer_id
+             JOIN transactions t ON c.id = t.customer_id
              WHERE t.transaction_date >= ?
              AND t.status = 'completed'
              GROUP BY c.id
@@ -344,8 +344,8 @@ class DashboardWidgetService
                 COUNT(DISTINCT ti.transaction_id) as transaction_count,
                 SUM(ti.quantity) as units_sold,
                 SUM(ti.subtotal) as revenue
-             FROM pos_transaction_items ti
-             JOIN pos_transactions t ON ti.transaction_id = t.id
+             FROM transaction_items ti
+             JOIN transactions t ON ti.transaction_id = t.id
              JOIN products p ON ti.product_id = p.id
              LEFT JOIN product_categories pc ON p.category_id = pc.id
              WHERE t.transaction_date >= ?
@@ -509,7 +509,7 @@ class DashboardWidgetService
                 SUM(total_amount) as total_sales,
                 AVG(total_amount) as average_sale,
                 COUNT(DISTINCT customer_id) as unique_customers
-             FROM pos_transactions
+             FROM transactions
              WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
              AND status = 'completed'
              GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
