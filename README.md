@@ -21,24 +21,46 @@ Nautilus is a complete business management system designed specifically for dive
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Installation
 
-### 👉 **START HERE:** [START_HERE.md](START_HERE.md)
+You can install Nautilus locally for testing or on a server for production.
 
-Choose your installation path:
+### Option 1: Production Deployment (VPS/Dedicated)
+**Best for live business operations**
 
-### Option 1: Test on Your Laptop First (Recommended!)
-**Read:** [LAPTOP_INSTALL.md](LAPTOP_INSTALL.md)
-- ✅ No web hosting needed
-- ✅ Free and easy (XAMPP)
-- ✅ Non-technical friendly
-- ⏱️ **Time:** 30 minutes
+1. **Server Setup:** Ubuntu 22.04/24.04 recommended.
+2. **Web Server:** Nginx or Apache with SSL.
+3. **Environment:** 
+   - Copy `.env.example` to `.env`: `cp .env.example .env`
+   - Update database credentials and `APP_URL`.
+   - Set `APP_ENV=production` and `APP_DEBUG=false`.
+4. **Permissions:** 
+   ```bash
+   chown -R www-data:www-data storage public/uploads
+   chmod -R 775 storage public/uploads
+   ```
+5. **Install Dependencies:**
+   ```bash
+   composer install --no-dev --optimize-autoloader
+   ```
+6. **Initialize:** Access `http://your-domain.com/install.php` to initialize the database and admin user.
+7. **CRON:** Set up the system cron for scheduled tasks:
+   ```bash
+   * * * * * php /path/to/nautilus/artisan schedule:run >> /dev/null 2>&1
+   ```
+8. **Queue:** Use Supervisor to run `php artisan queue:work` (if using queues).
 
-### Option 2: Install on Web Hosting
-**Read:** [QUICK_INSTALL.md](QUICK_INSTALL.md)
-- ✅ WordPress-style installer
-- ✅ Works on shared hosting
-- ⏱️ **Time:** 10-15 minutes
+### Option 2: Local Testing (Docker / XAMPP)
+
+**Docker:**
+1. Ensure Docker and Docker Compose are installed.
+2. Run `./start-dev.sh`.
+3. Access `http://localhost:8080/install.php`.
+
+**XAMPP/MAMP:**
+1. Clone into `htdocs`.
+2. Create a database named `nautilus`.
+3. Access `http://localhost/nautilus/public/install.php`.
 
 ---
 
@@ -47,30 +69,12 @@ Choose your installation path:
 **Minimum:**
 - PHP 8.0+, MySQL 5.7+ or MariaDB 10.3+
 - 256MB RAM, 500MB disk space
+- Extensions: PDO, OpenSSL, Mbstring, Tokenizer, XML, Ctype, JSON
 
 **Recommended:**
 - PHP 8.2+, MySQL 8.0+ or MariaDB 10.6+
 - 512MB RAM, 1GB disk space, SSL certificate
-
-**Compatible with:** Shared hosting, VPS, XAMPP, WAMP, MAMP
-
----
-
-## 📚 Documentation
-
-### Installation:
-- **[START_HERE.md](START_HERE.md)** - Choose your path
-- **[LAPTOP_INSTALL.md](LAPTOP_INSTALL.md)** - Test locally
-- **[QUICK_INSTALL.md](QUICK_INSTALL.md)** - Deploy to hosting
-- **[CUSTOMER_CHECKLIST.md](CUSTOMER_CHECKLIST.md)** - Pre-install prep
-
-### Configuration:
-- **[FIRST_TIME_SETUP.md](FIRST_TIME_SETUP.md)** - Post-install setup
-- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Problem solving
-
-### Advanced:
-- **[docs/](docs/)** - Detailed documentation
-- **[scripts/deployment/](scripts/deployment/)** - Deployment tools
+- Redis (optional, for caching/queues)
 
 ---
 
@@ -87,8 +91,6 @@ Choose your installation path:
 - **Reports** - Sales, inventory, analytics
 - **Security** - Role-based access, audit logs
 
-**Full feature list:** See [START_HERE.md](START_HERE.md)
-
 ---
 
 ## 🌍 Open Source
@@ -97,15 +99,15 @@ Choose your installation path:
 - ✅ **Own your data** - Full control
 - ✅ **Customize** - Modify as needed
 - ✅ **Community-driven** - Contribute features
+- ✅ **Multi-Tenant Ready** - Support multiple shop locations
 
 ---
 
 ## 🆘 Support
 
-- **Documentation:** [START_HERE.md](START_HERE.md)
-- **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-- **GitHub Issues:** Report bugs
-- **GitHub Discussions:** Ask questions
+- **Documentation:** See `docs/` directory (Coming Soon)
+- **Issues:** Report bugs on GitHub
+- **Discussions:** Ask questions on GitHub
 
 ---
 
@@ -113,39 +115,7 @@ Choose your installation path:
 
 - 210+ database tables
 - 107 migrations
-- 50+ controllers
-- 100+ services
 - Production-ready code
-- Zero syntax errors
-
----
-
-## 🎉 Why Choose Nautilus?
-
-**vs. Other Solutions:**
-- ✅ Built specifically for dive shops
-- ✅ One-time cost (hosting only)
-- ✅ No vendor lock-in
-- ✅ PADI/SSI/NAUI integration ready
-- ✅ Equipment-specific tracking
-- ✅ Dive trip management
-
-**vs. SaaS:**
-- No monthly fees
-- Full data ownership
-- Unlimited customization
-- No per-transaction fees
-
----
-
-## 🚀 Quick Installation
-
-**Testing locally?** 30 minutes  
-**Production deployment?** 15 minutes
-
-**Ready to start?**
-
-### 👉 [START_HERE.md](START_HERE.md)
 
 ---
 

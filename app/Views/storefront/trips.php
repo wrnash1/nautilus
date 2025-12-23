@@ -18,7 +18,7 @@
                 <div class="card rounded-4 border-0 shadow-sm overflow-hidden hover-lift transition-base">
                     <div class="row g-0">
                         <div class="col-md-5">
-                            <img src="https://images.unsplash.com/photo-1544551763-46a8723ba1f9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                            <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80" 
                                  class="img-fluid h-100 object-fit-cover min-h-250" alt="Cozumel">
                         </div>
                         <div class="col-md-7">
@@ -49,7 +49,7 @@
                 <div class="card rounded-4 border-0 shadow-sm overflow-hidden hover-lift transition-base">
                     <div class="row g-0">
                         <div class="col-md-5">
-                            <img src="https://images.unsplash.com/photo-1582967788606-a171f1080ca8?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                            <img src="https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80" 
                                  class="img-fluid h-100 object-fit-cover min-h-250" alt="Bonaire">
                         </div>
                         <div class="col-md-7">

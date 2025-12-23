@@ -1,3 +1,36 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `analytics_events`;
+DROP TABLE IF EXISTS `report_schedules`;
+DROP TABLE IF EXISTS `dashboard_widgets`;
+DROP TABLE IF EXISTS `product_analytics`;
+DROP TABLE IF EXISTS `customer_analytics`;
+DROP TABLE IF EXISTS `sales_trends`;
+DROP TABLE IF EXISTS `business_kpis`;
+DROP TABLE IF EXISTS `dashboard_metrics_cache`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `analytics_events`;
+DROP TABLE IF EXISTS `report_schedules`;
+DROP TABLE IF EXISTS `dashboard_widgets`;
+DROP TABLE IF EXISTS `product_analytics`;
+DROP TABLE IF EXISTS `customer_analytics`;
+DROP TABLE IF EXISTS `sales_trends`;
+DROP TABLE IF EXISTS `business_kpis`;
+DROP TABLE IF EXISTS `dashboard_metrics_cache`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `analytics_events`;
+DROP TABLE IF EXISTS `report_schedules`;
+DROP TABLE IF EXISTS `dashboard_widgets`;
+DROP TABLE IF EXISTS `product_analytics`;
+DROP TABLE IF EXISTS `customer_analytics`;
+DROP TABLE IF EXISTS `sales_trends`;
+DROP TABLE IF EXISTS `business_kpis`;
+DROP TABLE IF EXISTS `dashboard_metrics_cache`;
+
 -- Migration: Analytics Dashboard Tables
 -- Description: Creates tables for caching and storing analytics data
 -- Version: 057
@@ -134,8 +167,8 @@ CREATE TABLE IF NOT EXISTS sales_trends (
 -- Customer Analytics Table
 -- Stores customer segmentation and analytics
 CREATE TABLE IF NOT EXISTS customer_analytics (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
 
     -- Purchase behavior
     total_purchases INT DEFAULT 0,
@@ -179,8 +212,8 @@ CREATE TABLE IF NOT EXISTS customer_analytics (
 -- Product Performance Table
 -- Tracks product-level analytics
 CREATE TABLE IF NOT EXISTS product_analytics (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    product_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id BIGINT UNSIGNED NOT NULL,
 
     -- Time period
     period_type ENUM('daily', 'weekly', 'monthly') NOT NULL,
@@ -219,8 +252,8 @@ CREATE TABLE IF NOT EXISTS product_analytics (
 -- Dashboard Widgets Table
 -- Stores user-customizable dashboard configurations
 CREATE TABLE IF NOT EXISTS dashboard_widgets (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
 
     -- Widget configuration
     widget_type VARCHAR(50) NOT NULL,
@@ -277,7 +310,7 @@ CREATE TABLE IF NOT EXISTS report_schedules (
     -- Timestamps
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
 
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_next_run (next_run_at),
@@ -295,7 +328,7 @@ CREATE TABLE IF NOT EXISTS analytics_events (
     event_category VARCHAR(50),
 
     -- Associated entities
-    user_id INT,
+    user_id BIGINT,
     customer_id INT,
     transaction_id INT,
     product_id INT,
@@ -332,3 +365,10 @@ CREATE TABLE IF NOT EXISTS analytics_events (
 -- FROM users
 -- WHERE role_id = (SELECT id FROM roles WHERE name = 'Administrator' LIMIT 1)
 -- ON DUPLICATE KEY UPDATE id=id;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

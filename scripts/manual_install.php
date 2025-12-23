@@ -17,11 +17,11 @@ $config = [
     'app_name' => 'Nautilus',
     'app_url' => 'https://nautilus.local',
     'app_timezone' => 'America/Chicago',
-    'db_host' => '127.0.0.1',
+    'db_host' => 'database',
     'db_port' => '3306',
     'db_database' => 'nautilus',
-    'db_username' => 'nautilus',
-    'db_password' => 'NautilusR0cks!',
+    'db_username' => 'root',
+    'db_password' => 'Frogman09!',
     'admin_email' => 'admin@nautilus.local',
     'admin_password' => 'AdminNautilus123!',
     'admin_first_name' => 'Admin',
@@ -43,11 +43,10 @@ try {
     $result = $service->runInstallation($config);
     
     if ($result['success']) {
-        echo "Installation successful!\n";
-        print_r($result);
+        file_put_contents('install_log.txt', "Installation successful!\n" . print_r($result, true));
     } else {
-        echo "Installation failed: " . $result['message'] . "\n";
+        file_put_contents('install_log.txt', "Installation failed: " . $result['message'] . "\n");
     }
 } catch (Exception $e) {
-    echo "Exception: " . $e->getMessage() . "\n";
+    file_put_contents('install_log.txt', "Exception: " . $e->getMessage() . "\n");
 }

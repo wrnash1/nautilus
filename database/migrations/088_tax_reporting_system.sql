@@ -1,3 +1,30 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `contractor_1099_payments`;
+DROP TABLE IF EXISTS `tax_rate_history`;
+DROP TABLE IF EXISTS `tax_exempt_customers`;
+DROP TABLE IF EXISTS `tax_returns`;
+DROP TABLE IF EXISTS `tax_transactions`;
+DROP TABLE IF EXISTS `tax_jurisdictions`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `contractor_1099_payments`;
+DROP TABLE IF EXISTS `tax_rate_history`;
+DROP TABLE IF EXISTS `tax_exempt_customers`;
+DROP TABLE IF EXISTS `tax_returns`;
+DROP TABLE IF EXISTS `tax_transactions`;
+DROP TABLE IF EXISTS `tax_jurisdictions`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `contractor_1099_payments`;
+DROP TABLE IF EXISTS `tax_rate_history`;
+DROP TABLE IF EXISTS `tax_exempt_customers`;
+DROP TABLE IF EXISTS `tax_returns`;
+DROP TABLE IF EXISTS `tax_transactions`;
+DROP TABLE IF EXISTS `tax_jurisdictions`;
+
 -- =====================================================
 -- Tax Reporting System
 -- Comprehensive tax calculation and reporting
@@ -5,8 +32,8 @@
 
 -- Tax Jurisdictions
 CREATE TABLE IF NOT EXISTS `tax_jurisdictions` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `jurisdiction_name` VARCHAR(255) NOT NULL,
     `jurisdiction_type` ENUM('federal', 'state', 'county', 'city', 'district') NOT NULL,
     `jurisdiction_code` VARCHAR(50) NULL COMMENT 'State code, zip code range, etc.',
@@ -40,13 +67,13 @@ CREATE TABLE IF NOT EXISTS `tax_jurisdictions` (
 -- Tax Transactions (detailed tax calculation per transaction)
 CREATE TABLE IF NOT EXISTS `tax_transactions` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `transaction_id` VARCHAR(100) NOT NULL COMMENT 'Order ID, Invoice ID, etc.',
     `transaction_type` ENUM('sale', 'refund', 'rental', 'course', 'trip', 'service') NOT NULL,
     `transaction_date` DATE NOT NULL,
 
     -- Customer
-    `customer_id` INT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
     `customer_name` VARCHAR(255) NULL,
     `customer_tax_id` VARCHAR(50) NULL COMMENT 'SSN, EIN, VAT number',
     `customer_tax_exempt` BOOLEAN DEFAULT FALSE,
@@ -55,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `tax_transactions` (
     -- Location
     `billing_address` JSON NULL,
     `shipping_address` JSON NULL,
-    `tax_jurisdiction_id` INT UNSIGNED NULL,
+    `tax_jurisdiction_id` BIGINT UNSIGNED NULL,
 
     -- Amounts
     `subtotal` DECIMAL(10, 2) NOT NULL,
@@ -80,7 +107,7 @@ CREATE TABLE IF NOT EXISTS `tax_transactions` (
     `reporting_period` VARCHAR(7) NOT NULL COMMENT 'YYYY-MM',
     `reported` BOOLEAN DEFAULT FALSE,
     `reported_at` DATETIME NULL,
-    `tax_return_id` INT UNSIGNED NULL,
+    `tax_return_id` BIGINT UNSIGNED NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -95,11 +122,11 @@ CREATE TABLE IF NOT EXISTS `tax_transactions` (
 
 -- Tax Returns (periodic tax filing)
 CREATE TABLE IF NOT EXISTS `tax_returns` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `return_type` ENUM('sales_tax', 'use_tax', 'quarterly_941', 'annual_1099', 'annual_w2', 'vat') NOT NULL,
     `reporting_period` VARCHAR(7) NOT NULL COMMENT 'YYYY-MM or YYYY-QN',
-    `jurisdiction_id` INT UNSIGNED NULL,
+    `jurisdiction_id` BIGINT UNSIGNED NULL,
 
     -- Filing Details
     `filing_frequency` ENUM('monthly', 'quarterly', 'annual') NOT NULL,
@@ -124,7 +151,7 @@ CREATE TABLE IF NOT EXISTS `tax_returns` (
 
     -- Filing Information
     `confirmation_number` VARCHAR(100) NULL,
-    `filed_by` INT UNSIGNED NULL COMMENT 'User who filed',
+    `filed_by` BIGINT UNSIGNED NULL COMMENT 'User who filed',
     `filing_method` ENUM('online', 'mail', 'api', 'third_party') NULL,
 
     -- Attachments
@@ -139,7 +166,7 @@ CREATE TABLE IF NOT EXISTS `tax_returns` (
     -- Notes
     `notes` TEXT NULL,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -152,9 +179,9 @@ CREATE TABLE IF NOT EXISTS `tax_returns` (
 
 -- Tax Exempt Customers
 CREATE TABLE IF NOT EXISTS `tax_exempt_customers` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Exemption Details
     `exemption_type` ENUM('resale', 'nonprofit', 'government', 'educational', 'religious', 'other') NOT NULL,
@@ -170,7 +197,7 @@ CREATE TABLE IF NOT EXISTS `tax_exempt_customers` (
     -- Documentation
     `certificate_document_url` VARCHAR(500) NULL,
     `verified` BOOLEAN DEFAULT FALSE,
-    `verified_by` INT UNSIGNED NULL,
+    `verified_by` BIGINT UNSIGNED NULL,
     `verified_at` DATETIME NULL,
 
     -- Applicability
@@ -189,9 +216,9 @@ CREATE TABLE IF NOT EXISTS `tax_exempt_customers` (
 
 -- Tax Rate Changes History
 CREATE TABLE IF NOT EXISTS `tax_rate_history` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `jurisdiction_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `jurisdiction_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Rate Change
     `old_rate` DECIMAL(5, 4) NOT NULL,
@@ -203,7 +230,7 @@ CREATE TABLE IF NOT EXISTS `tax_rate_history` (
     `change_reason` TEXT NULL,
 
     -- Change Tracking
-    `changed_by` INT UNSIGNED NULL,
+    `changed_by` BIGINT UNSIGNED NULL,
     `changed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (`jurisdiction_id`) REFERENCES `tax_jurisdictions`(`id`) ON DELETE CASCADE,
@@ -215,8 +242,8 @@ CREATE TABLE IF NOT EXISTS `tax_rate_history` (
 -- 1099 Contractor Payments (for contractor reporting)
 CREATE TABLE IF NOT EXISTS `contractor_1099_payments` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `contractor_id` INT UNSIGNED NULL COMMENT 'Link to vendors/contractors table',
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `contractor_id` BIGINT UNSIGNED NULL COMMENT 'Link to vendors/contractors table',
     `tax_year` INT NOT NULL,
 
     -- Contractor Information
@@ -237,7 +264,7 @@ CREATE TABLE IF NOT EXISTS `contractor_1099_payments` (
     `box_4_federal_income_tax` DECIMAL(10, 2) DEFAULT 0.00,
 
     -- Filing
-    `form_1099_id` INT UNSIGNED NULL,
+    `form_1099_id` BIGINT UNSIGNED NULL,
     `filed` BOOLEAN DEFAULT FALSE,
     `filed_at` DATETIME NULL,
 
@@ -271,3 +298,10 @@ INSERT INTO `tax_jurisdictions` (
 (1, 'Los Angeles County', 'county', 'CA-LA', 0.0125, TRUE, TRUE, '2024-01-01'),
 (1, 'San Francisco', 'city', 'CA-SF', 0.0125, TRUE, TRUE, '2024-01-01'),
 (1, 'Miami-Dade County', 'county', 'FL-MD', 0.0100, TRUE, TRUE, '2024-01-01');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

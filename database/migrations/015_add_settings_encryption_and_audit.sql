@@ -8,11 +8,16 @@
 -- PART 1: Create Settings Audit Log Table
 -- ============================================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `settings_audit`;
+DROP TABLE IF EXISTS `system_metadata`;
+
 CREATE TABLE IF NOT EXISTS `settings_audit` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `setting_key` VARCHAR(150) NOT NULL COMMENT 'Full key including category (e.g., payment.stripe_secret_key)',
   `action` ENUM('read', 'update', 'delete') NOT NULL,
-  `user_id` INT UNSIGNED NULL COMMENT 'User who accessed the setting',
+  `user_id` BIGINT UNSIGNED NULL COMMENT 'User who accessed the setting',
   `ip_address` VARCHAR(45) NOT NULL COMMENT 'IP address of the requester',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX `idx_setting_key` (`setting_key`),
@@ -135,7 +140,7 @@ ON DUPLICATE KEY UPDATE
 
 -- Create a metadata table for storing important security information
 CREATE TABLE IF NOT EXISTS `system_metadata` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `meta_key` VARCHAR(100) UNIQUE NOT NULL,
   `meta_value` TEXT,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -160,3 +165,5 @@ ON DUPLICATE KEY UPDATE
 -- 1. Ensure APP_KEY is set in .env (at least 32 characters)
 -- 2. Re-enter all sensitive API keys via the admin panel
 -- 3. Old plaintext values will be re-encrypted when updated
+
+SET FOREIGN_KEY_CHECKS=1;

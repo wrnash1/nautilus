@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS notification_types (
 CREATE TABLE IF NOT EXISTS notification_preferences (
     id INT  PRIMARY KEY,
     tenant_id INT,
-    user_id INT NOT NULL,
+    user_id BIGINT NOT NULL,
     notification_type_id INT NOT NULL,
     email_enabled BOOLEAN DEFAULT TRUE,
     sms_enabled BOOLEAN DEFAULT FALSE,
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
 CREATE TABLE IF NOT EXISTS notification_history (
     id BIGINT  PRIMARY KEY,
     tenant_id INT,
-    user_id INT NOT NULL,
+    user_id BIGINT NOT NULL,
     notification_type_id INT NOT NULL,
     channel ENUM('email', 'sms', 'in_app', 'push') NOT NULL,
     recipient VARCHAR(255) COMMENT 'Email address, phone number, or device token',
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS notification_history (
 CREATE TABLE IF NOT EXISTS notification_queue (
     id BIGINT  PRIMARY KEY,
     tenant_id INT,
-    user_id INT NOT NULL,
+    user_id BIGINT NOT NULL,
     notification_type VARCHAR(100) NOT NULL,
     channel ENUM('email', 'sms', 'in_app', 'push') NOT NULL,
     recipient VARCHAR(255) NOT NULL,
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS notification_queue (
 CREATE TABLE IF NOT EXISTS push_notification_devices (
     id INT  PRIMARY KEY,
     tenant_id INT,
-    user_id INT NOT NULL,
+    user_id BIGINT NOT NULL,
     device_token VARCHAR(255) UNIQUE NOT NULL,
     device_type ENUM('ios', 'android', 'web') NOT NULL,
     device_name VARCHAR(100),

@@ -4,10 +4,16 @@
 -- Description: User notification system
 -- ================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `notifications`;
+DROP TABLE IF EXISTS `notification_preferences`;
+DROP TABLE IF EXISTS `push_subscriptions`;
+
 -- Notifications Table
 CREATE TABLE IF NOT EXISTS notifications (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     type ENUM('info', 'success', 'warning', 'error') DEFAULT 'info',
@@ -25,8 +31,8 @@ CREATE TABLE IF NOT EXISTS notifications (
 
 -- Notification Preferences
 CREATE TABLE IF NOT EXISTS notification_preferences (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
     notification_type VARCHAR(50) NOT NULL COMMENT 'orders, courses, trips, system, etc',
     enabled BOOLEAN DEFAULT TRUE,
     email_enabled BOOLEAN DEFAULT TRUE,
@@ -40,8 +46,8 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
 
 -- Browser Push Subscriptions (for Web Push API)
 CREATE TABLE IF NOT EXISTS push_subscriptions (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
     endpoint VARCHAR(500) NOT NULL,
     auth_token VARCHAR(255),
     p256dh_key VARCHAR(255),

@@ -1,15 +1,20 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `product_import_jobs`;
+DROP TABLE IF EXISTS `product_import_preview`;
+
 -- Product Import Jobs Table
 CREATE TABLE IF NOT EXISTS `product_import_jobs` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `job_name` VARCHAR(255) NOT NULL,
   `import_type` ENUM('csv', 'excel', 'xml', 'json', 'api') DEFAULT 'csv',
   `source_file` VARCHAR(500) COMMENT 'Path to uploaded file',
-  `vendor_id` INT UNSIGNED COMMENT 'Associated vendor if applicable',
+  `vendor_id` BIGINT UNSIGNED COMMENT 'Associated vendor if applicable',
   `status` ENUM('pending', 'mapping', 'validating', 'importing', 'completed', 'failed', 'cancelled') DEFAULT 'pending',
 
   -- File info
-  `file_size` INT UNSIGNED COMMENT 'File size in bytes',
-  `total_rows` INT UNSIGNED DEFAULT 0,
+  `file_size` BIGINT UNSIGNED COMMENT 'File size in bytes',
+  `total_rows` BIGINT UNSIGNED DEFAULT 0,
   `header_row` INT DEFAULT 1 COMMENT 'Which row contains headers',
 
   -- Mapping configuration
@@ -24,11 +29,11 @@ CREATE TABLE IF NOT EXISTS `product_import_jobs` (
   `auto_create_vendors` BOOLEAN DEFAULT FALSE,
 
   -- Progress tracking
-  `rows_processed` INT UNSIGNED DEFAULT 0,
-  `rows_success` INT UNSIGNED DEFAULT 0,
-  `rows_updated` INT UNSIGNED DEFAULT 0,
-  `rows_skipped` INT UNSIGNED DEFAULT 0,
-  `rows_failed` INT UNSIGNED DEFAULT 0,
+  `rows_processed` BIGINT UNSIGNED DEFAULT 0,
+  `rows_success` BIGINT UNSIGNED DEFAULT 0,
+  `rows_updated` BIGINT UNSIGNED DEFAULT 0,
+  `rows_skipped` BIGINT UNSIGNED DEFAULT 0,
+  `rows_failed` BIGINT UNSIGNED DEFAULT 0,
 
   -- Results
   `error_log` JSON COMMENT 'Array of error messages',
@@ -38,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `product_import_jobs` (
   -- Timestamps
   `started_at` TIMESTAMP NULL,
   `completed_at` TIMESTAMP NULL,
-  `created_by` INT UNSIGNED,
+  `created_by` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -52,8 +57,8 @@ CREATE TABLE IF NOT EXISTS `product_import_jobs` (
 
 -- Product Import Preview Data (temp staging before import)
 CREATE TABLE IF NOT EXISTS `product_import_preview` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `import_job_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `import_job_id` BIGINT UNSIGNED NOT NULL,
   `row_number` INT NOT NULL,
   `raw_data` JSON NOT NULL COMMENT 'Original CSV row data',
   `mapped_data` JSON COMMENT 'Data after field mapping',
@@ -61,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `product_import_preview` (
   `validation_messages` JSON COMMENT 'Array of validation messages',
   `will_create` BOOLEAN DEFAULT TRUE COMMENT 'Will create new product',
   `will_update` BOOLEAN DEFAULT FALSE COMMENT 'Will update existing product',
-  `existing_product_id` INT UNSIGNED COMMENT 'ID if updating existing',
+  `existing_product_id` BIGINT UNSIGNED COMMENT 'ID if updating existing',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (`import_job_id`) REFERENCES `product_import_jobs`(`id`) ON DELETE CASCADE,
@@ -74,3 +79,5 @@ CREATE TABLE IF NOT EXISTS `product_import_preview` (
 -- Add product_import_previews alias if code uses plural
 -- The code uses `product_import_previews` in DELETE query but `product_import_preview` in INSERT.
 -- I should check ProductImportService.php again.
+
+SET FOREIGN_KEY_CHECKS=1;

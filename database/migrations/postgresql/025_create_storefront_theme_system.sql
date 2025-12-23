@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS theme_config (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
 
     INDEX idx_active (is_active),
     INDEX idx_default (is_default)
@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS theme_config (
 -- Homepage Sections (Drag-and-drop homepage builder)
 CREATE TABLE IF NOT EXISTS homepage_sections (
     id INTEGER PRIMARY KEY ,
-    theme_id INT UNSIGNED,
+    theme_id BIGINT UNSIGNED,
     section_type ENUM('hero', 'featured_products', 'categories', 'featured_categories', 'testimonials', 'blog_posts', 'brands', 'newsletter', 'custom_html', 'courses', 'trips', 'video', 'image_banner', 'countdown_timer') NOT NULL,
     section_title VARCHAR(200),
     section_subtitle TEXT,
@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS promotional_banners (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
 
     INDEX idx_active (is_active),
     INDEX idx_dates (start_date, end_date),
@@ -202,7 +202,7 @@ CREATE TABLE IF NOT EXISTS promotional_banners (
 -- Theme Assets (Images, fonts, files associated with themes)
 CREATE TABLE IF NOT EXISTS theme_assets (
     id INTEGER PRIMARY KEY ,
-    theme_id INT UNSIGNED,
+    theme_id BIGINT UNSIGNED,
     asset_type ENUM('logo', 'favicon', 'hero_image', 'background', 'icon', 'font', 'other') NOT NULL,
     asset_name VARCHAR(100) NOT NULL,
     file_path VARCHAR(255) NOT NULL,
@@ -213,7 +213,7 @@ CREATE TABLE IF NOT EXISTS theme_assets (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    uploaded_by INT UNSIGNED,
+    uploaded_by BIGINT UNSIGNED,
 
     INDEX idx_theme (theme_id),
     INDEX idx_type (asset_type)

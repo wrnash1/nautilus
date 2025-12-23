@@ -21,14 +21,18 @@ VALUES
 -- PART 2: Create File Uploads Tracking Table
 -- ============================================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `file_uploads`;
+
 CREATE TABLE IF NOT EXISTS `file_uploads` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `file_name` VARCHAR(255) NOT NULL COMMENT 'Original filename',
   `file_path` VARCHAR(500) NOT NULL COMMENT 'Relative path from public directory',
-  `file_size` INT UNSIGNED NOT NULL COMMENT 'File size in bytes',
+  `file_size` BIGINT UNSIGNED NOT NULL COMMENT 'File size in bytes',
   `mime_type` VARCHAR(100) NOT NULL COMMENT 'MIME type (image/png, image/jpeg, etc.)',
   `file_type` ENUM('logo', 'product_image', 'customer_photo', 'certification_card', 'document', 'other') DEFAULT 'other',
-  `uploaded_by` INT UNSIGNED COMMENT 'User who uploaded the file',
+  `uploaded_by` BIGINT UNSIGNED COMMENT 'User who uploaded the file',
   `uploaded_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `is_public` BOOLEAN DEFAULT TRUE COMMENT 'Whether file is publicly accessible',
   INDEX `idx_file_type` (`file_type`),
@@ -81,3 +85,5 @@ VALUES
 -- 2. Set proper permissions: chmod 755 public/uploads/
 -- 3. Upload company logo via Settings → General
 -- 4. Logo will appear on invoices, receipts, emails, and website header
+
+SET FOREIGN_KEY_CHECKS=1;

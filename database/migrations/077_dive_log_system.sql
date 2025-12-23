@@ -1,3 +1,24 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `marine_species`;
+DROP TABLE IF EXISTS `dive_statistics`;
+DROP TABLE IF EXISTS `dive_log_media`;
+DROP TABLE IF EXISTS `dive_logs`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `marine_species`;
+DROP TABLE IF EXISTS `dive_statistics`;
+DROP TABLE IF EXISTS `dive_log_media`;
+DROP TABLE IF EXISTS `dive_logs`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `marine_species`;
+DROP TABLE IF EXISTS `dive_statistics`;
+DROP TABLE IF EXISTS `dive_log_media`;
+DROP TABLE IF EXISTS `dive_logs`;
+
 -- ================================================
 -- Nautilus - Digital Dive Log System
 -- Migration: 077_dive_log_system.sql
@@ -6,16 +27,16 @@
 
 -- Dive Logs
 CREATE TABLE IF NOT EXISTS `dive_logs` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Diver Information
-    `customer_id` INT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
     `dive_number` INT NOT NULL COMMENT 'Lifetime dive count for this diver',
 
     -- Dive Details
     `dive_date` DATE NOT NULL,
-    `dive_site_id` INT UNSIGNED NULL,
+    `dive_site_id` BIGINT UNSIGNED NULL,
     `dive_site_name` VARCHAR(255) NULL COMMENT 'If not in database',
     `location` VARCHAR(255) NULL,
     `country` VARCHAR(100) NULL,
@@ -68,12 +89,12 @@ CREATE TABLE IF NOT EXISTS `dive_logs` (
     `additional_equipment` JSON NULL,
 
     -- Buddy Information
-    `buddy_customer_id` INT UNSIGNED NULL,
+    `buddy_customer_id` BIGINT UNSIGNED NULL,
     `buddy_name` VARCHAR(255) NULL COMMENT 'If buddy not in system',
 
     -- Dive Conducted With
-    `trip_id` INT UNSIGNED NULL,
-    `instructor_id` INT UNSIGNED NULL COMMENT 'If training dive',
+    `trip_id` BIGINT UNSIGNED NULL,
+    `instructor_id` BIGINT UNSIGNED NULL COMMENT 'If training dive',
     `dive_operator` VARCHAR(255) NULL,
     `boat_name` VARCHAR(255) NULL,
 
@@ -105,7 +126,7 @@ CREATE TABLE IF NOT EXISTS `dive_logs` (
 
     -- Certification & Skills
     `certification_dive` BOOLEAN DEFAULT FALSE,
-    `course_id` INT UNSIGNED NULL,
+    `course_id` BIGINT UNSIGNED NULL,
     `skills_practiced` JSON NULL,
 
     -- GPS Location
@@ -129,7 +150,7 @@ CREATE TABLE IF NOT EXISTS `dive_logs` (
     -- Timestamps
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `logged_by_user_id` INT UNSIGNED NULL COMMENT 'Who created this log entry',
+    `logged_by_user_id` BIGINT UNSIGNED NULL COMMENT 'Who created this log entry',
 
     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
@@ -151,8 +172,8 @@ CREATE TABLE IF NOT EXISTS `dive_logs` (
 
 -- Dive Log Photos/Videos
 CREATE TABLE IF NOT EXISTS `dive_log_media` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `dive_log_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `dive_log_id` BIGINT UNSIGNED NOT NULL,
 
     `media_type` ENUM('photo', 'video') NOT NULL,
     `file_path` VARCHAR(500) NOT NULL,
@@ -181,8 +202,8 @@ CREATE TABLE IF NOT EXISTS `dive_log_media` (
 
 -- Dive Statistics (aggregated data for quick access)
 CREATE TABLE IF NOT EXISTS `dive_statistics` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Totals
     `total_dives` INT DEFAULT 0,
@@ -221,7 +242,7 @@ CREATE TABLE IF NOT EXISTS `dive_statistics` (
 
 -- Marine Life Species Database
 CREATE TABLE IF NOT EXISTS `marine_species` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     `common_name` VARCHAR(255) NOT NULL,
     `scientific_name` VARCHAR(255) NULL,
@@ -264,3 +285,10 @@ INSERT INTO `marine_species` (`common_name`, `scientific_name`, `category`) VALU
 ('Angelfish', 'Pomacanthidae', 'Fish'),
 ('Lionfish', 'Pterois', 'Fish'),
 ('Nudibranch', 'Nudibranchia', 'Invertebrate');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

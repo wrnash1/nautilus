@@ -4,8 +4,17 @@
 -- ==========================================
 
 -- Course Requirement Types
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `instructor_notifications`;
+DROP TABLE IF EXISTS `course_elearning_modules`;
+DROP TABLE IF EXISTS `elearning_modules`;
+DROP TABLE IF EXISTS `enrollment_requirements`;
+DROP TABLE IF EXISTS `course_requirements`;
+DROP TABLE IF EXISTS `course_requirement_types`;
+
 CREATE TABLE IF NOT EXISTS course_requirement_types (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     code VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
@@ -19,9 +28,9 @@ CREATE TABLE IF NOT EXISTS course_requirement_types (
 
 -- Course Requirements (what each course needs)
 CREATE TABLE IF NOT EXISTS course_requirements (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    course_id INT UNSIGNED NOT NULL,
-    requirement_type_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    course_id BIGINT UNSIGNED NOT NULL,
+    requirement_type_id BIGINT UNSIGNED NOT NULL,
     is_mandatory BOOLEAN DEFAULT TRUE,
     due_before_start_days INT DEFAULT 0 COMMENT 'Days before course start that this must be completed',
     auto_send_reminder BOOLEAN DEFAULT TRUE,
@@ -38,9 +47,9 @@ CREATE TABLE IF NOT EXISTS course_requirements (
 
 -- Student Requirement Status (tracking individual student progress)
 CREATE TABLE IF NOT EXISTS enrollment_requirements (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    enrollment_id INT UNSIGNED NOT NULL,
-    requirement_type_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    enrollment_id BIGINT UNSIGNED NOT NULL,
+    requirement_type_id BIGINT UNSIGNED NOT NULL,
 
     -- Status
     status ENUM('pending', 'in_progress', 'completed', 'waived', 'expired') DEFAULT 'pending',
@@ -48,12 +57,12 @@ CREATE TABLE IF NOT EXISTS enrollment_requirements (
     completed_at TIMESTAMP NULL,
 
     -- Data storage for different requirement types
-    waiver_id INT UNSIGNED NULL COMMENT 'Reference to signed_waivers table',
+    waiver_id BIGINT UNSIGNED NULL COMMENT 'Reference to signed_waivers table',
     elearning_completion_date DATE NULL,
     elearning_certificate_url VARCHAR(500) NULL,
     photo_path VARCHAR(500) NULL,
     document_path VARCHAR(500) NULL,
-    certification_id INT UNSIGNED NULL,
+    certification_id BIGINT UNSIGNED NULL,
     notes TEXT,
 
     -- Reminders
@@ -63,11 +72,11 @@ CREATE TABLE IF NOT EXISTS enrollment_requirements (
     reminder_count INT DEFAULT 0,
 
     -- Verification
-    verified_by INT UNSIGNED NULL COMMENT 'Staff user who verified',
+    verified_by BIGINT UNSIGNED NULL COMMENT 'Staff user who verified',
     verified_at TIMESTAMP NULL,
 
     -- Waiver (if waived)
-    waived_by INT UNSIGNED NULL,
+    waived_by BIGINT UNSIGNED NULL,
     waived_at TIMESTAMP NULL,
     waiver_reason TEXT,
 
@@ -85,7 +94,7 @@ CREATE TABLE IF NOT EXISTS enrollment_requirements (
 
 -- E-Learning Modules
 CREATE TABLE IF NOT EXISTS elearning_modules (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(200) NOT NULL,
     description TEXT,
     module_code VARCHAR(50) NOT NULL UNIQUE,
@@ -100,9 +109,9 @@ CREATE TABLE IF NOT EXISTS elearning_modules (
 
 -- Link courses to required e-learning modules
 CREATE TABLE IF NOT EXISTS course_elearning_modules (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    course_id INT UNSIGNED NOT NULL,
-    elearning_module_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    course_id BIGINT UNSIGNED NOT NULL,
+    elearning_module_id BIGINT UNSIGNED NOT NULL,
     is_required BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
@@ -113,9 +122,9 @@ CREATE TABLE IF NOT EXISTS course_elearning_modules (
 
 -- Instructor Notifications
 CREATE TABLE IF NOT EXISTS instructor_notifications (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    instructor_id INT UNSIGNED NOT NULL,
-    schedule_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    instructor_id BIGINT UNSIGNED NOT NULL,
+    schedule_id BIGINT UNSIGNED NOT NULL,
     notification_type ENUM('assignment', 'enrollment', 'requirement_complete', 'course_start_reminder', 'roster_update') NOT NULL,
     message TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
@@ -158,3 +167,5 @@ ALTER TABLE enrollment_requirements COMMENT = 'Individual student requirement co
 ALTER TABLE elearning_modules COMMENT = 'E-learning modules available';
 ALTER TABLE course_elearning_modules COMMENT = 'E-learning modules required for each course';
 ALTER TABLE instructor_notifications COMMENT = 'Notifications sent to instructors about their courses';
+
+SET FOREIGN_KEY_CHECKS=1;

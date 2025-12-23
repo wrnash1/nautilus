@@ -5,12 +5,21 @@
 -- ================================================
 
 -- Feedback tickets (bugs, feature requests, general feedback)
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `feedback_ticket_notifications`;
+DROP TABLE IF EXISTS `feedback_ticket_categories`;
+DROP TABLE IF EXISTS `feedback_categories`;
+DROP TABLE IF EXISTS `feedback_ticket_votes`;
+DROP TABLE IF EXISTS `feedback_ticket_comments`;
+DROP TABLE IF EXISTS `feedback_tickets`;
+
 CREATE TABLE IF NOT EXISTS `feedback_tickets` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `ticket_number` VARCHAR(50) UNIQUE NOT NULL COMMENT 'e.g., TICKET-2025-001',
 
     -- Submitter Information
-    `submitted_by_user_id` INT UNSIGNED COMMENT 'User who submitted (if logged in)',
+    `submitted_by_user_id` BIGINT UNSIGNED COMMENT 'User who submitted (if logged in)',
     `submitted_by_name` VARCHAR(255) NOT NULL COMMENT 'Name of submitter',
     `submitted_by_email` VARCHAR(255) NOT NULL COMMENT 'Email for follow-up',
     `submitted_by_phone` VARCHAR(50),
@@ -46,11 +55,11 @@ CREATE TABLE IF NOT EXISTS `feedback_tickets` (
 
     -- Status & Assignment
     `status` ENUM('new', 'acknowledged', 'in_progress', 'need_info', 'resolved', 'closed', 'wont_fix', 'duplicate') DEFAULT 'new',
-    `assigned_to` INT UNSIGNED COMMENT 'Developer assigned',
+    `assigned_to` BIGINT UNSIGNED COMMENT 'Developer assigned',
     `assigned_at` TIMESTAMP NULL,
 
     -- Resolution
-    `resolved_by` INT UNSIGNED,
+    `resolved_by` BIGINT UNSIGNED,
     `resolved_at` TIMESTAMP NULL,
     `resolution_notes` TEXT,
     `resolution_version` VARCHAR(50) COMMENT 'Version where fixed',
@@ -62,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `feedback_tickets` (
 
     -- Voting/Priority
     `upvotes` INT DEFAULT 0 COMMENT 'Other users who want this too',
-    `duplicate_of` INT UNSIGNED COMMENT 'If duplicate, link to original',
+    `duplicate_of` BIGINT UNSIGNED COMMENT 'If duplicate, link to original',
 
     -- Internal Notes
     `internal_notes` TEXT COMMENT 'Developer notes (not visible to submitter)',
@@ -89,10 +98,10 @@ CREATE TABLE IF NOT EXISTS `feedback_tickets` (
 
 -- Ticket comments/updates
 CREATE TABLE IF NOT EXISTS `feedback_ticket_comments` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `ticket_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `ticket_id` BIGINT UNSIGNED NOT NULL,
 
-    `comment_by_user_id` INT UNSIGNED,
+    `comment_by_user_id` BIGINT UNSIGNED,
     `comment_by_name` VARCHAR(255) NOT NULL,
     `comment_by_email` VARCHAR(255),
     `is_staff` BOOLEAN DEFAULT FALSE COMMENT 'Is this from developer/staff?',
@@ -121,9 +130,9 @@ CREATE TABLE IF NOT EXISTS `feedback_ticket_comments` (
 
 -- Ticket votes (for feature requests)
 CREATE TABLE IF NOT EXISTS `feedback_ticket_votes` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `ticket_id` INT UNSIGNED NOT NULL,
-    `user_id` INT UNSIGNED,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `ticket_id` BIGINT UNSIGNED NOT NULL,
+    `user_id` BIGINT UNSIGNED,
     `dive_shop_name` VARCHAR(255),
     `voter_email` VARCHAR(255) NOT NULL,
     `vote_type` ENUM('upvote', 'critical', 'nice_to_have') DEFAULT 'upvote',
@@ -140,7 +149,7 @@ CREATE TABLE IF NOT EXISTS `feedback_ticket_votes` (
 
 -- Feedback categories (for organizing)
 CREATE TABLE IF NOT EXISTS `feedback_categories` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `category_name` VARCHAR(100) NOT NULL,
     `category_slug` VARCHAR(100) NOT NULL UNIQUE,
     `description` TEXT,
@@ -157,8 +166,8 @@ CREATE TABLE IF NOT EXISTS `feedback_categories` (
 
 -- Ticket category assignments (many-to-many)
 CREATE TABLE IF NOT EXISTS `feedback_ticket_categories` (
-    `ticket_id` INT UNSIGNED NOT NULL,
-    `category_id` INT UNSIGNED NOT NULL,
+    `ticket_id` BIGINT UNSIGNED NOT NULL,
+    `category_id` BIGINT UNSIGNED NOT NULL,
 
     PRIMARY KEY (`ticket_id`, `category_id`),
     FOREIGN KEY (`ticket_id`) REFERENCES `feedback_tickets`(`id`) ON DELETE CASCADE,
@@ -167,8 +176,8 @@ CREATE TABLE IF NOT EXISTS `feedback_ticket_categories` (
 
 -- Email notifications for ticket updates
 CREATE TABLE IF NOT EXISTS `feedback_ticket_notifications` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `ticket_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `ticket_id` BIGINT UNSIGNED NOT NULL,
     `recipient_email` VARCHAR(255) NOT NULL,
     `notification_type` ENUM('new_ticket', 'status_change', 'new_comment', 'assignment', 'resolution') NOT NULL,
     `sent_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -198,3 +207,4 @@ INSERT INTO `feedback_categories` (`category_name`, `category_slug`, `descriptio
 ('Installation', 'installation', 'Setup, configuration, deployment', 'bi-gear', '#7f8c8d', 13),
 ('Documentation', 'documentation', 'Guides, help text, tutorials', 'bi-file-text', '#95a5a6', 14),
 ('Integration', 'integration', 'API, third-party services, imports/exports', 'bi-plug', '#2c3e50', 15);
+SET FOREIGN_KEY_CHECKS=1;

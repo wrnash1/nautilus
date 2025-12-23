@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS layaway_history (
 
     -- Audit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
 
     FOREIGN KEY (layaway_id) REFERENCES layaway(id) ON DELETE CASCADE,
     FOREIGN KEY (payment_id) REFERENCES layaway_payments(id) ON DELETE SET NULL,
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS layaway_reminders (
 
     -- Audit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
 
     FOREIGN KEY (layaway_id) REFERENCES layaway(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id),
@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS layaway_settings (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by INT UNSIGNED,
+    updated_by BIGINT UNSIGNED,
 
     FOREIGN KEY (updated_by) REFERENCES users(id)
 );

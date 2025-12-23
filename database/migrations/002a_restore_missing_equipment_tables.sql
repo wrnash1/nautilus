@@ -5,9 +5,15 @@
 -- but the original creation files are missing.
 -- ============================================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `equipment_rentals`;
+DROP TABLE IF EXISTS `equipment`;
+DROP TABLE IF EXISTS `suppliers`;
+
 -- Restore `equipment` table
 CREATE TABLE IF NOT EXISTS `equipment` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(255) NOT NULL,
     `serial_number` VARCHAR(100) NULL,
     `description` TEXT NULL,
@@ -18,9 +24,9 @@ CREATE TABLE IF NOT EXISTS `equipment` (
 
 -- Restore `equipment_rentals` table
 CREATE TABLE IF NOT EXISTS `equipment_rentals` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_id` INT UNSIGNED NOT NULL,
-    `equipment_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `equipment_id` BIGINT UNSIGNED NOT NULL,
     `rental_date` DATE NOT NULL,
     `return_due_date` DATE NOT NULL,
     `return_date` DATE NULL,
@@ -41,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `equipment_rentals` (
 
 -- Restore `suppliers` table
 CREATE TABLE IF NOT EXISTS `suppliers` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(255) NOT NULL,
     `contact_name` VARCHAR(255) NULL,
     `email` VARCHAR(255) NULL,

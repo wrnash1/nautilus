@@ -3,9 +3,16 @@
 -- Description: Digital waiver system for rentals, repairs, and air fills
 -- ==========================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `waiver_templates`;
+DROP TABLE IF EXISTS `signed_waivers`;
+DROP TABLE IF EXISTS `waiver_requirements`;
+DROP TABLE IF EXISTS `waiver_email_queue`;
+
 -- Waiver Templates
 CREATE TABLE IF NOT EXISTS waiver_templates (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     type ENUM('rental', 'repair', 'air_fill', 'general', 'training', 'trip') NOT NULL,
     title VARCHAR(200) NOT NULL,
@@ -20,20 +27,20 @@ CREATE TABLE IF NOT EXISTS waiver_templates (
     effective_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     INDEX idx_type (type),
     INDEX idx_active (is_active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Signed Waivers
 CREATE TABLE IF NOT EXISTS signed_waivers (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    waiver_template_id INT UNSIGNED NOT NULL,
-    customer_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    waiver_template_id BIGINT UNSIGNED NOT NULL,
+    customer_id BIGINT UNSIGNED NOT NULL,
 
     -- Reference Information
     reference_type ENUM('rental', 'repair', 'air_fill', 'course', 'trip', 'general') NOT NULL,
-    reference_id INT NULL COMMENT 'ID of rental, work order, air fill, etc.',
+    reference_id BIGINT UNSIGNED NULL COMMENT 'ID of rental, work order, air fill, etc.',
 
     -- Signature Information
     signature_data TEXT NOT NULL COMMENT 'Base64 encoded signature image',
@@ -72,7 +79,7 @@ CREATE TABLE IF NOT EXISTS signed_waivers (
     status ENUM('pending', 'signed', 'expired', 'voided') DEFAULT 'signed',
     valid_until DATE NULL,
     voided_at TIMESTAMP NULL,
-    voided_by INT UNSIGNED NULL,
+    voided_by BIGINT UNSIGNED NULL,
     void_reason TEXT,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -89,8 +96,8 @@ CREATE TABLE IF NOT EXISTS signed_waivers (
 
 -- Waiver Requirements (auto-send rules)
 CREATE TABLE IF NOT EXISTS waiver_requirements (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    waiver_template_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    waiver_template_id BIGINT UNSIGNED NOT NULL,
     service_type ENUM('rental', 'repair', 'air_fill', 'course', 'trip') NOT NULL,
     auto_send BOOLEAN DEFAULT TRUE,
     send_method ENUM('email', 'sms', 'both') DEFAULT 'email',
@@ -107,11 +114,11 @@ CREATE TABLE IF NOT EXISTS waiver_requirements (
 
 -- Waiver Email Queue
 CREATE TABLE IF NOT EXISTS waiver_email_queue (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    customer_id INT UNSIGNED NOT NULL,
-    waiver_template_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    customer_id BIGINT UNSIGNED NOT NULL,
+    waiver_template_id BIGINT UNSIGNED NOT NULL,
     reference_type ENUM('rental', 'repair', 'air_fill', 'course', 'trip') NOT NULL,
-    reference_id INT UNSIGNED,
+    reference_id BIGINT UNSIGNED,
 
     email_to VARCHAR(100) NOT NULL,
     subject VARCHAR(200) NOT NULL,
@@ -281,3 +288,5 @@ ALTER TABLE waiver_templates COMMENT = 'Waiver document templates for different 
 ALTER TABLE signed_waivers COMMENT = 'Digital signatures and completed waivers';
 ALTER TABLE waiver_requirements COMMENT = 'Auto-send rules for different service types';
 ALTER TABLE waiver_email_queue COMMENT = 'Queue for sending waiver signature requests';
+
+SET FOREIGN_KEY_CHECKS=1;

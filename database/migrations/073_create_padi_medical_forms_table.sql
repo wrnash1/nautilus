@@ -1,3 +1,15 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `padi_medical_forms`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `padi_medical_forms`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `padi_medical_forms`;
+
 -- ================================================
 -- Nautilus - PADI Medical Forms Table (Controller Compatible)
 -- Migration: 073_create_padi_medical_forms_table.sql
@@ -6,8 +18,8 @@
 
 -- PADI Medical Forms (matching controller expectations)
 CREATE TABLE IF NOT EXISTS `padi_medical_forms` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- All 34 PADI Medical Questions (YES/NO)
     `q1_asthma` ENUM('yes', 'no') DEFAULT 'no',
@@ -56,7 +68,7 @@ CREATE TABLE IF NOT EXISTS `padi_medical_forms` (
     `participant_signature_date` TIMESTAMP NULL,
 
     -- Submission Info
-    `submitted_by_user_id` INT UNSIGNED NULL,
+    `submitted_by_user_id` BIGINT UNSIGNED NULL,
     `submitted_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     -- Validity
@@ -79,3 +91,10 @@ CREATE TABLE IF NOT EXISTS `padi_medical_forms` (
     INDEX `idx_clearance` (`requires_physician_clearance`, `physician_clearance_obtained`),
     INDEX `idx_submitted` (`submitted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

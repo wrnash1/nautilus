@@ -1,3 +1,27 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `translatable_content`;
+DROP TABLE IF EXISTS `customer_language_preferences`;
+DROP TABLE IF EXISTS `user_language_preferences`;
+DROP TABLE IF EXISTS `translations`;
+DROP TABLE IF EXISTS `languages`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `translatable_content`;
+DROP TABLE IF EXISTS `customer_language_preferences`;
+DROP TABLE IF EXISTS `user_language_preferences`;
+DROP TABLE IF EXISTS `translations`;
+DROP TABLE IF EXISTS `languages`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `translatable_content`;
+DROP TABLE IF EXISTS `customer_language_preferences`;
+DROP TABLE IF EXISTS `user_language_preferences`;
+DROP TABLE IF EXISTS `translations`;
+DROP TABLE IF EXISTS `languages`;
+
 -- ================================================
 -- Nautilus - Multi-Language Support System
 -- Migration: 079_multi_language_support.sql
@@ -6,7 +30,7 @@
 
 -- Supported Languages
 CREATE TABLE IF NOT EXISTS `languages` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     `language_code` VARCHAR(10) NOT NULL COMMENT 'ISO 639-1 code (e.g., en, es, fr)',
     `language_name` VARCHAR(100) NOT NULL COMMENT 'English name',
@@ -57,7 +81,7 @@ INSERT INTO `languages` (`language_code`, `language_name`, `native_name`, `local
 
 -- Translation Strings
 CREATE TABLE IF NOT EXISTS `translations` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     -- Translation Key
     `translation_key` VARCHAR(255) NOT NULL COMMENT 'Unique key (e.g., menu.dashboard, button.save)',
@@ -94,9 +118,9 @@ CREATE TABLE IF NOT EXISTS `translations` (
 
 -- User Language Preferences
 CREATE TABLE IF NOT EXISTS `user_language_preferences` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-    `user_id` INT UNSIGNED NOT NULL,
+    `user_id` BIGINT UNSIGNED NOT NULL,
     `language_code` VARCHAR(10) NOT NULL,
 
     -- Regional Preferences
@@ -123,9 +147,9 @@ CREATE TABLE IF NOT EXISTS `user_language_preferences` (
 
 -- Customer Language Preferences
 CREATE TABLE IF NOT EXISTS `customer_language_preferences` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-    `customer_id` INT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
     `language_code` VARCHAR(10) NOT NULL,
 
     -- Communication Preferences
@@ -153,11 +177,11 @@ CREATE TABLE IF NOT EXISTS `customer_language_preferences` (
 
 -- Translatable Content (for dynamic content like courses, products)
 CREATE TABLE IF NOT EXISTS `translatable_content` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     -- Source Content
     `entity_type` VARCHAR(100) NOT NULL COMMENT 'product, course, trip, etc.',
-    `entity_id` INT UNSIGNED NOT NULL,
+    `entity_id` BIGINT UNSIGNED NOT NULL,
     `field_name` VARCHAR(100) NOT NULL COMMENT 'name, description, etc.',
 
     -- Translation
@@ -209,3 +233,10 @@ INSERT INTO `translations` (`translation_key`, `language_code`, `translated_text
 ('button.edit', 'es', 'Editar', 'UI', 'common'),
 ('button.add', 'es', 'Agregar', 'UI', 'common'),
 ('button.search', 'es', 'Buscar', 'UI', 'common');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

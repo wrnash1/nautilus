@@ -32,7 +32,7 @@ CREATE TABLE `role_permissions` (
 -- Ensure users table exists with proper foreign keys
 CREATE TABLE IF NOT EXISTS `users` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` INT UNSIGNED NOT NULL,
+  `tenant_id` BIGINT UNSIGNED NOT NULL,
   `role_id` INT UNSIGNED NOT NULL,
   `email` VARCHAR(255) NOT NULL UNIQUE,
   `password_hash` VARCHAR(255) NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Ensure password_resets table exists
 CREATE TABLE IF NOT EXISTS `password_resets` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
   `token` VARCHAR(255) NOT NULL UNIQUE,
   `expires_at` TIMESTAMP NOT NULL,
   `used_at` TIMESTAMP NULL,
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `password_resets` (
 -- Ensure sessions table exists
 CREATE TABLE IF NOT EXISTS `sessions` (
   `id` VARCHAR(255) PRIMARY KEY,
-  `user_id` INT UNSIGNED,
+  `user_id` BIGINT UNSIGNED,
   `ip_address` VARCHAR(45),
   `user_agent` TEXT,
   `payload` TEXT NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 -- Ensure audit_logs table exists
 CREATE TABLE IF NOT EXISTS `audit_logs` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT UNSIGNED,
+  `user_id` BIGINT UNSIGNED,
   `action` VARCHAR(100) NOT NULL,
   `module` VARCHAR(50) NOT NULL,
   `entity_type` VARCHAR(50),

@@ -86,7 +86,7 @@ SET @preparedStatement = (SELECT IF(
   (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
     WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
   "SELECT 1",
-  "ALTER TABLE customer_tags ADD COLUMN created_by INT UNSIGNED"
+  "ALTER TABLE customer_tags ADD COLUMN created_by BIGINT UNSIGNED"
 ));
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
@@ -132,7 +132,7 @@ SET @preparedStatement = (SELECT IF(
   (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
     WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
   "SELECT 1",
-  "ALTER TABLE customer_tag_assignments ADD COLUMN assigned_by INT UNSIGNED"
+  "ALTER TABLE customer_tag_assignments ADD COLUMN assigned_by BIGINT UNSIGNED"
 ));
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
@@ -150,16 +150,23 @@ EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
 
 -- Customer relationships (linking customers together)
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS customer_reminders;
+DROP TABLE IF EXISTS customer_group_memberships;
+DROP TABLE IF EXISTS customer_groups;
+DROP TABLE IF EXISTS customer_relationships;
+
 CREATE TABLE IF NOT EXISTS customer_relationships (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id_1 INT UNSIGNED NOT NULL COMMENT 'Primary customer',
-    customer_id_2 INT UNSIGNED NOT NULL COMMENT 'Related customer',
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id_1 BIGINT UNSIGNED NOT NULL COMMENT 'Primary customer',
+    customer_id_2 BIGINT UNSIGNED NOT NULL COMMENT 'Related customer',
     relationship_type ENUM('family', 'business_partner', 'friend', 'spouse', 'parent', 'child', 'sibling', 'employee', 'employer', 'other') NOT NULL,
     relationship_label VARCHAR(100) COMMENT 'Custom relationship label',
     is_bidirectional BOOLEAN DEFAULT TRUE COMMENT 'If true, relationship applies both ways',
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (customer_id_1) REFERENCES customers(id) ON DELETE CASCADE,
@@ -174,7 +181,7 @@ CREATE TABLE IF NOT EXISTS customer_relationships (
 
 -- Customer groups (for bulk operations, mailing lists, etc.)
 CREATE TABLE IF NOT EXISTS customer_groups (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
@@ -182,7 +189,7 @@ CREATE TABLE IF NOT EXISTS customer_groups (
     rules TEXT COMMENT 'JSON rules for dynamic groups',
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
@@ -193,11 +200,11 @@ CREATE TABLE IF NOT EXISTS customer_groups (
 
 -- Customer group memberships
 CREATE TABLE IF NOT EXISTS customer_group_memberships (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
-    group_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
+    group_id BIGINT UNSIGNED NOT NULL,
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    added_by INT UNSIGNED,
+    added_by BIGINT UNSIGNED,
     notes VARCHAR(255),
 
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
@@ -215,8 +222,8 @@ ADD COLUMN IF NOT EXISTS subject VARCHAR(255) AFTER note_type,
 ADD COLUMN IF NOT EXISTS note_text TEXT AFTER subject,
 ADD COLUMN IF NOT EXISTS is_important BOOLEAN DEFAULT FALSE AFTER note_text,
 ADD COLUMN IF NOT EXISTS is_visible_to_customer BOOLEAN DEFAULT FALSE COMMENT 'Show in customer portal' AFTER is_important,
-ADD COLUMN IF NOT EXISTS created_by INT UNSIGNED AFTER created_at,
-ADD COLUMN IF NOT EXISTS updated_by INT UNSIGNED AFTER updated_at;
+ADD COLUMN IF NOT EXISTS created_by BIGINT UNSIGNED AFTER created_at,
+ADD COLUMN IF NOT EXISTS updated_by BIGINT UNSIGNED AFTER updated_at;
 
 -- Rename content to note_text if it exists (migration 002 calls it 'content')
 -- This can't be done with ALTER IF NOT EXISTS, so skip for safety
@@ -227,21 +234,21 @@ ALTER TABLE customer_notes ADD INDEX IF NOT EXISTS idx_important (is_important);
 
 -- Customer reminders/follow-ups
 CREATE TABLE IF NOT EXISTS customer_reminders (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
     reminder_type ENUM('follow_up', 'appointment', 'payment', 'renewal', 'birthday', 'anniversary', 'other') NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     reminder_date DATE NOT NULL,
     reminder_time TIME,
-    assigned_to INT UNSIGNED COMMENT 'Staff member responsible',
+    assigned_to BIGINT UNSIGNED COMMENT 'Staff member responsible',
     priority ENUM('low', 'normal', 'high', 'urgent') DEFAULT 'normal',
     status ENUM('pending', 'completed', 'cancelled', 'snoozed') DEFAULT 'pending',
     completed_at TIMESTAMP NULL,
-    completed_by INT UNSIGNED,
+    completed_by BIGINT UNSIGNED,
     snoozed_until TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED NOT NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
 
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
     FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL,
@@ -284,3 +291,4 @@ ALTER TABLE customer_groups COMMENT = 'Customer groups for segmentation and bulk
 ALTER TABLE customer_group_memberships COMMENT = 'Membership of customers in groups';
 ALTER TABLE customer_notes COMMENT = 'Detailed notes about customers with categories';
 ALTER TABLE customer_reminders COMMENT = 'Follow-up reminders and tasks for customers';
+SET FOREIGN_KEY_CHECKS=1;

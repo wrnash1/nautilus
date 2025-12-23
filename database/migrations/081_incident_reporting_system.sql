@@ -1,3 +1,27 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `incident_statistics`;
+DROP TABLE IF EXISTS `incident_follow_ups`;
+DROP TABLE IF EXISTS `incident_media`;
+DROP TABLE IF EXISTS `incident_witnesses`;
+DROP TABLE IF EXISTS `incident_reports`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `incident_statistics`;
+DROP TABLE IF EXISTS `incident_follow_ups`;
+DROP TABLE IF EXISTS `incident_media`;
+DROP TABLE IF EXISTS `incident_witnesses`;
+DROP TABLE IF EXISTS `incident_reports`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `incident_statistics`;
+DROP TABLE IF EXISTS `incident_follow_ups`;
+DROP TABLE IF EXISTS `incident_media`;
+DROP TABLE IF EXISTS `incident_witnesses`;
+DROP TABLE IF EXISTS `incident_reports`;
+
 -- ================================================
 -- Nautilus - Incident Reporting System
 -- Migration: 081_incident_reporting_system.sql
@@ -6,8 +30,8 @@
 
 -- Incident Reports
 CREATE TABLE IF NOT EXISTS `incident_reports` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Incident Identification
     `incident_number` VARCHAR(50) NOT NULL COMMENT 'Auto-generated unique ID',
@@ -24,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `incident_reports` (
 
     -- Location
     `location_description` TEXT NOT NULL,
-    `dive_site_id` INT UNSIGNED NULL,
+    `dive_site_id` BIGINT UNSIGNED NULL,
     `country` VARCHAR(100) NULL,
     `gps_latitude` DECIMAL(10, 8) NULL,
     `gps_longitude` DECIMAL(11, 8) NULL,
@@ -38,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `incident_reports` (
     `weather_conditions` TEXT NULL,
 
     -- Diver Information
-    `diver_customer_id` INT UNSIGNED NULL,
+    `diver_customer_id` BIGINT UNSIGNED NULL,
     `diver_name` VARCHAR(255) NOT NULL,
     `diver_age` INT NULL,
     `diver_gender` ENUM('male', 'female', 'other', 'prefer_not_to_say') NULL,
@@ -114,8 +138,8 @@ CREATE TABLE IF NOT EXISTS `incident_reports` (
     `witness_count` INT NULL,
 
     -- Dive Operator/Instructor
-    `trip_id` INT UNSIGNED NULL,
-    `instructor_id` INT UNSIGNED NULL,
+    `trip_id` BIGINT UNSIGNED NULL,
+    `instructor_id` BIGINT UNSIGNED NULL,
     `dive_operator_name` VARCHAR(255) NULL,
     `operator_padi_number` VARCHAR(100) NULL,
     `dive_boat_name` VARCHAR(255) NULL,
@@ -136,14 +160,14 @@ CREATE TABLE IF NOT EXISTS `incident_reports` (
     `investigation_completed` BOOLEAN DEFAULT FALSE,
     `investigation_notes` TEXT NULL,
     `corrective_actions_taken` TEXT NULL,
-    `reviewed_by_user_id` INT UNSIGNED NULL,
+    `reviewed_by_user_id` BIGINT UNSIGNED NULL,
     `reviewed_at` TIMESTAMP NULL,
 
     -- Status
     `status` ENUM('draft', 'submitted', 'under_review', 'completed', 'archived') DEFAULT 'draft',
 
     -- Reporter
-    `reported_by_user_id` INT UNSIGNED NULL,
+    `reported_by_user_id` BIGINT UNSIGNED NULL,
     `reporter_name` VARCHAR(255) NULL,
     `reporter_email` VARCHAR(255) NULL,
     `reporter_phone` VARCHAR(50) NULL,
@@ -174,13 +198,13 @@ CREATE TABLE IF NOT EXISTS `incident_reports` (
 
 -- Incident Witnesses
 CREATE TABLE IF NOT EXISTS `incident_witnesses` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `incident_report_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `incident_report_id` BIGINT UNSIGNED NOT NULL,
 
     -- Witness Information
     `witness_type` ENUM('buddy', 'instructor', 'divemaster', 'boat_crew', 'bystander', 'other') NOT NULL,
-    `customer_id` INT UNSIGNED NULL,
-    `user_id` INT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
+    `user_id` BIGINT UNSIGNED NULL,
     `witness_name` VARCHAR(255) NOT NULL,
     `witness_email` VARCHAR(255) NULL,
     `witness_phone` VARCHAR(50) NULL,
@@ -204,8 +228,8 @@ CREATE TABLE IF NOT EXISTS `incident_witnesses` (
 
 -- Incident Photos/Evidence
 CREATE TABLE IF NOT EXISTS `incident_media` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `incident_report_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `incident_report_id` BIGINT UNSIGNED NOT NULL,
 
     -- Media Details
     `media_type` ENUM('photo', 'video', 'document', 'computer_data', 'audio', 'other') NOT NULL,
@@ -237,15 +261,15 @@ CREATE TABLE IF NOT EXISTS `incident_media` (
 
 -- Incident Follow-up Actions
 CREATE TABLE IF NOT EXISTS `incident_follow_ups` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `incident_report_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `incident_report_id` BIGINT UNSIGNED NOT NULL,
 
     -- Action Details
     `action_type` ENUM('medical_checkup', 'equipment_inspection', 'policy_review', 'training', 'investigation', 'legal', 'other') NOT NULL,
     `action_description` TEXT NOT NULL,
 
     -- Assignment
-    `assigned_to_user_id` INT UNSIGNED NULL,
+    `assigned_to_user_id` BIGINT UNSIGNED NULL,
     `due_date` DATE NULL,
 
     -- Status
@@ -257,7 +281,7 @@ CREATE TABLE IF NOT EXISTS `incident_follow_ups` (
     `priority` ENUM('low', 'medium', 'high', 'urgent') DEFAULT 'medium',
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `created_by_user_id` INT UNSIGNED NULL,
+    `created_by_user_id` BIGINT UNSIGNED NULL,
 
     FOREIGN KEY (`incident_report_id`) REFERENCES `incident_reports`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`assigned_to_user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
@@ -269,8 +293,8 @@ CREATE TABLE IF NOT EXISTS `incident_follow_ups` (
 
 -- Incident Statistics (for safety dashboard)
 CREATE TABLE IF NOT EXISTS `incident_statistics` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Time Period
     `year` INT NOT NULL,
@@ -309,3 +333,10 @@ CREATE TABLE IF NOT EXISTS `incident_statistics` (
     INDEX `idx_year` (`year`),
     INDEX `idx_year_month` (`year`, `month`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

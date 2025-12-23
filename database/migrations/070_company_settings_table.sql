@@ -1,9 +1,21 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `company_settings`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `company_settings`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `company_settings`;
+
 -- Company Settings Table
 -- Stores business information for each tenant
 
 CREATE TABLE IF NOT EXISTS company_settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED NOT NULL,
 
     -- Company Information
     company_name VARCHAR(255),
@@ -42,3 +54,10 @@ CREATE TABLE IF NOT EXISTS company_settings (
 
 -- Create index for faster lookups
 CREATE INDEX idx_company_tenant ON company_settings(tenant_id);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

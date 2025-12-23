@@ -1,3 +1,21 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `waiver_reminders`;
+DROP TABLE IF EXISTS `waiver_templates`;
+DROP TABLE IF EXISTS `customer_waivers`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `waiver_reminders`;
+DROP TABLE IF EXISTS `waiver_templates`;
+DROP TABLE IF EXISTS `customer_waivers`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `waiver_reminders`;
+DROP TABLE IF EXISTS `waiver_templates`;
+DROP TABLE IF EXISTS `customer_waivers`;
+
 -- ================================================
 -- Nautilus V6 - PADI Compliance: Enhanced Waivers
 -- Migration: 052_padi_compliance_waivers_enhanced.sql
@@ -6,8 +24,8 @@
 
 -- Enhanced customer waivers (multiple PADI waiver types)
 CREATE TABLE IF NOT EXISTS `customer_waivers` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
     `waiver_type` ENUM(
         'general_training',      -- 10072 Release of Liability - General Training
         'nitrox',                -- 10078 Enriched Air (Nitrox) Training Release
@@ -24,12 +42,12 @@ CREATE TABLE IF NOT EXISTS `customer_waivers` (
     ) NOT NULL,
 
     -- Associated Activities
-    `course_id` INT UNSIGNED COMMENT 'If course-specific',
-    `trip_id` INT UNSIGNED COMMENT 'If trip-specific',
-    `rental_id` INT UNSIGNED COMMENT 'If equipment rental',
+    `course_id` BIGINT UNSIGNED COMMENT 'If course-specific',
+    `trip_id` BIGINT UNSIGNED COMMENT 'If trip-specific',
+    `rental_id` BIGINT UNSIGNED COMMENT 'If equipment rental',
 
     -- Waiver Content
-    `waiver_template_id` INT UNSIGNED COMMENT 'Template used',
+    `waiver_template_id` BIGINT UNSIGNED COMMENT 'Template used',
     `waiver_text` LONGTEXT COMMENT 'Full waiver text at time of signing',
     `acknowledgments` JSON COMMENT 'List of acknowledgments checked',
 
@@ -69,7 +87,7 @@ CREATE TABLE IF NOT EXISTS `customer_waivers` (
     `pdf_generated_at` TIMESTAMP NULL,
 
     -- Compliance
-    `reviewed_by` INT UNSIGNED COMMENT 'Staff who reviewed',
+    `reviewed_by` BIGINT UNSIGNED COMMENT 'Staff who reviewed',
     `reviewed_at` TIMESTAMP NULL,
     `review_notes` TEXT,
 
@@ -94,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `customer_waivers` (
 -- Cannot have two different schemas for same table. Use migration 024's schema.
 --
 -- CREATE TABLE IF NOT EXISTS `waiver_templates` (
---     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+--     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 --     `waiver_type` VARCHAR(100) NOT NULL,
 --     `template_name` VARCHAR(255) NOT NULL,
 --     `padi_form_number` VARCHAR(50) COMMENT 'e.g., 10072, 10079',
@@ -109,7 +127,7 @@ CREATE TABLE IF NOT EXISTS `customer_waivers` (
 --     `is_active` BOOLEAN DEFAULT TRUE,
 --     `effective_date` DATE,
 --     `pdf_template_path` VARCHAR(255) COMMENT 'Blank PDF template',
---     `created_by` INT UNSIGNED,
+--     `created_by` BIGINT UNSIGNED,
 --     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 --     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 --     FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
@@ -168,9 +186,9 @@ CREATE TABLE IF NOT EXISTS `customer_waivers` (
 
 -- Waiver reminders (for expiring waivers)
 CREATE TABLE IF NOT EXISTS `waiver_reminders` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_waiver_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `customer_waiver_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
     `reminder_type` ENUM('expiring_soon', 'expired', 'renewal_needed') NOT NULL,
     `reminder_sent_at` TIMESTAMP NULL,
     `reminder_method` VARCHAR(50) COMMENT 'email, sms, in_person',
@@ -185,3 +203,10 @@ CREATE TABLE IF NOT EXISTS `waiver_reminders` (
     INDEX `idx_customer` (`customer_id`),
     INDEX `idx_sent` (`reminder_sent_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

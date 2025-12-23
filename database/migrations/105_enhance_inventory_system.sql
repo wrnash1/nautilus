@@ -1,3 +1,27 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `shipping_carriers`;
+DROP TABLE IF EXISTS `product_locations`;
+DROP TABLE IF EXISTS `ai_scan_log`;
+DROP TABLE IF EXISTS `inventory_count_items`;
+DROP TABLE IF EXISTS `inventory_counts`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `shipping_carriers`;
+DROP TABLE IF EXISTS `product_locations`;
+DROP TABLE IF EXISTS `ai_scan_log`;
+DROP TABLE IF EXISTS `inventory_count_items`;
+DROP TABLE IF EXISTS `inventory_counts`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `shipping_carriers`;
+DROP TABLE IF EXISTS `product_locations`;
+DROP TABLE IF EXISTS `ai_scan_log`;
+DROP TABLE IF EXISTS `inventory_count_items`;
+DROP TABLE IF EXISTS `inventory_counts`;
+
 -- Migration 105: Enhanced Inventory System with Shipping, AI, and Multi-Image Support
 -- Adds comprehensive e-commerce shipping fields, AI enrichment tracking, inventory counting
 
@@ -111,22 +135,22 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
     WHERE table_schema = DATABASE() AND table_name = 'products' AND column_name = 'ai_suggested_category');
 SET @sql = IF(@col_exists = 0, 
-    'ALTER TABLE products ADD COLUMN ai_suggested_category INT UNSIGNED AFTER ai_confidence_score', 
+    'ALTER TABLE products ADD COLUMN ai_suggested_category BIGINT UNSIGNED AFTER ai_confidence_score', 
     'SELECT "Column ai_suggested_category already exists"');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Create inventory count/audit tables
 CREATE TABLE IF NOT EXISTS `inventory_counts` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` INT UNSIGNED DEFAULT 1,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` BIGINT UNSIGNED DEFAULT 1,
   `count_number` VARCHAR(50) NOT NULL UNIQUE,
   `count_type` ENUM('full', 'partial', 'cycle') DEFAULT 'partial',
   `location` VARCHAR(100),
   `status` ENUM('planned', 'in_progress', 'completed', 'cancelled') DEFAULT 'planned',
   `started_at` TIMESTAMP NULL,
   `completed_at` TIMESTAMP NULL,
-  `started_by` INT UNSIGNED,
-  `completed_by` INT UNSIGNED,
+  `started_by` BIGINT UNSIGNED,
+  `completed_by` BIGINT UNSIGNED,
   `notes` TEXT,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -139,15 +163,15 @@ CREATE TABLE IF NOT EXISTS `inventory_counts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `inventory_count_items` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `count_id` INT UNSIGNED NOT NULL,
-  `product_id` INT UNSIGNED NOT NULL,
-  `variant_id` INT UNSIGNED,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `count_id` BIGINT UNSIGNED NOT NULL,
+  `product_id` BIGINT UNSIGNED NOT NULL,
+  `variant_id` BIGINT UNSIGNED,
   `expected_quantity` INT DEFAULT 0,
   `counted_quantity` INT,
   `difference` INT,
   `notes` TEXT,
-  `counted_by` INT UNSIGNED,
+  `counted_by` BIGINT UNSIGNED,
   `counted_at` TIMESTAMP NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`count_id`) REFERENCES `inventory_counts`(`id`) ON DELETE CASCADE,
@@ -163,13 +187,13 @@ CREATE TABLE IF NOT EXISTS `ai_scan_log` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `scan_type` ENUM('barcode', 'image', 'product_photo', 'document') NOT NULL,
   `scan_data` TEXT NOT NULL,
-  `product_id` INT UNSIGNED,
+  `product_id` BIGINT UNSIGNED,
   `recognized_text` TEXT,
   `confidence_score` DECIMAL(3,2),
   `ai_model_used` VARCHAR(100),
   `processing_time_ms` INT,
   `result_data` JSON,
-  `user_id` INT UNSIGNED,
+  `user_id` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
@@ -180,9 +204,9 @@ CREATE TABLE IF NOT EXISTS `ai_scan_log` (
 
 -- Create product location tracking for multi-location inventory
 CREATE TABLE IF NOT EXISTS `product_locations` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `product_id` INT UNSIGNED NOT NULL,
-  `variant_id` INT UNSIGNED,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `product_id` BIGINT UNSIGNED NOT NULL,
+  `variant_id` BIGINT UNSIGNED,
   `location_name` VARCHAR(100) NOT NULL,
   `location_type` ENUM('warehouse', 'retail_floor', 'storage', 'backroom', 'other') DEFAULT 'retail_floor',
   `aisle` VARCHAR(20),
@@ -202,8 +226,8 @@ CREATE TABLE IF NOT EXISTS `product_locations` (
 
 -- Add shipping carrier integration settings
 CREATE TABLE IF NOT EXISTS `shipping_carriers` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` INT UNSIGNED DEFAULT 1,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` BIGINT UNSIGNED DEFAULT 1,
   `carrier_name` VARCHAR(50) NOT NULL,
   `carrier_code` VARCHAR(20) NOT NULL,
   `api_enabled` BOOLEAN DEFAULT FALSE,
@@ -234,3 +258,10 @@ INSERT IGNORE INTO shipping_carriers (carrier_name, carrier_code, is_active, tes
 ('UPS', 'ups', TRUE, TRUE),
 ('FedEx', 'fedex', TRUE, TRUE),
 ('DHL', 'dhl', FALSE, TRUE);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

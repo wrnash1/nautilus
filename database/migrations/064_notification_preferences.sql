@@ -1,3 +1,27 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `push_notification_devices`;
+DROP TABLE IF EXISTS `notification_queue`;
+DROP TABLE IF EXISTS `notification_history`;
+DROP TABLE IF EXISTS `notification_preferences`;
+DROP TABLE IF EXISTS `notification_types`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `push_notification_devices`;
+DROP TABLE IF EXISTS `notification_queue`;
+DROP TABLE IF EXISTS `notification_history`;
+DROP TABLE IF EXISTS `notification_preferences`;
+DROP TABLE IF EXISTS `notification_types`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `push_notification_devices`;
+DROP TABLE IF EXISTS `notification_queue`;
+DROP TABLE IF EXISTS `notification_history`;
+DROP TABLE IF EXISTS `notification_preferences`;
+DROP TABLE IF EXISTS `notification_types`;
+
 -- Notification Preferences System
 -- User notification settings and delivery channel preferences
 
@@ -24,8 +48,8 @@ CREATE TABLE IF NOT EXISTS notification_types (
 -- User Notification Preferences
 CREATE TABLE IF NOT EXISTS notification_preferences (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    user_id INT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED NOT NULL,
     notification_type_id INT NOT NULL,
     email_enabled BOOLEAN DEFAULT TRUE,
     sms_enabled BOOLEAN DEFAULT FALSE,
@@ -46,8 +70,8 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
 -- Notification History (tracking sent notifications)
 CREATE TABLE IF NOT EXISTS notification_history (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    user_id INT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED NOT NULL,
     notification_type_id INT NOT NULL,
     channel ENUM('email', 'sms', 'in_app', 'push') NOT NULL,
     recipient VARCHAR(255) COMMENT 'Email address, phone number, or device token',
@@ -75,8 +99,8 @@ CREATE TABLE IF NOT EXISTS notification_history (
 -- Notification Queue (for batch/scheduled notifications)
 CREATE TABLE IF NOT EXISTS notification_queue (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    user_id INT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED NOT NULL,
     notification_type VARCHAR(100) NOT NULL,
     channel ENUM('email', 'sms', 'in_app', 'push') NOT NULL,
     recipient VARCHAR(255) NOT NULL,
@@ -104,8 +128,8 @@ CREATE TABLE IF NOT EXISTS notification_queue (
 -- Push Notification Devices (for mobile app push notifications)
 CREATE TABLE IF NOT EXISTS push_notification_devices (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    user_id INT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED NOT NULL,
     device_token VARCHAR(255) UNIQUE NOT NULL,
     device_type ENUM('ios', 'android', 'web') NOT NULL,
     device_name VARCHAR(100),
@@ -160,3 +184,10 @@ INSERT INTO notification_types (notification_type, notification_name, descriptio
 ('login_from_new_device', 'Login from New Device', 'Account accessed from unrecognized device', 'account', TRUE, TRUE, TRUE, TRUE, 'instant'),
 ('role_changed', 'Role Changed', 'User role or permissions updated', 'account', TRUE, FALSE, TRUE, FALSE, 'instant'),
 ('payment_method_added', 'Payment Method Added', 'New payment method added to account', 'account', TRUE, FALSE, TRUE, FALSE, 'instant');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

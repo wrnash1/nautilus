@@ -4,17 +4,25 @@
 -- Description: Automated reordering, forecasting, cycle counts, and purchase orders
 -- ============================================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `product_reorder_rules`;
+DROP TABLE IF EXISTS `inventory_cycle_counts`;
+DROP TABLE IF EXISTS `purchase_orders`;
+DROP TABLE IF EXISTS `purchase_order_items`;
+DROP TABLE IF EXISTS `inventory_movement_types`;
+
 -- Product Reorder Rules
 CREATE TABLE IF NOT EXISTS product_reorder_rules (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    product_id INT UNSIGNED NOT NULL,
-    reorder_point INT UNSIGNED NOT NULL,  -- Trigger reorder when stock hits this level
-    reorder_quantity INT UNSIGNED NOT NULL,  -- How much to order
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id BIGINT UNSIGNED NOT NULL,
+    reorder_point BIGINT UNSIGNED NOT NULL,  -- Trigger reorder when stock hits this level
+    reorder_quantity BIGINT UNSIGNED NOT NULL,  -- How much to order
     lead_time_days INT DEFAULT 7,  -- How long until delivery
     safety_stock_days INT DEFAULT 3,  -- Extra buffer stock
     is_active TINYINT(1) DEFAULT 1,
     auto_create_po TINYINT(1) DEFAULT 0,  -- Automatically create purchase orders?
-    preferred_vendor_id INT UNSIGNED,
+    preferred_vendor_id BIGINT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
@@ -27,17 +35,17 @@ CREATE INDEX IF NOT EXISTS idx_product_reorder_rules_active ON product_reorder_r
 
 -- Inventory Cycle Counts
 CREATE TABLE IF NOT EXISTS inventory_cycle_counts (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    product_id INT UNSIGNED NOT NULL,
-    counted_by INT UNSIGNED,  -- user_id
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id BIGINT UNSIGNED NOT NULL,
+    counted_by BIGINT UNSIGNED,  -- user_id
     count_date DATE NOT NULL,
-    expected_quantity INT UNSIGNED NOT NULL,
-    actual_quantity INT UNSIGNED NOT NULL,
-    variance INT UNSIGNED NOT NULL,  -- actual - expected
+    expected_quantity BIGINT UNSIGNED NOT NULL,
+    actual_quantity BIGINT UNSIGNED NOT NULL,
+    variance BIGINT UNSIGNED NOT NULL,  -- actual - expected
     variance_value DECIMAL(10,2),  -- Financial impact of variance
     notes TEXT,
     is_resolved TINYINT(1) DEFAULT 0,
-    resolved_by INT UNSIGNED,
+    resolved_by BIGINT UNSIGNED,
     resolved_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
@@ -51,9 +59,9 @@ CREATE INDEX IF NOT EXISTS idx_inventory_cycle_counts_resolved ON inventory_cycl
 
 -- Purchase Orders
 CREATE TABLE IF NOT EXISTS purchase_orders (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     po_number VARCHAR(50) NOT NULL UNIQUE,
-    vendor_id INT UNSIGNED NOT NULL,
+    vendor_id BIGINT UNSIGNED NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'draft',  -- 'draft', 'sent', 'confirmed', 'received', 'cancelled'
     order_date DATE NOT NULL,
     expected_delivery_date DATE,
@@ -63,8 +71,8 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
     shipping DECIMAL(10,2) DEFAULT 0.00,
     total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     notes TEXT,
-    created_by INT UNSIGNED,
-    received_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
+    received_by BIGINT UNSIGNED,
     auto_generated TINYINT(1) DEFAULT 0,  -- Was this auto-created by reorder rules?
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -80,10 +88,10 @@ CREATE INDEX IF NOT EXISTS idx_purchase_orders_number ON purchase_orders(po_numb
 
 -- Purchase Order Line Items
 CREATE TABLE IF NOT EXISTS purchase_order_items (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    purchase_order_id INT UNSIGNED NOT NULL,
-    product_id INT UNSIGNED NOT NULL,
-    quantity_ordered INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    purchase_order_id BIGINT UNSIGNED NOT NULL,
+    product_id BIGINT UNSIGNED NOT NULL,
+    quantity_ordered BIGINT UNSIGNED NOT NULL,
     quantity_received INT DEFAULT 0,
     unit_cost DECIMAL(10,2) NOT NULL,
     line_total DECIMAL(10,2) NOT NULL,
@@ -99,7 +107,7 @@ CREATE INDEX IF NOT EXISTS idx_purchase_order_items_product ON purchase_order_it
 
 -- Inventory Movement Categories
 CREATE TABLE IF NOT EXISTS inventory_movement_types (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(20) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
     affects_quantity TINYINT(1) DEFAULT 1,
@@ -119,6 +127,8 @@ INSERT IGNORE INTO inventory_movement_types (id, code, name, affects_quantity, d
 (8, 'TRANSFER', 'Location Transfer', 0, 'adjust'),
 (9, 'RENTAL', 'Rented to Customer', 0, 'out'),
 (10, 'RENTAL_RETURN', 'Rental Returned', 0, 'in');
+
+SET FOREIGN_KEY_CHECKS=1;
 
 -- ============================================================================
 -- Migration Complete

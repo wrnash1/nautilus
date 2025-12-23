@@ -252,8 +252,8 @@ CREATE TABLE IF NOT EXISTS websocket_queue (
 CREATE TABLE IF NOT EXISTS chat_messages (
     id BIGINT  PRIMARY KEY,
     tenant_id INT NOT NULL,
-    from_user_id INT NOT NULL,
-    to_user_id INT NOT NULL,
+    from_user_id BIGINT NOT NULL,
+    to_user_id BIGINT NOT NULL,
     message TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
     read_at TIMESTAMP NULL,

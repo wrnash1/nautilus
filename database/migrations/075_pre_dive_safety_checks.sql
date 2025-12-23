@@ -1,3 +1,18 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `safety_check_templates`;
+DROP TABLE IF EXISTS `pre_dive_safety_checks`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `safety_check_templates`;
+DROP TABLE IF EXISTS `pre_dive_safety_checks`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `safety_check_templates`;
+DROP TABLE IF EXISTS `pre_dive_safety_checks`;
+
 -- ================================================
 -- Nautilus - Pre-Dive Safety Checks (BWRAF)
 -- Migration: 075_pre_dive_safety_checks.sql
@@ -6,14 +21,14 @@
 
 -- Pre-Dive Safety Checks Table
 CREATE TABLE IF NOT EXISTS `pre_dive_safety_checks` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Diver & Dive Information
-    `customer_id` INT UNSIGNED NOT NULL,
-    `buddy_customer_id` INT UNSIGNED NULL COMMENT 'Dive buddy',
-    `dive_site_id` INT UNSIGNED NULL,
-    `trip_id` INT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `buddy_customer_id` BIGINT UNSIGNED NULL COMMENT 'Dive buddy',
+    `dive_site_id` BIGINT UNSIGNED NULL,
+    `trip_id` BIGINT UNSIGNED NULL,
 
     -- Dive Details
     `dive_type` ENUM('training', 'recreational', 'advanced', 'technical') DEFAULT 'recreational',
@@ -90,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `pre_dive_safety_checks` (
     `check_status` ENUM('incomplete', 'passed', 'failed', 'waived') DEFAULT 'incomplete',
 
     -- Verification
-    `checked_by_user_id` INT UNSIGNED NULL COMMENT 'Staff/instructor who verified',
+    `checked_by_user_id` BIGINT UNSIGNED NULL COMMENT 'Staff/instructor who verified',
     `buddy_confirmed` BOOLEAN DEFAULT FALSE,
     `checked_at` TIMESTAMP NULL,
 
@@ -127,8 +142,8 @@ CREATE TABLE IF NOT EXISTS `pre_dive_safety_checks` (
 
 -- Safety Check Templates (for different dive types)
 CREATE TABLE IF NOT EXISTS `safety_check_templates` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     `template_name` VARCHAR(255) NOT NULL,
     `dive_type` ENUM('training', 'recreational', 'advanced', 'technical') NOT NULL,
@@ -164,3 +179,10 @@ INSERT INTO `safety_check_templates` (`template_name`, `dive_type`, `description
 ('Standard BWRAF', 'recreational', 'Standard PADI BWRAF pre-dive safety check',
 '["bcd_inflator_works", "bcd_deflator_works", "weights_secure", "weights_releasable", "bcd_releases_located", "weight_releases_located", "tank_valve_fully_open", "air_on_and_breathable", "pressure_gauge_working", "mask_fits_properly", "fins_secure", "computer_functioning"]',
 TRUE);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

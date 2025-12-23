@@ -53,9 +53,9 @@ CREATE TABLE IF NOT EXISTS compressors (
 
     -- Audit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by INT UNSIGNED,
+    updated_by BIGINT UNSIGNED,
 
     INDEX idx_active (is_active),
     INDEX idx_operational (is_operational),
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS compressor_logs (
 
     -- Personnel
     performed_by VARCHAR(100) COMMENT 'Technician or staff member name',
-    logged_by INT UNSIGNED,
+    logged_by BIGINT UNSIGNED,
 
     -- Timestamp
     log_date DATE NOT NULL,
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS compressor_maintenance_schedule (
 
     -- Assignment
     assigned_to INTEGER COMMENT 'User assigned to perform maintenance',
-    completed_by INT UNSIGNED,
+    completed_by BIGINT UNSIGNED,
 
     -- Details
     estimated_cost DECIMAL(10,2),
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS compressor_maintenance_schedule (
 
     -- Audit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (compressor_id) REFERENCES compressors(id) ON DELETE CASCADE,

@@ -12,7 +12,7 @@ class Auth
     
     public static function attempt(string $email, string $password): bool
     {
-        $logPath = BASE_PATH . '/storage/logs/debug_auth.log';
+        $logPath = ($_ENV['LOG_PATH'] ?? BASE_PATH . '/storage/logs') . '/debug_auth.log';
         file_put_contents($logPath, date('Y-m-d H:i:s') . " - Attempting login for $email\n", FILE_APPEND);
         
         $user = User::findByEmail($email);

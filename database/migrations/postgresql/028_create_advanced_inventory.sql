@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS product_reorder_rules (
     safety_stock_days INT DEFAULT 3,  -- Extra buffer stock
     is_active SMALLINT DEFAULT 1,
     auto_create_po SMALLINT DEFAULT 0,  -- Automatically create purchase orders?
-    preferred_vendor_id INT UNSIGNED,
+    preferred_vendor_id BIGINT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
@@ -29,7 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_product_reorder_rules_active ON product_reorder_r
 CREATE TABLE IF NOT EXISTS inventory_cycle_counts (
     id INTEGER  PRIMARY KEY,
     product_id INTEGER NOT NULL,
-    counted_by INT UNSIGNED,  -- user_id
+    counted_by BIGINT UNSIGNED,  -- user_id
     count_date DATE NOT NULL,
     expected_quantity INTEGER NOT NULL,
     actual_quantity INTEGER NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS inventory_cycle_counts (
     variance_value DECIMAL(10,2),  -- Financial impact of variance
     notes TEXT,
     is_resolved SMALLINT DEFAULT 0,
-    resolved_by INT UNSIGNED,
+    resolved_by BIGINT UNSIGNED,
     resolved_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
     shipping DECIMAL(10,2) DEFAULT 0.00,
     total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     notes TEXT,
-    created_by INT UNSIGNED,
-    received_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
+    received_by BIGINT UNSIGNED,
     auto_generated SMALLINT DEFAULT 0,  -- Was this auto-created by reorder rules?
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

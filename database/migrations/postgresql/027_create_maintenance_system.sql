@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS equipment_maintenance (
     equipment_id INTEGER NOT NULL,
     maintenance_type VARCHAR(50) NOT NULL,  -- 'inspection', 'service', 'repair', 'annual_inspection'
     performed_date DATE NOT NULL,
-    performed_by INT UNSIGNED,  -- user_id of staff member
+    performed_by BIGINT UNSIGNED,  -- user_id of staff member
     next_maintenance_date DATE,
     hours_at_maintenance DECIMAL(10,2),  -- Equipment usage hours at time of maintenance
     cost DECIMAL(10,2) DEFAULT 0.00,

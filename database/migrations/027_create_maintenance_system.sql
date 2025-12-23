@@ -4,13 +4,19 @@
 -- Description: Track maintenance history, schedules, and inspections for rental equipment
 -- ============================================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `equipment_maintenance`;
+DROP TABLE IF EXISTS `maintenance_schedules`;
+DROP TABLE IF EXISTS `maintenance_cost_categories`;
+
 -- Equipment Maintenance Records
 CREATE TABLE IF NOT EXISTS equipment_maintenance (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    equipment_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    equipment_id BIGINT UNSIGNED NOT NULL,
     maintenance_type VARCHAR(50) NOT NULL,  -- 'inspection', 'service', 'repair', 'annual_inspection'
     performed_date DATE NOT NULL,
-    performed_by INT UNSIGNED,  -- user_id of staff member
+    performed_by BIGINT UNSIGNED,  -- user_id of staff member
     next_maintenance_date DATE,
     hours_at_maintenance DECIMAL(10,2),  -- Equipment usage hours at time of maintenance
     cost DECIMAL(10,2) DEFAULT 0.00,
@@ -31,11 +37,11 @@ CREATE INDEX IF NOT EXISTS idx_equipment_maintenance_type ON equipment_maintenan
 
 -- Scheduled Maintenance
 CREATE TABLE IF NOT EXISTS maintenance_schedules (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    equipment_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    equipment_id BIGINT UNSIGNED NOT NULL,
     maintenance_type VARCHAR(50) NOT NULL,
     frequency_type VARCHAR(20) NOT NULL,  -- 'days', 'weeks', 'months', 'hours', 'uses'
-    frequency_value INT UNSIGNED NOT NULL,  -- Every X days/weeks/months/hours/uses
+    frequency_value BIGINT UNSIGNED NOT NULL,  -- Every X days/weeks/months/hours/uses
     last_maintenance_date DATE,
     next_due_date DATE NOT NULL,
     is_active TINYINT(1) DEFAULT 1,
@@ -51,7 +57,7 @@ CREATE INDEX IF NOT EXISTS idx_maintenance_schedules_active ON maintenance_sched
 
 -- Maintenance Costs by Category (for analytics)
 CREATE TABLE IF NOT EXISTS maintenance_cost_categories (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -1,9 +1,30 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `dashboard_template_widgets`;
+DROP TABLE IF EXISTS `dashboard_templates`;
+DROP TABLE IF EXISTS `dashboard_widgets`;
+DROP TABLE IF EXISTS `widget_types`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `dashboard_template_widgets`;
+DROP TABLE IF EXISTS `dashboard_templates`;
+DROP TABLE IF EXISTS `dashboard_widgets`;
+DROP TABLE IF EXISTS `widget_types`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `dashboard_template_widgets`;
+DROP TABLE IF EXISTS `dashboard_templates`;
+DROP TABLE IF EXISTS `dashboard_widgets`;
+DROP TABLE IF EXISTS `widget_types`;
+
 -- Dashboard Widgets System
 -- Configurable dashboard with various widget types
 
 -- Widget Types (available widget configurations)
 CREATE TABLE IF NOT EXISTS widget_types (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     widget_code VARCHAR(50) UNIQUE NOT NULL,
     widget_name VARCHAR(100) NOT NULL,
     description TEXT,
@@ -20,10 +41,10 @@ CREATE TABLE IF NOT EXISTS widget_types (
 
 -- User Dashboard Widgets (user's configured widgets)
 CREATE TABLE IF NOT EXISTS dashboard_widgets (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT,
-    user_id INT NOT NULL,
-    widget_type_id INT NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED NOT NULL,
+    widget_type_id BIGINT UNSIGNED NOT NULL,
     position INT NOT NULL DEFAULT 0,
     size ENUM('small', 'medium', 'large', 'full') DEFAULT 'medium',
     settings JSON COMMENT 'Widget-specific settings (date ranges, limits, etc.)',
@@ -42,7 +63,7 @@ CREATE TABLE IF NOT EXISTS dashboard_widgets (
 
 -- Dashboard Templates (pre-configured dashboard layouts)
 CREATE TABLE IF NOT EXISTS dashboard_templates (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     template_name VARCHAR(100) NOT NULL,
     description TEXT,
     role_code VARCHAR(50) COMMENT 'Suggested for specific role',
@@ -55,9 +76,9 @@ CREATE TABLE IF NOT EXISTS dashboard_templates (
 
 -- Template Widgets (widgets included in templates)
 CREATE TABLE IF NOT EXISTS dashboard_template_widgets (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    template_id INT NOT NULL,
-    widget_type_id INT NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    template_id BIGINT UNSIGNED NOT NULL,
+    widget_type_id BIGINT UNSIGNED NOT NULL,
     position INT NOT NULL,
     size ENUM('small', 'medium', 'large', 'full') DEFAULT 'medium',
     default_settings JSON,
@@ -128,3 +149,10 @@ INSERT INTO dashboard_template_widgets (template_id, widget_type_id, position, s
 (4, (SELECT id FROM widget_types WHERE widget_code = 'upcoming_courses'), 1, 'large', '{"limit": 10}'),
 (4, (SELECT id FROM widget_types WHERE widget_code = 'active_rentals'), 2, 'medium', '{}'),
 (4, (SELECT id FROM widget_types WHERE widget_code = 'customer_stats'), 3, 'medium', '{"days": 30}');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

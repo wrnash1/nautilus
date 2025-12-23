@@ -1,11 +1,38 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `compliance_snapshots`;
+DROP TABLE IF EXISTS `audit_report_templates`;
+DROP TABLE IF EXISTS `system_events_log`;
+DROP TABLE IF EXISTS `login_history`;
+DROP TABLE IF EXISTS `data_access_log`;
+DROP TABLE IF EXISTS `audit_logs`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `compliance_snapshots`;
+DROP TABLE IF EXISTS `audit_report_templates`;
+DROP TABLE IF EXISTS `system_events_log`;
+DROP TABLE IF EXISTS `login_history`;
+DROP TABLE IF EXISTS `data_access_log`;
+DROP TABLE IF EXISTS `audit_logs`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `compliance_snapshots`;
+DROP TABLE IF EXISTS `audit_report_templates`;
+DROP TABLE IF EXISTS `system_events_log`;
+DROP TABLE IF EXISTS `login_history`;
+DROP TABLE IF EXISTS `data_access_log`;
+DROP TABLE IF EXISTS `audit_logs`;
+
 -- Audit Trail System
 -- Comprehensive audit logging for compliance and security
 
 -- Main Audit Log Table
 CREATE TABLE IF NOT EXISTS audit_logs (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    user_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED,
     action VARCHAR(100) NOT NULL COMMENT 'Action performed (create, update, delete, login, etc.)',
     entity_type VARCHAR(100) NOT NULL COMMENT 'Type of entity affected (product, customer, user, etc.)',
     entity_id INT COMMENT 'ID of the affected entity',
@@ -29,8 +56,8 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- Data Access Log (track who viewed sensitive data)
 CREATE TABLE IF NOT EXISTS data_access_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    user_id INT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED NOT NULL,
     resource_type VARCHAR(100) NOT NULL COMMENT 'Type of resource accessed',
     resource_id INT NOT NULL,
     access_type ENUM('view', 'export', 'print') DEFAULT 'view',
@@ -49,8 +76,8 @@ CREATE TABLE IF NOT EXISTS data_access_log (
 -- Login History (detailed login tracking)
 CREATE TABLE IF NOT EXISTS login_history (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    user_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED,
     username VARCHAR(255),
     login_status ENUM('success', 'failed', 'blocked') NOT NULL,
     failure_reason VARCHAR(255) COMMENT 'Reason for failed login',
@@ -72,7 +99,7 @@ CREATE TABLE IF NOT EXISTS login_history (
 -- System Events Log (system-level events)
 CREATE TABLE IF NOT EXISTS system_events_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
     event_type VARCHAR(100) NOT NULL COMMENT 'backup, maintenance, error, etc.',
     event_level ENUM('info', 'warning', 'error', 'critical') DEFAULT 'info',
     message TEXT NOT NULL,
@@ -89,7 +116,7 @@ CREATE TABLE IF NOT EXISTS system_events_log (
 -- Audit Report Templates
 CREATE TABLE IF NOT EXISTS audit_report_templates (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
     template_name VARCHAR(100) NOT NULL,
     description TEXT,
     report_type ENUM('security', 'data_access', 'user_activity', 'system', 'compliance', 'custom') DEFAULT 'custom',
@@ -98,7 +125,7 @@ CREATE TABLE IF NOT EXISTS audit_report_templates (
     is_scheduled BOOLEAN DEFAULT FALSE,
     schedule_frequency ENUM('daily', 'weekly', 'monthly') NULL,
     recipients JSON COMMENT 'Email addresses to send scheduled reports',
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -112,13 +139,13 @@ CREATE TABLE IF NOT EXISTS audit_report_templates (
 -- Compliance Snapshots (point-in-time compliance reports)
 CREATE TABLE IF NOT EXISTS compliance_snapshots (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
     snapshot_date DATE NOT NULL,
     compliance_type VARCHAR(100) NOT NULL COMMENT 'GDPR, HIPAA, SOX, etc.',
     status ENUM('compliant', 'non_compliant', 'review_needed') DEFAULT 'review_needed',
     findings JSON COMMENT 'Compliance check results',
     recommendations TEXT,
-    reviewed_by INT UNSIGNED,
+    reviewed_by BIGINT UNSIGNED,
     reviewed_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -154,3 +181,10 @@ VALUES
 
 (NULL, 'System Events', 'System-level events and errors', 'system',
  '{"days": 7, "event_levels": ["error", "critical"]}', FALSE);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

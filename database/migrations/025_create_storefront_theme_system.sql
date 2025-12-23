@@ -3,9 +3,18 @@
 -- Description: Themable online store configuration and settings
 -- ==========================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `storefront_settings`;
+DROP TABLE IF EXISTS `theme_config`;
+DROP TABLE IF EXISTS `homepage_sections`;
+DROP TABLE IF EXISTS `navigation_menus`;
+DROP TABLE IF EXISTS `promotional_banners`;
+DROP TABLE IF EXISTS `theme_assets`;
+
 -- Storefront Settings (General store configuration)
 CREATE TABLE IF NOT EXISTS storefront_settings (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     setting_key VARCHAR(100) NOT NULL UNIQUE,
     setting_value TEXT,
     setting_type ENUM('text', 'textarea', 'boolean', 'number', 'json', 'image', 'color') DEFAULT 'text',
@@ -20,7 +29,7 @@ CREATE TABLE IF NOT EXISTS storefront_settings (
 
 -- Theme Configuration (Visual theming)
 CREATE TABLE IF NOT EXISTS theme_config (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     theme_name VARCHAR(100) NOT NULL,
     is_active BOOLEAN DEFAULT FALSE,
     is_default BOOLEAN DEFAULT FALSE,
@@ -98,7 +107,7 @@ CREATE TABLE IF NOT EXISTS theme_config (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
 
     INDEX idx_active (is_active),
     INDEX idx_default (is_default)
@@ -106,8 +115,8 @@ CREATE TABLE IF NOT EXISTS theme_config (
 
 -- Homepage Sections (Drag-and-drop homepage builder)
 CREATE TABLE IF NOT EXISTS homepage_sections (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    theme_id INT UNSIGNED,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    theme_id BIGINT UNSIGNED,
     section_type ENUM('hero', 'featured_products', 'categories', 'featured_categories', 'testimonials', 'blog_posts', 'brands', 'newsletter', 'custom_html', 'courses', 'trips', 'video', 'image_banner', 'countdown_timer') NOT NULL,
     section_title VARCHAR(200),
     section_subtitle TEXT,
@@ -135,10 +144,10 @@ CREATE TABLE IF NOT EXISTS homepage_sections (
 
 -- Navigation Menus (Customizable navigation)
 CREATE TABLE IF NOT EXISTS navigation_menus (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     menu_location ENUM('header', 'footer', 'sidebar', 'mobile') NOT NULL,
     display_order INT DEFAULT 0,
-    parent_id INT UNSIGNED NULL COMMENT 'For nested menus',
+    parent_id BIGINT UNSIGNED NULL COMMENT 'For nested menus',
 
     label VARCHAR(100) NOT NULL,
     url VARCHAR(255),
@@ -164,7 +173,7 @@ CREATE TABLE IF NOT EXISTS navigation_menus (
 
 -- Banners and Promotions (Site-wide promotional banners)
 CREATE TABLE IF NOT EXISTS promotional_banners (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(200) NOT NULL,
     content TEXT,
     banner_type ENUM('top_bar', 'hero', 'sidebar', 'popup', 'footer') DEFAULT 'top_bar',
@@ -192,7 +201,7 @@ CREATE TABLE IF NOT EXISTS promotional_banners (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
 
     INDEX idx_active (is_active),
     INDEX idx_dates (start_date, end_date),
@@ -201,19 +210,19 @@ CREATE TABLE IF NOT EXISTS promotional_banners (
 
 -- Theme Assets (Images, fonts, files associated with themes)
 CREATE TABLE IF NOT EXISTS theme_assets (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    theme_id INT UNSIGNED,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    theme_id BIGINT UNSIGNED,
     asset_type ENUM('logo', 'favicon', 'hero_image', 'background', 'icon', 'font', 'other') NOT NULL,
     asset_name VARCHAR(100) NOT NULL,
     file_path VARCHAR(255) NOT NULL,
-    file_size INT UNSIGNED COMMENT 'File size in bytes',
+    file_size BIGINT UNSIGNED COMMENT 'File size in bytes',
     mime_type VARCHAR(50),
     alt_text VARCHAR(255),
     is_primary BOOLEAN DEFAULT FALSE COMMENT 'Primary asset of this type',
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    uploaded_by INT UNSIGNED,
+    uploaded_by BIGINT UNSIGNED,
 
     INDEX idx_theme (theme_id),
     INDEX idx_type (asset_type)
@@ -303,3 +312,5 @@ INSERT IGNORE INTO homepage_sections (theme_id, section_type, section_title, sec
 (1, 'trips', 'Upcoming Dive Trips', 'Join us for unforgettable underwater experiences', 5, TRUE, '{"limit": 3, "show_availability": true}'),
 (1, 'brands', 'Trusted Brands', 'We carry the best brands in the industry', 6, TRUE, '{"show_logos": true}'),
 (1, 'newsletter', 'Stay Connected', 'Get exclusive offers and diving tips delivered to your inbox', 7, TRUE, '{"show_social_links": true}');
+
+SET FOREIGN_KEY_CHECKS=1;

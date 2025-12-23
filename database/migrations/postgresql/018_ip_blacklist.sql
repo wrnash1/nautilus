@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS ip_blacklist (
     blocked_until TIMESTAMP,
     reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     UNIQUE KEY unique_ip (ip_address),
     INDEX idx_blocked_until (blocked_until),
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL

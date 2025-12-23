@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/assets/css/storefront.css">
+    <link rel="stylesheet" href="/assets/css/storefront-visuals.css">
     <style>
         * {
             margin: 0;
@@ -453,6 +454,11 @@
     </style>
 </head>
 <body>
+    <div id="aquarium-container">
+        <!-- Fish will be spawned here by JS -->
+    </div>
+    <img id="poseidon-overlay" src="/images/poseidon.png" alt="Poseidon">
+
     <!-- Top Header Bar -->
     <div class="top-header">
         <div class="container">
@@ -591,7 +597,7 @@
                         'icon' => 'fa-hotel',
                         'title' => 'Live-Aboard Vacations',
                         'description' => 'Multi-day diving adventures on luxury live-aboard vessels to remote locations.',
-                        'image' => 'https://images.unsplash.com/photo-1540202404-a2f2f549e5e7?w=400&h=300&fit=crop',
+                        'image' => 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop',
                         'link' => '/liveaboard'
                     ],
                     [

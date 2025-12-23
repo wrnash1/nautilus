@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS communication_campaigns (
     total_opened INT DEFAULT 0,
     total_clicked INT DEFAULT 0,
     total_cost DECIMAL(10,2) DEFAULT 0.00,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS communication_log (
     id INTEGER  PRIMARY KEY,
     customer_id INTEGER NOT NULL,
     message_type VARCHAR(20) NOT NULL,  -- 'sms', 'push', 'email'
-    campaign_id INT UNSIGNED,  -- If part of a campaign
+    campaign_id BIGINT UNSIGNED,  -- If part of a campaign
     subject VARCHAR(200),
     message TEXT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'sent', 'delivered', 'failed', 'bounced'

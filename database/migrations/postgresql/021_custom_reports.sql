@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS custom_reports (
     sorting JSON COMMENT 'Sort order',
     chart_type VARCHAR(50) COMMENT 'bar, line, pie, table, etc',
     is_public BOOLEAN DEFAULT FALSE,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_created_by (created_by),
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS custom_reports (
 CREATE TABLE IF NOT EXISTS report_executions (
     id BIGINT  PRIMARY KEY,
     report_id INTEGER NOT NULL,
-    executed_by INT UNSIGNED,
+    executed_by BIGINT UNSIGNED,
     executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_report_id (report_id),
     INDEX idx_executed_at (executed_at),
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS scheduled_reports (
 -- Report Favorites (user bookmarks)
 CREATE TABLE IF NOT EXISTS report_favorites (
     id INTEGER  PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id BIGINTEGER NOT NULL,
     report_id INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY unique_favorite (user_id, report_id),

@@ -13,12 +13,17 @@ $envExists = file_exists(BASE_PATH . '/.env');
 $installedExists = file_exists(BASE_PATH . '/.installed');
 $installedValid = $installedExists && filesize(BASE_PATH . '/.installed') > 0;
 
+
 if (!$envExists || !$installedValid) {
     // If either file is missing, redirect to installer
     // This prevents redirect loops from partial installations
-    header('Location: /install.php');
-    exit;
+    $scriptName = basename($_SERVER['SCRIPT_FILENAME'] ?? '');
+    if ($scriptName !== 'install.php' && $scriptName !== 'run_migrations.php' && $scriptName !== 'run_migrations_backend.php') {
+        header('Location: /install.php');
+        exit;
+    }
 }
+
 
 // Load environment variables
 ini_set('display_errors', 1);
@@ -32,13 +37,10 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
 
 // Set error reporting based on environment
-if ($_ENV['APP_ENV'] === 'production') {
-    error_reporting(0);
-    ini_set('display_errors', '0');
-} else {
-    error_reporting(E_ALL);
-    ini_set('display_errors', '1');
-}
+// FORCE DEBUGGING ON
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
 
 // Set timezone
 date_default_timezone_set($_ENV['APP_TIMEZONE'] ?? 'America/New_York');
@@ -85,10 +87,12 @@ $scriptName = basename($_SERVER['SCRIPT_FILENAME'] ?? '');
 
 // Additional check: if not installed and not accessing installer
 // This is redundant now but kept for safety
+/*
 if (!file_exists($installedFile) && $scriptName !== 'install_streamlined.php' && $scriptName !== 'install.php' && $scriptName !== 'run_migrations.php' && $scriptName !== 'run_migrations_backend.php') {
     header('Location: /install_streamlined.php');
     exit;
 }
+*/
 
 // Load routes
 $router = require __DIR__ . '/../routes/web.php';

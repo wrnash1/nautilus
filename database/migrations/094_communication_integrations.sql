@@ -1,3 +1,36 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `communication_analytics`;
+DROP TABLE IF EXISTS `call_logs`;
+DROP TABLE IF EXISTS `automated_responses`;
+DROP TABLE IF EXISTS `message_templates`;
+DROP TABLE IF EXISTS `whatsapp_templates`;
+DROP TABLE IF EXISTS `messages`;
+DROP TABLE IF EXISTS `conversations`;
+DROP TABLE IF EXISTS `communication_channels`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `communication_analytics`;
+DROP TABLE IF EXISTS `call_logs`;
+DROP TABLE IF EXISTS `automated_responses`;
+DROP TABLE IF EXISTS `message_templates`;
+DROP TABLE IF EXISTS `whatsapp_templates`;
+DROP TABLE IF EXISTS `messages`;
+DROP TABLE IF EXISTS `conversations`;
+DROP TABLE IF EXISTS `communication_channels`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `communication_analytics`;
+DROP TABLE IF EXISTS `call_logs`;
+DROP TABLE IF EXISTS `automated_responses`;
+DROP TABLE IF EXISTS `message_templates`;
+DROP TABLE IF EXISTS `whatsapp_templates`;
+DROP TABLE IF EXISTS `messages`;
+DROP TABLE IF EXISTS `conversations`;
+DROP TABLE IF EXISTS `communication_channels`;
+
 -- =====================================================
 -- Communication Integrations
 -- Google Voice, WhatsApp Business, unified messaging
@@ -5,8 +38,8 @@
 
 -- Communication Channels
 CREATE TABLE IF NOT EXISTS `communication_channels` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `channel_name` VARCHAR(255) NOT NULL,
     `channel_type` ENUM('google_voice', 'whatsapp', 'sms', 'email', 'phone', 'webchat', 'facebook_messenger', 'instagram_dm') NOT NULL,
 
@@ -66,18 +99,18 @@ CREATE TABLE IF NOT EXISTS `communication_channels` (
 -- Unified Conversations
 CREATE TABLE IF NOT EXISTS `conversations` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `conversation_identifier` VARCHAR(255) NOT NULL COMMENT 'Phone, WhatsApp ID, etc.',
 
     -- Contact
-    `customer_id` INT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
     `contact_name` VARCHAR(255) NULL,
     `contact_phone` VARCHAR(20) NULL,
     `contact_email` VARCHAR(255) NULL,
     `contact_type` ENUM('customer', 'lead', 'vendor', 'unknown') DEFAULT 'unknown',
 
     -- Channel
-    `channel_id` INT UNSIGNED NULL,
+    `channel_id` BIGINT UNSIGNED NULL,
     `channel_type` ENUM('google_voice', 'whatsapp', 'sms', 'email', 'phone', 'webchat', 'facebook_messenger', 'instagram_dm') NOT NULL,
 
     -- Conversation Details
@@ -91,9 +124,9 @@ CREATE TABLE IF NOT EXISTS `conversations` (
     `priority` ENUM('low', 'normal', 'high', 'urgent') DEFAULT 'normal',
 
     -- Assignment
-    `assigned_to` INT UNSIGNED NULL,
+    `assigned_to` BIGINT UNSIGNED NULL,
     `assigned_at` DATETIME NULL,
-    `assigned_by` INT UNSIGNED NULL,
+    `assigned_by` BIGINT UNSIGNED NULL,
     `department` VARCHAR(100) NULL,
 
     -- Metrics
@@ -135,9 +168,9 @@ CREATE TABLE IF NOT EXISTS `conversations` (
 -- Messages (unified across all channels)
 CREATE TABLE IF NOT EXISTS `messages` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `conversation_id` BIGINT UNSIGNED NOT NULL,
-    `channel_id` INT UNSIGNED NULL,
+    `channel_id` BIGINT UNSIGNED NULL,
 
     -- Message Details
     `message_type` ENUM('text', 'image', 'video', 'audio', 'file', 'location', 'contact', 'sticker', 'voice_note') DEFAULT 'text',
@@ -149,7 +182,7 @@ CREATE TABLE IF NOT EXISTS `messages` (
     `to_number` VARCHAR(20) NULL,
     `from_name` VARCHAR(255) NULL,
     `sender_type` ENUM('customer', 'employee', 'system', 'bot') NOT NULL,
-    `sent_by_user_id` INT UNSIGNED NULL,
+    `sent_by_user_id` BIGINT UNSIGNED NULL,
 
     -- External IDs
     `external_message_id` VARCHAR(255) NULL COMMENT 'WhatsApp/Google Voice message ID',
@@ -201,8 +234,8 @@ CREATE TABLE IF NOT EXISTS `messages` (
 
 -- WhatsApp Business Templates
 CREATE TABLE IF NOT EXISTS `whatsapp_templates` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `template_name` VARCHAR(255) NOT NULL,
     `template_category` ENUM('marketing', 'transactional', 'authentication', 'service') NOT NULL,
     `language_code` VARCHAR(10) DEFAULT 'en',
@@ -242,8 +275,8 @@ CREATE TABLE IF NOT EXISTS `whatsapp_templates` (
 
 -- Message Templates (general, not just WhatsApp)
 CREATE TABLE IF NOT EXISTS `message_templates` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `template_name` VARCHAR(255) NOT NULL,
     `channel_type` ENUM('sms', 'email', 'whatsapp', 'google_voice', 'any') DEFAULT 'any',
 
@@ -265,7 +298,7 @@ CREATE TABLE IF NOT EXISTS `message_templates` (
 
     -- Status
     `is_active` BOOLEAN DEFAULT TRUE,
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -275,8 +308,8 @@ CREATE TABLE IF NOT EXISTS `message_templates` (
 
 -- Automated Responses
 CREATE TABLE IF NOT EXISTS `automated_responses` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `response_name` VARCHAR(255) NOT NULL,
     `channel_type` ENUM('sms', 'whatsapp', 'google_voice', 'email', 'webchat', 'any') DEFAULT 'any',
 
@@ -291,7 +324,7 @@ CREATE TABLE IF NOT EXISTS `automated_responses` (
 
     -- Actions
     `create_ticket` BOOLEAN DEFAULT FALSE,
-    `assign_to` INT UNSIGNED NULL,
+    `assign_to` BIGINT UNSIGNED NULL,
     `tag_conversation` VARCHAR(100) NULL,
     `escalate` BOOLEAN DEFAULT FALSE,
 
@@ -318,8 +351,8 @@ CREATE TABLE IF NOT EXISTS `automated_responses` (
 -- Call Logs (for Google Voice/phone calls)
 CREATE TABLE IF NOT EXISTS `call_logs` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `channel_id` INT UNSIGNED NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `channel_id` BIGINT UNSIGNED NULL,
     `conversation_id` BIGINT UNSIGNED NULL,
 
     -- Call Details
@@ -331,10 +364,10 @@ CREATE TABLE IF NOT EXISTS `call_logs` (
     `from_number` VARCHAR(20) NOT NULL,
     `to_number` VARCHAR(20) NOT NULL,
     `caller_name` VARCHAR(255) NULL,
-    `customer_id` INT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
 
     -- Handling
-    `answered_by` INT UNSIGNED NULL COMMENT 'Employee who answered',
+    `answered_by` BIGINT UNSIGNED NULL COMMENT 'Employee who answered',
     `transferred_to` JSON NULL COMMENT 'If call was transferred',
     `forwarded_from` VARCHAR(20) NULL,
 
@@ -391,10 +424,10 @@ CREATE TABLE IF NOT EXISTS `call_logs` (
 
 -- Communication Analytics
 CREATE TABLE IF NOT EXISTS `communication_analytics` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `analytics_date` DATE NOT NULL,
-    `channel_id` INT UNSIGNED NULL,
+    `channel_id` BIGINT UNSIGNED NULL,
     `channel_type` VARCHAR(50) NULL,
 
     -- Message Metrics
@@ -488,3 +521,10 @@ INSERT INTO `automated_responses` (
 (1, 'Pricing Inquiry', 'any', 'keyword', '["price", "cost", "how much", "pricing"]',
     'Our Open Water course is $399, Advanced is $299. Equipment rental packages start at $75/day. Would you like details on a specific course or service?',
     TRUE);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

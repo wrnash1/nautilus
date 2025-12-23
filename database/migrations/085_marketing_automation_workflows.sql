@@ -1,164 +1,94 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `automation_workflow_goals`;
+DROP TABLE IF EXISTS `automation_step_executions`;
+DROP TABLE IF EXISTS `automation_workflow_members`;
+DROP TABLE IF EXISTS `automation_workflow_steps`;
+DROP TABLE IF EXISTS `automation_workflows`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `automation_workflow_goals`;
+DROP TABLE IF EXISTS `automation_step_executions`;
+DROP TABLE IF EXISTS `automation_workflow_members`;
+DROP TABLE IF EXISTS `automation_workflow_steps`;
+DROP TABLE IF EXISTS `automation_workflows`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `automation_workflow_goals`;
+DROP TABLE IF EXISTS `automation_step_executions`;
+DROP TABLE IF EXISTS `automation_workflow_members`;
+DROP TABLE IF EXISTS `automation_workflow_steps`;
+DROP TABLE IF EXISTS `automation_workflows`;
+
 -- =====================================================
 -- Marketing Automation Workflows
 -- Build automated customer journey workflows
 -- =====================================================
 
 -- Automation Workflows
--- Automation Workflows (Created in 011)
--- CREATE TABLE IF NOT EXISTS `automation_workflows` (
---     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
---     `tenant_id` INT UNSIGNED NOT NULL,
---     `name` VARCHAR(255) NOT NULL,
---     `description` TEXT NULL,
---     `workflow_type` ENUM('drip', 'trigger', 'nurture', 'transactional', 'win_back', 'onboarding') NOT NULL,
---     `status` ENUM('draft', 'active', 'paused', 'archived') DEFAULT 'draft',
--- 
---     -- Trigger Configuration
---     `trigger_type` ENUM('event', 'date', 'segment', 'behavior', 'api', 'manual') NOT NULL,
---     `trigger_config` JSON NOT NULL COMMENT 'Trigger conditions and settings',
--- 
---     -- Entry Criteria
---     `entry_criteria` JSON NULL COMMENT 'Who can enter this workflow',
---     `can_re_enter` BOOLEAN DEFAULT FALSE COMMENT 'Allow customers to re-enter',
---     `re_entry_wait_days` INT UNSIGNED NULL,
--- 
---     -- Exit Criteria
---     `exit_criteria` JSON NULL COMMENT 'Conditions that remove customer from workflow',
---     `max_duration_days` INT UNSIGNED NULL,
--- 
---     -- Performance
---     `total_entries` INT UNSIGNED DEFAULT 0,
---     `active_members` INT UNSIGNED DEFAULT 0,
---     `completed_members` INT UNSIGNED DEFAULT 0,
---     `total_conversions` INT UNSIGNED DEFAULT 0,
---     `conversion_rate` DECIMAL(5, 2) DEFAULT 0.00,
---     `total_revenue` DECIMAL(10, 2) DEFAULT 0.00,
--- 
---     -- Settings
---     `send_time_optimization` BOOLEAN DEFAULT FALSE COMMENT 'AI-optimized send times',
---     `frequency_cap` JSON NULL COMMENT 'Max messages per day/week',
---     `quiet_hours_start` TIME NULL DEFAULT '22:00:00',
---     `quiet_hours_end` TIME NULL DEFAULT '08:00:00',
--- 
---     -- Ownership
---     `created_by` INT UNSIGNED NULL,
---     `updated_by` INT UNSIGNED NULL,
---     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---     `activated_at` DATETIME NULL,
--- 
---     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
---     INDEX idx_tenant_status (`tenant_id`, `status`),
---     INDEX idx_workflow_type (`workflow_type`)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `automation_workflows` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `description` TEXT NULL,
+    `workflow_type` ENUM('drip', 'trigger', 'nurture', 'transactional', 'win_back', 'onboarding') NOT NULL,
+    `status` ENUM('draft', 'active', 'paused', 'archived') DEFAULT 'draft',
 
--- Update automation_workflows table to match requirements
-SET @dbname = DATABASE();
-SET @tablename = "automation_workflows";
+    -- Trigger Configuration
+    `trigger_type` ENUM('event', 'date', 'segment', 'behavior', 'api', 'manual', 'schedule', 'segment_entry', 'segment_exit') NOT NULL,
+    `trigger_config` JSON NOT NULL COMMENT 'Trigger conditions and settings',
 
--- Add tenant_id
-SET @columnname = "tenant_id";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE automation_workflows ADD COLUMN tenant_id INT UNSIGNED NULL AFTER id;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+    -- Entry Criteria
+    `entry_criteria` JSON NULL COMMENT 'Who can enter this workflow',
+    `can_re_enter` BOOLEAN DEFAULT FALSE COMMENT 'Allow customers to re-enter',
+    `re_entry_wait_days` BIGINT UNSIGNED NULL,
 
--- Add description
-SET @columnname = "description";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE automation_workflows ADD COLUMN description TEXT NULL AFTER name;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+    -- Exit Criteria
+    `exit_criteria` JSON NULL COMMENT 'Conditions that remove customer from workflow',
+    `max_duration_days` BIGINT UNSIGNED NULL,
 
--- Add workflow_type
-SET @columnname = "workflow_type";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE automation_workflows ADD COLUMN workflow_type ENUM('drip', 'trigger', 'nurture', 'transactional', 'win_back', 'onboarding') NOT NULL AFTER description;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+    -- Actions (Legacy/Simple)
+    `actions` JSON NULL,
 
--- Add status
-SET @columnname = "status";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE automation_workflows ADD COLUMN status ENUM('draft', 'active', 'paused', 'archived') DEFAULT 'draft' AFTER workflow_type;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+    -- Performance
+    `total_entries` BIGINT UNSIGNED DEFAULT 0,
+    `active_members` BIGINT UNSIGNED DEFAULT 0,
+    `completed_members` BIGINT UNSIGNED DEFAULT 0,
+    `total_conversions` BIGINT UNSIGNED DEFAULT 0,
+    `conversion_rate` DECIMAL(5, 2) DEFAULT 0.00,
+    `total_revenue` DECIMAL(10, 2) DEFAULT 0.00,
 
--- Update trigger_type ENUM
-SET @dbname = DATABASE();
-SET @tablename = "automation_workflows";
-SET @columnname = "trigger_type";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "ALTER TABLE automation_workflows MODIFY COLUMN trigger_type ENUM('event', 'date', 'segment', 'behavior', 'api', 'manual', 'schedule', 'segment_entry', 'segment_exit') NOT NULL;",
-  "ALTER TABLE automation_workflows ADD COLUMN trigger_type ENUM('event', 'date', 'segment', 'behavior', 'api', 'manual') NOT NULL AFTER description;"
-));
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+    -- Settings
+    `send_time_optimization` BOOLEAN DEFAULT FALSE COMMENT 'AI-optimized send times',
+    `frequency_cap` JSON NULL COMMENT 'Max messages per day/week',
+    `quiet_hours_start` TIME NULL DEFAULT '22:00:00',
+    `quiet_hours_end` TIME NULL DEFAULT '08:00:00',
 
--- Add trigger_config
-SET @columnname = "trigger_config";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE automation_workflows ADD COLUMN trigger_config JSON NOT NULL COMMENT 'Trigger conditions and settings' AFTER trigger_type;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+    -- Ownership
+    `created_by` BIGINT UNSIGNED NULL,
+    `updated_by` BIGINT UNSIGNED NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `activated_at` DATETIME NULL,
 
--- Add can_re_enter
-SET @columnname = "can_re_enter";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "SELECT 1",
-  "ALTER TABLE automation_workflows ADD COLUMN can_re_enter BOOLEAN DEFAULT FALSE COMMENT 'Allow customers to re-enter' AFTER trigger_config;"
-));
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
-
--- Make actions nullable as we are using other fields now
-SET @dbname = DATABASE();
-SET @tablename = "automation_workflows";
-SET @columnname = "actions";
-SET @preparedStatement = (SELECT IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
-  "ALTER TABLE automation_workflows MODIFY COLUMN actions JSON NULL;",
-  "SELECT 1"
-));
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+    FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
+    INDEX idx_tenant_status (`tenant_id`, `status`),
+    INDEX idx_workflow_type (`workflow_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Workflow Steps
 CREATE TABLE IF NOT EXISTS `automation_workflow_steps` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `workflow_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `step_order` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `workflow_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `step_order` BIGINT UNSIGNED NOT NULL,
     `step_name` VARCHAR(255) NOT NULL,
     `step_type` ENUM('email', 'sms', 'wait', 'condition', 'split_test', 'webhook', 'task', 'goal') NOT NULL,
 
     -- Timing
-    `delay_amount` INT UNSIGNED DEFAULT 0,
+    `delay_amount` BIGINT UNSIGNED DEFAULT 0,
     `delay_unit` ENUM('minutes', 'hours', 'days', 'weeks') DEFAULT 'days',
     `send_time` TIME NULL COMMENT 'Specific time to send, null for immediate',
     `send_day_of_week` TINYINT NULL COMMENT '0=Sunday, 6=Saturday',
@@ -167,27 +97,27 @@ CREATE TABLE IF NOT EXISTS `automation_workflow_steps` (
     `config` JSON NOT NULL DEFAULT ('{}') COMMENT 'Step-specific configuration',
 
     -- Email/SMS Content
-    `email_template_id` INT UNSIGNED NULL,
-    `sms_template_id` INT UNSIGNED NULL,
+    `email_template_id` BIGINT UNSIGNED NULL,
+    `sms_template_id` BIGINT UNSIGNED NULL,
     `subject_line` VARCHAR(255) NULL,
     `email_content` LONGTEXT NULL,
     `sms_content` VARCHAR(1600) NULL,
 
     -- Conditional Logic
     `condition_rules` JSON NULL COMMENT 'IF/THEN conditions',
-    `true_next_step_id` INT UNSIGNED NULL COMMENT 'Step to go to if condition is true',
-    `false_next_step_id` INT UNSIGNED NULL COMMENT 'Step to go to if condition is false',
+    `true_next_step_id` BIGINT UNSIGNED NULL COMMENT 'Step to go to if condition is true',
+    `false_next_step_id` BIGINT UNSIGNED NULL COMMENT 'Step to go to if condition is false',
 
     -- A/B Testing
     `is_ab_test` BOOLEAN DEFAULT FALSE,
     `ab_split_percentage` TINYINT NULL COMMENT 'Percentage for variant A',
 
     -- Performance
-    `total_sent` INT UNSIGNED DEFAULT 0,
-    `total_delivered` INT UNSIGNED DEFAULT 0,
-    `total_opened` INT UNSIGNED DEFAULT 0,
-    `total_clicked` INT UNSIGNED DEFAULT 0,
-    `total_conversions` INT UNSIGNED DEFAULT 0,
+    `total_sent` BIGINT UNSIGNED DEFAULT 0,
+    `total_delivered` BIGINT UNSIGNED DEFAULT 0,
+    `total_opened` BIGINT UNSIGNED DEFAULT 0,
+    `total_clicked` BIGINT UNSIGNED DEFAULT 0,
+    `total_conversions` BIGINT UNSIGNED DEFAULT 0,
 
     -- Status
     `is_active` BOOLEAN DEFAULT TRUE,
@@ -203,14 +133,14 @@ CREATE TABLE IF NOT EXISTS `automation_workflow_steps` (
 -- Workflow Members (customers in workflows)
 CREATE TABLE IF NOT EXISTS `automation_workflow_members` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `workflow_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `workflow_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Entry Details
     `entered_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `entry_trigger` VARCHAR(255) NULL COMMENT 'What triggered entry',
-    `current_step_id` INT UNSIGNED NULL,
+    `current_step_id` BIGINT UNSIGNED NULL,
     `current_step_entered_at` DATETIME NULL,
 
     -- Status
@@ -220,12 +150,12 @@ CREATE TABLE IF NOT EXISTS `automation_workflow_members` (
     `exit_reason` VARCHAR(255) NULL,
 
     -- Progress Tracking
-    `steps_completed` INT UNSIGNED DEFAULT 0,
-    `total_steps` INT UNSIGNED DEFAULT 0,
-    `emails_sent` INT UNSIGNED DEFAULT 0,
-    `emails_opened` INT UNSIGNED DEFAULT 0,
-    `emails_clicked` INT UNSIGNED DEFAULT 0,
-    `sms_sent` INT UNSIGNED DEFAULT 0,
+    `steps_completed` BIGINT UNSIGNED DEFAULT 0,
+    `total_steps` BIGINT UNSIGNED DEFAULT 0,
+    `emails_sent` BIGINT UNSIGNED DEFAULT 0,
+    `emails_opened` BIGINT UNSIGNED DEFAULT 0,
+    `emails_clicked` BIGINT UNSIGNED DEFAULT 0,
+    `sms_sent` BIGINT UNSIGNED DEFAULT 0,
 
     -- Conversion
     `converted` BOOLEAN DEFAULT FALSE,
@@ -253,10 +183,10 @@ CREATE TABLE IF NOT EXISTS `automation_workflow_members` (
 CREATE TABLE IF NOT EXISTS `automation_step_executions` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `workflow_member_id` BIGINT UNSIGNED NOT NULL,
-    `workflow_id` INT UNSIGNED NOT NULL,
-    `step_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `workflow_id` BIGINT UNSIGNED NOT NULL,
+    `step_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Execution Details
     `executed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -289,9 +219,9 @@ CREATE TABLE IF NOT EXISTS `automation_step_executions` (
 
 -- Workflow Goals (conversion tracking)
 CREATE TABLE IF NOT EXISTS `automation_workflow_goals` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `workflow_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `workflow_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `goal_name` VARCHAR(255) NOT NULL,
     `goal_type` ENUM('page_visit', 'form_submit', 'booking', 'purchase', 'certification', 'custom') NOT NULL,
 
@@ -300,7 +230,7 @@ CREATE TABLE IF NOT EXISTS `automation_workflow_goals` (
     `goal_value` DECIMAL(10, 2) NULL COMMENT 'Monetary value of achieving goal',
 
     -- Tracking
-    `total_achieved` INT UNSIGNED DEFAULT 0,
+    `total_achieved` BIGINT UNSIGNED DEFAULT 0,
     `achievement_rate` DECIMAL(5, 2) DEFAULT 0.00,
 
     `is_active` BOOLEAN DEFAULT TRUE,
@@ -415,3 +345,10 @@ INSERT INTO `automation_workflow_goals` (
 
 (4, 1, 'Book Advanced Course', 'booking',
     '{"course_level": "advanced"}', 299.00);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

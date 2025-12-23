@@ -1,3 +1,27 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `customer_lifecycle_stages`;
+DROP TABLE IF EXISTS `customer_rfm_scores`;
+DROP TABLE IF EXISTS `segment_criteria_library`;
+DROP TABLE IF EXISTS `segment_members`;
+DROP TABLE IF EXISTS `customer_segments`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `customer_lifecycle_stages`;
+DROP TABLE IF EXISTS `customer_rfm_scores`;
+DROP TABLE IF EXISTS `segment_criteria_library`;
+DROP TABLE IF EXISTS `segment_members`;
+DROP TABLE IF EXISTS `customer_segments`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `customer_lifecycle_stages`;
+DROP TABLE IF EXISTS `customer_rfm_scores`;
+DROP TABLE IF EXISTS `segment_criteria_library`;
+DROP TABLE IF EXISTS `segment_members`;
+DROP TABLE IF EXISTS `customer_segments`;
+
 -- =====================================================
 -- Customer Segmentation System
 -- Advanced customer segmentation for targeted marketing
@@ -5,8 +29,8 @@
 
 -- Customer Segments
 CREATE TABLE IF NOT EXISTS `customer_segments` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `description` TEXT NULL,
     `segment_type` ENUM('static', 'dynamic', 'predictive', 'behavioral', 'demographic') NOT NULL DEFAULT 'dynamic',
@@ -17,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `customer_segments` (
     `logic` ENUM('AND', 'OR') DEFAULT 'AND' COMMENT 'How to combine multiple criteria',
 
     -- Membership
-    `current_member_count` INT UNSIGNED DEFAULT 0,
+    `current_member_count` BIGINT UNSIGNED DEFAULT 0,
     `estimated_value` DECIMAL(10, 2) DEFAULT 0.00 COMMENT 'Total LTV of segment',
 
     -- Refresh Settings
@@ -27,15 +51,15 @@ CREATE TABLE IF NOT EXISTS `customer_segments` (
     `next_refresh_at` DATETIME NULL,
 
     -- Performance Tracking
-    `campaigns_sent` INT UNSIGNED DEFAULT 0,
+    `campaigns_sent` BIGINT UNSIGNED DEFAULT 0,
     `total_revenue` DECIMAL(10, 2) DEFAULT 0.00,
     `avg_open_rate` DECIMAL(5, 2) DEFAULT 0.00,
     `avg_click_rate` DECIMAL(5, 2) DEFAULT 0.00,
     `avg_conversion_rate` DECIMAL(5, 2) DEFAULT 0.00,
 
     -- Ownership
-    `created_by` INT UNSIGNED NULL,
-    `updated_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
+    `updated_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -47,9 +71,9 @@ CREATE TABLE IF NOT EXISTS `customer_segments` (
 -- Segment Membership (many-to-many)
 CREATE TABLE IF NOT EXISTS `segment_members` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `segment_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `segment_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Match Details
     `matched_criteria` JSON NULL COMMENT 'Which criteria this customer matched',
@@ -62,8 +86,8 @@ CREATE TABLE IF NOT EXISTS `segment_members` (
 
     -- Customer Snapshot (denormalized for segment analysis)
     `customer_ltv` DECIMAL(10, 2) NULL,
-    `total_bookings` INT UNSIGNED DEFAULT 0,
-    `engagement_score` INT UNSIGNED DEFAULT 0,
+    `total_bookings` BIGINT UNSIGNED DEFAULT 0,
+    `engagement_score` BIGINT UNSIGNED DEFAULT 0,
     `last_purchase_date` DATE NULL,
 
     FOREIGN KEY (`segment_id`) REFERENCES `customer_segments`(`id`) ON DELETE CASCADE,
@@ -76,8 +100,8 @@ CREATE TABLE IF NOT EXISTS `segment_members` (
 
 -- Segment Criteria Library (reusable criteria)
 CREATE TABLE IF NOT EXISTS `segment_criteria_library` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `category` ENUM('demographic', 'behavioral', 'transactional', 'engagement', 'predictive') NOT NULL,
     `description` TEXT NULL,
@@ -92,7 +116,7 @@ CREATE TABLE IF NOT EXISTS `segment_criteria_library` (
     `sql_template` TEXT NULL COMMENT 'SQL WHERE clause template',
 
     -- Usage Stats
-    `times_used` INT UNSIGNED DEFAULT 0,
+    `times_used` BIGINT UNSIGNED DEFAULT 0,
     `last_used_at` DATETIME NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -105,16 +129,16 @@ CREATE TABLE IF NOT EXISTS `segment_criteria_library` (
 -- RFM Analysis (Recency, Frequency, Monetary)
 CREATE TABLE IF NOT EXISTS `customer_rfm_scores` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `analysis_date` DATE NOT NULL,
 
     -- Recency (days since last purchase)
-    `recency_days` INT UNSIGNED NOT NULL,
+    `recency_days` BIGINT UNSIGNED NOT NULL,
     `recency_score` TINYINT UNSIGNED NOT NULL COMMENT '1-5 scale',
 
     -- Frequency (number of purchases)
-    `frequency_count` INT UNSIGNED NOT NULL,
+    `frequency_count` BIGINT UNSIGNED NOT NULL,
     `frequency_score` TINYINT UNSIGNED NOT NULL COMMENT '1-5 scale',
 
     -- Monetary (total spend)
@@ -142,8 +166,8 @@ CREATE TABLE IF NOT EXISTS `customer_rfm_scores` (
 -- Customer Lifecycle Stages
 CREATE TABLE IF NOT EXISTS `customer_lifecycle_stages` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Current Stage
     `current_stage` ENUM('prospect', 'new', 'active', 'loyal', 'at_risk', 'dormant', 'lost', 'win_back') NOT NULL,
@@ -151,12 +175,12 @@ CREATE TABLE IF NOT EXISTS `customer_lifecycle_stages` (
 
     -- Previous Stage
     `previous_stage` VARCHAR(50) NULL,
-    `previous_stage_duration_days` INT UNSIGNED NULL,
+    `previous_stage_duration_days` BIGINT UNSIGNED NULL,
 
     -- Stage Metrics
-    `days_in_current_stage` INT UNSIGNED DEFAULT 0,
+    `days_in_current_stage` BIGINT UNSIGNED DEFAULT 0,
     `total_value_in_stage` DECIMAL(10, 2) DEFAULT 0.00,
-    `interactions_in_stage` INT UNSIGNED DEFAULT 0,
+    `interactions_in_stage` BIGINT UNSIGNED DEFAULT 0,
 
     -- Progression Probability
     `next_likely_stage` VARCHAR(50) NULL,
@@ -164,7 +188,7 @@ CREATE TABLE IF NOT EXISTS `customer_lifecycle_stages` (
 
     -- Automated Actions
     `automation_triggered` BOOLEAN DEFAULT FALSE,
-    `automation_campaign_id` INT UNSIGNED NULL,
+    `automation_campaign_id` BIGINT UNSIGNED NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -240,3 +264,10 @@ INSERT INTO `segment_criteria_library` (
 (1, 'High Email Engagement', 'engagement', 'avg_email_open_rate', 'greater_than', '40', 'number', 'avg_email_open_rate > 40'),
 (1, 'Certification Holder', 'demographic', 'certifications_count', 'greater_than', '0', 'number', 'certifications_count > 0'),
 (1, 'Churn Risk - High', 'predictive', 'churn_risk_score', 'greater_than', '0.7', 'number', 'churn_risk_score > 0.7');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

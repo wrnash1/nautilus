@@ -1,3 +1,33 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `training_materials`;
+DROP TABLE IF EXISTS `student_certifications`;
+DROP TABLE IF EXISTS `instructor_qualifications`;
+DROP TABLE IF EXISTS `skills_assessments`;
+DROP TABLE IF EXISTS `training_enrollments`;
+DROP TABLE IF EXISTS `training_sessions`;
+DROP TABLE IF EXISTS `training_programs`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `training_materials`;
+DROP TABLE IF EXISTS `student_certifications`;
+DROP TABLE IF EXISTS `instructor_qualifications`;
+DROP TABLE IF EXISTS `skills_assessments`;
+DROP TABLE IF EXISTS `training_enrollments`;
+DROP TABLE IF EXISTS `training_sessions`;
+DROP TABLE IF EXISTS `training_programs`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `training_materials`;
+DROP TABLE IF EXISTS `student_certifications`;
+DROP TABLE IF EXISTS `instructor_qualifications`;
+DROP TABLE IF EXISTS `skills_assessments`;
+DROP TABLE IF EXISTS `training_enrollments`;
+DROP TABLE IF EXISTS `training_sessions`;
+DROP TABLE IF EXISTS `training_programs`;
+
 -- =====================================================
 -- Training Tracking System
 -- Comprehensive training, certification, and skills tracking
@@ -5,8 +35,8 @@
 
 -- Training Programs
 CREATE TABLE IF NOT EXISTS `training_programs` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `program_name` VARCHAR(255) NOT NULL,
     `program_code` VARCHAR(50) NULL,
     `program_type` ENUM('certification', 'continuing_education', 'safety', 'skills', 'leadership', 'specialty') NOT NULL,
@@ -47,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `training_programs` (
 
     -- Status
     `is_active` BOOLEAN DEFAULT TRUE,
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -58,9 +88,9 @@ CREATE TABLE IF NOT EXISTS `training_programs` (
 
 -- Training Sessions (scheduled classes)
 CREATE TABLE IF NOT EXISTS `training_sessions` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `program_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `program_id` BIGINT UNSIGNED NOT NULL,
     `session_name` VARCHAR(255) NULL,
     `session_code` VARCHAR(50) NULL COMMENT 'e.g., OW-2024-03',
 
@@ -79,14 +109,14 @@ CREATE TABLE IF NOT EXISTS `training_sessions` (
     `schedule` JSON NULL COMMENT 'Day-by-day schedule',
 
     -- Instructor
-    `lead_instructor_id` INT UNSIGNED NULL,
+    `lead_instructor_id` BIGINT UNSIGNED NULL,
     `assistant_instructors` JSON NULL COMMENT 'Array of instructor IDs',
 
     -- Capacity
-    `max_students` INT UNSIGNED DEFAULT 8,
-    `min_students` INT UNSIGNED DEFAULT 4,
-    `enrolled_count` INT UNSIGNED DEFAULT 0,
-    `waitlist_count` INT UNSIGNED DEFAULT 0,
+    `max_students` BIGINT UNSIGNED DEFAULT 8,
+    `min_students` BIGINT UNSIGNED DEFAULT 4,
+    `enrolled_count` BIGINT UNSIGNED DEFAULT 0,
+    `waitlist_count` BIGINT UNSIGNED DEFAULT 0,
 
     -- Status
     `status` ENUM('scheduled', 'open_enrollment', 'full', 'in_progress', 'completed', 'cancelled') DEFAULT 'scheduled',
@@ -100,7 +130,7 @@ CREATE TABLE IF NOT EXISTS `training_sessions` (
     -- Notes
     `special_notes` TEXT NULL,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -114,10 +144,10 @@ CREATE TABLE IF NOT EXISTS `training_sessions` (
 -- Training Enrollments
 CREATE TABLE IF NOT EXISTS `training_enrollments` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `session_id` INT UNSIGNED NOT NULL,
-    `student_id` INT UNSIGNED NOT NULL,
-    `program_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `session_id` BIGINT UNSIGNED NOT NULL,
+    `student_id` BIGINT UNSIGNED NOT NULL,
+    `program_id` BIGINT UNSIGNED NOT NULL,
 
     -- Enrollment Details
     `enrollment_date` DATE NOT NULL,
@@ -125,7 +155,7 @@ CREATE TABLE IF NOT EXISTS `training_enrollments` (
 
     -- Prerequisites Check
     `prerequisites_verified` BOOLEAN DEFAULT FALSE,
-    `verified_by` INT UNSIGNED NULL,
+    `verified_by` BIGINT UNSIGNED NULL,
     `verified_at` DATETIME NULL,
 
     -- Medical & Liability
@@ -190,11 +220,11 @@ CREATE TABLE IF NOT EXISTS `training_enrollments` (
 -- Skills Assessment Records
 CREATE TABLE IF NOT EXISTS `skills_assessments` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `enrollment_id` BIGINT UNSIGNED NOT NULL,
-    `student_id` INT UNSIGNED NOT NULL,
-    `assessor_id` INT UNSIGNED NOT NULL COMMENT 'Instructor ID',
-    `program_id` INT UNSIGNED NOT NULL,
+    `student_id` BIGINT UNSIGNED NOT NULL,
+    `assessor_id` BIGINT UNSIGNED NOT NULL COMMENT 'Instructor ID',
+    `program_id` BIGINT UNSIGNED NOT NULL,
 
     -- Assessment Details
     `assessment_date` DATE NOT NULL,
@@ -209,9 +239,9 @@ CREATE TABLE IF NOT EXISTS `skills_assessments` (
 
     -- Skills Evaluated
     `skills_evaluated` JSON NOT NULL COMMENT 'Array of skill objects with pass/fail',
-    `skills_passed` INT UNSIGNED DEFAULT 0,
-    `skills_failed` INT UNSIGNED DEFAULT 0,
-    `skills_total` INT UNSIGNED NOT NULL,
+    `skills_passed` BIGINT UNSIGNED DEFAULT 0,
+    `skills_failed` BIGINT UNSIGNED DEFAULT 0,
+    `skills_total` BIGINT UNSIGNED NOT NULL,
 
     -- Performance
     `overall_rating` ENUM('excellent', 'good', 'satisfactory', 'needs_improvement', 'fail') NULL,
@@ -247,9 +277,9 @@ CREATE TABLE IF NOT EXISTS `skills_assessments` (
 
 -- Instructor Certifications & Qualifications
 CREATE TABLE IF NOT EXISTS `instructor_qualifications` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `instructor_id` INT UNSIGNED NOT NULL COMMENT 'Staff/User ID',
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `instructor_id` BIGINT UNSIGNED NOT NULL COMMENT 'Staff/User ID',
 
     -- Certification Details
     `certification_type` VARCHAR(100) NOT NULL COMMENT 'e.g., PADI OWSI, SSI Instructor, etc.',
@@ -277,8 +307,8 @@ CREATE TABLE IF NOT EXISTS `instructor_qualifications` (
     `status_notes` TEXT NULL,
 
     -- Teaching Stats
-    `total_students_certified` INT UNSIGNED DEFAULT 0,
-    `total_courses_taught` INT UNSIGNED DEFAULT 0,
+    `total_students_certified` BIGINT UNSIGNED DEFAULT 0,
+    `total_courses_taught` BIGINT UNSIGNED DEFAULT 0,
     `average_student_rating` DECIMAL(3, 2) DEFAULT 0.00,
 
     -- Documents
@@ -297,10 +327,10 @@ CREATE TABLE IF NOT EXISTS `instructor_qualifications` (
 -- Student Certifications Earned
 CREATE TABLE IF NOT EXISTS `student_certifications` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `student_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `student_id` BIGINT UNSIGNED NOT NULL,
     `enrollment_id` BIGINT UNSIGNED NULL,
-    `program_id` INT UNSIGNED NULL,
+    `program_id` BIGINT UNSIGNED NULL,
 
     -- Certification Details
     `certification_name` VARCHAR(255) NOT NULL,
@@ -314,7 +344,7 @@ CREATE TABLE IF NOT EXISTS `student_certifications` (
     `last_renewed_date` DATE NULL,
 
     -- Issuing Instructor
-    `instructor_id` INT UNSIGNED NULL,
+    `instructor_id` BIGINT UNSIGNED NULL,
     `instructor_name` VARCHAR(255) NULL,
     `instructor_number` VARCHAR(100) NULL,
 
@@ -351,9 +381,9 @@ CREATE TABLE IF NOT EXISTS `student_certifications` (
 
 -- Training Materials & eLearning
 CREATE TABLE IF NOT EXISTS `training_materials` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `program_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `program_id` BIGINT UNSIGNED NULL,
 
     -- Material Details
     `material_name` VARCHAR(255) NOT NULL,
@@ -425,3 +455,10 @@ INSERT INTO `training_sessions` (
 (1, 1, 'Open Water - March Weekend', 'OW-2024-03-WE', '2024-03-15', '2024-03-17', 8, 4, 'open_enrollment', '2024-03-08'),
 (1, 2, 'Advanced Open Water - April', 'AOW-2024-04', '2024-04-05', '2024-04-06', 6, 3, 'scheduled', '2024-03-29'),
 (1, 3, 'Rescue Diver - May', 'RD-2024-05', '2024-05-10', '2024-05-12', 6, 3, 'scheduled', '2024-05-03');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

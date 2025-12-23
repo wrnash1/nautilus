@@ -1,3 +1,36 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `attendance_records`;
+DROP TABLE IF EXISTS `labor_budgets`;
+DROP TABLE IF EXISTS `shift_swap_requests`;
+DROP TABLE IF EXISTS `employee_availability`;
+DROP TABLE IF EXISTS `time_off_requests`;
+DROP TABLE IF EXISTS `shifts`;
+DROP TABLE IF EXISTS `work_schedules`;
+DROP TABLE IF EXISTS `employees`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `attendance_records`;
+DROP TABLE IF EXISTS `labor_budgets`;
+DROP TABLE IF EXISTS `shift_swap_requests`;
+DROP TABLE IF EXISTS `employee_availability`;
+DROP TABLE IF EXISTS `time_off_requests`;
+DROP TABLE IF EXISTS `shifts`;
+DROP TABLE IF EXISTS `work_schedules`;
+DROP TABLE IF EXISTS `employees`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `attendance_records`;
+DROP TABLE IF EXISTS `labor_budgets`;
+DROP TABLE IF EXISTS `shift_swap_requests`;
+DROP TABLE IF EXISTS `employee_availability`;
+DROP TABLE IF EXISTS `time_off_requests`;
+DROP TABLE IF EXISTS `shifts`;
+DROP TABLE IF EXISTS `work_schedules`;
+DROP TABLE IF EXISTS `employees`;
+
 -- =====================================================
 -- Employee Scheduling System
 -- Staff scheduling, time tracking, and shift management
@@ -5,9 +38,9 @@
 
 -- Employee/Staff Table (extends users)
 CREATE TABLE IF NOT EXISTS `employees` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `user_id` INT UNSIGNED NULL COMMENT 'Link to users table',
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `user_id` BIGINT UNSIGNED NULL COMMENT 'Link to users table',
 
     -- Personal Information
     `employee_number` VARCHAR(50) NOT NULL UNIQUE,
@@ -61,8 +94,8 @@ CREATE TABLE IF NOT EXISTS `employees` (
 
 -- Work Schedules (weekly/monthly schedules)
 CREATE TABLE IF NOT EXISTS `work_schedules` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `schedule_name` VARCHAR(255) NOT NULL,
 
     -- Period
@@ -73,21 +106,21 @@ CREATE TABLE IF NOT EXISTS `work_schedules` (
     -- Status
     `status` ENUM('draft', 'published', 'archived') DEFAULT 'draft',
     `published_at` DATETIME NULL,
-    `published_by` INT UNSIGNED NULL,
+    `published_by` BIGINT UNSIGNED NULL,
 
     -- Notifications
     `employees_notified` BOOLEAN DEFAULT FALSE,
     `notification_sent_at` DATETIME NULL,
 
     -- Stats
-    `total_shifts` INT UNSIGNED DEFAULT 0,
+    `total_shifts` BIGINT UNSIGNED DEFAULT 0,
     `total_hours_scheduled` DECIMAL(8, 2) DEFAULT 0.00,
     `total_labor_cost` DECIMAL(10, 2) DEFAULT 0.00,
 
     -- Notes
     `notes` TEXT NULL,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -99,9 +132,9 @@ CREATE TABLE IF NOT EXISTS `work_schedules` (
 -- Shifts
 CREATE TABLE IF NOT EXISTS `shifts` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `schedule_id` INT UNSIGNED NULL,
-    `employee_id` INT UNSIGNED NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `schedule_id` BIGINT UNSIGNED NULL,
+    `employee_id` BIGINT UNSIGNED NULL,
 
     -- Shift Details
     `shift_date` DATE NOT NULL,
@@ -127,11 +160,11 @@ CREATE TABLE IF NOT EXISTS `shifts` (
     `requires_coverage` BOOLEAN DEFAULT FALSE,
     `coverage_requested` BOOLEAN DEFAULT FALSE,
     `coverage_found` BOOLEAN DEFAULT FALSE,
-    `covered_by_employee_id` INT UNSIGNED NULL,
+    `covered_by_employee_id` BIGINT UNSIGNED NULL,
 
     -- Trade Requests
     `trade_requested` BOOLEAN DEFAULT FALSE,
-    `trade_with_employee_id` INT UNSIGNED NULL,
+    `trade_with_employee_id` BIGINT UNSIGNED NULL,
     `trade_approved` BOOLEAN DEFAULT FALSE,
 
     -- Check-in/Check-out
@@ -157,7 +190,7 @@ CREATE TABLE IF NOT EXISTS `shifts` (
     `notes` TEXT NULL,
     `manager_notes` TEXT NULL,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -172,15 +205,15 @@ CREATE TABLE IF NOT EXISTS `shifts` (
 
 -- Time Off Requests
 CREATE TABLE IF NOT EXISTS `time_off_requests` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `employee_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `employee_id` BIGINT UNSIGNED NOT NULL,
 
     -- Request Details
     `request_type` ENUM('vacation', 'sick', 'personal', 'unpaid', 'bereavement', 'jury_duty', 'other') NOT NULL,
     `start_date` DATE NOT NULL,
     `end_date` DATE NOT NULL,
-    `total_days` INT UNSIGNED NOT NULL,
+    `total_days` BIGINT UNSIGNED NOT NULL,
     `total_hours` DECIMAL(6, 2) NULL,
 
     -- Partial Day
@@ -194,7 +227,7 @@ CREATE TABLE IF NOT EXISTS `time_off_requests` (
 
     -- Approval
     `status` ENUM('pending', 'approved', 'denied', 'cancelled') DEFAULT 'pending',
-    `reviewed_by` INT UNSIGNED NULL,
+    `reviewed_by` BIGINT UNSIGNED NULL,
     `reviewed_at` DATETIME NULL,
     `denial_reason` TEXT NULL,
 
@@ -217,9 +250,9 @@ CREATE TABLE IF NOT EXISTS `time_off_requests` (
 
 -- Availability Templates
 CREATE TABLE IF NOT EXISTS `employee_availability` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `employee_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `employee_id` BIGINT UNSIGNED NOT NULL,
 
     -- Recurring Availability
     `day_of_week` TINYINT NOT NULL COMMENT '0=Sunday, 6=Saturday',
@@ -247,14 +280,14 @@ CREATE TABLE IF NOT EXISTS `employee_availability` (
 
 -- Shift Swap Requests
 CREATE TABLE IF NOT EXISTS `shift_swap_requests` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `requesting_employee_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `requesting_employee_id` BIGINT UNSIGNED NOT NULL,
     `shift_to_swap_id` BIGINT UNSIGNED NOT NULL,
 
     -- Swap Details
     `swap_type` ENUM('give_away', 'trade', 'cover_needed') NOT NULL,
-    `target_employee_id` INT UNSIGNED NULL COMMENT 'Specific employee to swap with',
+    `target_employee_id` BIGINT UNSIGNED NULL COMMENT 'Specific employee to swap with',
     `shift_offered_in_return_id` BIGINT UNSIGNED NULL COMMENT 'For trades',
 
     -- Request
@@ -263,12 +296,12 @@ CREATE TABLE IF NOT EXISTS `shift_swap_requests` (
 
     -- Status
     `status` ENUM('pending', 'accepted', 'declined', 'manager_approved', 'manager_denied', 'cancelled', 'expired') DEFAULT 'pending',
-    `responded_by` INT UNSIGNED NULL,
+    `responded_by` BIGINT UNSIGNED NULL,
     `responded_at` DATETIME NULL,
 
     -- Manager Approval
     `requires_manager_approval` BOOLEAN DEFAULT TRUE,
-    `manager_approved_by` INT UNSIGNED NULL,
+    `manager_approved_by` BIGINT UNSIGNED NULL,
     `manager_approved_at` DATETIME NULL,
     `manager_notes` TEXT NULL,
 
@@ -287,8 +320,8 @@ CREATE TABLE IF NOT EXISTS `shift_swap_requests` (
 
 -- Labor Cost Budgets
 CREATE TABLE IF NOT EXISTS `labor_budgets` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Budget Period
     `budget_period` VARCHAR(7) NOT NULL COMMENT 'YYYY-MM',
@@ -314,7 +347,7 @@ CREATE TABLE IF NOT EXISTS `labor_budgets` (
     `alert_triggered` BOOLEAN DEFAULT FALSE,
     `alert_triggered_at` DATETIME NULL,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -326,8 +359,8 @@ CREATE TABLE IF NOT EXISTS `labor_budgets` (
 -- Attendance Records
 CREATE TABLE IF NOT EXISTS `attendance_records` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `employee_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `employee_id` BIGINT UNSIGNED NOT NULL,
     `shift_id` BIGINT UNSIGNED NULL,
 
     -- Date
@@ -352,7 +385,7 @@ CREATE TABLE IF NOT EXISTS `attendance_records` (
     -- Disciplinary
     `requires_action` BOOLEAN DEFAULT FALSE,
     `action_taken` VARCHAR(255) NULL,
-    `action_taken_by` INT UNSIGNED NULL,
+    `action_taken_by` BIGINT UNSIGNED NULL,
     `action_taken_at` DATETIME NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -401,3 +434,10 @@ INSERT INTO `shifts` (
 (1, 1, 1, '2024-03-16', '09:00:00', '17:00:00', 'Store Manager', 'Main Store', 'scheduled', 8.00),
 (1, 1, 4, '2024-03-16', '10:00:00', '18:00:00', 'Divemaster', 'Boat', 'scheduled', 8.00),
 (1, 1, 5, '2024-03-16', '11:00:00', '19:00:00', 'Retail Manager', 'Main Store', 'scheduled', 8.00);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

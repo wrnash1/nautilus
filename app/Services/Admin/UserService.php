@@ -20,7 +20,7 @@ class UserService
         }
 
         if ($role) {
-            $where[] = "u.role_id = ?";
+            $where[] = "r.id = ?";
             $params[] = $role;
         }
 
@@ -33,7 +33,8 @@ class UserService
 
         $sql = "SELECT u.*, r.name as role_name
                 FROM users u
-                LEFT JOIN roles r ON u.role_id = r.id
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
                 $whereClause
                 ORDER BY u.created_at DESC";
 
@@ -42,9 +43,10 @@ class UserService
 
     public function getUserById(int $id): ?array
     {
-        $sql = "SELECT u.*, r.name as role_name
+        $sql = "SELECT u.*, r.name as role_name, r.id as role_id
                 FROM users u
-                LEFT JOIN roles r ON u.role_id = r.id
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
                 WHERE u.id = ?";
 
         return Database::fetchOne($sql, [$id]);
@@ -63,8 +65,8 @@ class UserService
 
         $sql = "INSERT INTO users (
                     email, password_hash, first_name, last_name, phone,
-                    role_id, is_active, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+                    is_active, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, NOW())";
 
         Database::execute($sql, [
             $data['email'],
@@ -72,11 +74,14 @@ class UserService
             $data['first_name'],
             $data['last_name'],
             $data['phone'] ?? '',
-            $data['role_id'],
             $data['is_active'] ?? 1
         ]);
 
         $userId = Database::lastInsertId();
+
+        // Assign role
+        $roleSql = "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)";
+        Database::execute($roleSql, [$userId, $data['role_id']]);
 
         logAudit('user', 'create', $userId, ['email' => $data['email']]);
 
@@ -99,13 +104,12 @@ class UserService
             $data['first_name'],
             $data['last_name'],
             $data['phone'] ?? '',
-            $data['role_id'],
             $data['is_active'] ?? 1
         ];
 
         $sql = "UPDATE users SET
                 email = ?, first_name = ?, last_name = ?, phone = ?,
-                role_id = ?, is_active = ?";
+                is_active = ?";
 
         if (!empty($data['password'])) {
             $sql .= ", password_hash = ?";
@@ -116,6 +120,12 @@ class UserService
         $params[] = $id;
 
         $result = Database::execute($sql, $params);
+
+        // Update role
+        // For simplicity, we delete existing roles and insert the new one
+        // This maintains the 1-to-1 UI paradigm while supporting the M-to-M schema
+        Database::execute("DELETE FROM user_roles WHERE user_id = ?", [$id]);
+        Database::execute("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)", [$id, $data['role_id']]);
 
         logAudit('user', 'update', $id, $data);
 

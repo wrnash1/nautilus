@@ -202,7 +202,7 @@ class CleanupOldDataJob
     private function cleanupLogFiles(): void
     {
         try {
-            $logPath = __DIR__ . '/../../storage/logs';
+            $logPath = $_ENV['LOG_PATH'] ?? __DIR__ . '/../../storage/logs';
             if (!is_dir($logPath)) {
                 $this->results['log_files'] = 'no log directory';
                 return;

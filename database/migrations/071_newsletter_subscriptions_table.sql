@@ -1,9 +1,21 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `newsletter_subscriptions`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `newsletter_subscriptions`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `newsletter_subscriptions`;
+
 -- Newsletter Subscriptions Table
 -- Manages email newsletter subscriptions
 
 CREATE TABLE IF NOT EXISTS newsletter_subscriptions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED NOT NULL,
 
     -- Subscriber Information
     email VARCHAR(255) NOT NULL,
@@ -29,3 +41,10 @@ CREATE INDEX idx_newsletter_tenant ON newsletter_subscriptions(tenant_id);
 CREATE INDEX idx_newsletter_email ON newsletter_subscriptions(email);
 CREATE INDEX idx_newsletter_token ON newsletter_subscriptions(confirm_token);
 CREATE INDEX idx_newsletter_active ON newsletter_subscriptions(is_active);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

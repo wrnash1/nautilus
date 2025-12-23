@@ -4,8 +4,17 @@
 -- ==========================================
 
 -- Compressors Table
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS compressor_log_parts;
+DROP TABLE IF EXISTS compressor_parts;
+DROP TABLE IF EXISTS compressor_alerts;
+DROP TABLE IF EXISTS compressor_maintenance_schedule;
+DROP TABLE IF EXISTS compressor_logs;
+DROP TABLE IF EXISTS compressors;
+
 CREATE TABLE IF NOT EXISTS compressors (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 
     -- Basic Information
     name VARCHAR(100) NOT NULL,
@@ -53,9 +62,9 @@ CREATE TABLE IF NOT EXISTS compressors (
 
     -- Audit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    updated_by INT UNSIGNED,
+    updated_by BIGINT UNSIGNED,
 
     INDEX idx_active (is_active),
     INDEX idx_operational (is_operational),
@@ -64,8 +73,8 @@ CREATE TABLE IF NOT EXISTS compressors (
 
 -- Compressor Logs (Hours, Oil Changes, Service)
 CREATE TABLE IF NOT EXISTS compressor_logs (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    compressor_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    compressor_id BIGINT UNSIGNED NOT NULL,
 
     -- Log Entry Details
     log_type ENUM('hours_logged', 'oil_change', 'filter_change', 'major_service',
@@ -83,7 +92,7 @@ CREATE TABLE IF NOT EXISTS compressor_logs (
 
     -- Personnel
     performed_by VARCHAR(100) COMMENT 'Technician or staff member name',
-    logged_by INT UNSIGNED,
+    logged_by BIGINT UNSIGNED,
 
     -- Timestamp
     log_date DATE NOT NULL,
@@ -105,8 +114,8 @@ CREATE TABLE IF NOT EXISTS compressor_logs (
 
 -- Compressor Maintenance Schedule
 CREATE TABLE IF NOT EXISTS compressor_maintenance_schedule (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    compressor_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    compressor_id BIGINT UNSIGNED NOT NULL,
 
     -- Maintenance Details
     maintenance_type ENUM('oil_change', 'filter_change', 'major_service', 'inspection', 'custom') NOT NULL,
@@ -120,8 +129,8 @@ CREATE TABLE IF NOT EXISTS compressor_maintenance_schedule (
     status ENUM('scheduled', 'in_progress', 'completed', 'skipped', 'cancelled') DEFAULT 'scheduled',
 
     -- Assignment
-    assigned_to INT UNSIGNED COMMENT 'User assigned to perform maintenance',
-    completed_by INT UNSIGNED,
+    assigned_to BIGINT UNSIGNED COMMENT 'User assigned to perform maintenance',
+    completed_by BIGINT UNSIGNED,
 
     -- Details
     estimated_cost DECIMAL(10,2),
@@ -139,7 +148,7 @@ CREATE TABLE IF NOT EXISTS compressor_maintenance_schedule (
 
     -- Audit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (compressor_id) REFERENCES compressors(id) ON DELETE CASCADE,
@@ -151,8 +160,8 @@ CREATE TABLE IF NOT EXISTS compressor_maintenance_schedule (
 
 -- Compressor Alerts
 CREATE TABLE IF NOT EXISTS compressor_alerts (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    compressor_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    compressor_id BIGINT UNSIGNED NOT NULL,
 
     -- Alert Details
     alert_type ENUM('oil_change_due', 'filter_change_due', 'service_due',
@@ -163,7 +172,7 @@ CREATE TABLE IF NOT EXISTS compressor_alerts (
     -- Status
     is_active BOOLEAN DEFAULT TRUE,
     is_acknowledged BOOLEAN DEFAULT FALSE,
-    acknowledged_by INT UNSIGNED NULL,
+    acknowledged_by BIGINT UNSIGNED NULL,
     acknowledged_at TIMESTAMP NULL,
 
     -- Auto-Dismiss
@@ -181,7 +190,7 @@ CREATE TABLE IF NOT EXISTS compressor_alerts (
 
 -- Compressor Parts Inventory
 CREATE TABLE IF NOT EXISTS compressor_parts (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 
     -- Part Information
     part_number VARCHAR(100) NOT NULL,
@@ -218,9 +227,9 @@ CREATE TABLE IF NOT EXISTS compressor_parts (
 
 -- Link parts used in maintenance
 CREATE TABLE IF NOT EXISTS compressor_log_parts (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    log_id INT UNSIGNED NOT NULL,
-    part_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    log_id BIGINT UNSIGNED NOT NULL,
+    part_id BIGINT UNSIGNED NOT NULL,
     quantity_used INT NOT NULL DEFAULT 1,
 
     FOREIGN KEY (log_id) REFERENCES compressor_logs(id) ON DELETE CASCADE,
@@ -282,3 +291,4 @@ INSERT INTO compressor_parts (part_number, part_name, description, manufacturer,
 -- ALTER TABLE compressor_alerts COMMENT = 'Active alerts for compressor maintenance';
 -- ALTER TABLE compressor_parts COMMENT = 'Parts inventory for compressor maintenance';
 -- ALTER TABLE compressor_log_parts COMMENT = 'Parts used in each maintenance log entry';
+SET FOREIGN_KEY_CHECKS=1;

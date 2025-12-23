@@ -1,10 +1,37 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `permission_audit_log`;
+DROP TABLE IF EXISTS `user_permissions`;
+DROP TABLE IF EXISTS `user_roles`;
+DROP TABLE IF EXISTS `role_permissions`;
+DROP TABLE IF EXISTS `permissions`;
+DROP TABLE IF EXISTS `roles`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `permission_audit_log`;
+DROP TABLE IF EXISTS `user_permissions`;
+DROP TABLE IF EXISTS `user_roles`;
+DROP TABLE IF EXISTS `role_permissions`;
+DROP TABLE IF EXISTS `permissions`;
+DROP TABLE IF EXISTS `roles`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `permission_audit_log`;
+DROP TABLE IF EXISTS `user_permissions`;
+DROP TABLE IF EXISTS `user_roles`;
+DROP TABLE IF EXISTS `role_permissions`;
+DROP TABLE IF EXISTS `permissions`;
+DROP TABLE IF EXISTS `roles`;
+
 -- User Permissions and Roles System
 -- Comprehensive RBAC (Role-Based Access Control) system
 
 -- Roles table
 CREATE TABLE IF NOT EXISTS roles (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED,
     role_name VARCHAR(100) NOT NULL,
     role_code VARCHAR(50) NOT NULL,
     description TEXT,
@@ -22,7 +49,7 @@ CREATE TABLE IF NOT EXISTS roles (
 
 -- Permissions table
 CREATE TABLE IF NOT EXISTS permissions (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     permission_name VARCHAR(100) NOT NULL,
     permission_code VARCHAR(100) UNIQUE NOT NULL,
     category VARCHAR(50) NOT NULL,
@@ -37,9 +64,9 @@ CREATE TABLE IF NOT EXISTS permissions (
 
 -- Role Permissions (many-to-many)
 CREATE TABLE IF NOT EXISTS role_permissions (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    role_id INT UNSIGNED NOT NULL,
-    permission_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    role_id BIGINT UNSIGNED NOT NULL,
+    permission_id BIGINT UNSIGNED NOT NULL,
     granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
@@ -51,10 +78,10 @@ CREATE TABLE IF NOT EXISTS role_permissions (
 
 -- User Roles (many-to-many)
 CREATE TABLE IF NOT EXISTS user_roles (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
-    role_id INT UNSIGNED NOT NULL,
-    assigned_by INT UNSIGNED,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    role_id BIGINT UNSIGNED NOT NULL,
+    assigned_by BIGINT UNSIGNED,
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NULL,
 
@@ -69,11 +96,11 @@ CREATE TABLE IF NOT EXISTS user_roles (
 
 -- Direct User Permissions (override role permissions)
 CREATE TABLE IF NOT EXISTS user_permissions (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
-    permission_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    permission_id BIGINT UNSIGNED NOT NULL,
     is_granted BOOLEAN DEFAULT TRUE,
-    granted_by INT UNSIGNED,
+    granted_by BIGINT UNSIGNED,
     granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NULL,
     reason TEXT,
@@ -91,12 +118,12 @@ CREATE TABLE IF NOT EXISTS user_permissions (
 -- Permission Audit Log
 CREATE TABLE IF NOT EXISTS permission_audit_log (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    user_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED,
     action VARCHAR(50) NOT NULL,
     permission_code VARCHAR(100),
-    role_id INT UNSIGNED,
-    granted_to_user_id INT UNSIGNED,
+    role_id BIGINT UNSIGNED,
+    granted_to_user_id BIGINT UNSIGNED,
     ip_address VARCHAR(45),
     user_agent VARCHAR(500),
     metadata JSON,
@@ -126,3 +153,10 @@ CREATE TABLE IF NOT EXISTS permission_audit_log (
 -- (NULL, 'Sales Associate', 'sales_associate', 'Process sales and assist customers', TRUE),
 -- (NULL, 'Instructor', 'instructor', 'Manage courses and students', TRUE),
 -- (NULL, 'Viewer', 'viewer', 'Read-only access', TRUE);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

@@ -54,7 +54,13 @@ class StorefrontController extends Controller
     {
         // Global Storefront Data
         $data['active_announcements'] = $this->settingsService->getActiveBanners();
-        $data['social_links'] = $this->settingsService->getByCategory('social'); // Get social links
+        $socialSettings = $this->settingsService->getByCategory('social');
+        $socialLinks = [];
+        foreach ($socialSettings as $key => $val) {
+             $socialLinks[$key] = $val['value'];
+        }
+        $data['social_links'] = $socialLinks;
+        
         $data['store_stats'] = $this->settingsService->getStoreStats(); // Get dynamic stats
         
         // Pass settings service for direct access

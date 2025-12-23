@@ -137,6 +137,7 @@ ob_start();
             </div>
             <div class="card-body">
                 <form method="POST" action="/store/admin/settings/update">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                     <input type="hidden" name="category" value="general">
 
                     <div class="mb-3">

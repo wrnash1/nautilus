@@ -105,7 +105,7 @@ INSERT INTO subscription_plans (plan_name, plan_code, description, monthly_price
 CREATE TABLE IF NOT EXISTS tenant_users (
     id INTEGER  PRIMARY KEY,
     tenant_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
+    user_id BIGINTEGER NOT NULL,
     role VARCHAR(50) DEFAULT 'user',
     is_owner BOOLEAN DEFAULT FALSE,
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -249,7 +249,7 @@ CREATE TABLE IF NOT EXISTS tenant_billing (
 CREATE TABLE IF NOT EXISTS tenant_activity_log (
     id BIGINT  PRIMARY KEY,
     tenant_id INTEGER NOT NULL,
-    user_id INT UNSIGNED,
+    user_id BIGINT UNSIGNED,
     activity_type VARCHAR(50) NOT NULL, -- login, logout, create, update, delete, etc.
     entity_type VARCHAR(50), -- product, customer, transaction, etc.
     entity_id INT,

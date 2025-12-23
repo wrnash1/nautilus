@@ -1,10 +1,49 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `tenant_onboarding`;
+DROP TABLE IF EXISTS `tenant_activity_log`;
+DROP TABLE IF EXISTS `tenant_billing`;
+DROP TABLE IF EXISTS `tenant_usage`;
+DROP TABLE IF EXISTS `tenant_api_keys`;
+DROP TABLE IF EXISTS `tenant_settings`;
+DROP TABLE IF EXISTS `tenant_invitations`;
+DROP TABLE IF EXISTS `tenant_users`;
+DROP TABLE IF EXISTS `subscription_plans`;
+DROP TABLE IF EXISTS `tenants`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `tenant_onboarding`;
+DROP TABLE IF EXISTS `tenant_activity_log`;
+DROP TABLE IF EXISTS `tenant_billing`;
+DROP TABLE IF EXISTS `tenant_usage`;
+DROP TABLE IF EXISTS `tenant_api_keys`;
+DROP TABLE IF EXISTS `tenant_settings`;
+DROP TABLE IF EXISTS `tenant_invitations`;
+DROP TABLE IF EXISTS `tenant_users`;
+DROP TABLE IF EXISTS `subscription_plans`;
+DROP TABLE IF EXISTS `tenants`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `tenant_onboarding`;
+DROP TABLE IF EXISTS `tenant_activity_log`;
+DROP TABLE IF EXISTS `tenant_billing`;
+DROP TABLE IF EXISTS `tenant_usage`;
+DROP TABLE IF EXISTS `tenant_api_keys`;
+DROP TABLE IF EXISTS `tenant_settings`;
+DROP TABLE IF EXISTS `tenant_invitations`;
+DROP TABLE IF EXISTS `tenant_users`;
+DROP TABLE IF EXISTS `subscription_plans`;
+DROP TABLE IF EXISTS `tenants`;
+
 -- Multi-Tenant Architecture
 -- Creates infrastructure for supporting multiple companies/tenants
 -- Each tenant has isolated data while sharing the same codebase
 
 -- Tenants/Companies table
 CREATE TABLE IF NOT EXISTS tenants (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     tenant_uuid VARCHAR(36) UNIQUE NOT NULL,
     company_name VARCHAR(255) NOT NULL,
     subdomain VARCHAR(100) UNIQUE,
@@ -63,11 +102,11 @@ CREATE TABLE IF NOT EXISTS tenants (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Ensure plan_id exists if table was created by 000_CORE_SCHEMA
-ALTER TABLE tenants ADD COLUMN IF NOT EXISTS plan_id INT;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS plan_id BIGINT UNSIGNED;
 
 -- Subscription plans
 CREATE TABLE IF NOT EXISTS subscription_plans (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     plan_name VARCHAR(100) NOT NULL,
     plan_code VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
@@ -106,9 +145,9 @@ INSERT IGNORE INTO subscription_plans (plan_name, plan_code, description, monthl
 
 -- Tenant users relationship (multi-tenant user mapping)
 CREATE TABLE IF NOT EXISTS tenant_users (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
-    user_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
     role VARCHAR(50) DEFAULT 'user',
     is_owner BOOLEAN DEFAULT FALSE,
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -122,12 +161,12 @@ CREATE TABLE IF NOT EXISTS tenant_users (
 
 -- Tenant invitations
 CREATE TABLE IF NOT EXISTS tenant_invitations (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
     email VARCHAR(255) NOT NULL,
     token VARCHAR(64) UNIQUE NOT NULL,
     role VARCHAR(50) DEFAULT 'user',
-    invited_by INT UNSIGNED NOT NULL,
+    invited_by BIGINT UNSIGNED NOT NULL,
     status ENUM('pending', 'accepted', 'expired', 'cancelled') DEFAULT 'pending',
     expires_at TIMESTAMP NOT NULL,
     accepted_at TIMESTAMP NULL,
@@ -143,8 +182,8 @@ CREATE TABLE IF NOT EXISTS tenant_invitations (
 
 -- Tenant settings (key-value storage for tenant-specific settings)
 CREATE TABLE IF NOT EXISTS tenant_settings (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
     setting_key VARCHAR(100) NOT NULL,
     setting_value TEXT,
     setting_type VARCHAR(20) DEFAULT 'string', -- string, number, boolean, json
@@ -160,8 +199,8 @@ CREATE TABLE IF NOT EXISTS tenant_settings (
 
 -- Tenant API keys (for programmatic access)
 CREATE TABLE IF NOT EXISTS tenant_api_keys (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
     key_name VARCHAR(100) NOT NULL,
     api_key VARCHAR(64) UNIQUE NOT NULL,
     api_secret VARCHAR(128), -- Hashed
@@ -169,7 +208,7 @@ CREATE TABLE IF NOT EXISTS tenant_api_keys (
     is_active BOOLEAN DEFAULT TRUE,
     last_used_at TIMESTAMP NULL,
     expires_at TIMESTAMP NULL,
-    created_by INT UNSIGNED NOT NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
@@ -182,7 +221,7 @@ CREATE TABLE IF NOT EXISTS tenant_api_keys (
 -- Usage tracking (for billing and quotas)
 CREATE TABLE IF NOT EXISTS tenant_usage (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED NOT NULL,
     usage_date DATE NOT NULL,
 
     -- User metrics
@@ -216,7 +255,7 @@ CREATE TABLE IF NOT EXISTS tenant_usage (
 -- Tenant billing history
 CREATE TABLE IF NOT EXISTS tenant_billing (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED NOT NULL,
     invoice_number VARCHAR(50) UNIQUE NOT NULL,
     billing_period_start DATE NOT NULL,
     billing_period_end DATE NOT NULL,
@@ -251,8 +290,8 @@ CREATE TABLE IF NOT EXISTS tenant_billing (
 -- Tenant activity log (audit trail)
 CREATE TABLE IF NOT EXISTS tenant_activity_log (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
-    user_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED,
     activity_type VARCHAR(50) NOT NULL, -- login, logout, create, update, delete, etc.
     entity_type VARCHAR(50), -- product, customer, transaction, etc.
     entity_id INT,
@@ -273,37 +312,37 @@ CREATE TABLE IF NOT EXISTS tenant_activity_log (
 
 -- Add tenant_id to existing tables for data isolation
 -- customers table
-ALTER TABLE customers ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS tenant_id BIGINT UNSIGNED NULL;
 CREATE INDEX IF NOT EXISTS idx_tenant_id ON customers(tenant_id);
 
 -- products table
-ALTER TABLE products ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS tenant_id BIGINT UNSIGNED NULL;
 CREATE INDEX IF NOT EXISTS idx_tenant_id ON products(tenant_id);
 
 -- product_categories table
-ALTER TABLE product_categories ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL;
+ALTER TABLE product_categories ADD COLUMN IF NOT EXISTS tenant_id BIGINT UNSIGNED NULL;
 CREATE INDEX IF NOT EXISTS idx_tenant_id ON product_categories(tenant_id);
 
 -- pos_transactions table
-ALTER TABLE pos_transactions ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL;
+ALTER TABLE pos_transactions ADD COLUMN IF NOT EXISTS tenant_id BIGINT UNSIGNED NULL;
 CREATE INDEX IF NOT EXISTS idx_tenant_id ON pos_transactions(tenant_id);
 
 -- courses table
-ALTER TABLE courses ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL;
+ALTER TABLE courses ADD COLUMN IF NOT EXISTS tenant_id BIGINT UNSIGNED NULL;
 CREATE INDEX IF NOT EXISTS idx_tenant_id ON courses(tenant_id);
 
 -- equipment table
-ALTER TABLE equipment ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL;
+ALTER TABLE equipment ADD COLUMN IF NOT EXISTS tenant_id BIGINT UNSIGNED NULL;
 CREATE INDEX IF NOT EXISTS idx_tenant_id ON equipment(tenant_id);
 
 -- equipment_rentals table
-ALTER TABLE equipment_rentals ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL;
+ALTER TABLE equipment_rentals ADD COLUMN IF NOT EXISTS tenant_id BIGINT UNSIGNED NULL;
 CREATE INDEX IF NOT EXISTS idx_tenant_id ON equipment_rentals(tenant_id);
 
 -- Tenant onboarding tracking
 CREATE TABLE IF NOT EXISTS tenant_onboarding (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
 
     -- Onboarding steps
     step_company_info BOOLEAN DEFAULT FALSE,
@@ -324,3 +363,10 @@ CREATE TABLE IF NOT EXISTS tenant_onboarding (
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
     UNIQUE KEY unique_tenant (tenant_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

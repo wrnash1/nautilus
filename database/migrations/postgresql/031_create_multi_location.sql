@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS locations (
     country VARCHAR(50) DEFAULT 'USA',
     phone VARCHAR(50),
     email VARCHAR(200),
-    manager_user_id INT UNSIGNED,
+    manager_user_id BIGINT UNSIGNED,
     is_active SMALLINT DEFAULT 1,
     is_default SMALLINT DEFAULT 0,  -- Default location for new products
     can_sell SMALLINT DEFAULT 1,  -- Can this location sell products?
@@ -68,10 +68,10 @@ CREATE TABLE IF NOT EXISTS inventory_transfers (
     to_location_id INTEGER NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'in_transit', 'received', 'cancelled'
     transfer_type VARCHAR(20) DEFAULT 'standard',  -- 'standard', 'emergency', 'rebalance'
-    requested_by INT UNSIGNED,
-    approved_by INT UNSIGNED,
-    shipped_by INT UNSIGNED,
-    received_by INT UNSIGNED,
+    requested_by BIGINT UNSIGNED,
+    approved_by BIGINT UNSIGNED,
+    shipped_by BIGINT UNSIGNED,
+    received_by BIGINT UNSIGNED,
     requested_date DATE NOT NULL,
     approved_date DATE,
     shipped_date DATE,
@@ -126,8 +126,8 @@ CREATE TABLE IF NOT EXISTS location_inventory_adjustments (
     total_cost DECIMAL(10,2),
     reason TEXT,
     reference_number VARCHAR(100),  -- Transfer #, cycle count #, etc.
-    adjusted_by INT UNSIGNED,
-    approved_by INT UNSIGNED,
+    adjusted_by BIGINT UNSIGNED,
+    approved_by BIGINT UNSIGNED,
     adjustment_date DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE CASCADE,

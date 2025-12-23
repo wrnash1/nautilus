@@ -1,7 +1,18 @@
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `courses`;
+DROP TABLE IF EXISTS `course_schedules`;
+DROP TABLE IF EXISTS `course_enrollments`;
+DROP TABLE IF EXISTS `course_attendance`;
+DROP TABLE IF EXISTS `trips`;
+DROP TABLE IF EXISTS `trip_schedules`;
+DROP TABLE IF EXISTS `trip_bookings`;
+DROP TABLE IF EXISTS `trip_participants`;
+
 CREATE TABLE IF NOT EXISTS `courses` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `certification_id` INT UNSIGNED,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `certification_id` BIGINT UNSIGNED,
   `course_code` VARCHAR(50) NOT NULL UNIQUE,
   `name` VARCHAR(255) NOT NULL,
   `description` TEXT,
@@ -20,9 +31,9 @@ CREATE TABLE IF NOT EXISTS `courses` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `course_schedules` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `course_id` INT UNSIGNED NOT NULL,
-  `instructor_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `course_id` BIGINT UNSIGNED NOT NULL,
+  `instructor_id` BIGINT UNSIGNED NOT NULL,
   `start_date` DATE NOT NULL,
   `end_date` DATE NOT NULL,
   `start_time` TIME,
@@ -41,9 +52,9 @@ CREATE TABLE IF NOT EXISTS `course_schedules` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `course_enrollments` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `schedule_id` INT UNSIGNED NOT NULL,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `schedule_id` BIGINT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `enrollment_date` DATE NOT NULL,
   `status` ENUM('enrolled', 'in_progress', 'completed', 'dropped', 'failed') DEFAULT 'enrolled',
   `completion_date` DATE,
@@ -61,8 +72,8 @@ CREATE TABLE IF NOT EXISTS `course_enrollments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `course_attendance` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `enrollment_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `enrollment_id` BIGINT UNSIGNED NOT NULL,
   `session_date` DATE NOT NULL,
   `session_type` ENUM('classroom', 'pool', 'open_water') NOT NULL,
   `attended` BOOLEAN DEFAULT FALSE,
@@ -73,7 +84,7 @@ CREATE TABLE IF NOT EXISTS `course_attendance` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `trips` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `trip_code` VARCHAR(50) NOT NULL UNIQUE,
   `name` VARCHAR(255) NOT NULL,
   `destination` VARCHAR(255) NOT NULL,
@@ -90,8 +101,8 @@ CREATE TABLE IF NOT EXISTS `trips` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `trip_schedules` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `trip_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `trip_id` BIGINT UNSIGNED NOT NULL,
   `departure_date` DATE NOT NULL,
   `return_date` DATE NOT NULL,
   `departure_location` VARCHAR(255),
@@ -107,9 +118,9 @@ CREATE TABLE IF NOT EXISTS `trip_schedules` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `trip_bookings` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `schedule_id` INT UNSIGNED NOT NULL,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `schedule_id` BIGINT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `booking_date` DATE NOT NULL,
   `status` ENUM('pending', 'confirmed', 'cancelled', 'completed') DEFAULT 'pending',
   `total_amount` DECIMAL(10,2) NOT NULL,
@@ -127,8 +138,8 @@ CREATE TABLE IF NOT EXISTS `trip_bookings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `trip_participants` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `booking_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `booking_id` BIGINT UNSIGNED NOT NULL,
   `participant_name` VARCHAR(200) NOT NULL,
   `certification_level` VARCHAR(100),
   `emergency_contact_name` VARCHAR(200),
@@ -137,3 +148,5 @@ CREATE TABLE IF NOT EXISTS `trip_participants` (
   FOREIGN KEY (`booking_id`) REFERENCES `trip_bookings`(`id`) ON DELETE CASCADE,
   INDEX `idx_booking_id` (`booking_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET FOREIGN_KEY_CHECKS=1;

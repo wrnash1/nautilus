@@ -1,3 +1,21 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `navigation_menus`;
+DROP TABLE IF EXISTS `promotional_banners`;
+DROP TABLE IF EXISTS `storefront_settings`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `navigation_menus`;
+DROP TABLE IF EXISTS `promotional_banners`;
+DROP TABLE IF EXISTS `storefront_settings`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `navigation_menus`;
+DROP TABLE IF EXISTS `promotional_banners`;
+DROP TABLE IF EXISTS `storefront_settings`;
+
 -- Storefront Configuration, Announcements, and Navigation
 -- Migration: 101_storefront_config.sql
 
@@ -14,8 +32,8 @@ CREATE TABLE IF NOT EXISTS `storefront_settings` (
 
 -- Promotional Banners (Announcements)
 CREATE TABLE IF NOT EXISTS `promotional_banners` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `banner_type` ENUM('info', 'warning', 'success', 'danger', 'promotion') DEFAULT 'info',
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `banner_type` ENUM('info', 'warning', 'success', 'danger', 'promotion', 'top_bar', 'hero', 'sidebar', 'popup', 'footer') DEFAULT 'info',
     `title` VARCHAR(255) NULL,
     `content` TEXT NOT NULL,
     `button_text` VARCHAR(100) NULL,
@@ -31,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `promotional_banners` (
     -- Stats
     `view_count` INT DEFAULT 0,
     `click_count` INT DEFAULT 0,
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -39,9 +57,9 @@ CREATE TABLE IF NOT EXISTS `promotional_banners` (
 
 -- Navigation Menus
 CREATE TABLE IF NOT EXISTS `navigation_menus` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `menu_location` ENUM('header', 'footer', 'sidebar', 'mobile') NOT NULL,
-    `parent_id` INT UNSIGNED NULL,
+    `parent_id` BIGINT UNSIGNED NULL,
     `label` VARCHAR(100) NOT NULL,
     `url` VARCHAR(255) NULL,
     
@@ -69,3 +87,10 @@ INSERT IGNORE INTO `storefront_settings` (`setting_key`, `setting_value`, `setti
 ('social_instagram', 'https://instagram.com', 'text', 'social', 'Instagram Profile URL', TRUE),
 ('contact_email', 'info@nautilusdive.com', 'text', 'general', 'Public contact email', TRUE),
 ('contact_phone', '(555) 123-4567', 'text', 'general', 'Public contact phone', TRUE);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

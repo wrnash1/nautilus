@@ -5,18 +5,25 @@
 -- Note: loyalty_programs, loyalty_tiers, loyalty_points tables already exist from 011_create_marketing_tables.sql
 -- ============================================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `loyalty_transactions`;
+DROP TABLE IF EXISTS `loyalty_rewards`;
+DROP TABLE IF EXISTS `loyalty_reward_claims`;
+DROP TABLE IF EXISTS `customer_referrals`;
+
 -- Loyalty Points Transaction Ledger (detailed history)
 CREATE TABLE IF NOT EXISTS loyalty_transactions (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
     transaction_type VARCHAR(50) NOT NULL,  -- 'earn', 'redeem', 'expire', 'bonus', 'adjustment'
-    points_amount INT UNSIGNED NOT NULL,  -- Positive for earn, negative for redeem/expire
-    points_balance_after INT UNSIGNED NOT NULL,  -- Running balance
+    points_amount BIGINT UNSIGNED NOT NULL,  -- Positive for earn, negative for redeem/expire
+    points_balance_after BIGINT UNSIGNED NOT NULL,  -- Running balance
     source_type VARCHAR(50),  -- 'purchase', 'referral', 'birthday', 'review', 'manual'
     source_id INTEGER,  -- ID of related transaction/order
     description TEXT,
     expires_at TIMESTAMP,  -- When these points expire
-    created_by INT UNSIGNED,  -- user_id if manual adjustment
+    created_by BIGINT UNSIGNED,  -- user_id if manual adjustment
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
@@ -29,13 +36,13 @@ CREATE INDEX IF NOT EXISTS idx_loyalty_transactions_expires ON loyalty_transacti
 
 -- Rewards Catalog
 CREATE TABLE IF NOT EXISTS loyalty_rewards (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     description TEXT,
-    points_required INT UNSIGNED NOT NULL,
+    points_required BIGINT UNSIGNED NOT NULL,
     reward_type VARCHAR(50) NOT NULL,  -- 'discount_percentage', 'discount_fixed', 'free_product', 'free_shipping', 'gift_card'
     reward_value DECIMAL(10,2),  -- Value of reward (e.g., 10.00 for $10 discount)
-    product_id INT UNSIGNED,  -- If reward_type is 'free_product'
+    product_id BIGINT UNSIGNED,  -- If reward_type is 'free_product'
     min_purchase_amount DECIMAL(10,2),  -- Minimum purchase to use reward
     max_discount_amount DECIMAL(10,2),  -- Maximum discount for percentage-based rewards
     is_active TINYINT(1) DEFAULT 1,
@@ -58,13 +65,13 @@ CREATE INDEX IF NOT EXISTS idx_loyalty_rewards_dates ON loyalty_rewards(start_da
 
 -- Reward Redemptions
 CREATE TABLE IF NOT EXISTS loyalty_reward_claims (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
-    reward_id INT UNSIGNED NOT NULL,
-    points_spent INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
+    reward_id BIGINT UNSIGNED NOT NULL,
+    points_spent BIGINT UNSIGNED NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'approved', 'redeemed', 'expired', 'cancelled'
     redemption_code VARCHAR(50) UNIQUE,  -- Unique code for customer to use
-    order_id INT UNSIGNED,  -- If used in an order
+    order_id BIGINT UNSIGNED,  -- If used in an order
     expires_at TIMESTAMP,  -- When redemption code expires
     redeemed_at TIMESTAMP,
     notes TEXT,
@@ -82,9 +89,9 @@ CREATE INDEX IF NOT EXISTS idx_loyalty_reward_claims_code ON loyalty_reward_clai
 
 -- Referral Tracking (enhanced from existing)
 CREATE TABLE IF NOT EXISTS customer_referrals (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    referrer_customer_id INT UNSIGNED NOT NULL,  -- Customer who referred
-    referred_customer_id INT UNSIGNED NOT NULL,  -- New customer
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    referrer_customer_id BIGINT UNSIGNED NOT NULL,  -- Customer who referred
+    referred_customer_id BIGINT UNSIGNED NOT NULL,  -- New customer
     referral_code VARCHAR(50),
     status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'completed', 'paid'
     referrer_points_awarded INT DEFAULT 0,
@@ -108,6 +115,8 @@ INSERT IGNORE INTO loyalty_rewards (id, name, description, points_required, rewa
 (3, '$25 Off Any Purchase', 'Get $25 off your next purchase', 2500, 'discount_fixed', 25.00, 1, 3),
 (4, '10% Off Next Order', 'Save 10% on your entire order', 750, 'discount_percentage', 10.00, 1, 4),
 (5, 'Free Shipping', 'Get free shipping on your next order', 300, 'free_shipping', NULL, 1, 5);
+
+SET FOREIGN_KEY_CHECKS=1;
 
 -- ============================================================================
 -- Migration Complete

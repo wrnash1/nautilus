@@ -18,7 +18,7 @@ if ($isQuickInstall) {
         "port" => getenv("DB_PORT") ?: "3306",
         "database" => getenv("DB_DATABASE") ?: "nautilus",
         "username" => getenv("DB_USERNAME") ?: "root",
-        "password" => getenv("DB_PASSWORD") ?: "Frogman09!"
+        "password" => getenv("DB_PASSWORD") ?: ""
     ];
 }
 ?>
@@ -122,6 +122,9 @@ if ($isQuickInstall) {
                         } else {
                             setTimeout(() => window.location = 'install.php?step=4', 2000);
                         }
+                    } else if (line.startsWith("ERROR:")) {
+                        const errorMsg = line.substring(6); // Remove "ERROR:"
+                        throw new Error(errorMsg);
                     }
                 }
             }

@@ -1,11 +1,41 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `influencer_partnerships`;
+DROP TABLE IF EXISTS `social_media_leads`;
+DROP TABLE IF EXISTS `social_media_posts`;
+DROP TABLE IF EXISTS `social_media_accounts`;
+DROP TABLE IF EXISTS `referrals`;
+DROP TABLE IF EXISTS `customer_referral_codes`;
+DROP TABLE IF EXISTS `referral_programs`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `influencer_partnerships`;
+DROP TABLE IF EXISTS `social_media_leads`;
+DROP TABLE IF EXISTS `social_media_posts`;
+DROP TABLE IF EXISTS `social_media_accounts`;
+DROP TABLE IF EXISTS `referrals`;
+DROP TABLE IF EXISTS `customer_referral_codes`;
+DROP TABLE IF EXISTS `referral_programs`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `influencer_partnerships`;
+DROP TABLE IF EXISTS `social_media_leads`;
+DROP TABLE IF EXISTS `social_media_posts`;
+DROP TABLE IF EXISTS `social_media_accounts`;
+DROP TABLE IF EXISTS `referrals`;
+DROP TABLE IF EXISTS `customer_referral_codes`;
+DROP TABLE IF EXISTS `referral_programs`;
+
 -- =====================================================
 -- Referral Program & Social Media Integration
 -- =====================================================
 
 -- Referral Programs
 CREATE TABLE IF NOT EXISTS `referral_programs` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `program_name` VARCHAR(255) NOT NULL,
     `description` TEXT NULL,
     `status` ENUM('active', 'paused', 'ended') DEFAULT 'active',
@@ -17,13 +47,13 @@ CREATE TABLE IF NOT EXISTS `referral_programs` (
 
     -- Conditions
     `min_purchase_amount` DECIMAL(10, 2) NULL COMMENT 'Referee must spend this much',
-    `max_referrals_per_customer` INT UNSIGNED NULL,
+    `max_referrals_per_customer` BIGINT UNSIGNED NULL,
     `reward_conversion_event` ENUM('signup', 'first_purchase', 'first_dive', 'certification_complete') DEFAULT 'first_purchase',
 
     -- Timing
     `start_date` DATE NOT NULL,
     `end_date` DATE NULL,
-    `reward_expiry_days` INT UNSIGNED DEFAULT 90,
+    `reward_expiry_days` BIGINT UNSIGNED DEFAULT 90,
 
     -- Sharing
     `share_message_template` TEXT NULL,
@@ -31,12 +61,12 @@ CREATE TABLE IF NOT EXISTS `referral_programs` (
     `terms_and_conditions` TEXT NULL,
 
     -- Performance
-    `total_referrals` INT UNSIGNED DEFAULT 0,
-    `successful_referrals` INT UNSIGNED DEFAULT 0,
+    `total_referrals` BIGINT UNSIGNED DEFAULT 0,
+    `successful_referrals` BIGINT UNSIGNED DEFAULT 0,
     `total_revenue_generated` DECIMAL(10, 2) DEFAULT 0.00,
     `total_rewards_given` DECIMAL(10, 2) DEFAULT 0.00,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -46,10 +76,10 @@ CREATE TABLE IF NOT EXISTS `referral_programs` (
 
 -- Customer Referral Codes
 CREATE TABLE IF NOT EXISTS `customer_referral_codes` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_id` INT UNSIGNED NOT NULL,
-    `program_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `program_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Referral Code
     `referral_code` VARCHAR(50) NOT NULL UNIQUE,
@@ -60,17 +90,17 @@ CREATE TABLE IF NOT EXISTS `customer_referral_codes` (
     `expires_at` DATE NULL,
 
     -- Performance
-    `total_clicks` INT UNSIGNED DEFAULT 0,
-    `total_referrals` INT UNSIGNED DEFAULT 0,
-    `successful_referrals` INT UNSIGNED DEFAULT 0,
+    `total_clicks` BIGINT UNSIGNED DEFAULT 0,
+    `total_referrals` BIGINT UNSIGNED DEFAULT 0,
+    `successful_referrals` BIGINT UNSIGNED DEFAULT 0,
     `total_revenue_generated` DECIMAL(10, 2) DEFAULT 0.00,
     `total_rewards_earned` DECIMAL(10, 2) DEFAULT 0.00,
     `pending_rewards` DECIMAL(10, 2) DEFAULT 0.00,
 
     -- Sharing Stats
-    `shared_via_email` INT UNSIGNED DEFAULT 0,
-    `shared_via_sms` INT UNSIGNED DEFAULT 0,
-    `shared_via_social` INT UNSIGNED DEFAULT 0,
+    `shared_via_email` BIGINT UNSIGNED DEFAULT 0,
+    `shared_via_sms` BIGINT UNSIGNED DEFAULT 0,
+    `shared_via_social` BIGINT UNSIGNED DEFAULT 0,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -85,13 +115,13 @@ CREATE TABLE IF NOT EXISTS `customer_referral_codes` (
 -- Referrals (tracking individual referrals)
 CREATE TABLE IF NOT EXISTS `referrals` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `program_id` INT UNSIGNED NOT NULL,
-    `referrer_id` INT UNSIGNED NOT NULL COMMENT 'Customer who referred',
-    `referee_id` INT UNSIGNED NULL COMMENT 'New customer (null until signup)',
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `program_id` BIGINT UNSIGNED NOT NULL,
+    `referrer_id` BIGINT UNSIGNED NOT NULL COMMENT 'Customer who referred',
+    `referee_id` BIGINT UNSIGNED NULL COMMENT 'New customer (null until signup)',
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Referral Details
-    `referral_code_id` INT UNSIGNED NOT NULL,
+    `referral_code_id` BIGINT UNSIGNED NOT NULL,
     `referral_code` VARCHAR(50) NOT NULL,
 
     -- Contact Info (before signup)
@@ -108,7 +138,7 @@ CREATE TABLE IF NOT EXISTS `referrals` (
     `status` ENUM('clicked', 'signed_up', 'qualified', 'rewarded', 'expired', 'rejected') DEFAULT 'clicked',
 
     -- Conversion Details
-    `conversion_order_id` INT UNSIGNED NULL,
+    `conversion_order_id` BIGINT UNSIGNED NULL,
     `conversion_value` DECIMAL(10, 2) NULL,
 
     -- Rewards
@@ -148,8 +178,8 @@ CREATE TABLE IF NOT EXISTS `referrals` (
 
 -- Social Media Accounts
 CREATE TABLE IF NOT EXISTS `social_media_accounts` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `platform` ENUM('facebook', 'instagram', 'twitter', 'linkedin', 'youtube', 'tiktok', 'pinterest') NOT NULL,
     `account_name` VARCHAR(255) NOT NULL,
     `account_handle` VARCHAR(100) NULL,
@@ -166,9 +196,9 @@ CREATE TABLE IF NOT EXISTS `social_media_accounts` (
     `post_types` JSON NULL COMMENT 'What to auto-post: courses, trips, promos',
 
     -- Performance
-    `total_posts` INT UNSIGNED DEFAULT 0,
-    `total_followers` INT UNSIGNED DEFAULT 0,
-    `total_engagement` INT UNSIGNED DEFAULT 0,
+    `total_posts` BIGINT UNSIGNED DEFAULT 0,
+    `total_followers` BIGINT UNSIGNED DEFAULT 0,
+    `total_engagement` BIGINT UNSIGNED DEFAULT 0,
     `last_sync_at` DATETIME NULL,
 
     `is_active` BOOLEAN DEFAULT TRUE,
@@ -182,9 +212,9 @@ CREATE TABLE IF NOT EXISTS `social_media_accounts` (
 -- Social Media Posts
 CREATE TABLE IF NOT EXISTS `social_media_posts` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `account_id` INT UNSIGNED NOT NULL,
-    `campaign_id` INT UNSIGNED NULL COMMENT 'Associated marketing campaign',
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `account_id` BIGINT UNSIGNED NOT NULL,
+    `campaign_id` BIGINT UNSIGNED NULL COMMENT 'Associated marketing campaign',
 
     -- Post Content
     `post_text` TEXT NOT NULL,
@@ -205,19 +235,19 @@ CREATE TABLE IF NOT EXISTS `social_media_posts` (
     `platform_url` VARCHAR(500) NULL,
 
     -- Performance Metrics
-    `likes` INT UNSIGNED DEFAULT 0,
-    `comments` INT UNSIGNED DEFAULT 0,
-    `shares` INT UNSIGNED DEFAULT 0,
-    `clicks` INT UNSIGNED DEFAULT 0,
-    `reach` INT UNSIGNED DEFAULT 0,
-    `impressions` INT UNSIGNED DEFAULT 0,
+    `likes` BIGINT UNSIGNED DEFAULT 0,
+    `comments` BIGINT UNSIGNED DEFAULT 0,
+    `shares` BIGINT UNSIGNED DEFAULT 0,
+    `clicks` BIGINT UNSIGNED DEFAULT 0,
+    `reach` BIGINT UNSIGNED DEFAULT 0,
+    `impressions` BIGINT UNSIGNED DEFAULT 0,
     `engagement_rate` DECIMAL(5, 2) DEFAULT 0.00,
 
     -- Error Handling
     `error_message` TEXT NULL,
     `retry_count` TINYINT UNSIGNED DEFAULT 0,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `last_synced_at` DATETIME NULL,
@@ -232,8 +262,8 @@ CREATE TABLE IF NOT EXISTS `social_media_posts` (
 -- Social Media Lead Forms (Facebook/Instagram Lead Ads)
 CREATE TABLE IF NOT EXISTS `social_media_leads` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `account_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `account_id` BIGINT UNSIGNED NOT NULL,
     `platform` VARCHAR(50) NOT NULL,
 
     -- Lead Information
@@ -249,10 +279,10 @@ CREATE TABLE IF NOT EXISTS `social_media_leads` (
     `custom_fields` JSON NULL COMMENT 'Additional form fields',
 
     -- Processing
-    `customer_id` INT UNSIGNED NULL COMMENT 'Created customer record',
+    `customer_id` BIGINT UNSIGNED NULL COMMENT 'Created customer record',
     `processed` BOOLEAN DEFAULT FALSE,
     `processed_at` DATETIME NULL,
-    `assigned_to` INT UNSIGNED NULL COMMENT 'Staff member',
+    `assigned_to` BIGINT UNSIGNED NULL COMMENT 'Staff member',
 
     -- Follow-up
     `follow_up_status` ENUM('new', 'contacted', 'qualified', 'converted', 'disqualified') DEFAULT 'new',
@@ -271,8 +301,8 @@ CREATE TABLE IF NOT EXISTS `social_media_leads` (
 
 -- Influencer Partnerships
 CREATE TABLE IF NOT EXISTS `influencer_partnerships` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `influencer_name` VARCHAR(255) NOT NULL,
     `platform` VARCHAR(50) NOT NULL,
     `handle` VARCHAR(100) NULL,
@@ -290,7 +320,7 @@ CREATE TABLE IF NOT EXISTS `influencer_partnerships` (
     `end_date` DATE NULL,
 
     -- Metrics
-    `follower_count` INT UNSIGNED NULL,
+    `follower_count` BIGINT UNSIGNED NULL,
     `avg_engagement_rate` DECIMAL(5, 2) NULL,
     `niche` VARCHAR(100) NULL COMMENT 'diving, travel, adventure, etc.',
 
@@ -301,15 +331,15 @@ CREATE TABLE IF NOT EXISTS `influencer_partnerships` (
 
     -- Affiliate Tracking
     `affiliate_code` VARCHAR(50) NULL,
-    `total_referrals` INT UNSIGNED DEFAULT 0,
+    `total_referrals` BIGINT UNSIGNED DEFAULT 0,
     `total_revenue` DECIMAL(10, 2) DEFAULT 0.00,
     `total_commission_paid` DECIMAL(10, 2) DEFAULT 0.00,
 
     -- Performance
-    `total_posts` INT UNSIGNED DEFAULT 0,
+    `total_posts` BIGINT UNSIGNED DEFAULT 0,
     `total_reach` BIGINT UNSIGNED DEFAULT 0,
     `total_engagement` BIGINT UNSIGNED DEFAULT 0,
-    `total_conversions` INT UNSIGNED DEFAULT 0,
+    `total_conversions` BIGINT UNSIGNED DEFAULT 0,
 
     `notes` TEXT NULL,
     `contract_url` VARCHAR(500) NULL,
@@ -345,3 +375,10 @@ INSERT INTO `social_media_accounts` (
 (1, 'facebook', 'Dive Shop Facebook', '@diveshop', 'https://facebook.com/diveshop', TRUE),
 (1, 'instagram', 'Dive Shop Instagram', '@diveshop', 'https://instagram.com/diveshop', TRUE),
 (1, 'youtube', 'Dive Shop YouTube', '@diveshop', 'https://youtube.com/@diveshop', TRUE);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

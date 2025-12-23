@@ -1,11 +1,12 @@
 -- Create Inventory Adjustments Table
-CREATE TABLE IF NOT EXISTS inventory_adjustments (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    product_id INT UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `inventory_adjustments`;
+CREATE TABLE IF NOT EXISTS `inventory_adjustments` (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id BIGINT UNSIGNED NOT NULL,
     adjustment_type ENUM('add', 'subtract', 'set', 'audit', 'damage', 'loss') NOT NULL,
     quantity INT NOT NULL,
     reason TEXT,
-    adjusted_by INT UNSIGNED,
+    adjusted_by BIGINT UNSIGNED,
     adjusted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

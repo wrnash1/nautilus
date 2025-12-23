@@ -1,3 +1,33 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `travel_partner_apis`;
+DROP TABLE IF EXISTS `travel_reviews`;
+DROP TABLE IF EXISTS `travel_bookings`;
+DROP TABLE IF EXISTS `travel_packages`;
+DROP TABLE IF EXISTS `liveaboard_boats`;
+DROP TABLE IF EXISTS `dive_resorts`;
+DROP TABLE IF EXISTS `travel_destinations`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `travel_partner_apis`;
+DROP TABLE IF EXISTS `travel_reviews`;
+DROP TABLE IF EXISTS `travel_bookings`;
+DROP TABLE IF EXISTS `travel_packages`;
+DROP TABLE IF EXISTS `liveaboard_boats`;
+DROP TABLE IF EXISTS `dive_resorts`;
+DROP TABLE IF EXISTS `travel_destinations`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `travel_partner_apis`;
+DROP TABLE IF EXISTS `travel_reviews`;
+DROP TABLE IF EXISTS `travel_bookings`;
+DROP TABLE IF EXISTS `travel_packages`;
+DROP TABLE IF EXISTS `liveaboard_boats`;
+DROP TABLE IF EXISTS `dive_resorts`;
+DROP TABLE IF EXISTS `travel_destinations`;
+
 -- =====================================================
 -- Comprehensive Travel Agent System
 -- Dive trips, cruises, liveaboards, resorts, and travel packages
@@ -5,8 +35,8 @@
 
 -- Travel Destinations
 CREATE TABLE IF NOT EXISTS `travel_destinations` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `destination_name` VARCHAR(255) NOT NULL,
     `country` VARCHAR(100) NOT NULL,
     `region` VARCHAR(100) NULL COMMENT 'Caribbean, Pacific, Indian Ocean, etc.',
@@ -26,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `travel_destinations` (
     `avg_water_temp_f` INT NULL,
     `avg_visibility_ft` INT NULL,
     `skill_level_required` ENUM('beginner', 'intermediate', 'advanced', 'all_levels') DEFAULT 'all_levels',
-    `dive_site_count` INT UNSIGNED DEFAULT 0,
+    `dive_site_count` BIGINT UNSIGNED DEFAULT 0,
     `notable_marine_life` JSON NULL,
 
     -- Media
@@ -36,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `travel_destinations` (
 
     -- Ratings
     `average_rating` DECIMAL(3, 2) DEFAULT 0.00,
-    `review_count` INT UNSIGNED DEFAULT 0,
+    `review_count` BIGINT UNSIGNED DEFAULT 0,
 
     -- Meta
     `is_featured` BOOLEAN DEFAULT FALSE,
@@ -51,9 +81,9 @@ CREATE TABLE IF NOT EXISTS `travel_destinations` (
 
 -- Dive Resorts
 CREATE TABLE IF NOT EXISTS `dive_resorts` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `destination_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `destination_id` BIGINT UNSIGNED NOT NULL,
     `resort_name` VARCHAR(255) NOT NULL,
     `resort_type` ENUM('resort', 'hotel', 'dive_center', 'eco_lodge', 'villa') DEFAULT 'resort',
 
@@ -66,15 +96,15 @@ CREATE TABLE IF NOT EXISTS `dive_resorts` (
     -- Amenities
     `amenities` JSON NULL COMMENT 'Pool, spa, restaurant, bar, wifi, etc.',
     `room_types` JSON NULL COMMENT 'Standard, deluxe, suite, villa',
-    `total_rooms` INT UNSIGNED NULL,
+    `total_rooms` BIGINT UNSIGNED NULL,
 
     -- Diving Facilities
     `dive_center_onsite` BOOLEAN DEFAULT TRUE,
     `equipment_rental_available` BOOLEAN DEFAULT TRUE,
     `nitrox_available` BOOLEAN DEFAULT FALSE,
     `rebreather_friendly` BOOLEAN DEFAULT FALSE,
-    `boats_available` INT UNSIGNED DEFAULT 1,
-    `dives_per_day` INT UNSIGNED DEFAULT 2,
+    `boats_available` BIGINT UNSIGNED DEFAULT 1,
+    `dives_per_day` BIGINT UNSIGNED DEFAULT 2,
 
     -- Certifications
     `padi_certified` BOOLEAN DEFAULT FALSE,
@@ -89,7 +119,7 @@ CREATE TABLE IF NOT EXISTS `dive_resorts` (
     `star_rating` TINYINT NULL COMMENT '1-5 stars',
     `tripadvisor_rating` DECIMAL(3, 2) NULL,
     `average_rating` DECIMAL(3, 2) DEFAULT 0.00,
-    `review_count` INT UNSIGNED DEFAULT 0,
+    `review_count` BIGINT UNSIGNED DEFAULT 0,
 
     -- Media
     `featured_image_url` VARCHAR(500) NULL,
@@ -115,31 +145,31 @@ CREATE TABLE IF NOT EXISTS `dive_resorts` (
 
 -- Liveaboard Boats
 CREATE TABLE IF NOT EXISTS `liveaboard_boats` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `boat_name` VARCHAR(255) NOT NULL,
     `operator_name` VARCHAR(255) NULL,
 
     -- Boat Specifications
     `boat_type` ENUM('motor_yacht', 'sailing_yacht', 'catamaran', 'traditional') DEFAULT 'motor_yacht',
-    `length_feet` INT UNSIGNED NULL,
-    `beam_feet` INT UNSIGNED NULL,
+    `length_feet` BIGINT UNSIGNED NULL,
+    `beam_feet` BIGINT UNSIGNED NULL,
     `year_built` INT NULL,
     `year_refurbished` INT NULL,
-    `passenger_capacity` INT UNSIGNED NOT NULL,
-    `crew_count` INT UNSIGNED NULL,
-    `cabin_count` INT UNSIGNED NULL,
+    `passenger_capacity` BIGINT UNSIGNED NOT NULL,
+    `crew_count` BIGINT UNSIGNED NULL,
+    `cabin_count` BIGINT UNSIGNED NULL,
 
     -- Cabin Configuration
     `cabin_types` JSON NULL COMMENT 'Double, twin, single, suite',
-    `bathrooms` INT UNSIGNED NULL,
+    `bathrooms` BIGINT UNSIGNED NULL,
 
     -- Diving Facilities
     `dive_deck_type` VARCHAR(100) NULL,
     `nitrox_available` BOOLEAN DEFAULT FALSE,
     `rebreather_friendly` BOOLEAN DEFAULT FALSE,
     `underwater_camera_room` BOOLEAN DEFAULT FALSE,
-    `dives_per_day` INT UNSIGNED DEFAULT 4,
+    `dives_per_day` BIGINT UNSIGNED DEFAULT 4,
     `night_dives_available` BOOLEAN DEFAULT TRUE,
 
     -- Amenities
@@ -160,7 +190,7 @@ CREATE TABLE IF NOT EXISTS `liveaboard_boats` (
 
     -- Ratings
     `average_rating` DECIMAL(3, 2) DEFAULT 0.00,
-    `review_count` INT UNSIGNED DEFAULT 0,
+    `review_count` BIGINT UNSIGNED DEFAULT 0,
 
     -- Media
     `featured_image_url` VARCHAR(500) NULL,
@@ -187,15 +217,15 @@ CREATE TABLE IF NOT EXISTS `liveaboard_boats` (
 
 -- Travel Packages (cruises, liveaboard trips, resort packages)
 CREATE TABLE IF NOT EXISTS `travel_packages` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `package_name` VARCHAR(255) NOT NULL,
     `package_type` ENUM('liveaboard', 'resort', 'day_trip', 'multi_destination', 'cruise', 'custom') NOT NULL,
 
     -- Associated Resources
-    `destination_id` INT UNSIGNED NULL,
-    `resort_id` INT UNSIGNED NULL,
-    `liveaboard_id` INT UNSIGNED NULL,
+    `destination_id` BIGINT UNSIGNED NULL,
+    `resort_id` BIGINT UNSIGNED NULL,
+    `liveaboard_id` BIGINT UNSIGNED NULL,
 
     -- Package Details
     `description` TEXT NULL,
@@ -204,16 +234,16 @@ CREATE TABLE IF NOT EXISTS `travel_packages` (
     `excluded_items` JSON NULL COMMENT 'What\'s not included',
 
     -- Duration
-    `duration_days` INT UNSIGNED NOT NULL,
-    `duration_nights` INT UNSIGNED NOT NULL,
+    `duration_days` BIGINT UNSIGNED NOT NULL,
+    `duration_nights` BIGINT UNSIGNED NOT NULL,
 
     -- Diving
-    `total_dives_included` INT UNSIGNED NULL,
+    `total_dives_included` BIGINT UNSIGNED NULL,
     `certification_required` VARCHAR(100) NULL COMMENT 'Min certification required',
 
     -- Capacity
-    `min_participants` INT UNSIGNED DEFAULT 1,
-    `max_participants` INT UNSIGNED NULL,
+    `min_participants` BIGINT UNSIGNED DEFAULT 1,
+    `max_participants` BIGINT UNSIGNED NULL,
 
     -- Pricing
     `price_per_person` DECIMAL(10, 2) NOT NULL,
@@ -236,9 +266,9 @@ CREATE TABLE IF NOT EXISTS `travel_packages` (
     `airport_transfers_included` BOOLEAN DEFAULT FALSE,
 
     -- Stats
-    `total_bookings` INT UNSIGNED DEFAULT 0,
+    `total_bookings` BIGINT UNSIGNED DEFAULT 0,
     `average_rating` DECIMAL(3, 2) DEFAULT 0.00,
-    `review_count` INT UNSIGNED DEFAULT 0,
+    `review_count` BIGINT UNSIGNED DEFAULT 0,
 
     -- Media
     `featured_image_url` VARCHAR(500) NULL,
@@ -253,7 +283,7 @@ CREATE TABLE IF NOT EXISTS `travel_packages` (
     -- Meta
     `is_featured` BOOLEAN DEFAULT FALSE,
     `is_active` BOOLEAN DEFAULT TRUE,
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -268,15 +298,15 @@ CREATE TABLE IF NOT EXISTS `travel_packages` (
 -- Travel Bookings
 CREATE TABLE IF NOT EXISTS `travel_bookings` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `booking_reference` VARCHAR(50) NOT NULL UNIQUE,
-    `package_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `package_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Trip Details
     `departure_date` DATE NOT NULL,
     `return_date` DATE NOT NULL,
-    `number_of_travelers` INT UNSIGNED NOT NULL DEFAULT 1,
+    `number_of_travelers` BIGINT UNSIGNED NOT NULL DEFAULT 1,
 
     -- Traveler Information
     `primary_traveler` JSON NOT NULL COMMENT 'Lead traveler details',
@@ -318,7 +348,7 @@ CREATE TABLE IF NOT EXISTS `travel_bookings` (
 
     -- Commission & Affiliate
     `booked_via_affiliate` BOOLEAN DEFAULT FALSE,
-    `affiliate_id` INT UNSIGNED NULL,
+    `affiliate_id` BIGINT UNSIGNED NULL,
     `commission_amount` DECIMAL(10, 2) NULL,
     `commission_paid` BOOLEAN DEFAULT FALSE,
 
@@ -332,8 +362,8 @@ CREATE TABLE IF NOT EXISTS `travel_bookings` (
     `customer_notes` TEXT NULL,
 
     -- Staff
-    `booked_by` INT UNSIGNED NULL COMMENT 'Staff who made the booking',
-    `assigned_to` INT UNSIGNED NULL COMMENT 'Travel coordinator',
+    `booked_by` BIGINT UNSIGNED NULL COMMENT 'Staff who made the booking',
+    `assigned_to` BIGINT UNSIGNED NULL COMMENT 'Travel coordinator',
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -350,16 +380,16 @@ CREATE TABLE IF NOT EXISTS `travel_bookings` (
 -- Travel Reviews
 CREATE TABLE IF NOT EXISTS `travel_reviews` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `booking_id` BIGINT UNSIGNED NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Review Target
     `review_type` ENUM('package', 'destination', 'resort', 'liveaboard') NOT NULL,
-    `package_id` INT UNSIGNED NULL,
-    `destination_id` INT UNSIGNED NULL,
-    `resort_id` INT UNSIGNED NULL,
-    `liveaboard_id` INT UNSIGNED NULL,
+    `package_id` BIGINT UNSIGNED NULL,
+    `destination_id` BIGINT UNSIGNED NULL,
+    `resort_id` BIGINT UNSIGNED NULL,
+    `liveaboard_id` BIGINT UNSIGNED NULL,
 
     -- Rating
     `overall_rating` TINYINT NOT NULL COMMENT '1-5 stars',
@@ -385,12 +415,12 @@ CREATE TABLE IF NOT EXISTS `travel_reviews` (
 
     -- Moderation
     `status` ENUM('pending', 'approved', 'rejected', 'flagged') DEFAULT 'pending',
-    `moderated_by` INT UNSIGNED NULL,
+    `moderated_by` BIGINT UNSIGNED NULL,
     `moderated_at` DATETIME NULL,
 
     -- Engagement
-    `helpful_count` INT UNSIGNED DEFAULT 0,
-    `unhelpful_count` INT UNSIGNED DEFAULT 0,
+    `helpful_count` BIGINT UNSIGNED DEFAULT 0,
+    `unhelpful_count` BIGINT UNSIGNED DEFAULT 0,
 
     -- Response
     `management_response` TEXT NULL,
@@ -411,8 +441,8 @@ CREATE TABLE IF NOT EXISTS `travel_reviews` (
 
 -- Travel Partner APIs (PADI Travel, Ocean First, etc.)
 CREATE TABLE IF NOT EXISTS `travel_partner_apis` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `partner_name` ENUM('padi_travel', 'ocean_first', 'diviacademy', 'epic_diving', 'custom') NOT NULL,
 
     -- API Credentials
@@ -433,8 +463,8 @@ CREATE TABLE IF NOT EXISTS `travel_partner_apis` (
     `commission_structure` JSON NULL,
 
     -- Stats
-    `total_referrals` INT UNSIGNED DEFAULT 0,
-    `total_bookings` INT UNSIGNED DEFAULT 0,
+    `total_referrals` BIGINT UNSIGNED DEFAULT 0,
+    `total_bookings` BIGINT UNSIGNED DEFAULT 0,
     `total_commission_earned` DECIMAL(10, 2) DEFAULT 0.00,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -495,3 +525,10 @@ INSERT INTO `travel_partner_apis` (
 ) VALUES
 (1, 'padi_travel', 'AFFILIATE123', TRUE, FALSE, 10.00),
 (1, 'ocean_first', 'OF456789', TRUE, FALSE, 8.00);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

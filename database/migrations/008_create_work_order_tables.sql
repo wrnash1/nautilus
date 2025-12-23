@@ -1,8 +1,14 @@
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `work_orders`;
+DROP TABLE IF EXISTS `work_order_items`;
+DROP TABLE IF EXISTS `work_order_notes`;
+
 CREATE TABLE IF NOT EXISTS `work_orders` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `work_order_number` VARCHAR(50) NOT NULL UNIQUE,
-  `customer_id` INT UNSIGNED,
+  `customer_id` BIGINT UNSIGNED,
   `equipment_type` VARCHAR(100) NOT NULL,
   `brand` VARCHAR(100),
   `model` VARCHAR(100),
@@ -12,8 +18,8 @@ CREATE TABLE IF NOT EXISTS `work_orders` (
   `actual_cost` DECIMAL(10,2),
   `status` ENUM('pending', 'in_progress', 'waiting_parts', 'completed', 'cancelled', 'ready_pickup') DEFAULT 'pending',
   `priority` ENUM('low', 'medium', 'high', 'urgent') DEFAULT 'medium',
-  `assigned_to` INT UNSIGNED,
-  `created_by` INT UNSIGNED,
+  `assigned_to` BIGINT UNSIGNED,
+  `created_by` BIGINT UNSIGNED,
   `completed_at` TIMESTAMP NULL,
   `picked_up_at` TIMESTAMP NULL,
   `notes` TEXT,
@@ -28,10 +34,10 @@ CREATE TABLE IF NOT EXISTS `work_orders` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `work_order_items` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `work_order_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `work_order_id` BIGINT UNSIGNED NOT NULL,
   `item_type` ENUM('labor', 'part', 'service') NOT NULL,
-  `product_id` INT UNSIGNED,
+  `product_id` BIGINT UNSIGNED,
   `description` VARCHAR(255) NOT NULL,
   `quantity` INT NOT NULL DEFAULT 1,
   `unit_price` DECIMAL(10,2) NOT NULL,
@@ -42,9 +48,9 @@ CREATE TABLE IF NOT EXISTS `work_order_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `work_order_notes` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `work_order_id` INT UNSIGNED NOT NULL,
-  `user_id` INT UNSIGNED,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `work_order_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED,
   `note` TEXT NOT NULL,
   `is_customer_visible` BOOLEAN DEFAULT FALSE,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

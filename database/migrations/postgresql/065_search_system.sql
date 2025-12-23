@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS search_history (
     id BIGINT  PRIMARY KEY,
     tenant_id INT,
-    user_id INT,
+    user_id BIGINT,
     search_query VARCHAR(500) NOT NULL,
     entity_type VARCHAR(50) NOT NULL COMMENT 'products, customers, transactions, etc.',
     result_count INT DEFAULT 0,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS search_history (
 CREATE TABLE IF NOT EXISTS saved_searches (
     id INT  PRIMARY KEY,
     tenant_id INT,
-    user_id INT NOT NULL,
+    user_id BIGINT NOT NULL,
     search_name VARCHAR(100) NOT NULL,
     entity_type VARCHAR(50) NOT NULL,
     search_query VARCHAR(500),

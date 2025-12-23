@@ -3,11 +3,13 @@
 <head>
     <?php
     // Get company branding settings for title and favicon
-    use App\Services\Admin\SettingsService;
-    $settingsService = new SettingsService();
-    $brandingSettings = $settingsService->getSettingsByCategory('general');
-    $companyName = $brandingSettings['business_name'] ?? 'Nautilus Dive Shop';
-    $favicon = $brandingSettings['company_favicon_path'] ?? '';
+    // Get company branding settings for title and favicon
+    use App\Core\Settings;
+    // Direct access to ensure we get the latest value regardless of category logic
+    $settings = Settings::getInstance();
+    $companyName = $settings->get('business_name') ?: 'Nautilus Dive Shop';
+    $favicon = $settings->get('company_favicon_path');
+    $brandingSettings = $settings->all(); // Pass all settings to be safe
     ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -157,7 +159,59 @@
             border-left: 3px solid transparent;
             white-space: nowrap;
             transition: all 0.2s ease;
+            position: relative;
+            z-index: 2; /* Ensure links are above fish */
             display: flex;
+        }
+
+        /* Fish Animation */
+        .fish-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .sidebar-decor {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 300px;
+            background-image: url('/assets/images/sidebar_bg_v2.png');
+            background-repeat: no-repeat;
+            background-position: bottom center;
+            background-size: contain;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.8;
+        }
+        
+        .fish {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.6;
+            transition: transform 0.2s;
+            user-select: none;
+        }
+
+        @keyframes swimLeft {
+            from { transform: translateX(280px); }
+            to { transform: translateX(-50px); }
+        }
+
+        @keyframes swimRight {
+            from { transform: translateX(-50px) scaleX(-1); }
+            to { transform: translateX(280px) scaleX(-1); }
+        }
             align-items: center;
             font-weight: 500;
         }
@@ -319,11 +373,19 @@
             <?php endif; ?>
 
             <?php 
-            // Mock Update Check for User Feedback Demo
-            $updateAvailable = true; 
-            $serverVersion = "1.2.0"; 
-            $latestVersion = "1.3.0"; // Simulated newer version
-            if ($updateAvailable): 
+            // Version Check
+            $versionFile = BASE_PATH . '/VERSION';
+            $serverVersion = file_exists($versionFile) ? trim(file_get_contents($versionFile)) : '1.0.0';
+            
+            // In a real app, you would fetch this from a remote endpoint
+            // For now, we assume we are up to date unless specified otherwise
+            $latestVersion = $serverVersion; 
+            $updateAvailable = version_compare($serverVersion, $latestVersion, '<');
+            
+            // Only show to Admin (Role ID 1)
+            $is_admin = isset($_SESSION['user_role']) && $_SESSION['user_role'] == 1;
+            
+            if ($is_admin && $updateAvailable): 
             ?>
             <div class="alert alert-info alert-dismissible fade show shadow-sm border-info mt-3" role="alert">
                 <div class="d-flex align-items-center">
@@ -433,6 +495,81 @@
                     toast.warning('<?= addslashes($_SESSION['flash_warning']) ?>');
                 }
             <?php endif; ?>
+        });
+
+        // Fish Animation Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            if (!sidebar || sidebar.classList.contains('collapsed')) return;
+
+            const container = document.createElement('div');
+            container.className = 'fish-container';
+            sidebar.appendChild(container);
+
+            const decor = document.createElement('div');
+            decor.className = 'sidebar-decor';
+            sidebar.appendChild(decor);
+
+            const seaLife = [
+                'sealife_turtle.png',
+                'sealife_shark.png',
+                'sealife_ray.png',
+                'sealife_jellyfish.png',
+                'sealife_fish1.png',
+                'sealife_seahorse.png',
+                'sealife_starfish.png'
+            ];
+
+            function createFish() {
+                if (sidebar.classList.contains('collapsed')) return;
+
+                // Limit total fish to prevent DOM overload
+                if (document.querySelectorAll('.fish').length > 15) return;
+
+                const fish = document.createElement('div');
+                fish.className = 'fish';
+                
+                const creature = seaLife[Math.floor(Math.random() * seaLife.length)];
+                // Force cache bust with new timestamp
+                fish.style.backgroundImage = `url('/assets/images/${creature}?v=${new Date().getTime()}_clean')`;
+                
+                // Randomize size
+                let size = 25 + Math.random() * 35; // Larger
+                fish.style.width = `${size}px`;
+                fish.style.height = `${size}px`;
+                
+                // Randomize position - Full height coverage
+                const top = Math.random() * (sidebar.offsetHeight - 50);
+                const duration = 8000 + Math.random() * 12000; // 8-20s (slower is more relaxing)
+                const isRight = Math.random() > 0.5;
+
+                fish.style.top = `${top}px`;
+                
+                // Add a "floating" vertical movement via margin-top transition or separate animation if desired
+                // For now, simple horizontal swim
+                fish.style.animation = `${isRight ? 'swimRight' : 'swimLeft'} ${duration}ms linear forwards`;
+                
+                // Full vibrancy with Color Variety
+                fish.style.opacity = 1.0; 
+                
+                // Random hue rotation to create variety from the single colorful fish asset
+                // This turns the Orange Clownfish into Blue, Green, Purple, etc. types
+                const hue = Math.floor(Math.random() * 360);
+                fish.style.filter = `hue-rotate(${hue}deg) drop-shadow(0 2px 4px rgba(0,0,0,0.3))`;
+
+                container.appendChild(fish);
+
+                // Remove after animation
+                setTimeout(() => {
+                    fish.remove();
+                }, duration);
+            }
+
+            // Spawn fish more frequently for "busier" sea
+            setInterval(createFish, 800);
+            createFish(); // initial
+            createFish(); 
+            createFish();
         });
     </script>
 

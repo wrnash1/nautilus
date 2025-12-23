@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS waiver_templates (
     effective_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     INDEX idx_type (type),
     INDEX idx_active (is_active)
 );
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS waiver_email_queue (
     customer_id INTEGER NOT NULL,
     waiver_template_id INTEGER NOT NULL,
     reference_type ENUM('rental', 'repair', 'air_fill', 'course', 'trip') NOT NULL,
-    reference_id INT UNSIGNED,
+    reference_id BIGINT UNSIGNED,
 
     email_to VARCHAR(100) NOT NULL,
     subject VARCHAR(200) NOT NULL,

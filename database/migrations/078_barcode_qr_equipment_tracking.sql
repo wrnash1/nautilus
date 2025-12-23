@@ -1,3 +1,27 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `barcode_print_queue`;
+DROP TABLE IF EXISTS `scan_sessions`;
+DROP TABLE IF EXISTS `asset_tags`;
+DROP TABLE IF EXISTS `barcode_scan_history`;
+DROP TABLE IF EXISTS `equipment_barcodes`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `barcode_print_queue`;
+DROP TABLE IF EXISTS `scan_sessions`;
+DROP TABLE IF EXISTS `asset_tags`;
+DROP TABLE IF EXISTS `barcode_scan_history`;
+DROP TABLE IF EXISTS `equipment_barcodes`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `barcode_print_queue`;
+DROP TABLE IF EXISTS `scan_sessions`;
+DROP TABLE IF EXISTS `asset_tags`;
+DROP TABLE IF EXISTS `barcode_scan_history`;
+DROP TABLE IF EXISTS `equipment_barcodes`;
+
 -- ================================================
 -- Nautilus - Barcode/QR Code Equipment Tracking
 -- Migration: 078_barcode_qr_equipment_tracking.sql
@@ -6,11 +30,11 @@
 
 -- Equipment Barcodes/QR Codes
 CREATE TABLE IF NOT EXISTS `equipment_barcodes` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Equipment Reference
-    `equipment_id` INT UNSIGNED NULL COMMENT 'Links to rental_equipment or inventory item',
+    `equipment_id` BIGINT UNSIGNED NULL COMMENT 'Links to rental_equipment or inventory item',
     `equipment_type` ENUM('rental', 'service', 'inventory', 'asset') NOT NULL,
 
     -- Barcode/QR Data
@@ -46,11 +70,11 @@ CREATE TABLE IF NOT EXISTS `equipment_barcodes` (
 
 -- Barcode Scan History
 CREATE TABLE IF NOT EXISTS `barcode_scan_history` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Scan Details
-    `barcode_id` INT UNSIGNED NOT NULL,
+    `barcode_id` BIGINT UNSIGNED NOT NULL,
     `barcode_value` VARCHAR(255) NOT NULL,
 
     -- Scan Context
@@ -58,13 +82,13 @@ CREATE TABLE IF NOT EXISTS `barcode_scan_history` (
     `scan_location` VARCHAR(255) NULL,
 
     -- Who Scanned
-    `scanned_by_user_id` INT UNSIGNED NULL,
-    `customer_id` INT UNSIGNED NULL COMMENT 'If checkout/checkin',
+    `scanned_by_user_id` BIGINT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL COMMENT 'If checkout/checkin',
 
     -- Related Transaction
-    `rental_id` INT UNSIGNED NULL,
-    `service_record_id` INT UNSIGNED NULL,
-    `transaction_id` INT UNSIGNED NULL,
+    `rental_id` BIGINT UNSIGNED NULL,
+    `service_record_id` BIGINT UNSIGNED NULL,
+    `transaction_id` BIGINT UNSIGNED NULL,
 
     -- Scan Device
     `device_type` ENUM('mobile', 'handheld', 'desktop', 'pos') NULL,
@@ -93,8 +117,8 @@ CREATE TABLE IF NOT EXISTS `barcode_scan_history` (
 
 -- QR Code Asset Tags (extended equipment info)
 CREATE TABLE IF NOT EXISTS `asset_tags` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Asset Identification
     `asset_number` VARCHAR(100) NOT NULL,
@@ -102,7 +126,7 @@ CREATE TABLE IF NOT EXISTS `asset_tags` (
     `asset_category` ENUM('scuba', 'camera', 'boat', 'vehicle', 'facility', 'other') NOT NULL,
 
     -- Barcode Link
-    `barcode_id` INT UNSIGNED NULL,
+    `barcode_id` BIGINT UNSIGNED NULL,
 
     -- Asset Details
     `make` VARCHAR(100) NULL,
@@ -115,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `asset_tags` (
     -- Current Status
     `status` ENUM('available', 'in_use', 'maintenance', 'retired', 'lost', 'damaged') DEFAULT 'available',
     `current_location` VARCHAR(255) NULL,
-    `assigned_to_user_id` INT UNSIGNED NULL,
+    `assigned_to_user_id` BIGINT UNSIGNED NULL,
 
     -- Maintenance Schedule
     `last_service_date` DATE NULL,
@@ -153,11 +177,11 @@ CREATE TABLE IF NOT EXISTS `asset_tags` (
 
 -- Mobile Scan Sessions
 CREATE TABLE IF NOT EXISTS `scan_sessions` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     `session_token` VARCHAR(100) NOT NULL,
-    `user_id` INT UNSIGNED NOT NULL,
+    `user_id` BIGINT UNSIGNED NOT NULL,
 
     -- Session Purpose
     `session_type` ENUM('inventory_count', 'rental_checkout', 'rental_return', 'service_intake', 'audit') NOT NULL,
@@ -185,10 +209,10 @@ CREATE TABLE IF NOT EXISTS `scan_sessions` (
 
 -- Barcode Print Queue
 CREATE TABLE IF NOT EXISTS `barcode_print_queue` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
-    `barcode_id` INT UNSIGNED NOT NULL,
+    `barcode_id` BIGINT UNSIGNED NOT NULL,
 
     -- Print Job Details
     `print_type` ENUM('barcode_label', 'qr_label', 'asset_tag', 'equipment_tag') NOT NULL,
@@ -211,3 +235,10 @@ CREATE TABLE IF NOT EXISTS `barcode_print_queue` (
     INDEX `idx_status` (`status`),
     INDEX `idx_created` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

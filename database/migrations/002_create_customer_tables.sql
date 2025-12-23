@@ -1,7 +1,18 @@
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `b2b_contacts`;
+DROP TABLE IF EXISTS `customer_communications`;
+DROP TABLE IF EXISTS `customer_documents`;
+DROP TABLE IF EXISTS `customer_notes`;
+DROP TABLE IF EXISTS `customer_tag_assignments`;
+DROP TABLE IF EXISTS `customer_tags`;
+DROP TABLE IF EXISTS `customer_addresses`;
+DROP TABLE IF EXISTS `customers`;
+
 CREATE TABLE IF NOT EXISTS `customers` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` INT UNSIGNED DEFAULT 1,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` BIGINT UNSIGNED DEFAULT 1,
   `customer_type` ENUM('B2C', 'B2B') NOT NULL DEFAULT 'B2C',
   `company_name` VARCHAR(255),
   `first_name` VARCHAR(100) NOT NULL,
@@ -41,8 +52,8 @@ CREATE TABLE IF NOT EXISTS `customers` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `customer_addresses` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `address_type` ENUM('billing', 'shipping', 'both') NOT NULL DEFAULT 'both',
   `address_line1` VARCHAR(255) NOT NULL,
   `address_line2` VARCHAR(255),
@@ -58,15 +69,15 @@ CREATE TABLE IF NOT EXISTS `customer_addresses` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `customer_tags` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(50) NOT NULL UNIQUE,
   `color` VARCHAR(7) DEFAULT '#3b82f6',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `customer_tag_assignments` (
-  `customer_id` INT UNSIGNED NOT NULL,
-  `tag_id` INT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
+  `tag_id` BIGINT UNSIGNED NOT NULL,
   `assigned_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`customer_id`, `tag_id`),
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
@@ -74,9 +85,9 @@ CREATE TABLE IF NOT EXISTS `customer_tag_assignments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `customer_notes` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
-  `user_id` INT UNSIGNED,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED,
   `note_type` ENUM('general', 'important', 'interaction', 'issue') DEFAULT 'general',
   `content` TEXT NOT NULL,
   `is_pinned` BOOLEAN DEFAULT FALSE,
@@ -89,16 +100,16 @@ CREATE TABLE IF NOT EXISTS `customer_notes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `customer_documents` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `document_type` ENUM('c-card', 'id', 'insurance', 'medical', 'waiver', 'other') NOT NULL,
   `file_path` VARCHAR(255) NOT NULL,
   `file_name` VARCHAR(255) NOT NULL,
-  `file_size` INT UNSIGNED,
+  `file_size` BIGINT UNSIGNED,
   `mime_type` VARCHAR(100),
   `ocr_data` JSON,
   `expiry_date` DATE,
-  `uploaded_by` INT UNSIGNED,
+  `uploaded_by` BIGINT UNSIGNED,
   `uploaded_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`uploaded_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
@@ -108,13 +119,13 @@ CREATE TABLE IF NOT EXISTS `customer_documents` (
 
 CREATE TABLE IF NOT EXISTS `customer_communications` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `communication_type` ENUM('email', 'sms', 'phone', 'in-person') NOT NULL,
   `direction` ENUM('inbound', 'outbound') NOT NULL,
   `subject` VARCHAR(255),
   `content` TEXT,
   `status` ENUM('sent', 'delivered', 'failed', 'bounced') DEFAULT 'sent',
-  `user_id` INT UNSIGNED,
+  `user_id` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
@@ -123,8 +134,8 @@ CREATE TABLE IF NOT EXISTS `customer_communications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `b2b_contacts` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `first_name` VARCHAR(100) NOT NULL,
   `last_name` VARCHAR(100) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
@@ -136,3 +147,5 @@ CREATE TABLE IF NOT EXISTS `b2b_contacts` (
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
   INDEX `idx_customer_id` (`customer_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET FOREIGN_KEY_CHECKS=1;

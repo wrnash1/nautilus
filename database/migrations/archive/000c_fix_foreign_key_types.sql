@@ -7,19 +7,19 @@
 -- have the correct data types to avoid FK constraint errors
 
 -- Ensure customers table has tenant_id column
-ALTER TABLE `customers` ADD COLUMN IF NOT EXISTS `tenant_id` INT UNSIGNED AFTER `id`;
+ALTER TABLE `customers` ADD COLUMN IF NOT EXISTS `tenant_id` BIGINT UNSIGNED AFTER `id`;
 ALTER TABLE `customers` ADD INDEX IF NOT EXISTS idx_tenant_id (`tenant_id`);
 
 -- Ensure products table has tenant_id column
-ALTER TABLE `products` ADD COLUMN IF NOT EXISTS `tenant_id` INT UNSIGNED AFTER `id`;
+ALTER TABLE `products` ADD COLUMN IF NOT EXISTS `tenant_id` BIGINT UNSIGNED AFTER `id`;
 ALTER TABLE `products` ADD INDEX IF NOT EXISTS idx_tenant_id (`tenant_id`);
 
 -- Ensure courses table has tenant_id column
-ALTER TABLE `courses` ADD COLUMN IF NOT EXISTS `tenant_id` INT UNSIGNED AFTER `id`;
+ALTER TABLE `courses` ADD COLUMN IF NOT EXISTS `tenant_id` BIGINT UNSIGNED AFTER `id`;
 ALTER TABLE `courses` ADD INDEX IF NOT EXISTS idx_tenant_id (`tenant_id`);
 
 -- Ensure users table has tenant_id column
-ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `tenant_id` INT UNSIGNED AFTER `id`;
+ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `tenant_id` BIGINT UNSIGNED AFTER `id`;
 ALTER TABLE `users` ADD INDEX IF NOT EXISTS idx_tenant_id (`tenant_id`);
 
 -- Ensure products has is_featured column for homepage

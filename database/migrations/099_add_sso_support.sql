@@ -1,3 +1,27 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `system_settings`;
+DROP TABLE IF EXISTS `sso_audit_log`;
+DROP TABLE IF EXISTS `sso_account_links`;
+DROP TABLE IF EXISTS `sso_login_sessions`;
+DROP TABLE IF EXISTS `oauth_providers`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `system_settings`;
+DROP TABLE IF EXISTS `sso_audit_log`;
+DROP TABLE IF EXISTS `sso_account_links`;
+DROP TABLE IF EXISTS `sso_login_sessions`;
+DROP TABLE IF EXISTS `oauth_providers`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `system_settings`;
+DROP TABLE IF EXISTS `sso_audit_log`;
+DROP TABLE IF EXISTS `sso_account_links`;
+DROP TABLE IF EXISTS `sso_login_sessions`;
+DROP TABLE IF EXISTS `oauth_providers`;
+
 -- =====================================================
 -- Migration 099: SSO/OAuth Authentication Support
 -- =====================================================
@@ -142,8 +166,8 @@ DEALLOCATE PREPARE alterIfNotExists;
 
 -- OAuth provider configurations (tenant-specific)
 CREATE TABLE IF NOT EXISTS oauth_providers (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
     provider VARCHAR(50) NOT NULL COMMENT 'google, microsoft, github, oidc, saml',
     display_name VARCHAR(100) NOT NULL COMMENT 'Display name on login button',
     is_enabled BOOLEAN DEFAULT TRUE,
@@ -175,13 +199,13 @@ CREATE TABLE IF NOT EXISTS oauth_providers (
     auto_create_users BOOLEAN DEFAULT TRUE COMMENT 'Auto-create users on first SSO login',
     auto_link_by_email BOOLEAN DEFAULT TRUE COMMENT 'Link to existing users by email',
     require_email_verification BOOLEAN DEFAULT FALSE,
-    default_role_id INT UNSIGNED NULL COMMENT 'Default role for new SSO users',
+    default_role_id BIGINT UNSIGNED NULL COMMENT 'Default role for new SSO users',
     allowed_domains TEXT NULL COMMENT 'Comma-separated list of allowed email domains',
     
     -- Metadata
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED NULL,
+    created_by BIGINT UNSIGNED NULL,
     
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
     FOREIGN KEY (default_role_id) REFERENCES roles(id) ON DELETE SET NULL,
@@ -192,9 +216,9 @@ CREATE TABLE IF NOT EXISTS oauth_providers (
 
 -- SSO login sessions (for security auditing)
 CREATE TABLE IF NOT EXISTS sso_login_sessions (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
-    user_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
     provider VARCHAR(50) NOT NULL,
     provider_user_id VARCHAR(255) NOT NULL,
     
@@ -227,9 +251,9 @@ CREATE TABLE IF NOT EXISTS sso_login_sessions (
 
 -- SSO account linking (for users with multiple auth methods)
 CREATE TABLE IF NOT EXISTS sso_account_links (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
-    user_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
     provider VARCHAR(50) NOT NULL,
     provider_user_id VARCHAR(255) NOT NULL,
     provider_email VARCHAR(255) NULL,
@@ -237,13 +261,13 @@ CREATE TABLE IF NOT EXISTS sso_account_links (
     
     -- Link Info
     linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    linked_by_user_id INT UNSIGNED NULL COMMENT 'User who created the link',
+    linked_by_user_id BIGINT UNSIGNED NULL COMMENT 'User who created the link',
     is_primary BOOLEAN DEFAULT FALSE COMMENT 'Primary SSO method',
     is_active BOOLEAN DEFAULT TRUE,
     
     -- Last Use
     last_used_at TIMESTAMP NULL,
-    use_count INT UNSIGNED DEFAULT 0,
+    use_count BIGINT UNSIGNED DEFAULT 0,
     
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -256,8 +280,8 @@ CREATE TABLE IF NOT EXISTS sso_account_links (
 -- SSO audit log
 CREATE TABLE IF NOT EXISTS sso_audit_log (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
-    user_id INT UNSIGNED NULL,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NULL,
     provider VARCHAR(50) NOT NULL,
     
     -- Event Info
@@ -325,7 +349,7 @@ WHERE id = 1;
 
 -- Create system_settings table if it doesn't exist
 CREATE TABLE IF NOT EXISTS system_settings (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     setting_key VARCHAR(100) NOT NULL UNIQUE,
     setting_value TEXT NULL,
     setting_type ENUM('string', 'integer', 'boolean', 'json', 'float') DEFAULT 'string',
@@ -383,3 +407,10 @@ ON DUPLICATE KEY UPDATE updated_at = NOW();
 --   ✓ Domain whitelisting
 --   ✓ Auto-provisioning
 -- =====================================================
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

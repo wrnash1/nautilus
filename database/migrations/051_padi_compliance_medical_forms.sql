@@ -1,3 +1,21 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `medical_clearance_history`;
+DROP TABLE IF EXISTS `medical_form_questions`;
+DROP TABLE IF EXISTS `customer_medical_forms`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `medical_clearance_history`;
+DROP TABLE IF EXISTS `medical_form_questions`;
+DROP TABLE IF EXISTS `customer_medical_forms`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `medical_clearance_history`;
+DROP TABLE IF EXISTS `medical_form_questions`;
+DROP TABLE IF EXISTS `customer_medical_forms`;
+
 -- ================================================
 -- Nautilus V6 - PADI Compliance: Medical Forms
 -- Migration: 051_padi_compliance_medical_forms.sql
@@ -6,8 +24,8 @@
 
 -- Customer medical forms (PADI Medical Form 10346)
 CREATE TABLE IF NOT EXISTS `customer_medical_forms` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
     `form_type` VARCHAR(100) DEFAULT 'padi_medical',
     `form_version` VARCHAR(50) COMMENT 'e.g., 10346 Rev. 11/20',
 
@@ -54,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `customer_medical_forms` (
     -- Document Management
     `uploaded_pdf_path` VARCHAR(255) COMMENT 'Original signed PDF',
     `notes` TEXT,
-    `reviewed_by` INT UNSIGNED COMMENT 'Staff who reviewed',
+    `reviewed_by` BIGINT UNSIGNED COMMENT 'Staff who reviewed',
     `reviewed_at` TIMESTAMP NULL,
 
     -- Timestamps
@@ -71,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `customer_medical_forms` (
 
 -- Medical form questions template (standard PADI questions)
 CREATE TABLE IF NOT EXISTS `medical_form_questions` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `form_type` VARCHAR(100) DEFAULT 'padi_medical',
     `question_number` INT NOT NULL,
     `question_text` TEXT NOT NULL,
@@ -124,13 +142,13 @@ INSERT INTO `medical_form_questions` (`form_type`, `question_number`, `question_
 
 -- Medical clearance history (audit trail)
 CREATE TABLE IF NOT EXISTS `medical_clearance_history` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `medical_form_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `medical_form_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
     `action` VARCHAR(100) NOT NULL COMMENT 'created, updated, approved, rejected, expired',
     `previous_status` VARCHAR(50),
     `new_status` VARCHAR(50),
-    `action_by` INT UNSIGNED COMMENT 'User who performed action',
+    `action_by` BIGINT UNSIGNED COMMENT 'User who performed action',
     `action_notes` TEXT,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -142,3 +160,10 @@ CREATE TABLE IF NOT EXISTS `medical_clearance_history` (
     INDEX `idx_customer` (`customer_id`),
     INDEX `idx_created` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

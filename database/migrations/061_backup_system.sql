@@ -1,10 +1,28 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `backup_storage_locations`;
+DROP TABLE IF EXISTS `scheduled_backups`;
+DROP TABLE IF EXISTS `backup_log`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `backup_storage_locations`;
+DROP TABLE IF EXISTS `scheduled_backups`;
+DROP TABLE IF EXISTS `backup_log`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `backup_storage_locations`;
+DROP TABLE IF EXISTS `scheduled_backups`;
+DROP TABLE IF EXISTS `backup_log`;
+
 -- Backup System Tables
 -- Track backup history and scheduled backups
 
 -- Backup Log
 CREATE TABLE IF NOT EXISTS backup_log (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
     backup_type ENUM('database', 'files', 'complete') NOT NULL,
     filename VARCHAR(255),
     filepath VARCHAR(500),
@@ -22,8 +40,8 @@ CREATE TABLE IF NOT EXISTS backup_log (
 
 -- Scheduled Backups
 CREATE TABLE IF NOT EXISTS scheduled_backups (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED,
     backup_name VARCHAR(100) NOT NULL,
     backup_type ENUM('database', 'files', 'complete') NOT NULL,
     frequency ENUM('daily', 'weekly', 'monthly') NOT NULL,
@@ -46,8 +64,8 @@ CREATE TABLE IF NOT EXISTS scheduled_backups (
 
 -- Backup Storage Locations (for cloud storage support)
 CREATE TABLE IF NOT EXISTS backup_storage_locations (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED,
     location_name VARCHAR(100) NOT NULL,
     storage_type ENUM('local', 's3', 'ftp', 'sftp', 'dropbox', 'google_drive') NOT NULL,
     configuration JSON COMMENT 'Storage-specific configuration',
@@ -70,3 +88,10 @@ WHERE NOT EXISTS (
     SELECT 1 FROM backup_storage_locations
     WHERE tenant_id = tenants.id AND storage_type = 'local'
 );
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

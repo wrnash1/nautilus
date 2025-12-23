@@ -1,3 +1,33 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `calendar_view_preferences`;
+DROP TABLE IF EXISTS `calendar_blackout_dates`;
+DROP TABLE IF EXISTS `instructor_availability`;
+DROP TABLE IF EXISTS `bookable_resources`;
+DROP TABLE IF EXISTS `calendar_resource_allocations`;
+DROP TABLE IF EXISTS `calendar_event_participants`;
+DROP TABLE IF EXISTS `calendar_events`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `calendar_view_preferences`;
+DROP TABLE IF EXISTS `calendar_blackout_dates`;
+DROP TABLE IF EXISTS `instructor_availability`;
+DROP TABLE IF EXISTS `bookable_resources`;
+DROP TABLE IF EXISTS `calendar_resource_allocations`;
+DROP TABLE IF EXISTS `calendar_event_participants`;
+DROP TABLE IF EXISTS `calendar_events`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `calendar_view_preferences`;
+DROP TABLE IF EXISTS `calendar_blackout_dates`;
+DROP TABLE IF EXISTS `instructor_availability`;
+DROP TABLE IF EXISTS `bookable_resources`;
+DROP TABLE IF EXISTS `calendar_resource_allocations`;
+DROP TABLE IF EXISTS `calendar_event_participants`;
+DROP TABLE IF EXISTS `calendar_events`;
+
 -- ================================================
 -- Nautilus - Advanced Scheduling & Calendar System
 -- Migration: 080_advanced_scheduling_system.sql
@@ -6,8 +36,8 @@
 
 -- Scheduling Events (Unified Calendar)
 CREATE TABLE IF NOT EXISTS `calendar_events` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Event Identity
     `title` VARCHAR(255) NOT NULL,
@@ -25,22 +55,22 @@ CREATE TABLE IF NOT EXISTS `calendar_events` (
     `is_recurring` BOOLEAN DEFAULT FALSE,
     `recurrence_rule` VARCHAR(500) NULL COMMENT 'iCal RRULE format',
     `recurrence_end_date` DATE NULL,
-    `parent_event_id` INT UNSIGNED NULL COMMENT 'Link to parent if recurring instance',
+    `parent_event_id` BIGINT UNSIGNED NULL COMMENT 'Link to parent if recurring instance',
 
     -- Location
     `location` VARCHAR(255) NULL,
-    `dive_site_id` INT UNSIGNED NULL,
+    `dive_site_id` BIGINT UNSIGNED NULL,
     `room` VARCHAR(100) NULL,
     `online_meeting_url` VARCHAR(500) NULL,
 
     -- Related Entities
     `related_entity_type` VARCHAR(100) NULL COMMENT 'course, trip, rental, etc.',
-    `related_entity_id` INT UNSIGNED NULL,
-    `course_id` INT UNSIGNED NULL,
-    `trip_id` INT UNSIGNED NULL,
+    `related_entity_id` BIGINT UNSIGNED NULL,
+    `course_id` BIGINT UNSIGNED NULL,
+    `trip_id` BIGINT UNSIGNED NULL,
 
     -- Participants
-    `organizer_user_id` INT UNSIGNED NULL,
+    `organizer_user_id` BIGINT UNSIGNED NULL,
     `max_participants` INT NULL,
     `current_participants` INT DEFAULT 0,
 
@@ -69,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `calendar_events` (
     -- Timestamps
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `created_by_user_id` INT UNSIGNED NULL,
+    `created_by_user_id` BIGINT UNSIGNED NULL,
 
     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`dive_site_id`) REFERENCES `dive_sites`(`id`) ON DELETE SET NULL,
@@ -89,13 +119,13 @@ CREATE TABLE IF NOT EXISTS `calendar_events` (
 
 -- Event Participants
 CREATE TABLE IF NOT EXISTS `calendar_event_participants` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `event_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `event_id` BIGINT UNSIGNED NOT NULL,
 
     -- Participant
     `participant_type` ENUM('customer', 'staff', 'instructor', 'external') NOT NULL,
-    `customer_id` INT UNSIGNED NULL,
-    `user_id` INT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
+    `user_id` BIGINT UNSIGNED NULL,
     `external_name` VARCHAR(255) NULL COMMENT 'If external participant',
     `external_email` VARCHAR(255) NULL,
 
@@ -129,12 +159,12 @@ CREATE TABLE IF NOT EXISTS `calendar_event_participants` (
 
 -- Resource Allocation (Boats, Equipment, Rooms, Staff)
 CREATE TABLE IF NOT EXISTS `calendar_resource_allocations` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `event_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `event_id` BIGINT UNSIGNED NOT NULL,
 
     -- Resource
     `resource_type` ENUM('boat', 'vehicle', 'room', 'equipment', 'instructor', 'staff', 'other') NOT NULL,
-    `resource_id` INT UNSIGNED NULL,
+    `resource_id` BIGINT UNSIGNED NULL,
     `resource_name` VARCHAR(255) NULL,
 
     -- Allocation Details
@@ -161,8 +191,8 @@ CREATE TABLE IF NOT EXISTS `calendar_resource_allocations` (
 
 -- Resources (Boats, Vehicles, Rooms)
 CREATE TABLE IF NOT EXISTS `bookable_resources` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Resource Identity
     `resource_name` VARCHAR(255) NOT NULL,
@@ -223,8 +253,8 @@ CREATE TABLE IF NOT EXISTS `bookable_resources` (
 
 -- Instructor Availability
 CREATE TABLE IF NOT EXISTS `instructor_availability` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `user_id` BIGINT UNSIGNED NOT NULL,
 
     -- Availability Pattern
     `day_of_week` ENUM('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday') NOT NULL,
@@ -253,13 +283,13 @@ CREATE TABLE IF NOT EXISTS `instructor_availability` (
 
 -- Time Off / Blackout Dates
 CREATE TABLE IF NOT EXISTS `calendar_blackout_dates` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Who/What is unavailable
     `blackout_type` ENUM('instructor', 'resource', 'location', 'global') NOT NULL,
-    `user_id` INT UNSIGNED NULL,
-    `resource_id` INT UNSIGNED NULL,
+    `user_id` BIGINT UNSIGNED NULL,
+    `resource_id` BIGINT UNSIGNED NULL,
 
     -- Date Range
     `start_datetime` DATETIME NOT NULL,
@@ -278,7 +308,7 @@ CREATE TABLE IF NOT EXISTS `calendar_blackout_dates` (
     `is_active` BOOLEAN DEFAULT TRUE,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `created_by_user_id` INT UNSIGNED NULL,
+    `created_by_user_id` BIGINT UNSIGNED NULL,
 
     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
@@ -290,8 +320,8 @@ CREATE TABLE IF NOT EXISTS `calendar_blackout_dates` (
 
 -- Calendar Views/Filters (User Preferences)
 CREATE TABLE IF NOT EXISTS `calendar_view_preferences` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `user_id` BIGINT UNSIGNED NOT NULL,
 
     -- View Settings
     `default_view` ENUM('month', 'week', 'day', 'agenda', 'timeline') DEFAULT 'week',
@@ -323,3 +353,10 @@ INSERT INTO `bookable_resources` (`resource_name`, `resource_type`, `capacity`, 
 ('Classroom B', 'classroom', 15, 'Small classroom for theory sessions', NULL, NULL, '#66BB6A'),
 ('Training Pool', 'pool', 20, 'Heated pool with depth to 12 feet for confined water training', NULL, NULL, '#00BCD4'),
 ('Equipment Van', 'vehicle', 8, 'Cargo van for equipment transport', 25.00, 150.00, '#FF9800');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

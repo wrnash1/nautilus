@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS audit_log (
     id BIGINT  PRIMARY KEY,
     tenant_id INT,
-    user_id INT,
+    user_id BIGINT,
     action VARCHAR(100) NOT NULL COMMENT 'Action performed (create, update, delete, login, etc.)',
     entity_type VARCHAR(100) NOT NULL COMMENT 'Type of entity affected (product, customer, user, etc.)',
     entity_id INT COMMENT 'ID of the affected entity',
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE TABLE IF NOT EXISTS data_access_log (
     id BIGINT  PRIMARY KEY,
     tenant_id INT,
-    user_id INT NOT NULL,
+    user_id BIGINT NOT NULL,
     resource_type VARCHAR(100) NOT NULL COMMENT 'Type of resource accessed',
     resource_id INT NOT NULL,
     access_type ENUM('view', 'export', 'print') DEFAULT 'view',
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS data_access_log (
 CREATE TABLE IF NOT EXISTS login_history (
     id BIGINT  PRIMARY KEY,
     tenant_id INT,
-    user_id INT,
+    user_id BIGINT,
     username VARCHAR(255),
     login_status ENUM('success', 'failed', 'blocked') NOT NULL,
     failure_reason VARCHAR(255) COMMENT 'Reason for failed login',

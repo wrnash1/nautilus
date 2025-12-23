@@ -1,7 +1,14 @@
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `staff_schedules`;
+DROP TABLE IF EXISTS `time_clock`;
+DROP TABLE IF EXISTS `commissions`;
+DROP TABLE IF EXISTS `staff_performance_metrics`;
+
 CREATE TABLE IF NOT EXISTS `staff_schedules` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `user_id` BIGINT UNSIGNED NOT NULL,
   `schedule_date` DATE NOT NULL,
   `shift_start` TIME NOT NULL,
   `shift_end` TIME NOT NULL,
@@ -9,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `staff_schedules` (
   `role` VARCHAR(100),
   `location` VARCHAR(100),
   `notes` TEXT,
-  `created_by` INT UNSIGNED,
+  `created_by` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
@@ -20,14 +27,14 @@ CREATE TABLE IF NOT EXISTS `staff_schedules` (
 
 CREATE TABLE IF NOT EXISTS `time_clock` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
   `clock_in` TIMESTAMP NOT NULL,
   `clock_out` TIMESTAMP NULL,
   `break_start` TIMESTAMP NULL,
   `break_end` TIMESTAMP NULL,
   `total_hours` DECIMAL(5,2),
   `notes` TEXT,
-  `approved_by` INT UNSIGNED,
+  `approved_by` BIGINT UNSIGNED,
   `approved_at` TIMESTAMP NULL,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`approved_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
@@ -36,10 +43,10 @@ CREATE TABLE IF NOT EXISTS `time_clock` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `commissions` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `user_id` BIGINT UNSIGNED NOT NULL,
   `transaction_id` BIGINT UNSIGNED,
-  `order_id` INT UNSIGNED,
+  `order_id` BIGINT UNSIGNED,
   `commission_type` ENUM('sale', 'course', 'trip', 'rental', 'service') NOT NULL,
   `sale_amount` DECIMAL(10,2) NOT NULL,
   `commission_rate` DECIMAL(5,2) NOT NULL,
@@ -55,8 +62,8 @@ CREATE TABLE IF NOT EXISTS `commissions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `staff_performance_metrics` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `user_id` BIGINT UNSIGNED NOT NULL,
   `metric_date` DATE NOT NULL,
   `sales_count` INT DEFAULT 0,
   `sales_total` DECIMAL(10,2) DEFAULT 0.00,
@@ -68,3 +75,5 @@ CREATE TABLE IF NOT EXISTS `staff_performance_metrics` (
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_metric_date` (`metric_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET FOREIGN_KEY_CHECKS=1;

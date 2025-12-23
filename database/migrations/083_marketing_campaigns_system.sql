@@ -1,3 +1,30 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `campaign_daily_stats`;
+DROP TABLE IF EXISTS `campaign_link_clicks`;
+DROP TABLE IF EXISTS `campaign_recipients`;
+DROP TABLE IF EXISTS `campaign_sms`;
+DROP TABLE IF EXISTS `campaign_emails`;
+DROP TABLE IF EXISTS `marketing_campaigns`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `campaign_daily_stats`;
+DROP TABLE IF EXISTS `campaign_link_clicks`;
+DROP TABLE IF EXISTS `campaign_recipients`;
+DROP TABLE IF EXISTS `campaign_sms`;
+DROP TABLE IF EXISTS `campaign_emails`;
+DROP TABLE IF EXISTS `marketing_campaigns`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `campaign_daily_stats`;
+DROP TABLE IF EXISTS `campaign_link_clicks`;
+DROP TABLE IF EXISTS `campaign_recipients`;
+DROP TABLE IF EXISTS `campaign_sms`;
+DROP TABLE IF EXISTS `campaign_emails`;
+DROP TABLE IF EXISTS `marketing_campaigns`;
+
 -- =====================================================
 -- Marketing Campaigns System
 -- Enables creation and management of multi-channel marketing campaigns
@@ -5,8 +32,8 @@
 
 -- Marketing Campaigns Table
 CREATE TABLE IF NOT EXISTS `marketing_campaigns` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `description` TEXT NULL,
     `campaign_type` ENUM('email', 'sms', 'multi_channel', 'social', 'retargeting') NOT NULL DEFAULT 'email',
@@ -20,8 +47,8 @@ CREATE TABLE IF NOT EXISTS `marketing_campaigns` (
 
     -- Targeting
     `target_audience` JSON NULL COMMENT 'Segmentation criteria',
-    `estimated_reach` INT UNSIGNED DEFAULT 0,
-    `actual_reach` INT UNSIGNED DEFAULT 0,
+    `estimated_reach` BIGINT UNSIGNED DEFAULT 0,
+    `actual_reach` BIGINT UNSIGNED DEFAULT 0,
 
     -- Budget & ROI
     `budget` DECIMAL(10, 2) DEFAULT 0.00,
@@ -29,12 +56,12 @@ CREATE TABLE IF NOT EXISTS `marketing_campaigns` (
     `revenue_generated` DECIMAL(10, 2) DEFAULT 0.00,
 
     -- Performance Metrics
-    `total_sent` INT UNSIGNED DEFAULT 0,
-    `total_delivered` INT UNSIGNED DEFAULT 0,
-    `total_opened` INT UNSIGNED DEFAULT 0,
-    `total_clicked` INT UNSIGNED DEFAULT 0,
-    `total_conversions` INT UNSIGNED DEFAULT 0,
-    `total_unsubscribes` INT UNSIGNED DEFAULT 0,
+    `total_sent` BIGINT UNSIGNED DEFAULT 0,
+    `total_delivered` BIGINT UNSIGNED DEFAULT 0,
+    `total_opened` BIGINT UNSIGNED DEFAULT 0,
+    `total_clicked` BIGINT UNSIGNED DEFAULT 0,
+    `total_conversions` BIGINT UNSIGNED DEFAULT 0,
+    `total_unsubscribes` BIGINT UNSIGNED DEFAULT 0,
 
     -- Rates (calculated)
     `delivery_rate` DECIMAL(5, 2) DEFAULT 0.00,
@@ -49,8 +76,8 @@ CREATE TABLE IF NOT EXISTS `marketing_campaigns` (
     `ab_test_metric` VARCHAR(50) NULL COMMENT 'Primary metric being tested',
 
     -- Ownership
-    `created_by` INT UNSIGNED NULL,
-    `updated_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
+    `updated_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -62,9 +89,9 @@ CREATE TABLE IF NOT EXISTS `marketing_campaigns` (
 
 -- Campaign Email Content
 CREATE TABLE IF NOT EXISTS `campaign_emails` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `campaign_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `campaign_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `variant_name` VARCHAR(50) DEFAULT 'default' COMMENT 'For A/B testing',
 
     -- Email Details
@@ -77,7 +104,7 @@ CREATE TABLE IF NOT EXISTS `campaign_emails` (
     -- Content
     `html_content` LONGTEXT NOT NULL,
     `plain_text_content` TEXT NULL,
-    `template_id` INT UNSIGNED NULL COMMENT 'Reference to email_templates',
+    `template_id` BIGINT UNSIGNED NULL COMMENT 'Reference to email_templates',
 
     -- Personalization
     `personalization_tags` JSON NULL COMMENT 'Available merge tags',
@@ -92,10 +119,10 @@ CREATE TABLE IF NOT EXISTS `campaign_emails` (
     `tracking_domain` VARCHAR(255) NULL,
 
     -- Performance (for this variant)
-    `sent_count` INT UNSIGNED DEFAULT 0,
-    `open_count` INT UNSIGNED DEFAULT 0,
-    `click_count` INT UNSIGNED DEFAULT 0,
-    `conversion_count` INT UNSIGNED DEFAULT 0,
+    `sent_count` BIGINT UNSIGNED DEFAULT 0,
+    `open_count` BIGINT UNSIGNED DEFAULT 0,
+    `click_count` BIGINT UNSIGNED DEFAULT 0,
+    `conversion_count` BIGINT UNSIGNED DEFAULT 0,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -107,9 +134,9 @@ CREATE TABLE IF NOT EXISTS `campaign_emails` (
 
 -- Campaign SMS Content
 CREATE TABLE IF NOT EXISTS `campaign_sms` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `campaign_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `campaign_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `variant_name` VARCHAR(50) DEFAULT 'default',
 
     -- SMS Details
@@ -124,10 +151,10 @@ CREATE TABLE IF NOT EXISTS `campaign_sms` (
     `track_clicks` BOOLEAN DEFAULT TRUE,
 
     -- Performance
-    `sent_count` INT UNSIGNED DEFAULT 0,
-    `delivered_count` INT UNSIGNED DEFAULT 0,
-    `click_count` INT UNSIGNED DEFAULT 0,
-    `conversion_count` INT UNSIGNED DEFAULT 0,
+    `sent_count` BIGINT UNSIGNED DEFAULT 0,
+    `delivered_count` BIGINT UNSIGNED DEFAULT 0,
+    `click_count` BIGINT UNSIGNED DEFAULT 0,
+    `conversion_count` BIGINT UNSIGNED DEFAULT 0,
     `segment_count` TINYINT UNSIGNED DEFAULT 1 COMMENT 'Number of SMS segments',
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -141,16 +168,16 @@ CREATE TABLE IF NOT EXISTS `campaign_sms` (
 -- Campaign Recipients
 CREATE TABLE IF NOT EXISTS `campaign_recipients` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `campaign_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `campaign_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Contact Info (denormalized for historical record)
     `email` VARCHAR(255) NULL,
     `phone` VARCHAR(20) NULL,
 
     -- Segmentation
-    `segment_id` INT UNSIGNED NULL,
+    `segment_id` BIGINT UNSIGNED NULL,
     `segment_match_criteria` JSON NULL COMMENT 'Why this recipient was selected',
 
     -- Delivery Status
@@ -163,8 +190,8 @@ CREATE TABLE IF NOT EXISTS `campaign_recipients` (
     -- Engagement
     `opened_at` DATETIME NULL,
     `first_click_at` DATETIME NULL,
-    `total_opens` INT UNSIGNED DEFAULT 0,
-    `total_clicks` INT UNSIGNED DEFAULT 0,
+    `total_opens` BIGINT UNSIGNED DEFAULT 0,
+    `total_clicks` BIGINT UNSIGNED DEFAULT 0,
     `last_activity_at` DATETIME NULL,
 
     -- Conversion
@@ -195,9 +222,9 @@ CREATE TABLE IF NOT EXISTS `campaign_recipients` (
 -- Campaign Click Tracking
 CREATE TABLE IF NOT EXISTS `campaign_link_clicks` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `campaign_id` INT UNSIGNED NOT NULL,
+    `campaign_id` BIGINT UNSIGNED NOT NULL,
     `recipient_id` BIGINT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Link Details
     `original_url` TEXT NOT NULL,
@@ -227,19 +254,19 @@ CREATE TABLE IF NOT EXISTS `campaign_link_clicks` (
 
 -- Campaign Performance by Day
 CREATE TABLE IF NOT EXISTS `campaign_daily_stats` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `campaign_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `campaign_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `stat_date` DATE NOT NULL,
 
     -- Daily Metrics
-    `sent` INT UNSIGNED DEFAULT 0,
-    `delivered` INT UNSIGNED DEFAULT 0,
-    `opened` INT UNSIGNED DEFAULT 0,
-    `clicked` INT UNSIGNED DEFAULT 0,
-    `conversions` INT UNSIGNED DEFAULT 0,
-    `bounces` INT UNSIGNED DEFAULT 0,
-    `unsubscribes` INT UNSIGNED DEFAULT 0,
+    `sent` BIGINT UNSIGNED DEFAULT 0,
+    `delivered` BIGINT UNSIGNED DEFAULT 0,
+    `opened` BIGINT UNSIGNED DEFAULT 0,
+    `clicked` BIGINT UNSIGNED DEFAULT 0,
+    `conversions` BIGINT UNSIGNED DEFAULT 0,
+    `bounces` BIGINT UNSIGNED DEFAULT 0,
+    `unsubscribes` BIGINT UNSIGNED DEFAULT 0,
 
     -- Revenue
     `revenue` DECIMAL(10, 2) DEFAULT 0.00,
@@ -268,3 +295,10 @@ INSERT INTO `marketing_campaigns` (
 (1, 'Dive Trip - Maldives Adventure', 'Promote exclusive Maldives dive trip package', 'multi_channel', 'scheduled', 'conversion', '2024-12-01 09:00:00', 1500.00, 500),
 (1, 'Win-Back Inactive Customers', 'Re-engage customers who haven\'t booked in 12+ months', 'email', 'draft', 'reactivation', '2024-11-20 09:00:00', 300.00, 1200),
 (1, 'New Customer Welcome Series', 'Automated 5-email welcome series for new customers', 'email', 'active', 'engagement', '2024-01-01 00:00:00', 150.00, 5000);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

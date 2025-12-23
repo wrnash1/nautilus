@@ -10,7 +10,11 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+    Options -MultiViews
+    RewriteBase /
+
     # Installer Route - handled by Front Controller
+    RewriteRule ^install/?$ install.php [L]
 
     # Redirect Trailing Slashes
     RewriteCond %{REQUEST_FILENAME} !-d

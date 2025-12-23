@@ -7,7 +7,7 @@
 -- Two-Factor Authentication Settings
 CREATE TABLE IF NOT EXISTS user_two_factor (
     id INTEGER  PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id BIGINTEGER NOT NULL,
     secret TEXT NOT NULL COMMENT 'Encrypted TOTP secret',
     backup_codes TEXT COMMENT 'Encrypted backup codes JSON array',
     enabled BOOLEAN DEFAULT TRUE,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS user_two_factor (
 -- Two-Factor Verification Logs
 CREATE TABLE IF NOT EXISTS two_factor_logs (
     id BIGINT  PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id BIGINTEGER NOT NULL,
     success BOOLEAN NOT NULL,
     method ENUM('totp', 'backup_code') NOT NULL,
     ip_address VARCHAR(45),

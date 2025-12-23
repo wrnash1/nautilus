@@ -11,8 +11,9 @@ SET FOREIGN_KEY_CHECKS=0;
 -- MULTI-TENANT & AUTHENTICATION
 -- ============================================================================
 
-CREATE TABLE IF NOT EXISTS `tenants` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+DROP TABLE IF EXISTS `tenants`;
+CREATE TABLE `tenants` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(255) NOT NULL,
     `subdomain` VARCHAR(100) UNIQUE,
     `custom_domain` VARCHAR(255),
@@ -27,8 +28,9 @@ CREATE TABLE IF NOT EXISTS `tenants` (
 -- Insert default tenant
 INSERT IGNORE INTO `tenants` (`id`, `name`, `subdomain`, `status`) VALUES (1, 'Default Tenant', 'default', 'active');
 
-CREATE TABLE IF NOT EXISTS `roles` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+DROP TABLE IF EXISTS `roles`;
+CREATE TABLE `roles` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(100) NOT NULL UNIQUE,
     `description` TEXT,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -43,12 +45,11 @@ INSERT IGNORE INTO `roles` (`name`, `description`) VALUES
 ('Staff', 'Store staff'),
 ('Instructor', 'Diving instructor');
 
--- Drop and recreate permissions table to ensure correct schema
 DROP TABLE IF EXISTS `role_permissions`;
 DROP TABLE IF EXISTS `permissions`;
 
 CREATE TABLE `permissions` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(100) NOT NULL UNIQUE,
     `display_name` VARCHAR(150) NOT NULL,
     `module` VARCHAR(50) NOT NULL,
@@ -129,8 +130,8 @@ INSERT INTO permissions (name, display_name, module, description) VALUES
 ON DUPLICATE KEY UPDATE name=VALUES(name);
 
 CREATE TABLE IF NOT EXISTS `role_permissions` (
-    `role_id` INT UNSIGNED NOT NULL,
-    `permission_id` INT UNSIGNED NOT NULL,
+    `role_id` BIGINT UNSIGNED NOT NULL,
+    `permission_id` BIGINT UNSIGNED NOT NULL,
     `permission_code` VARCHAR(100),
     PRIMARY KEY (`role_id`, `permission_id`),
     FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE,
@@ -141,9 +142,10 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
 INSERT IGNORE INTO `role_permissions` (`role_id`, `permission_id`)
 SELECT 1, id FROM `permissions`;
 
-CREATE TABLE IF NOT EXISTS `users` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED DEFAULT 1,
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED DEFAULT 1,
     `username` VARCHAR(100) UNIQUE,
     `email` VARCHAR(255) NOT NULL UNIQUE,
     `password_hash` VARCHAR(255) NOT NULL,
@@ -164,11 +166,12 @@ CREATE TABLE IF NOT EXISTS `users` (
     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `user_roles` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT UNSIGNED NOT NULL,
-    `role_id` INT UNSIGNED NOT NULL,
-    `assigned_by` INT UNSIGNED,
+DROP TABLE IF EXISTS `user_roles`;
+CREATE TABLE `user_roles` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `user_id` BIGINT UNSIGNED NOT NULL,
+    `role_id` BIGINT UNSIGNED NOT NULL,
+    `assigned_by` BIGINT UNSIGNED,
     `expires_at` TIMESTAMP NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY `unique_user_role` (`user_id`, `role_id`),
@@ -183,9 +186,10 @@ INSERT IGNORE INTO `users` (`tenant_id`, `username`, `email`, `password_hash`, `
 -- Assign Super Admin role to default user
 INSERT IGNORE INTO `user_roles` (`user_id`, `role_id`) VALUES (1, 1);
 
-CREATE TABLE IF NOT EXISTS `sessions` (
+DROP TABLE IF EXISTS `sessions`;
+CREATE TABLE `sessions` (
     `id` VARCHAR(255) PRIMARY KEY,
-    `user_id` INT UNSIGNED,
+    `user_id` BIGINT UNSIGNED,
     `payload` TEXT,
     `last_activity` INT,
     `ip_address` VARCHAR(45),
@@ -194,8 +198,9 @@ CREATE TABLE IF NOT EXISTS `sessions` (
     INDEX `idx_last_activity` (`last_activity`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `password_resets` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+DROP TABLE IF EXISTS `password_resets`;
+CREATE TABLE `password_resets` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `email` VARCHAR(255) NOT NULL,
     `token` VARCHAR(255) NOT NULL,
     `expires_at` TIMESTAMP NOT NULL,

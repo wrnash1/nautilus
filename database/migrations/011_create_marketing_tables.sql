@@ -1,6 +1,21 @@
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `coupons`;
+DROP TABLE IF EXISTS `coupon_usage`;
+DROP TABLE IF EXISTS `loyalty_programs`;
+DROP TABLE IF EXISTS `loyalty_tiers`;
+DROP TABLE IF EXISTS `loyalty_points`;
+DROP TABLE IF EXISTS `referral_program`;
+DROP TABLE IF EXISTS `email_campaigns`;
+DROP TABLE IF EXISTS `email_templates`;
+DROP TABLE IF EXISTS `email_campaign_recipients`;
+DROP TABLE IF EXISTS `sms_messages`;
+DROP TABLE IF EXISTS `automation_workflows`;
+DROP TABLE IF EXISTS `automation_logs`;
+
 CREATE TABLE IF NOT EXISTS `coupons` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `code` VARCHAR(50) NOT NULL UNIQUE,
   `type` ENUM('percentage', 'fixed_amount', 'free_shipping') NOT NULL,
   `value` DECIMAL(10,2) NOT NULL,
@@ -20,10 +35,10 @@ CREATE TABLE IF NOT EXISTS `coupons` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `coupon_usage` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `coupon_id` INT UNSIGNED NOT NULL,
-  `customer_id` INT UNSIGNED NOT NULL,
-  `order_id` INT UNSIGNED,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `coupon_id` BIGINT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
+  `order_id` BIGINT UNSIGNED,
   `transaction_id` BIGINT UNSIGNED,
   `discount_amount` DECIMAL(10,2) NOT NULL,
   `used_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -36,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `coupon_usage` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `loyalty_programs` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(100) NOT NULL,
   `points_per_dollar` DECIMAL(5,2) NOT NULL DEFAULT 1.00,
   `points_value` DECIMAL(5,2) NOT NULL DEFAULT 0.01,
@@ -47,8 +62,8 @@ CREATE TABLE IF NOT EXISTS `loyalty_programs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `loyalty_tiers` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `program_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `program_id` BIGINT UNSIGNED NOT NULL,
   `name` VARCHAR(100) NOT NULL,
   `min_points` INT NOT NULL,
   `max_points` INT,
@@ -61,13 +76,13 @@ CREATE TABLE IF NOT EXISTS `loyalty_tiers` (
 
 CREATE TABLE IF NOT EXISTS `loyalty_points` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `transaction_type` ENUM('earned', 'redeemed', 'expired', 'adjustment') NOT NULL,
   `points` INT NOT NULL,
   `balance_before` INT NOT NULL,
   `balance_after` INT NOT NULL,
   `reference_type` VARCHAR(50),
-  `reference_id` INT UNSIGNED,
+  `reference_id` BIGINT UNSIGNED,
   `expiry_date` DATE,
   `notes` TEXT,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -77,9 +92,9 @@ CREATE TABLE IF NOT EXISTS `loyalty_points` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `referral_program` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `referrer_id` INT UNSIGNED NOT NULL,
-  `referee_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `referrer_id` BIGINT UNSIGNED NOT NULL,
+  `referee_id` BIGINT UNSIGNED NOT NULL,
   `referral_code` VARCHAR(50) NOT NULL UNIQUE,
   `status` ENUM('pending', 'completed', 'expired') DEFAULT 'pending',
   `referrer_reward_type` ENUM('points', 'credit', 'coupon') NOT NULL,
@@ -95,13 +110,13 @@ CREATE TABLE IF NOT EXISTS `referral_program` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `email_campaigns` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `subject` VARCHAR(255) NOT NULL,
   `from_name` VARCHAR(100),
   `from_email` VARCHAR(255),
   `reply_to` VARCHAR(255),
-  `template_id` INT UNSIGNED,
+  `template_id` BIGINT UNSIGNED,
   `content` LONGTEXT,
   `type` ENUM('newsletter', 'promotional', 'transactional', 'automated') DEFAULT 'newsletter',
   `status` ENUM('draft', 'scheduled', 'sending', 'sent', 'paused') DEFAULT 'draft',
@@ -111,7 +126,7 @@ CREATE TABLE IF NOT EXISTS `email_campaigns` (
   `opened_count` INT DEFAULT 0,
   `clicked_count` INT DEFAULT 0,
   `bounced_count` INT DEFAULT 0,
-  `created_by` INT UNSIGNED,
+  `created_by` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
@@ -119,7 +134,7 @@ CREATE TABLE IF NOT EXISTS `email_campaigns` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `email_templates` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `subject` VARCHAR(255),
   `content` LONGTEXT NOT NULL,
@@ -132,8 +147,8 @@ CREATE TABLE IF NOT EXISTS `email_templates` (
 
 CREATE TABLE IF NOT EXISTS `email_campaign_recipients` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `campaign_id` INT UNSIGNED NOT NULL,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `campaign_id` BIGINT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `status` ENUM('pending', 'sent', 'opened', 'clicked', 'bounced', 'failed') DEFAULT 'pending',
   `sent_at` TIMESTAMP NULL,
   `opened_at` TIMESTAMP NULL,
@@ -148,7 +163,7 @@ CREATE TABLE IF NOT EXISTS `email_campaign_recipients` (
 
 CREATE TABLE IF NOT EXISTS `sms_messages` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `phone_number` VARCHAR(20) NOT NULL,
   `message` TEXT NOT NULL,
   `message_type` ENUM('transactional', 'marketing', 'reminder', 'alert') DEFAULT 'transactional',
@@ -165,7 +180,7 @@ CREATE TABLE IF NOT EXISTS `sms_messages` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `automation_workflows` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `trigger_type` ENUM('customer_birthday', 'abandoned_cart', 'service_due', 'course_completion', 'order_placed', 'customer_inactive') NOT NULL,
   `trigger_conditions` JSON,
@@ -178,8 +193,8 @@ CREATE TABLE IF NOT EXISTS `automation_workflows` (
 
 CREATE TABLE IF NOT EXISTS `automation_logs` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `workflow_id` INT UNSIGNED NOT NULL,
-  `customer_id` INT UNSIGNED,
+  `workflow_id` BIGINT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED,
   `status` ENUM('success', 'failed', 'skipped') NOT NULL,
   `actions_executed` JSON,
   `error_message` TEXT,
@@ -188,3 +203,5 @@ CREATE TABLE IF NOT EXISTS `automation_logs` (
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE SET NULL,
   INDEX `idx_workflow_id` (`workflow_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET FOREIGN_KEY_CHECKS=1;

@@ -1,3 +1,48 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `dive_insurance_policies`;
+DROP TABLE IF EXISTS `conservation_participants`;
+DROP TABLE IF EXISTS `conservation_initiatives`;
+DROP TABLE IF EXISTS `buddy_pairs`;
+DROP TABLE IF EXISTS `club_communications`;
+DROP TABLE IF EXISTS `club_event_registrations`;
+DROP TABLE IF EXISTS `club_events`;
+DROP TABLE IF EXISTS `club_memberships`;
+DROP TABLE IF EXISTS `diving_clubs`;
+DROP TABLE IF EXISTS `layaway_payment_schedules`;
+DROP TABLE IF EXISTS `layaway_agreements`;
+DROP TABLE IF EXISTS `layaway_plans`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `dive_insurance_policies`;
+DROP TABLE IF EXISTS `conservation_participants`;
+DROP TABLE IF EXISTS `conservation_initiatives`;
+DROP TABLE IF EXISTS `buddy_pairs`;
+DROP TABLE IF EXISTS `club_communications`;
+DROP TABLE IF EXISTS `club_event_registrations`;
+DROP TABLE IF EXISTS `club_events`;
+DROP TABLE IF EXISTS `club_memberships`;
+DROP TABLE IF EXISTS `diving_clubs`;
+DROP TABLE IF EXISTS `layaway_payment_schedules`;
+DROP TABLE IF EXISTS `layaway_agreements`;
+DROP TABLE IF EXISTS `layaway_plans`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `dive_insurance_policies`;
+DROP TABLE IF EXISTS `conservation_participants`;
+DROP TABLE IF EXISTS `conservation_initiatives`;
+DROP TABLE IF EXISTS `buddy_pairs`;
+DROP TABLE IF EXISTS `club_communications`;
+DROP TABLE IF EXISTS `club_event_registrations`;
+DROP TABLE IF EXISTS `club_events`;
+DROP TABLE IF EXISTS `club_memberships`;
+DROP TABLE IF EXISTS `diving_clubs`;
+DROP TABLE IF EXISTS `layaway_payment_schedules`;
+DROP TABLE IF EXISTS `layaway_agreements`;
+DROP TABLE IF EXISTS `layaway_plans`;
+
 -- =============================================
 -- Migration 098: Layaway System & Diving Club Management
 -- =============================================
@@ -10,8 +55,8 @@
 
 -- Layaway plans for equipment purchases
 CREATE TABLE IF NOT EXISTS `layaway_plans` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `plan_name` VARCHAR(200) NOT NULL,
     `description` TEXT NULL,
 
@@ -48,11 +93,11 @@ CREATE TABLE IF NOT EXISTS `layaway_plans` (
 
 -- Layaway agreements (individual customer layaway contracts)
 CREATE TABLE IF NOT EXISTS `layaway_agreements` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `agreement_number` VARCHAR(50) UNIQUE NOT NULL,
-    `layaway_plan_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `layaway_plan_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Products on layaway
     `items` JSON NOT NULL COMMENT 'Array of product IDs, quantities, prices',
@@ -76,12 +121,12 @@ CREATE TABLE IF NOT EXISTS `layaway_agreements` (
 
     -- Agreement Status
     `status` ENUM('pending', 'active', 'completed', 'defaulted', 'cancelled') DEFAULT 'pending',
-    `approved_by` INT UNSIGNED NULL,
+    `approved_by` BIGINT UNSIGNED NULL,
     `approved_at` TIMESTAMP NULL,
 
     -- Products held
     `products_reserved` BOOLEAN DEFAULT TRUE COMMENT 'Products held in inventory',
-    `reservation_location_id` INT UNSIGNED NULL,
+    `reservation_location_id` BIGINT UNSIGNED NULL,
 
     -- Completion/Cancellation
     `completed_at` TIMESTAMP NULL,
@@ -90,7 +135,7 @@ CREATE TABLE IF NOT EXISTS `layaway_agreements` (
     `refund_amount` DECIMAL(10, 2) NULL,
 
     -- Staff
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -105,9 +150,9 @@ CREATE TABLE IF NOT EXISTS `layaway_agreements` (
 
 -- Layaway payment schedule
 CREATE TABLE IF NOT EXISTS `layaway_payment_schedules` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `agreement_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `agreement_id` BIGINT UNSIGNED NOT NULL,
 
     `payment_number` INT NOT NULL,
     `due_date` DATE NOT NULL,
@@ -117,7 +162,7 @@ CREATE TABLE IF NOT EXISTS `layaway_payment_schedules` (
     `amount_paid` DECIMAL(10, 2) DEFAULT 0.00,
     `payment_status` ENUM('pending', 'paid', 'partial', 'late', 'missed') DEFAULT 'pending',
     `paid_date` DATE NULL,
-    `payment_id` INT UNSIGNED NULL COMMENT 'FK to payments table',
+    `payment_id` BIGINT UNSIGNED NULL COMMENT 'FK to payments table',
 
     -- Late Fees
     `late_fee_assessed` DECIMAL(10, 2) DEFAULT 0.00,
@@ -138,8 +183,8 @@ CREATE TABLE IF NOT EXISTS `layaway_payment_schedules` (
 
 -- Diving clubs/groups
 CREATE TABLE IF NOT EXISTS `diving_clubs` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `club_name` VARCHAR(200) NOT NULL,
     `club_code` VARCHAR(50) UNIQUE NOT NULL,
     `description` TEXT NULL,
@@ -166,10 +211,10 @@ CREATE TABLE IF NOT EXISTS `diving_clubs` (
     `discount_percentage` DECIMAL(5, 2) NULL COMMENT 'Member discount on purchases',
 
     -- Leadership
-    `president_id` INT UNSIGNED NULL,
-    `vice_president_id` INT UNSIGNED NULL,
-    `treasurer_id` INT UNSIGNED NULL,
-    `secretary_id` INT UNSIGNED NULL,
+    `president_id` BIGINT UNSIGNED NULL,
+    `vice_president_id` BIGINT UNSIGNED NULL,
+    `treasurer_id` BIGINT UNSIGNED NULL,
+    `secretary_id` BIGINT UNSIGNED NULL,
 
     -- Contact
     `email` VARCHAR(255) NULL,
@@ -194,10 +239,10 @@ CREATE TABLE IF NOT EXISTS `diving_clubs` (
 
 -- Club memberships
 CREATE TABLE IF NOT EXISTS `club_memberships` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `club_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `club_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Membership Details
     `member_number` VARCHAR(50) NULL,
@@ -223,7 +268,7 @@ CREATE TABLE IF NOT EXISTS `club_memberships` (
 
     -- Application (if required)
     `application_date` DATE NULL,
-    `approved_by` INT UNSIGNED NULL,
+    `approved_by` BIGINT UNSIGNED NULL,
     `approved_at` TIMESTAMP NULL,
     `application_notes` TEXT NULL,
 
@@ -244,9 +289,9 @@ CREATE TABLE IF NOT EXISTS `club_memberships` (
 
 -- Club events and activities
 CREATE TABLE IF NOT EXISTS `club_events` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `club_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `club_id` BIGINT UNSIGNED NOT NULL,
     `event_name` VARCHAR(200) NOT NULL,
     `event_type` ENUM('dive_trip', 'meeting', 'social', 'training', 'competition', 'conservation', 'fundraiser', 'other') NOT NULL,
 
@@ -274,7 +319,7 @@ CREATE TABLE IF NOT EXISTS `club_events` (
     `registration_opens` DATE NULL,
 
     -- Organizer
-    `organizer_id` INT UNSIGNED NULL,
+    `organizer_id` BIGINT UNSIGNED NULL,
     `contact_email` VARCHAR(255) NULL,
     `contact_phone` VARCHAR(20) NULL,
 
@@ -294,10 +339,10 @@ CREATE TABLE IF NOT EXISTS `club_events` (
 
 -- Event registrations
 CREATE TABLE IF NOT EXISTS `club_event_registrations` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `event_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `event_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Registration Details
     `registration_type` ENUM('member', 'non_member', 'guest') NOT NULL,
@@ -308,7 +353,7 @@ CREATE TABLE IF NOT EXISTS `club_event_registrations` (
     `amount_due` DECIMAL(10, 2) NOT NULL,
     `amount_paid` DECIMAL(10, 2) DEFAULT 0.00,
     `payment_status` ENUM('pending', 'paid', 'refunded', 'waived') DEFAULT 'pending',
-    `payment_id` INT UNSIGNED NULL,
+    `payment_id` BIGINT UNSIGNED NULL,
 
     -- Status
     `registration_status` ENUM('pending', 'confirmed', 'waitlist', 'cancelled', 'attended') DEFAULT 'pending',
@@ -330,9 +375,9 @@ CREATE TABLE IF NOT EXISTS `club_event_registrations` (
 
 -- Club communications (newsletter, announcements)
 CREATE TABLE IF NOT EXISTS `club_communications` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `club_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `club_id` BIGINT UNSIGNED NOT NULL,
 
     `communication_type` ENUM('announcement', 'newsletter', 'email_blast', 'reminder', 'update') NOT NULL,
     `subject` VARCHAR(200) NOT NULL,
@@ -354,7 +399,7 @@ CREATE TABLE IF NOT EXISTS `club_communications` (
     `emails_opened` INT DEFAULT 0,
     `links_clicked` INT DEFAULT 0,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -369,16 +414,16 @@ CREATE TABLE IF NOT EXISTS `club_communications` (
 
 -- Buddy system for dive safety
 CREATE TABLE IF NOT EXISTS `buddy_pairs` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Divers
-    `diver1_id` INT UNSIGNED NOT NULL,
-    `diver2_id` INT UNSIGNED NOT NULL,
+    `diver1_id` BIGINT UNSIGNED NOT NULL,
+    `diver2_id` BIGINT UNSIGNED NOT NULL,
 
     -- Relationship
     `relationship_type` ENUM('permanent', 'trip_specific', 'single_dive', 'preferred') DEFAULT 'trip_specific',
-    `paired_for_trip_id` INT UNSIGNED NULL COMMENT 'Specific trip/booking',
+    `paired_for_trip_id` BIGINT UNSIGNED NULL COMMENT 'Specific trip/booking',
     `paired_for_date` DATE NULL,
 
     -- Experience Matching
@@ -407,8 +452,8 @@ CREATE TABLE IF NOT EXISTS `buddy_pairs` (
 
 -- Marine conservation initiatives
 CREATE TABLE IF NOT EXISTS `conservation_initiatives` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     `initiative_name` VARCHAR(200) NOT NULL,
     `initiative_type` ENUM('cleanup', 'reef_restoration', 'species_monitoring', 'education', 'research', 'advocacy', 'other') NOT NULL,
@@ -433,7 +478,7 @@ CREATE TABLE IF NOT EXISTS `conservation_initiatives` (
     `next_event_date` DATE NULL,
     `meeting_frequency` VARCHAR(100) NULL,
 
-    `coordinator_id` INT UNSIGNED NULL,
+    `coordinator_id` BIGINT UNSIGNED NULL,
     `status` ENUM('planning', 'active', 'completed', 'on_hold', 'cancelled') DEFAULT 'planning',
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -446,10 +491,10 @@ CREATE TABLE IF NOT EXISTS `conservation_initiatives` (
 
 -- Conservation participation tracking
 CREATE TABLE IF NOT EXISTS `conservation_participants` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `initiative_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `initiative_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Participation
     `participation_level` ENUM('volunteer', 'coordinator', 'leader', 'donor', 'supporter') DEFAULT 'volunteer',
@@ -472,9 +517,9 @@ CREATE TABLE IF NOT EXISTS `conservation_participants` (
 
 -- Dive insurance tracking
 CREATE TABLE IF NOT EXISTS `dive_insurance_policies` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Policy Details
     `insurance_provider` VARCHAR(200) NOT NULL COMMENT 'DAN, Divers Alert Network, etc.',
@@ -507,7 +552,7 @@ CREATE TABLE IF NOT EXISTS `dive_insurance_policies` (
 
     -- Verification
     `verified` BOOLEAN DEFAULT FALSE,
-    `verified_by` INT UNSIGNED NULL,
+    `verified_by` BIGINT UNSIGNED NULL,
     `verified_at` TIMESTAMP NULL,
 
     -- Status
@@ -595,3 +640,10 @@ INSERT INTO `conservation_initiatives` (
 -- - Buddy pairing system for dive safety
 -- - Marine conservation tracking
 -- - Dive insurance management
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

@@ -237,7 +237,7 @@ class HealthCheckService
      */
     private function checkLogsDirectory(): array
     {
-        $logsDir = __DIR__ . '/../../../storage/logs';
+        $logsDir = $_ENV['LOG_PATH'] ?? __DIR__ . '/../../../storage/logs';
 
         if (!is_dir($logsDir)) {
             return [
@@ -346,7 +346,7 @@ class HealthCheckService
      */
     private function getErrorStats(): array
     {
-        $logFile = __DIR__ . '/../../../storage/logs/app.log';
+        $logFile = ($_ENV['LOG_PATH'] ?? __DIR__ . '/../../../storage/logs') . '/app.log';
 
         if (!file_exists($logFile)) {
             return ['errors_last_hour' => 0];

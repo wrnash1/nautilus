@@ -1,9 +1,27 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `compressor_logs`;
+DROP TABLE IF EXISTS `compressors`;
+DROP TABLE IF EXISTS `customer_equipment`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `compressor_logs`;
+DROP TABLE IF EXISTS `compressors`;
+DROP TABLE IF EXISTS `customer_equipment`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `compressor_logs`;
+DROP TABLE IF EXISTS `compressors`;
+DROP TABLE IF EXISTS `customer_equipment`;
+
 -- Migration: Add Air Fill Deep Dive Tables
 
 -- 1. Customer Equipment Table
 CREATE TABLE IF NOT EXISTS customer_equipment (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
     type ENUM('tank', 'regulator', 'bcd', 'other') DEFAULT 'tank',
     serial_number VARCHAR(100) NOT NULL,
     manufacturer VARCHAR(100),
@@ -21,7 +39,7 @@ CREATE TABLE IF NOT EXISTS customer_equipment (
 
 -- 2. Compressors Table
 CREATE TABLE IF NOT EXISTS compressors (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     model VARCHAR(100),
     serial_number VARCHAR(100),
@@ -37,9 +55,9 @@ CREATE TABLE IF NOT EXISTS compressors (
 
 -- 3. Compressor Logs Table
 CREATE TABLE IF NOT EXISTS compressor_logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    compressor_id INT NOT NULL,
-    user_id INT NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    compressor_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
     type ENUM('fill_run', 'maintenance', 'check') DEFAULT 'fill_run',
     hours_recorded DECIMAL(10, 2) DEFAULT 0.00,
     description TEXT,
@@ -50,7 +68,14 @@ CREATE TABLE IF NOT EXISTS compressor_logs (
 
 -- 4. Update Air Fills Table to link to Customer Equipment and Compressor
 ALTER TABLE air_fills
-ADD COLUMN customer_equipment_id INT NULL AFTER equipment_id,
-ADD COLUMN compressor_id INT NULL AFTER filled_by,
+ADD COLUMN customer_equipment_id BIGINT UNSIGNED NULL AFTER equipment_id,
+ADD COLUMN compressor_id BIGINT UNSIGNED NULL AFTER filled_by,
 ADD CONSTRAINT fk_air_fills_customer_equip FOREIGN KEY (customer_equipment_id) REFERENCES customer_equipment(id) ON DELETE SET NULL,
 ADD CONSTRAINT fk_air_fills_compressor FOREIGN KEY (compressor_id) REFERENCES compressors(id) ON DELETE SET NULL;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

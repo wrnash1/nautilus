@@ -1,10 +1,70 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `api_usage`;
+DROP TABLE IF EXISTS `chat_messages`;
+DROP TABLE IF EXISTS `websocket_queue`;
+DROP TABLE IF EXISTS `onboarding_steps`;
+DROP TABLE IF EXISTS `email_templates`;
+DROP TABLE IF EXISTS `tenant_branding`;
+DROP TABLE IF EXISTS `subscription_plan_meters`;
+DROP TABLE IF EXISTS `usage_meters`;
+DROP TABLE IF EXISTS `payment_methods`;
+DROP TABLE IF EXISTS `subscription_invoices`;
+DROP TABLE IF EXISTS `tenant_subscriptions`;
+DROP TABLE IF EXISTS `subscription_plans`;
+DROP TABLE IF EXISTS `tax_nexus`;
+DROP TABLE IF EXISTS `exchange_rates`;
+DROP TABLE IF EXISTS `oauth_states`;
+DROP TABLE IF EXISTS `saml_requests`;
+DROP TABLE IF EXISTS `sso_configurations`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `api_usage`;
+DROP TABLE IF EXISTS `chat_messages`;
+DROP TABLE IF EXISTS `websocket_queue`;
+DROP TABLE IF EXISTS `onboarding_steps`;
+DROP TABLE IF EXISTS `email_templates`;
+DROP TABLE IF EXISTS `tenant_branding`;
+DROP TABLE IF EXISTS `subscription_plan_meters`;
+DROP TABLE IF EXISTS `usage_meters`;
+DROP TABLE IF EXISTS `payment_methods`;
+DROP TABLE IF EXISTS `subscription_invoices`;
+DROP TABLE IF EXISTS `tenant_subscriptions`;
+DROP TABLE IF EXISTS `subscription_plans`;
+DROP TABLE IF EXISTS `tax_nexus`;
+DROP TABLE IF EXISTS `exchange_rates`;
+DROP TABLE IF EXISTS `oauth_states`;
+DROP TABLE IF EXISTS `saml_requests`;
+DROP TABLE IF EXISTS `sso_configurations`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `api_usage`;
+DROP TABLE IF EXISTS `chat_messages`;
+DROP TABLE IF EXISTS `websocket_queue`;
+DROP TABLE IF EXISTS `onboarding_steps`;
+DROP TABLE IF EXISTS `email_templates`;
+DROP TABLE IF EXISTS `tenant_branding`;
+DROP TABLE IF EXISTS `subscription_plan_meters`;
+DROP TABLE IF EXISTS `usage_meters`;
+DROP TABLE IF EXISTS `payment_methods`;
+DROP TABLE IF EXISTS `subscription_invoices`;
+DROP TABLE IF EXISTS `tenant_subscriptions`;
+DROP TABLE IF EXISTS `subscription_plans`;
+DROP TABLE IF EXISTS `tax_nexus`;
+DROP TABLE IF EXISTS `exchange_rates`;
+DROP TABLE IF EXISTS `oauth_states`;
+DROP TABLE IF EXISTS `saml_requests`;
+DROP TABLE IF EXISTS `sso_configurations`;
+
 -- Enterprise SaaS Features Migration
 -- Adds tables for SSO, multi-currency, subscriptions, white-label, and monitoring
 
 -- SSO Configuration
 CREATE TABLE IF NOT EXISTS sso_configurations (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
     provider VARCHAR(50) NOT NULL COMMENT 'saml, azure, google, okta, onelogin',
     enabled BOOLEAN DEFAULT TRUE,
     configuration TEXT COMMENT 'JSON configuration',
@@ -16,8 +76,8 @@ CREATE TABLE IF NOT EXISTS sso_configurations (
 
 -- SAML Requests
 CREATE TABLE IF NOT EXISTS saml_requests (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
     request_id VARCHAR(255) NOT NULL UNIQUE,
     issued_at DATETIME NOT NULL,
     expires_at DATETIME NOT NULL,
@@ -30,8 +90,8 @@ CREATE TABLE IF NOT EXISTS saml_requests (
 
 -- OAuth States
 CREATE TABLE IF NOT EXISTS oauth_states (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
     state VARCHAR(255) NOT NULL UNIQUE,
     nonce VARCHAR(255) NOT NULL,
     provider VARCHAR(50) NOT NULL,
@@ -43,7 +103,7 @@ CREATE TABLE IF NOT EXISTS oauth_states (
 
 -- Exchange Rates
 CREATE TABLE IF NOT EXISTS exchange_rates (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     from_currency VARCHAR(3) NOT NULL,
     to_currency VARCHAR(3) NOT NULL,
     rate DECIMAL(18, 8) NOT NULL,
@@ -56,7 +116,7 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
 -- Tax Nexus
 CREATE TABLE IF NOT EXISTS tax_nexus (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
     country VARCHAR(2) NOT NULL,
     state VARCHAR(50) NULL,
     is_active BOOLEAN DEFAULT TRUE,
@@ -76,7 +136,7 @@ ALTER TABLE tax_rates ADD COLUMN IF NOT EXISTS tax_type VARCHAR(20) DEFAULT 'sal
 -- Subscription Plans
 -- Subscription Plans (Was in 058 backup, restoring here)
 CREATE TABLE IF NOT EXISTS subscription_plans (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT NULL,
     amount DECIMAL(10, 2) NOT NULL,
@@ -99,8 +159,8 @@ CREATE TABLE IF NOT EXISTS subscription_plans (
 -- Tenant Subscriptions
 CREATE TABLE IF NOT EXISTS tenant_subscriptions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
-    plan_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
+    plan_id BIGINT UNSIGNED NOT NULL,
     status VARCHAR(20) DEFAULT 'active' COMMENT 'active, past_due, canceled, incomplete',
     current_period_start DATE NOT NULL,
     current_period_end DATE NOT NULL,
@@ -122,7 +182,7 @@ CREATE TABLE IF NOT EXISTS tenant_subscriptions (
 -- Subscription Invoices
 CREATE TABLE IF NOT EXISTS subscription_invoices (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
     subscription_id INT NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     currency VARCHAR(3) DEFAULT 'USD',
@@ -140,7 +200,7 @@ CREATE TABLE IF NOT EXISTS subscription_invoices (
 -- Payment Methods
 CREATE TABLE IF NOT EXISTS payment_methods (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
     type VARCHAR(20) NOT NULL COMMENT 'card, bank_account, paypal',
     last_four VARCHAR(4) NULL,
     exp_month INT NULL,
@@ -156,7 +216,7 @@ CREATE TABLE IF NOT EXISTS payment_methods (
 CREATE TABLE IF NOT EXISTS usage_meters (
     id INT AUTO_INCREMENT PRIMARY KEY,
     subscription_id INT NOT NULL,
-    tenant_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
     meter_type VARCHAR(50) NOT NULL COMMENT 'api_calls, storage, users, transactions',
     quantity DECIMAL(18, 6) NOT NULL,
     metadata TEXT NULL COMMENT 'JSON metadata',
@@ -172,7 +232,7 @@ CREATE TABLE IF NOT EXISTS usage_meters (
 -- Subscription Plan Meters
 CREATE TABLE IF NOT EXISTS subscription_plan_meters (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    plan_id INT NOT NULL,
+    plan_id BIGINT UNSIGNED NOT NULL,
     meter_type VARCHAR(50) NOT NULL,
     price_per_unit DECIMAL(10, 6) NOT NULL,
     included_quantity DECIMAL(18, 6) DEFAULT 0,
@@ -182,7 +242,7 @@ CREATE TABLE IF NOT EXISTS subscription_plan_meters (
 -- Tenant Branding
 CREATE TABLE IF NOT EXISTS tenant_branding (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL UNIQUE,
+    tenant_id BIGINT NOT NULL UNIQUE,
     company_name VARCHAR(255) NULL,
     logo_url VARCHAR(255) NULL,
     favicon_url VARCHAR(255) NULL,
@@ -207,7 +267,7 @@ CREATE TABLE IF NOT EXISTS tenant_branding (
 -- Email Templates
 CREATE TABLE IF NOT EXISTS email_templates (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
     template_name VARCHAR(100) NOT NULL,
     subject VARCHAR(255) NULL,
     content TEXT NOT NULL,
@@ -220,7 +280,7 @@ CREATE TABLE IF NOT EXISTS email_templates (
 -- Onboarding Steps
 CREATE TABLE IF NOT EXISTS onboarding_steps (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
     step VARCHAR(50) NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT NULL,
@@ -246,9 +306,9 @@ CREATE TABLE IF NOT EXISTS websocket_queue (
 -- Chat Messages
 CREATE TABLE IF NOT EXISTS chat_messages (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
-    from_user_id INT NOT NULL,
-    to_user_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
+    from_user_id BIGINT NOT NULL,
+    to_user_id BIGINT NOT NULL,
     message TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
     read_at DATETIME NULL,
@@ -262,7 +322,7 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 -- API Usage Tracking
 CREATE TABLE IF NOT EXISTS api_usage (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
     endpoint VARCHAR(255) NULL,
     ip_address VARCHAR(45) NULL,
     user_agent TEXT NULL,
@@ -318,3 +378,10 @@ INSERT IGNORE INTO exchange_rates (from_currency, to_currency, rate, source) VAL
 ('GBP', 'USD', 1.27, 'manual'),
 ('USD', 'CAD', 1.36, 'manual'),
 ('CAD', 'USD', 0.74, 'manual');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

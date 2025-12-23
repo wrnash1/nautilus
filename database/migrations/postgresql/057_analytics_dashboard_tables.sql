@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS product_analytics (
 -- Stores user-customizable dashboard configurations
 CREATE TABLE IF NOT EXISTS dashboard_widgets (
     id INTEGER  PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id BIGINTEGER NOT NULL,
 
     -- Widget configuration
     widget_type VARCHAR(50) NOT NULL,
@@ -277,7 +277,7 @@ CREATE TABLE IF NOT EXISTS report_schedules (
     -- Timestamps
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
 
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_next_run (next_run_at),
@@ -295,7 +295,7 @@ CREATE TABLE IF NOT EXISTS analytics_events (
     event_category VARCHAR(50),
 
     -- Associated entities
-    user_id INT,
+    user_id BIGINT,
     customer_id INT,
     transaction_id INT,
     product_id INT,

@@ -4,7 +4,7 @@
 -- Backup Log
 CREATE TABLE IF NOT EXISTS backup_log (
     id BIGINT  PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
     backup_type ENUM('database', 'files', 'complete') NOT NULL,
     filename VARCHAR(255),
     filepath VARCHAR(500),
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS backup_log (
 -- Scheduled Backups
 CREATE TABLE IF NOT EXISTS scheduled_backups (
     id INTEGER  PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
     backup_name VARCHAR(100) NOT NULL,
     backup_type ENUM('database', 'files', 'complete') NOT NULL,
     frequency ENUM('daily', 'weekly', 'monthly') NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS scheduled_backups (
 -- Backup Storage Locations (for cloud storage support)
 CREATE TABLE IF NOT EXISTS backup_storage_locations (
     id INTEGER  PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
     location_name VARCHAR(100) NOT NULL,
     storage_type ENUM('local', 's3', 'ftp', 'sftp', 'dropbox', 'google_drive') NOT NULL,
     configuration JSON COMMENT 'Storage-specific configuration',

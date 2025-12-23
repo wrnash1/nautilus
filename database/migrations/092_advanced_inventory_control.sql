@@ -1,3 +1,42 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `reorder_suggestions`;
+DROP TABLE IF EXISTS `inventory_count_items`;
+DROP TABLE IF EXISTS `inventory_counts`;
+DROP TABLE IF EXISTS `stock_transfer_items`;
+DROP TABLE IF EXISTS `stock_transfers`;
+DROP TABLE IF EXISTS `inventory_movements`;
+DROP TABLE IF EXISTS `serialized_inventory`;
+DROP TABLE IF EXISTS `inventory_stock_levels`;
+DROP TABLE IF EXISTS `product_master`;
+DROP TABLE IF EXISTS `inventory_locations`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `reorder_suggestions`;
+DROP TABLE IF EXISTS `inventory_count_items`;
+DROP TABLE IF EXISTS `inventory_counts`;
+DROP TABLE IF EXISTS `stock_transfer_items`;
+DROP TABLE IF EXISTS `stock_transfers`;
+DROP TABLE IF EXISTS `inventory_movements`;
+DROP TABLE IF EXISTS `serialized_inventory`;
+DROP TABLE IF EXISTS `inventory_stock_levels`;
+DROP TABLE IF EXISTS `product_master`;
+DROP TABLE IF EXISTS `inventory_locations`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `reorder_suggestions`;
+DROP TABLE IF EXISTS `inventory_count_items`;
+DROP TABLE IF EXISTS `inventory_counts`;
+DROP TABLE IF EXISTS `stock_transfer_items`;
+DROP TABLE IF EXISTS `stock_transfers`;
+DROP TABLE IF EXISTS `inventory_movements`;
+DROP TABLE IF EXISTS `serialized_inventory`;
+DROP TABLE IF EXISTS `inventory_stock_levels`;
+DROP TABLE IF EXISTS `product_master`;
+DROP TABLE IF EXISTS `inventory_locations`;
+
 -- =====================================================
 -- Advanced Inventory Control System
 -- Complete inventory management with RFID, barcodes, multi-location, and automated reordering
@@ -5,8 +44,8 @@
 
 -- Inventory Locations/Warehouses
 CREATE TABLE IF NOT EXISTS `inventory_locations` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `location_name` VARCHAR(255) NOT NULL,
     `location_type` ENUM('store', 'warehouse', 'boat', 'van', 'storage', 'consignment') NOT NULL,
 
@@ -18,12 +57,12 @@ CREATE TABLE IF NOT EXISTS `inventory_locations` (
     `country` VARCHAR(100) DEFAULT 'USA',
 
     -- Contact
-    `manager_id` INT UNSIGNED NULL,
+    `manager_id` BIGINT UNSIGNED NULL,
     `phone` VARCHAR(20) NULL,
     `email` VARCHAR(255) NULL,
 
     -- Capacity
-    `total_capacity_sqft` INT UNSIGNED NULL,
+    `total_capacity_sqft` BIGINT UNSIGNED NULL,
     `storage_zones` JSON NULL COMMENT 'Different storage areas within location',
 
     -- Settings
@@ -44,9 +83,9 @@ CREATE TABLE IF NOT EXISTS `inventory_locations` (
 
 -- Product Master (extends existing products table)
 CREATE TABLE IF NOT EXISTS `product_master` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `product_id` INT UNSIGNED NULL COMMENT 'Link to existing products table',
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `product_id` BIGINT UNSIGNED NULL COMMENT 'Link to existing products table',
 
     -- Identification
     `sku` VARCHAR(100) NOT NULL,
@@ -107,9 +146,9 @@ CREATE TABLE IF NOT EXISTS `product_master` (
 
     -- Lead Times
     `lead_time_days` INT DEFAULT 7,
-    `supplier_id` INT UNSIGNED NULL,
-    `preferred_vendor_id` INT UNSIGNED NULL,
-    `backup_vendor_id` INT UNSIGNED NULL,
+    `supplier_id` BIGINT UNSIGNED NULL,
+    `preferred_vendor_id` BIGINT UNSIGNED NULL,
+    `backup_vendor_id` BIGINT UNSIGNED NULL,
 
     -- Perishability
     `is_perishable` BOOLEAN DEFAULT FALSE,
@@ -137,7 +176,7 @@ CREATE TABLE IF NOT EXISTS `product_master` (
     `is_active` BOOLEAN DEFAULT TRUE,
     `is_discontinued` BOOLEAN DEFAULT FALSE,
     `discontinued_date` DATE NULL,
-    `replacement_product_id` INT UNSIGNED NULL,
+    `replacement_product_id` BIGINT UNSIGNED NULL,
 
     -- Meta
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -154,9 +193,9 @@ CREATE TABLE IF NOT EXISTS `product_master` (
 -- Stock Levels by Location
 CREATE TABLE IF NOT EXISTS `inventory_stock_levels` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `product_id` INT UNSIGNED NOT NULL,
-    `location_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `product_id` BIGINT UNSIGNED NOT NULL,
+    `location_id` BIGINT UNSIGNED NOT NULL,
 
     -- Quantities
     `quantity_on_hand` INT NOT NULL DEFAULT 0,
@@ -202,9 +241,9 @@ CREATE TABLE IF NOT EXISTS `inventory_stock_levels` (
 -- Serialized Inventory (individual items with serial numbers)
 CREATE TABLE IF NOT EXISTS `serialized_inventory` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `product_id` INT UNSIGNED NOT NULL,
-    `location_id` INT UNSIGNED NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `product_id` BIGINT UNSIGNED NOT NULL,
+    `location_id` BIGINT UNSIGNED NULL,
 
     -- Serial Info
     `serial_number` VARCHAR(100) NOT NULL,
@@ -226,9 +265,9 @@ CREATE TABLE IF NOT EXISTS `serialized_inventory` (
     `status_changed_at` DATETIME NULL,
 
     -- Ownership
-    `customer_id` INT UNSIGNED NULL COMMENT 'If sold or rented to customer',
-    `order_id` INT UNSIGNED NULL,
-    `rental_id` INT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL COMMENT 'If sold or rented to customer',
+    `order_id` BIGINT UNSIGNED NULL,
+    `rental_id` BIGINT UNSIGNED NULL,
 
     -- Service History
     `total_rental_days` INT DEFAULT 0,
@@ -254,8 +293,8 @@ CREATE TABLE IF NOT EXISTS `serialized_inventory` (
 -- Inventory Movements/Transactions
 CREATE TABLE IF NOT EXISTS `inventory_movements` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `product_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `product_id` BIGINT UNSIGNED NOT NULL,
 
     -- Movement Details
     `movement_type` ENUM('receipt', 'sale', 'transfer', 'adjustment', 'return', 'damage', 'loss', 'found', 'rental_out', 'rental_return', 'cycle_count', 'scrap') NOT NULL,
@@ -263,8 +302,8 @@ CREATE TABLE IF NOT EXISTS `inventory_movements` (
     `transaction_reference` VARCHAR(100) NULL COMMENT 'PO, Order, Transfer ID',
 
     -- Locations
-    `from_location_id` INT UNSIGNED NULL,
-    `to_location_id` INT UNSIGNED NULL,
+    `from_location_id` BIGINT UNSIGNED NULL,
+    `to_location_id` BIGINT UNSIGNED NULL,
 
     -- Quantities
     `quantity` INT NOT NULL,
@@ -283,15 +322,15 @@ CREATE TABLE IF NOT EXISTS `inventory_movements` (
     `notes` TEXT NULL,
 
     -- Audit
-    `performed_by` INT UNSIGNED NULL COMMENT 'User ID',
-    `approved_by` INT UNSIGNED NULL,
+    `performed_by` BIGINT UNSIGNED NULL COMMENT 'User ID',
+    `approved_by` BIGINT UNSIGNED NULL,
     `requires_approval` BOOLEAN DEFAULT FALSE,
     `approval_status` ENUM('pending', 'approved', 'rejected') NULL,
 
     -- Related Records
-    `order_id` INT UNSIGNED NULL,
-    `purchase_order_id` INT UNSIGNED NULL,
-    `transfer_id` INT UNSIGNED NULL,
+    `order_id` BIGINT UNSIGNED NULL,
+    `purchase_order_id` BIGINT UNSIGNED NULL,
+    `transfer_id` BIGINT UNSIGNED NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -306,13 +345,13 @@ CREATE TABLE IF NOT EXISTS `inventory_movements` (
 
 -- Stock Transfers Between Locations
 CREATE TABLE IF NOT EXISTS `stock_transfers` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `transfer_number` VARCHAR(50) NOT NULL UNIQUE,
 
     -- Locations
-    `from_location_id` INT UNSIGNED NOT NULL,
-    `to_location_id` INT UNSIGNED NOT NULL,
+    `from_location_id` BIGINT UNSIGNED NOT NULL,
+    `to_location_id` BIGINT UNSIGNED NOT NULL,
 
     -- Status
     `status` ENUM('draft', 'pending', 'in_transit', 'received', 'cancelled') DEFAULT 'draft',
@@ -333,9 +372,9 @@ CREATE TABLE IF NOT EXISTS `stock_transfers` (
     `total_value` DECIMAL(12, 2) DEFAULT 0.00,
 
     -- Personnel
-    `initiated_by` INT UNSIGNED NULL,
-    `shipped_by` INT UNSIGNED NULL,
-    `received_by` INT UNSIGNED NULL,
+    `initiated_by` BIGINT UNSIGNED NULL,
+    `shipped_by` BIGINT UNSIGNED NULL,
+    `received_by` BIGINT UNSIGNED NULL,
 
     -- Discrepancies
     `has_discrepancies` BOOLEAN DEFAULT FALSE,
@@ -357,8 +396,8 @@ CREATE TABLE IF NOT EXISTS `stock_transfers` (
 -- Stock Transfer Line Items
 CREATE TABLE IF NOT EXISTS `stock_transfer_items` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `transfer_id` INT UNSIGNED NOT NULL,
-    `product_id` INT UNSIGNED NOT NULL,
+    `transfer_id` BIGINT UNSIGNED NOT NULL,
+    `product_id` BIGINT UNSIGNED NOT NULL,
 
     -- Quantities
     `quantity_requested` INT NOT NULL,
@@ -384,13 +423,13 @@ CREATE TABLE IF NOT EXISTS `stock_transfer_items` (
 
 -- Physical Inventory Counts
 CREATE TABLE IF NOT EXISTS `inventory_counts` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `count_name` VARCHAR(255) NOT NULL,
     `count_type` ENUM('full', 'partial', 'cycle', 'spot') NOT NULL,
 
     -- Scope
-    `location_id` INT UNSIGNED NULL,
+    `location_id` BIGINT UNSIGNED NULL,
     `category` VARCHAR(100) NULL,
     `products_to_count` JSON NULL COMMENT 'Specific product IDs',
 
@@ -413,8 +452,8 @@ CREATE TABLE IF NOT EXISTS `inventory_counts` (
 
     -- Personnel
     `assigned_to` JSON NULL COMMENT 'Array of user IDs',
-    `completed_by` INT UNSIGNED NULL,
-    `reviewed_by` INT UNSIGNED NULL,
+    `completed_by` BIGINT UNSIGNED NULL,
+    `reviewed_by` BIGINT UNSIGNED NULL,
 
     -- Notes
     `notes` TEXT NULL,
@@ -430,9 +469,9 @@ CREATE TABLE IF NOT EXISTS `inventory_counts` (
 -- Physical Count Details
 CREATE TABLE IF NOT EXISTS `inventory_count_items` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `count_id` INT UNSIGNED NOT NULL,
-    `product_id` INT UNSIGNED NOT NULL,
-    `location_id` INT UNSIGNED NULL,
+    `count_id` BIGINT UNSIGNED NOT NULL,
+    `product_id` BIGINT UNSIGNED NOT NULL,
+    `location_id` BIGINT UNSIGNED NULL,
 
     -- Expected vs Actual
     `expected_quantity` INT NOT NULL,
@@ -458,7 +497,7 @@ CREATE TABLE IF NOT EXISTS `inventory_count_items` (
     `discrepancy_reason` TEXT NULL,
 
     -- Audit
-    `counted_by` INT UNSIGNED NULL,
+    `counted_by` BIGINT UNSIGNED NULL,
     `counted_at` DATETIME NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -470,10 +509,10 @@ CREATE TABLE IF NOT EXISTS `inventory_count_items` (
 
 -- Reorder Suggestions
 CREATE TABLE IF NOT EXISTS `reorder_suggestions` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `product_id` INT UNSIGNED NOT NULL,
-    `location_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `product_id` BIGINT UNSIGNED NOT NULL,
+    `location_id` BIGINT UNSIGNED NULL,
 
     -- Current State
     `current_stock` INT NOT NULL,
@@ -489,7 +528,7 @@ CREATE TABLE IF NOT EXISTS `reorder_suggestions` (
     `status` ENUM('pending', 'ordered', 'received', 'dismissed') DEFAULT 'pending',
     `generated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `ordered_at` DATETIME NULL,
-    `purchase_order_id` INT UNSIGNED NULL,
+    `purchase_order_id` BIGINT UNSIGNED NULL,
     `dismissed_at` DATETIME NULL,
     `dismissed_reason` TEXT NULL,
 
@@ -540,3 +579,10 @@ INSERT INTO `product_master` (
 -- Consumables
 (1, 'O-RING-KIT', '123456789022', 'O-Ring Service Kit', 'Parts', 'Generic', 'consumable', 12.00, 24.99, 20, 50, FALSE),
 (1, 'TANK-VALVE', '123456789023', 'Tank Valve - DIN', 'Parts', 'XS Scuba', 'physical', 45.00, 79.99, 10, 20, FALSE);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

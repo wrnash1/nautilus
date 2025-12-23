@@ -5,13 +5,22 @@
 -- PART 1: RMA (Return Merchandise Authorization) System
 -- ============================================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `rma_requests`;
+DROP TABLE IF EXISTS `rma_items`;
+DROP TABLE IF EXISTS `rma_status_history`;
+DROP TABLE IF EXISTS `product_import_jobs`;
+DROP TABLE IF EXISTS `product_import_preview`;
+DROP TABLE IF EXISTS `vendor_price_lists`;
+
 -- RMA Requests Table
 CREATE TABLE IF NOT EXISTS `rma_requests` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `rma_number` VARCHAR(50) NOT NULL UNIQUE COMMENT 'RMA-YYYYMMDD-XXXX format',
-  `customer_id` INT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `transaction_id` BIGINT UNSIGNED COMMENT 'Original sale transaction',
-  `vendor_id` INT UNSIGNED COMMENT 'If returning to vendor',
+  `vendor_id` BIGINT UNSIGNED COMMENT 'If returning to vendor',
   `rma_type` ENUM('customer_return', 'vendor_return', 'warranty_claim', 'defective_exchange') DEFAULT 'customer_return',
   `status` ENUM('pending', 'approved', 'rejected', 'received', 'refunded', 'exchanged', 'vendor_sent', 'vendor_received', 'completed', 'cancelled') DEFAULT 'pending',
   `reason` ENUM('defective', 'wrong_item', 'not_as_described', 'damaged_shipping', 'buyer_remorse', 'warranty_repair', 'other') NOT NULL,
@@ -27,8 +36,8 @@ CREATE TABLE IF NOT EXISTS `rma_requests` (
   `approved_date` TIMESTAMP NULL,
   `received_date` TIMESTAMP NULL,
   `completed_date` TIMESTAMP NULL,
-  `approved_by` INT UNSIGNED COMMENT 'Staff member who approved',
-  `processed_by` INT UNSIGNED COMMENT 'Staff member who processed',
+  `approved_by` BIGINT UNSIGNED COMMENT 'Staff member who approved',
+  `processed_by` BIGINT UNSIGNED COMMENT 'Staff member who processed',
 
   -- Shipping info for return
   `return_tracking_number` VARCHAR(100),
@@ -66,11 +75,11 @@ COMMENT='RMA request tracking for customer and vendor returns';
 
 -- RMA Items Table (individual products being returned)
 CREATE TABLE IF NOT EXISTS `rma_items` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `rma_request_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `rma_request_id` BIGINT UNSIGNED NOT NULL,
   `transaction_item_id` BIGINT UNSIGNED COMMENT 'Original transaction item',
-  `product_id` INT UNSIGNED NOT NULL,
-  `variant_id` INT UNSIGNED,
+  `product_id` BIGINT UNSIGNED NOT NULL,
+  `variant_id` BIGINT UNSIGNED,
   `quantity` INT NOT NULL DEFAULT 1,
   `unit_price` DECIMAL(10,2) NOT NULL,
   `total_price` DECIMAL(10,2) NOT NULL,
@@ -93,11 +102,11 @@ COMMENT='Individual items in an RMA request';
 
 -- RMA Status History (audit trail)
 CREATE TABLE IF NOT EXISTS `rma_status_history` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `rma_request_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `rma_request_id` BIGINT UNSIGNED NOT NULL,
   `old_status` VARCHAR(50),
   `new_status` VARCHAR(50) NOT NULL,
-  `changed_by` INT UNSIGNED,
+  `changed_by` BIGINT UNSIGNED,
   `notes` TEXT,
   `changed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -115,16 +124,16 @@ COMMENT='Audit trail for RMA status changes';
 
 -- Product Import Jobs Table
 CREATE TABLE IF NOT EXISTS `product_import_jobs` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `job_name` VARCHAR(255) NOT NULL,
   `import_type` ENUM('csv', 'excel', 'xml', 'json', 'api') DEFAULT 'csv',
   `source_file` VARCHAR(500) COMMENT 'Path to uploaded file',
-  `vendor_id` INT UNSIGNED COMMENT 'Associated vendor if applicable',
+  `vendor_id` BIGINT UNSIGNED COMMENT 'Associated vendor if applicable',
   `status` ENUM('pending', 'mapping', 'validating', 'importing', 'completed', 'failed', 'cancelled') DEFAULT 'pending',
 
   -- File info
-  `file_size` INT UNSIGNED COMMENT 'File size in bytes',
-  `total_rows` INT UNSIGNED DEFAULT 0,
+  `file_size` BIGINT UNSIGNED COMMENT 'File size in bytes',
+  `total_rows` BIGINT UNSIGNED DEFAULT 0,
   `header_row` INT DEFAULT 1 COMMENT 'Which row contains headers',
 
   -- Mapping configuration
@@ -139,11 +148,11 @@ CREATE TABLE IF NOT EXISTS `product_import_jobs` (
   `auto_create_vendors` BOOLEAN DEFAULT FALSE,
 
   -- Progress tracking
-  `rows_processed` INT UNSIGNED DEFAULT 0,
-  `rows_success` INT UNSIGNED DEFAULT 0,
-  `rows_updated` INT UNSIGNED DEFAULT 0,
-  `rows_skipped` INT UNSIGNED DEFAULT 0,
-  `rows_failed` INT UNSIGNED DEFAULT 0,
+  `rows_processed` BIGINT UNSIGNED DEFAULT 0,
+  `rows_success` BIGINT UNSIGNED DEFAULT 0,
+  `rows_updated` BIGINT UNSIGNED DEFAULT 0,
+  `rows_skipped` BIGINT UNSIGNED DEFAULT 0,
+  `rows_failed` BIGINT UNSIGNED DEFAULT 0,
 
   -- Results
   `error_log` JSON COMMENT 'Array of error messages',
@@ -153,7 +162,7 @@ CREATE TABLE IF NOT EXISTS `product_import_jobs` (
   -- Timestamps
   `started_at` TIMESTAMP NULL,
   `completed_at` TIMESTAMP NULL,
-  `created_by` INT UNSIGNED,
+  `created_by` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -168,8 +177,8 @@ COMMENT='Tracks product import jobs and their progress';
 
 -- Product Import Preview Data (temp staging before import)
 CREATE TABLE IF NOT EXISTS `product_import_preview` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `import_job_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `import_job_id` BIGINT UNSIGNED NOT NULL,
   `row_number` INT NOT NULL,
   `raw_data` JSON NOT NULL COMMENT 'Original CSV row data',
   `mapped_data` JSON COMMENT 'Data after field mapping',
@@ -177,7 +186,7 @@ CREATE TABLE IF NOT EXISTS `product_import_preview` (
   `validation_messages` JSON COMMENT 'Array of validation messages',
   `will_create` BOOLEAN DEFAULT TRUE COMMENT 'Will create new product',
   `will_update` BOOLEAN DEFAULT FALSE COMMENT 'Will update existing product',
-  `existing_product_id` INT UNSIGNED COMMENT 'ID if updating existing',
+  `existing_product_id` BIGINT UNSIGNED COMMENT 'ID if updating existing',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (`import_job_id`) REFERENCES `product_import_jobs`(`id`) ON DELETE CASCADE,
@@ -194,14 +203,14 @@ COMMENT='Preview data before actual import - cleared after import completes';
 
 -- Vendor Price Lists (for price update imports)
 CREATE TABLE IF NOT EXISTS `vendor_price_lists` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `vendor_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `vendor_id` BIGINT UNSIGNED NOT NULL,
   `price_list_name` VARCHAR(255) NOT NULL,
   `effective_date` DATE NOT NULL,
   `expiration_date` DATE,
   `discount_percentage` DECIMAL(5,2) DEFAULT 0.00 COMMENT 'Overall discount %',
   `file_path` VARCHAR(500),
-  `import_job_id` INT UNSIGNED COMMENT 'Link to import job if imported',
+  `import_job_id` BIGINT UNSIGNED COMMENT 'Link to import job if imported',
   `is_active` BOOLEAN DEFAULT TRUE,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -276,3 +285,5 @@ ON DUPLICATE KEY UPDATE
 -- 3. Vendor integration: vendor_price_lists
 -- 4. Enhanced product fields for shipping (dimensions, HS codes, etc.)
 -- 5. RMA settings and system metadata
+
+SET FOREIGN_KEY_CHECKS=1;

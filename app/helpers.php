@@ -106,7 +106,7 @@ if (!function_exists('logActivity')) {
     {
         if (isset($_SESSION['user_id'])) {
             \App\Core\Database::query(
-                "INSERT INTO audit_logs (user_id, action, module, entity_id, ip_address, user_agent)
+                "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, ip_address, user_agent)
                  VALUES (?, ?, ?, ?, ?, ?)",
                 [
                     $_SESSION['user_id'],

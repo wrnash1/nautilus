@@ -1,11 +1,38 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `ab_test_participants`;
+DROP TABLE IF EXISTS `ab_test_variants`;
+DROP TABLE IF EXISTS `ab_test_experiments`;
+DROP TABLE IF EXISTS `sms_templates`;
+DROP TABLE IF EXISTS `sms_queue`;
+DROP TABLE IF EXISTS `sms_providers`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `ab_test_participants`;
+DROP TABLE IF EXISTS `ab_test_variants`;
+DROP TABLE IF EXISTS `ab_test_experiments`;
+DROP TABLE IF EXISTS `sms_templates`;
+DROP TABLE IF EXISTS `sms_queue`;
+DROP TABLE IF EXISTS `sms_providers`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `ab_test_participants`;
+DROP TABLE IF EXISTS `ab_test_variants`;
+DROP TABLE IF EXISTS `ab_test_experiments`;
+DROP TABLE IF EXISTS `sms_templates`;
+DROP TABLE IF EXISTS `sms_queue`;
+DROP TABLE IF EXISTS `sms_providers`;
+
 -- =====================================================
 -- SMS Marketing & A/B Testing System
 -- =====================================================
 
 -- SMS Provider Configuration
 CREATE TABLE IF NOT EXISTS `sms_providers` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `provider_name` ENUM('twilio', 'nexmo', 'messagebird', 'aws_sns', 'custom') NOT NULL,
     `is_active` BOOLEAN DEFAULT TRUE,
     `is_primary` BOOLEAN DEFAULT FALSE,
@@ -22,8 +49,8 @@ CREATE TABLE IF NOT EXISTS `sms_providers` (
     `callback_url` VARCHAR(500) NULL,
 
     -- Limits
-    `daily_limit` INT UNSIGNED DEFAULT 1000,
-    `daily_sent` INT UNSIGNED DEFAULT 0,
+    `daily_limit` BIGINT UNSIGNED DEFAULT 1000,
+    `daily_sent` BIGINT UNSIGNED DEFAULT 0,
     `last_reset_date` DATE NULL,
 
     -- Performance
@@ -45,20 +72,20 @@ CREATE TABLE IF NOT EXISTS `sms_providers` (
 -- SMS Queue
 CREATE TABLE IF NOT EXISTS `sms_queue` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `provider_id` INT UNSIGNED NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `provider_id` BIGINT UNSIGNED NULL,
 
     -- Recipient
     `to_phone` VARCHAR(20) NOT NULL,
-    `customer_id` INT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
 
     -- Content
     `message` VARCHAR(1600) NOT NULL,
     `segment_count` TINYINT UNSIGNED DEFAULT 1,
 
     -- Campaign/Workflow
-    `campaign_id` INT UNSIGNED NULL,
-    `workflow_id` INT UNSIGNED NULL,
+    `campaign_id` BIGINT UNSIGNED NULL,
+    `workflow_id` BIGINT UNSIGNED NULL,
 
     -- Sender
     `sender_id` VARCHAR(11) NULL,
@@ -111,8 +138,8 @@ CREATE TABLE IF NOT EXISTS `sms_queue` (
 
 -- SMS Templates
 CREATE TABLE IF NOT EXISTS `sms_templates` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `category` ENUM('transactional', 'promotional', 'reminder', 'alert', 'notification') NOT NULL,
     `message_template` VARCHAR(1600) NOT NULL,
@@ -125,7 +152,7 @@ CREATE TABLE IF NOT EXISTS `sms_templates` (
     `include_unsubscribe` BOOLEAN DEFAULT TRUE,
 
     -- Usage Stats
-    `times_used` INT UNSIGNED DEFAULT 0,
+    `times_used` BIGINT UNSIGNED DEFAULT 0,
     `last_used_at` DATETIME NULL,
 
     -- Performance
@@ -133,7 +160,7 @@ CREATE TABLE IF NOT EXISTS `sms_templates` (
     `avg_click_rate` DECIMAL(5, 2) DEFAULT 0.00,
 
     `is_active` BOOLEAN DEFAULT TRUE,
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -143,15 +170,15 @@ CREATE TABLE IF NOT EXISTS `sms_templates` (
 
 -- A/B Test Experiments
 CREATE TABLE IF NOT EXISTS `ab_test_experiments` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `description` TEXT NULL,
     `experiment_type` ENUM('email_subject', 'email_content', 'sms_content', 'send_time', 'cta_button', 'landing_page') NOT NULL,
 
     -- Test Configuration
-    `campaign_id` INT UNSIGNED NULL,
-    `workflow_id` INT UNSIGNED NULL,
+    `campaign_id` BIGINT UNSIGNED NULL,
+    `workflow_id` BIGINT UNSIGNED NULL,
     `test_channel` ENUM('email', 'sms', 'both') DEFAULT 'email',
 
     -- Status
@@ -161,8 +188,8 @@ CREATE TABLE IF NOT EXISTS `ab_test_experiments` (
 
     -- Test Settings
     `traffic_split` JSON NOT NULL COMMENT 'Percentage for each variant',
-    `sample_size` INT UNSIGNED DEFAULT 1000,
-    `min_sample_size` INT UNSIGNED DEFAULT 100,
+    `sample_size` BIGINT UNSIGNED DEFAULT 1000,
+    `min_sample_size` BIGINT UNSIGNED DEFAULT 100,
     `confidence_level` DECIMAL(5, 2) DEFAULT 95.00,
 
     -- Primary Metric
@@ -178,7 +205,7 @@ CREATE TABLE IF NOT EXISTS `ab_test_experiments` (
     -- Results
     `result_summary` JSON NULL,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -190,9 +217,9 @@ CREATE TABLE IF NOT EXISTS `ab_test_experiments` (
 
 -- A/B Test Variants
 CREATE TABLE IF NOT EXISTS `ab_test_variants` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `experiment_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `experiment_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `variant_name` VARCHAR(50) NOT NULL COMMENT 'A, B, C, Control',
     `is_control` BOOLEAN DEFAULT FALSE,
 
@@ -215,11 +242,11 @@ CREATE TABLE IF NOT EXISTS `ab_test_variants` (
     `traffic_percentage` DECIMAL(5, 2) NOT NULL DEFAULT 50.00,
 
     -- Performance Metrics
-    `total_sent` INT UNSIGNED DEFAULT 0,
-    `total_delivered` INT UNSIGNED DEFAULT 0,
-    `total_opened` INT UNSIGNED DEFAULT 0,
-    `total_clicked` INT UNSIGNED DEFAULT 0,
-    `total_conversions` INT UNSIGNED DEFAULT 0,
+    `total_sent` BIGINT UNSIGNED DEFAULT 0,
+    `total_delivered` BIGINT UNSIGNED DEFAULT 0,
+    `total_opened` BIGINT UNSIGNED DEFAULT 0,
+    `total_clicked` BIGINT UNSIGNED DEFAULT 0,
+    `total_conversions` BIGINT UNSIGNED DEFAULT 0,
     `total_revenue` DECIMAL(10, 2) DEFAULT 0.00,
 
     -- Calculated Rates
@@ -243,10 +270,10 @@ CREATE TABLE IF NOT EXISTS `ab_test_variants` (
 -- A/B Test Participant Assignments
 CREATE TABLE IF NOT EXISTS `ab_test_participants` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `experiment_id` INT UNSIGNED NOT NULL,
-    `variant_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `experiment_id` BIGINT UNSIGNED NOT NULL,
+    `variant_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Assignment
     `assigned_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -312,3 +339,10 @@ INSERT INTO `ab_test_experiments` (
     'Testing which subject line drives more course bookings',
     'email_subject', 'draft', 'email',
     '{"A": 50, "B": 50}', 'conversion_rate', TRUE);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

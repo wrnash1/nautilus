@@ -331,6 +331,7 @@ class PhotoUploadController extends Controller
      */
     private function logError(string $message): void
     {
-        error_log('[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL, 3, 'storage/logs/photo_upload.log');
+        $logPath = ($_ENV['LOG_PATH'] ?? 'storage/logs') . '/photo_upload.log';
+        error_log('[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL, 3, $logPath);
     }
 }

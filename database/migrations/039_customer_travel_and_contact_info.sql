@@ -23,9 +23,18 @@ ADD COLUMN IF NOT EXISTS wetsuit_size VARCHAR(20) AFTER shoe_size;
 ALTER TABLE customers ADD INDEX IF NOT EXISTS idx_passport_expiration (passport_expiration);
 
 -- Create multiple addresses table
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS customer_custom_field_values;
+DROP TABLE IF EXISTS customer_custom_fields;
+DROP TABLE IF EXISTS customer_contacts;
+DROP TABLE IF EXISTS customer_emails;
+DROP TABLE IF EXISTS customer_phones;
+DROP TABLE IF EXISTS customer_addresses;
+
 CREATE TABLE IF NOT EXISTS customer_addresses (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
     address_type ENUM('billing', 'shipping', 'home', 'work', 'other') NOT NULL DEFAULT 'billing',
     label VARCHAR(100) COMMENT 'Custom label for address',
     is_default BOOLEAN DEFAULT FALSE,
@@ -46,8 +55,8 @@ CREATE TABLE IF NOT EXISTS customer_addresses (
 
 -- Create multiple phones table
 CREATE TABLE IF NOT EXISTS customer_phones (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
     phone_type ENUM('home', 'work', 'mobile', 'fax', 'other') NOT NULL DEFAULT 'mobile',
     label VARCHAR(100) COMMENT 'Custom label for phone',
     phone_number VARCHAR(20) NOT NULL,
@@ -68,8 +77,8 @@ CREATE TABLE IF NOT EXISTS customer_phones (
 
 -- Create multiple emails table
 CREATE TABLE IF NOT EXISTS customer_emails (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
     email_type ENUM('personal', 'work', 'other') NOT NULL DEFAULT 'personal',
     label VARCHAR(100) COMMENT 'Custom label for email',
     email VARCHAR(255) NOT NULL,
@@ -90,8 +99,8 @@ CREATE TABLE IF NOT EXISTS customer_emails (
 
 -- Create customer contacts table (emergency contacts, etc.)
 CREATE TABLE IF NOT EXISTS customer_contacts (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
     contact_type ENUM('spouse', 'emergency', 'assistant', 'parent', 'child', 'other') NOT NULL DEFAULT 'emergency',
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
@@ -117,7 +126,7 @@ CREATE TABLE IF NOT EXISTS customer_contacts (
 
 -- Create customer custom fields table (flexible key-value storage)
 CREATE TABLE IF NOT EXISTS customer_custom_fields (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     field_name VARCHAR(100) NOT NULL UNIQUE,
     field_label VARCHAR(150) NOT NULL,
     field_type ENUM('text', 'number', 'date', 'boolean', 'select', 'textarea') DEFAULT 'text',
@@ -134,9 +143,9 @@ CREATE TABLE IF NOT EXISTS customer_custom_fields (
 
 -- Create customer custom field values table
 CREATE TABLE IF NOT EXISTS customer_custom_field_values (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
-    field_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
+    field_id BIGINT UNSIGNED NOT NULL,
     field_value TEXT,
 
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
@@ -214,3 +223,4 @@ SELECT
     created_at
 FROM customers
 WHERE emergency_contact_name IS NOT NULL AND emergency_contact_name != '';
+SET FOREIGN_KEY_CHECKS=1;

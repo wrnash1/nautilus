@@ -1,3 +1,27 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `maintenance_mode`;
+DROP TABLE IF EXISTS `update_notifications`;
+DROP TABLE IF EXISTS `system_version`;
+DROP TABLE IF EXISTS `system_backups`;
+DROP TABLE IF EXISTS `system_updates`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `maintenance_mode`;
+DROP TABLE IF EXISTS `update_notifications`;
+DROP TABLE IF EXISTS `system_version`;
+DROP TABLE IF EXISTS `system_backups`;
+DROP TABLE IF EXISTS `system_updates`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `maintenance_mode`;
+DROP TABLE IF EXISTS `update_notifications`;
+DROP TABLE IF EXISTS `system_version`;
+DROP TABLE IF EXISTS `system_backups`;
+DROP TABLE IF EXISTS `system_updates`;
+
 -- ============================================================================
 -- UPDATE SYSTEM TABLES - Migration 102
 -- Migration: 102_create_update_system_tables.sql
@@ -11,11 +35,11 @@
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS `system_updates` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `version` VARCHAR(20) NOT NULL,
     `previous_version` VARCHAR(20),
     `status` ENUM('pending', 'downloading', 'in_progress', 'completed', 'failed', 'rolled_back') DEFAULT 'pending',
-    `backup_id` INT UNSIGNED NULL,
+    `backup_id` BIGINT UNSIGNED NULL,
     `update_package_path` VARCHAR(255),
     `update_package_size` BIGINT UNSIGNED,
     `update_package_checksum` VARCHAR(64),
@@ -23,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `system_updates` (
     `started_at` TIMESTAMP NULL,
     `completed_at` TIMESTAMP NULL,
     `error_message` TEXT,
-    `updated_by` INT UNSIGNED,
+    `updated_by` BIGINT UNSIGNED,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX `idx_version` (`version`),
@@ -39,14 +63,14 @@ COMMENT='Tracks all system updates and their status';
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS `system_backups` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `backup_type` ENUM('full', 'database', 'files', 'pre_update') DEFAULT 'full',
     `file_path` VARCHAR(255) NOT NULL,
     `file_size` BIGINT UNSIGNED,
     `compression_type` ENUM('none', 'gzip', 'zip') DEFAULT 'gzip',
     `checksum` VARCHAR(64),
     `is_encrypted` BOOLEAN DEFAULT FALSE,
-    `created_by` INT UNSIGNED,
+    `created_by` BIGINT UNSIGNED,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `expires_at` TIMESTAMP NULL,
     `restored_at` TIMESTAMP NULL,
@@ -64,13 +88,13 @@ COMMENT='Tracks all system backups for disaster recovery';
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS `system_version` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `version` VARCHAR(20) NOT NULL,
     `build_number` VARCHAR(50),
     `release_date` DATE,
     `is_current` BOOLEAN DEFAULT TRUE,
     `installed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `installed_by` INT UNSIGNED,
+    `installed_by` BIGINT UNSIGNED,
     `notes` TEXT,
     INDEX `idx_version` (`version`),
     INDEX `idx_is_current` (`is_current`),
@@ -84,14 +108,14 @@ COMMENT='Tracks system version history';
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS `update_notifications` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `version` VARCHAR(20) NOT NULL,
     `title` VARCHAR(255) NOT NULL,
     `message` TEXT,
     `severity` ENUM('info', 'warning', 'critical') DEFAULT 'info',
     `is_read` BOOLEAN DEFAULT FALSE,
     `read_at` TIMESTAMP NULL,
-    `read_by` INT UNSIGNED NULL,
+    `read_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX `idx_is_read` (`is_read`),
     INDEX `idx_severity` (`severity`),
@@ -106,14 +130,14 @@ COMMENT='Update notifications for administrators';
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS `maintenance_mode` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `is_enabled` BOOLEAN DEFAULT FALSE,
     `message` TEXT,
     `allowed_ips` TEXT COMMENT 'JSON array of allowed IP addresses',
     `enabled_at` TIMESTAMP NULL,
-    `enabled_by` INT UNSIGNED NULL,
+    `enabled_by` BIGINT UNSIGNED NULL,
     `disabled_at` TIMESTAMP NULL,
-    `disabled_by` INT UNSIGNED NULL,
+    `disabled_by` BIGINT UNSIGNED NULL,
     `reason` VARCHAR(255),
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -165,3 +189,10 @@ SELECT
 --
 -- Result: Enterprise-ready update system infrastructure
 -- ============================================================================
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

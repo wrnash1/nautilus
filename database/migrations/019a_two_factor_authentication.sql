@@ -4,10 +4,15 @@
 -- Description: 2FA tables and user settings
 -- ================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `user_two_factor`;
+DROP TABLE IF EXISTS `two_factor_logs`;
+
 -- Two-Factor Authentication Settings
 CREATE TABLE IF NOT EXISTS user_two_factor (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
     secret TEXT NOT NULL COMMENT 'Encrypted TOTP secret',
     backup_codes TEXT COMMENT 'Encrypted backup codes JSON array',
     enabled BOOLEAN DEFAULT TRUE,
@@ -20,7 +25,7 @@ CREATE TABLE IF NOT EXISTS user_two_factor (
 -- Two-Factor Verification Logs
 CREATE TABLE IF NOT EXISTS two_factor_logs (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
     success BOOLEAN NOT NULL,
     method ENUM('totp', 'backup_code') NOT NULL,
     ip_address VARCHAR(45),
@@ -35,3 +40,5 @@ CREATE TABLE IF NOT EXISTS two_factor_logs (
 -- Add 2FA requirement column to users table (if not exists)
 ALTER TABLE users
     ADD COLUMN IF NOT EXISTS two_factor_required BOOLEAN DEFAULT FALSE COMMENT 'Force 2FA for this user';
+
+SET FOREIGN_KEY_CHECKS=1;

@@ -4,10 +4,19 @@
 -- ==========================================
 
 -- Layaway Transactions
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS layaway_reminders;
+DROP TABLE IF EXISTS layaway_history;
+DROP TABLE IF EXISTS layaway_payments;
+DROP TABLE IF EXISTS layaway_items;
+DROP TABLE IF EXISTS layaway;
+DROP TABLE IF EXISTS layaway_settings;
+
 CREATE TABLE IF NOT EXISTS layaway (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     layaway_number VARCHAR(50) NOT NULL UNIQUE,
-    customer_id INT UNSIGNED NOT NULL,
+    customer_id BIGINT UNSIGNED NOT NULL,
 
     -- Financial Details
     total_amount DECIMAL(10,2) NOT NULL,
@@ -27,18 +36,18 @@ CREATE TABLE IF NOT EXISTS layaway (
     status ENUM('active', 'completed', 'cancelled', 'defaulted') DEFAULT 'active',
     cancellation_reason TEXT,
     cancelled_at TIMESTAMP NULL,
-    cancelled_by INT UNSIGNED NULL,
+    cancelled_by BIGINT UNSIGNED NULL,
 
     -- Store Information
-    location_id INT UNSIGNED NULL COMMENT 'Store location if multi-location',
+    location_id BIGINT UNSIGNED NULL COMMENT 'Store location if multi-location',
     notes TEXT,
     internal_notes TEXT COMMENT 'Staff-only notes',
 
     -- Audit Trail
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED NOT NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    updated_by INT UNSIGNED NULL,
+    updated_by BIGINT UNSIGNED NULL,
 
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
     FOREIGN KEY (created_by) REFERENCES users(id),
@@ -54,9 +63,9 @@ CREATE TABLE IF NOT EXISTS layaway (
 
 -- Layaway Items
 CREATE TABLE IF NOT EXISTS layaway_items (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    layaway_id INT UNSIGNED NOT NULL,
-    product_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    layaway_id BIGINT UNSIGNED NOT NULL,
+    product_id BIGINT UNSIGNED NOT NULL,
 
     -- Product Details (snapshot at time of layaway)
     product_name VARCHAR(255) NOT NULL,
@@ -86,8 +95,8 @@ CREATE TABLE IF NOT EXISTS layaway_items (
 
 -- Layaway Payments
 CREATE TABLE IF NOT EXISTS layaway_payments (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    layaway_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    layaway_id BIGINT UNSIGNED NOT NULL,
 
     -- Payment Details
     amount DECIMAL(10,2) NOT NULL,
@@ -109,7 +118,7 @@ CREATE TABLE IF NOT EXISTS layaway_payments (
 
     -- Audit
     paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    received_by INT UNSIGNED NOT NULL,
+    received_by BIGINT UNSIGNED NOT NULL,
     notes TEXT,
 
     FOREIGN KEY (layaway_id) REFERENCES layaway(id) ON DELETE CASCADE,
@@ -122,8 +131,8 @@ CREATE TABLE IF NOT EXISTS layaway_payments (
 
 -- Layaway History/Activity Log
 CREATE TABLE IF NOT EXISTS layaway_history (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    layaway_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    layaway_id BIGINT UNSIGNED NOT NULL,
 
     -- Event Details
     event_type ENUM('created', 'payment_received', 'payment_missed', 'reminder_sent',
@@ -132,14 +141,14 @@ CREATE TABLE IF NOT EXISTS layaway_history (
     event_description TEXT NOT NULL,
 
     -- Related Data
-    payment_id INT UNSIGNED NULL COMMENT 'If event is payment-related',
+    payment_id BIGINT UNSIGNED NULL COMMENT 'If event is payment-related',
     old_status VARCHAR(50),
     new_status VARCHAR(50),
     amount DECIMAL(10,2) NULL,
 
     -- Audit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
 
     FOREIGN KEY (layaway_id) REFERENCES layaway(id) ON DELETE CASCADE,
     FOREIGN KEY (payment_id) REFERENCES layaway_payments(id) ON DELETE SET NULL,
@@ -152,8 +161,8 @@ CREATE TABLE IF NOT EXISTS layaway_history (
 
 -- Layaway Reminders/Notifications
 CREATE TABLE IF NOT EXISTS layaway_reminders (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    layaway_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    layaway_id BIGINT UNSIGNED NOT NULL,
 
     -- Reminder Details
     reminder_type ENUM('payment_due', 'payment_overdue', 'final_payment', 'cancellation_warning') NOT NULL,
@@ -174,7 +183,7 @@ CREATE TABLE IF NOT EXISTS layaway_reminders (
 
     -- Audit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
 
     FOREIGN KEY (layaway_id) REFERENCES layaway(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id),
@@ -186,7 +195,7 @@ CREATE TABLE IF NOT EXISTS layaway_reminders (
 
 -- Layaway Settings/Configuration
 CREATE TABLE IF NOT EXISTS layaway_settings (
-    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 
     -- Policy Settings
     minimum_deposit_percentage INT DEFAULT 20 COMMENT 'Minimum deposit % required',
@@ -220,7 +229,7 @@ CREATE TABLE IF NOT EXISTS layaway_settings (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    updated_by INT UNSIGNED,
+    updated_by BIGINT UNSIGNED,
 
     FOREIGN KEY (updated_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -257,3 +266,4 @@ ALTER TABLE layaway_payments COMMENT = 'Payment history for layaway transactions
 ALTER TABLE layaway_history COMMENT = 'Activity log for layaway transactions';
 ALTER TABLE layaway_reminders COMMENT = 'Payment reminders and notifications';
 ALTER TABLE layaway_settings COMMENT = 'System-wide layaway configuration';
+SET FOREIGN_KEY_CHECKS=1;

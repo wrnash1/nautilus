@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS customer_relationships (
     is_bidirectional BOOLEAN DEFAULT TRUE COMMENT 'If true, relationship applies both ways',
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (customer_id_1) REFERENCES customers(id) ON DELETE CASCADE,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS customer_groups (
     rules TEXT COMMENT 'JSON rules for dynamic groups',
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS customer_group_memberships (
     customer_id INTEGER NOT NULL,
     group_id INTEGER NOT NULL,
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    added_by INT UNSIGNED,
+    added_by BIGINT UNSIGNED,
     notes VARCHAR(255),
 
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS customer_reminders (
     priority ENUM('low', 'normal', 'high', 'urgent') DEFAULT 'normal',
     status ENUM('pending', 'completed', 'cancelled', 'snoozed') DEFAULT 'pending',
     completed_at TIMESTAMP NULL,
-    completed_by INT UNSIGNED,
+    completed_by BIGINT UNSIGNED,
     snoozed_until TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by INTEGER NOT NULL,

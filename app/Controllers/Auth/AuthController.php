@@ -20,7 +20,7 @@ class AuthController
         $email = sanitizeInput($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
 
-        $logPath = BASE_PATH . '/storage/logs/debug_login.log';
+        $logPath = ($_ENV['LOG_PATH'] ?? BASE_PATH . '/storage/logs') . '/debug_login.log';
         file_put_contents($logPath, date('Y-m-d H:i:s') . " - Login attempt for: $email\n", FILE_APPEND);
 
         if (empty($email) || empty($password)) {

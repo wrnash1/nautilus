@@ -4,10 +4,16 @@
 -- Description: Track individual items by serial/barcode
 -- ================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `serial_numbers`;
+DROP TABLE IF EXISTS `serial_number_history`;
+DROP TABLE IF EXISTS `barcode_scans`;
+
 -- Serial Numbers Table
 CREATE TABLE IF NOT EXISTS serial_numbers (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    product_id INT UNSIGNED NOT NULL,
+    product_id BIGINT UNSIGNED NOT NULL,
     serial_number VARCHAR(100) NOT NULL,
     barcode VARCHAR(100),
     status ENUM('available', 'sold', 'rented', 'reserved', 'service', 'damaged', 'lost') DEFAULT 'available',
@@ -42,9 +48,9 @@ CREATE TABLE IF NOT EXISTS serial_number_history (
     old_location VARCHAR(100),
     new_location VARCHAR(100),
     transaction_id BIGINT UNSIGNED COMMENT 'Related transaction if applicable',
-    rental_id INT UNSIGNED COMMENT 'Related rental if applicable',
-    work_order_id INT UNSIGNED COMMENT 'Related work order if applicable',
-    performed_by INT UNSIGNED COMMENT 'Staff member who performed action',
+    rental_id BIGINT UNSIGNED COMMENT 'Related rental if applicable',
+    work_order_id BIGINT UNSIGNED COMMENT 'Related work order if applicable',
+    performed_by BIGINT UNSIGNED COMMENT 'Staff member who performed action',
     notes TEXT,
     event_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_serial_number_id (serial_number_id),
@@ -76,9 +82,9 @@ CREATE TABLE IF NOT EXISTS barcode_scans (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     barcode VARCHAR(100) NOT NULL,
     serial_number_id BIGINT UNSIGNED,
-    product_id INT UNSIGNED,
+    product_id BIGINT UNSIGNED,
     scan_type ENUM('inventory', 'sale', 'rental', 'service', 'return', 'search') NOT NULL,
-    scanned_by INT UNSIGNED,
+    scanned_by BIGINT UNSIGNED,
     scan_location VARCHAR(50) COMMENT 'e.g., POS, inventory, rentals',
     result ENUM('success', 'not_found', 'error') DEFAULT 'success',
     scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

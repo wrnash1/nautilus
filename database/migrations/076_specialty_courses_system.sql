@@ -1,3 +1,21 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `specialty_course_enrollments`;
+DROP TABLE IF EXISTS `specialty_course_schedules`;
+DROP TABLE IF EXISTS `specialty_courses`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `specialty_course_enrollments`;
+DROP TABLE IF EXISTS `specialty_course_schedules`;
+DROP TABLE IF EXISTS `specialty_courses`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `specialty_course_enrollments`;
+DROP TABLE IF EXISTS `specialty_course_schedules`;
+DROP TABLE IF EXISTS `specialty_courses`;
+
 -- ================================================
 -- Nautilus - Specialty Courses System
 -- Migration: 076_specialty_courses_system.sql
@@ -6,8 +24,8 @@
 
 -- Specialty Courses Catalog
 CREATE TABLE IF NOT EXISTS `specialty_courses` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Course Identification
     `course_code` VARCHAR(50) NOT NULL COMMENT 'PADI course code (e.g., AOW, RED, DM)',
@@ -161,11 +179,11 @@ INSERT INTO `specialty_courses` (`course_code`, `course_name`, `course_type`, `c
 
 -- Specialty Course Schedules
 CREATE TABLE IF NOT EXISTS `specialty_course_schedules` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
-    `specialty_course_id` INT UNSIGNED NOT NULL,
-    `instructor_id` INT UNSIGNED NOT NULL,
+    `specialty_course_id` BIGINT UNSIGNED NOT NULL,
+    `instructor_id` BIGINT UNSIGNED NOT NULL,
 
     -- Schedule Details
     `start_date` DATE NOT NULL,
@@ -207,11 +225,11 @@ CREATE TABLE IF NOT EXISTS `specialty_course_schedules` (
 
 -- Specialty Course Enrollments
 CREATE TABLE IF NOT EXISTS `specialty_course_enrollments` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
-    `specialty_course_schedule_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `specialty_course_schedule_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Enrollment Status
     `status` ENUM('enrolled', 'in_progress', 'completed', 'dropped', 'failed') DEFAULT 'enrolled',
@@ -219,7 +237,7 @@ CREATE TABLE IF NOT EXISTS `specialty_course_enrollments` (
 
     -- Prerequisites Verified
     `prerequisites_verified` BOOLEAN DEFAULT FALSE,
-    `verified_by_user_id` INT UNSIGNED NULL,
+    `verified_by_user_id` BIGINT UNSIGNED NULL,
     `verified_at` TIMESTAMP NULL,
 
     -- Progress Tracking
@@ -257,3 +275,10 @@ CREATE TABLE IF NOT EXISTS `specialty_course_enrollments` (
     INDEX `idx_status` (`status`),
     INDEX `idx_enrollment_date` (`enrollment_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

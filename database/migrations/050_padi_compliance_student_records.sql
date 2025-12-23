@@ -1,3 +1,21 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `padi_standard_skills`;
+DROP TABLE IF EXISTS `student_skills_assessment`;
+DROP TABLE IF EXISTS `course_student_records`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `padi_standard_skills`;
+DROP TABLE IF EXISTS `student_skills_assessment`;
+DROP TABLE IF EXISTS `course_student_records`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `padi_standard_skills`;
+DROP TABLE IF EXISTS `student_skills_assessment`;
+DROP TABLE IF EXISTS `course_student_records`;
+
 -- ================================================
 -- Nautilus V6 - PADI Compliance: Student Records
 -- Migration: 050_padi_compliance_student_records.sql
@@ -6,8 +24,8 @@
 
 -- Course student records (based on 10056 Open Water Diver Course Record)
 CREATE TABLE IF NOT EXISTS `course_student_records` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `enrollment_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `enrollment_id` BIGINT UNSIGNED NOT NULL,
     `form_type` VARCHAR(100) DEFAULT 'course_record' COMMENT 'course_record, referral, completion',
 
     -- Knowledge Development (eLearning or classroom)
@@ -51,8 +69,8 @@ CREATE TABLE IF NOT EXISTS `course_student_records` (
     `received_referral_date` DATE,
 
     -- Instructor Assignment
-    `instructor_id` INT UNSIGNED COMMENT 'Primary instructor',
-    `assistant_instructor_id` INT UNSIGNED COMMENT 'Assistant if applicable',
+    `instructor_id` BIGINT UNSIGNED COMMENT 'Primary instructor',
+    `assistant_instructor_id` BIGINT UNSIGNED COMMENT 'Assistant if applicable',
 
     -- Performance Notes
     `instructor_notes` TEXT,
@@ -75,8 +93,8 @@ CREATE TABLE IF NOT EXISTS `course_student_records` (
 
 -- Skills assessment for detailed tracking (based on 10081 Water Skills Checkoff)
 CREATE TABLE IF NOT EXISTS `student_skills_assessment` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `record_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `record_id` BIGINT UNSIGNED NOT NULL,
     `session_type` ENUM('confined_water', 'open_water') NOT NULL,
     `session_number` INT NOT NULL COMMENT '1-5 for confined, 1-4 for open water',
     `session_date` DATE,
@@ -93,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `student_skills_assessment` (
     `attempts` INT DEFAULT 1,
 
     -- Assessment Details
-    `assessed_by` INT UNSIGNED COMMENT 'Instructor who assessed',
+    `assessed_by` BIGINT UNSIGNED COMMENT 'Instructor who assessed',
     `assessment_notes` TEXT,
     `remediation_needed` BOOLEAN DEFAULT FALSE,
     `remediation_notes` TEXT,
@@ -112,7 +130,7 @@ CREATE TABLE IF NOT EXISTS `student_skills_assessment` (
 
 -- Pre-defined PADI skills for Open Water Diver course
 CREATE TABLE IF NOT EXISTS `padi_standard_skills` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `course_type` VARCHAR(100) NOT NULL COMMENT 'open_water, advanced, rescue, etc.',
     `session_type` ENUM('confined_water', 'open_water') NOT NULL,
     `session_number` INT NOT NULL,
@@ -209,3 +227,10 @@ INSERT INTO `padi_standard_skills` (`course_type`, `session_type`, `session_numb
 ('open_water', 'open_water', 4, 'OW4-4', 'Remove and replace scuba unit underwater', 'Equipment', 4),
 ('open_water', 'open_water', 4, 'OW4-5', 'Remove and replace weight system underwater', 'Equipment', 5),
 ('open_water', 'open_water', 4, 'OW4-6', 'Complete dive', 'General', 6);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

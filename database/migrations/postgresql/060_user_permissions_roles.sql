@@ -4,7 +4,7 @@
 -- Roles table
 CREATE TABLE IF NOT EXISTS roles (
     id INTEGER  PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
     role_name VARCHAR(100) NOT NULL,
     role_code VARCHAR(50) NOT NULL,
     description TEXT,
@@ -52,9 +52,9 @@ CREATE TABLE IF NOT EXISTS role_permissions (
 -- User Roles (many-to-many)
 CREATE TABLE IF NOT EXISTS user_roles (
     id INTEGER  PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id BIGINTEGER NOT NULL,
     role_id INTEGER NOT NULL,
-    assigned_by INT UNSIGNED,
+    assigned_by BIGINT UNSIGNED,
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NULL,
 
@@ -70,10 +70,10 @@ CREATE TABLE IF NOT EXISTS user_roles (
 -- Direct User Permissions (override role permissions)
 CREATE TABLE IF NOT EXISTS user_permissions (
     id INTEGER  PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id BIGINTEGER NOT NULL,
     permission_id INTEGER NOT NULL,
     is_granted BOOLEAN DEFAULT TRUE,
-    granted_by INT UNSIGNED,
+    granted_by BIGINT UNSIGNED,
     granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NULL,
     reason TEXT,
@@ -91,12 +91,12 @@ CREATE TABLE IF NOT EXISTS user_permissions (
 -- Permission Audit Log
 CREATE TABLE IF NOT EXISTS permission_audit_log (
     id BIGINT  PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    user_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED,
     action VARCHAR(50) NOT NULL,
     permission_code VARCHAR(100),
-    role_id INT UNSIGNED,
-    granted_to_user_id INT UNSIGNED,
+    role_id BIGINT UNSIGNED,
+    granted_to_user_id BIGINT UNSIGNED,
     ip_address VARCHAR(45),
     user_agent VARCHAR(500),
     metadata JSON,

@@ -1,9 +1,48 @@
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `pos_transactions`;
+DROP TABLE IF EXISTS `transaction_items`;
+DROP TABLE IF EXISTS `payments`;
+DROP TABLE IF EXISTS `refunds`;
+DROP TABLE IF EXISTS `gift_cards`;
+DROP TABLE IF EXISTS `gift_card_transactions`;
+DROP TABLE IF EXISTS `store_credits`;
+DROP TABLE IF EXISTS `store_credit_transactions`;
+DROP TABLE IF EXISTS `layaways`;
+DROP TABLE IF EXISTS `layaway_items`;
+DROP TABLE IF EXISTS `layaway_payments`;
+DROP TABLE IF EXISTS `cash_registers`;
+DROP TABLE IF EXISTS `cash_drawer_sessions`;
+DROP TABLE IF EXISTS `tax_rates`;
+
+CREATE TABLE IF NOT EXISTS `cash_registers` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(100) NOT NULL,
+  `location` VARCHAR(100),
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `tax_rates` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(100) NOT NULL,
+  `rate` DECIMAL(5,4) NOT NULL,
+  `country` VARCHAR(2) DEFAULT 'US',
+  `state` VARCHAR(50),
+  `city` VARCHAR(100),
+  `postal_code` VARCHAR(20),
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_location` (`country`, `state`, `city`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `pos_transactions` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` INT UNSIGNED DEFAULT 1,
+  `tenant_id` BIGINT UNSIGNED DEFAULT 1,
   `transaction_number` VARCHAR(50) NOT NULL UNIQUE,
-  `customer_id` INT UNSIGNED,
+  `customer_id` BIGINT UNSIGNED,
   `transaction_type` ENUM('sale', 'return', 'exchange', 'quote', 'layaway') DEFAULT 'sale',
   `transaction_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `subtotal` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
@@ -15,9 +54,10 @@ CREATE TABLE IF NOT EXISTS `pos_transactions` (
   `status` ENUM('pending', 'completed', 'voided', 'refunded', 'partial_refund') DEFAULT 'completed',
   `original_transaction_id` BIGINT UNSIGNED,
   `notes` TEXT,
-  `cashier_id` INT UNSIGNED,
-  `register_id` INT UNSIGNED,
-  `voided_by` INT UNSIGNED,
+  `cashier_id` BIGINT UNSIGNED,
+  `quote_id` BIGINT UNSIGNED,
+  `register_id` BIGINT UNSIGNED,
+  `voided_by` BIGINT UNSIGNED,
   `voided_at` TIMESTAMP NULL,
   `void_reason` TEXT,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -31,14 +71,16 @@ CREATE TABLE IF NOT EXISTS `pos_transactions` (
   INDEX `idx_transaction_date` (`transaction_date`),
   INDEX `idx_status` (`status`),
   INDEX `idx_tenant_id` (`tenant_id`),
-  FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT,
+  FOREIGN KEY (`register_id`) REFERENCES `cash_registers`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `transaction_items` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `transaction_id` BIGINT UNSIGNED NOT NULL,
-  `product_id` INT UNSIGNED,
-  `variant_id` INT UNSIGNED,
+  `order_id` BIGINT UNSIGNED,
+  `product_id` BIGINT UNSIGNED,
+  `variant_id` BIGINT UNSIGNED,
   `item_name` VARCHAR(255) NOT NULL,
   `item_sku` VARCHAR(100),
   `quantity` INT NOT NULL DEFAULT 1,
@@ -75,13 +117,13 @@ CREATE TABLE IF NOT EXISTS `payments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `refunds` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `transaction_id` BIGINT UNSIGNED NOT NULL,
   `payment_id` BIGINT UNSIGNED,
   `refund_amount` DECIMAL(10,2) NOT NULL,
   `refund_method` ENUM('original_payment', 'cash', 'store_credit', 'exchange') NOT NULL,
   `reason` TEXT,
-  `processed_by` INT UNSIGNED,
+  `processed_by` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`transaction_id`) REFERENCES `pos_transactions`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`payment_id`) REFERENCES `payments`(`id`) ON DELETE SET NULL,
@@ -90,10 +132,10 @@ CREATE TABLE IF NOT EXISTS `refunds` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `gift_cards` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `card_number` VARCHAR(50) NOT NULL UNIQUE,
   `pin` VARCHAR(10),
-  `customer_id` INT UNSIGNED,
+  `customer_id` BIGINT UNSIGNED,
   `initial_balance` DECIMAL(10,2) NOT NULL,
   `current_balance` DECIMAL(10,2) NOT NULL,
   `card_type` ENUM('physical', 'digital') DEFAULT 'physical',
@@ -108,7 +150,7 @@ CREATE TABLE IF NOT EXISTS `gift_cards` (
 
 CREATE TABLE IF NOT EXISTS `gift_card_transactions` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `gift_card_id` INT UNSIGNED NOT NULL,
+  `gift_card_id` BIGINT UNSIGNED NOT NULL,
   `transaction_id` BIGINT UNSIGNED,
   `transaction_type` ENUM('issue', 'reload', 'redemption', 'void') NOT NULL,
   `amount` DECIMAL(10,2) NOT NULL,
@@ -121,8 +163,8 @@ CREATE TABLE IF NOT EXISTS `gift_card_transactions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `store_credits` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `current_balance` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `lifetime_earned` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `lifetime_spent` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
@@ -134,14 +176,14 @@ CREATE TABLE IF NOT EXISTS `store_credits` (
 
 CREATE TABLE IF NOT EXISTS `store_credit_transactions` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `store_credit_id` INT UNSIGNED NOT NULL,
+  `store_credit_id` BIGINT UNSIGNED NOT NULL,
   `transaction_id` BIGINT UNSIGNED,
   `transaction_type` ENUM('credit', 'debit', 'adjustment', 'expiry') NOT NULL,
   `amount` DECIMAL(10,2) NOT NULL,
   `balance_before` DECIMAL(10,2) NOT NULL,
   `balance_after` DECIMAL(10,2) NOT NULL,
   `reason` TEXT,
-  `created_by` INT UNSIGNED,
+  `created_by` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`store_credit_id`) REFERENCES `store_credits`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`transaction_id`) REFERENCES `pos_transactions`(`id`) ON DELETE SET NULL,
@@ -150,9 +192,9 @@ CREATE TABLE IF NOT EXISTS `store_credit_transactions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `layaways` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `layaway_number` VARCHAR(50) NOT NULL UNIQUE,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `total_amount` DECIMAL(10,2) NOT NULL,
   `deposit_percentage` DECIMAL(5,2) NOT NULL,
   `deposit_amount` DECIMAL(10,2) NOT NULL,
@@ -160,7 +202,7 @@ CREATE TABLE IF NOT EXISTS `layaways` (
   `balance_remaining` DECIMAL(10,2) NOT NULL,
   `status` ENUM('active', 'completed', 'cancelled', 'expired') DEFAULT 'active',
   `expiry_date` DATE,
-  `created_by` INT UNSIGNED,
+  `created_by` BIGINT UNSIGNED,
   `completed_at` TIMESTAMP NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -172,10 +214,10 @@ CREATE TABLE IF NOT EXISTS `layaways` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `layaway_items` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `layaway_id` INT UNSIGNED NOT NULL,
-  `product_id` INT UNSIGNED NOT NULL,
-  `variant_id` INT UNSIGNED,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `layaway_id` BIGINT UNSIGNED NOT NULL,
+  `product_id` BIGINT UNSIGNED NOT NULL,
+  `variant_id` BIGINT UNSIGNED,
   `quantity` INT NOT NULL,
   `unit_price` DECIMAL(10,2) NOT NULL,
   `total` DECIMAL(10,2) NOT NULL,
@@ -186,29 +228,21 @@ CREATE TABLE IF NOT EXISTS `layaway_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `layaway_payments` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `layaway_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `layaway_id` BIGINT UNSIGNED NOT NULL,
   `amount` DECIMAL(10,2) NOT NULL,
   `payment_method` ENUM('cash', 'credit_card', 'debit_card', 'check') NOT NULL,
-  `processed_by` INT UNSIGNED,
+  `processed_by` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`layaway_id`) REFERENCES `layaways`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`processed_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
   INDEX `idx_layaway_id` (`layaway_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `cash_registers` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `name` VARCHAR(100) NOT NULL,
-  `location` VARCHAR(100),
-  `is_active` BOOLEAN DEFAULT TRUE,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE IF NOT EXISTS `cash_drawer_sessions` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `register_id` INT UNSIGNED NOT NULL,
-  `user_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `register_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
   `opening_float` DECIMAL(10,2) NOT NULL,
   `closing_cash` DECIMAL(10,2),
   `expected_cash` DECIMAL(10,2),
@@ -222,16 +256,4 @@ CREATE TABLE IF NOT EXISTS `cash_drawer_sessions` (
   INDEX `idx_opened_at` (`opened_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `tax_rates` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `name` VARCHAR(100) NOT NULL,
-  `rate` DECIMAL(5,4) NOT NULL,
-  `country` VARCHAR(2) DEFAULT 'US',
-  `state` VARCHAR(50),
-  `city` VARCHAR(100),
-  `postal_code` VARCHAR(20),
-  `is_active` BOOLEAN DEFAULT TRUE,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX `idx_location` (`country`, `state`, `city`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SET FOREIGN_KEY_CHECKS=1;

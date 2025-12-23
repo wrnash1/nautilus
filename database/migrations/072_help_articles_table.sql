@@ -1,9 +1,21 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `help_articles`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `help_articles`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `help_articles`;
+
 -- Help Articles Table
 -- Stores help center articles and documentation
 
 CREATE TABLE IF NOT EXISTS help_articles (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED NOT NULL,
 
     -- Article Information
     title VARCHAR(255) NOT NULL,
@@ -17,7 +29,7 @@ CREATE TABLE IF NOT EXISTS help_articles (
     published_at TIMESTAMP NULL,
 
     -- Metadata
-    author_id INT UNSIGNED,
+    author_id BIGINT UNSIGNED,
     views INT DEFAULT 0,
     helpful_count INT DEFAULT 0,
     not_helpful_count INT DEFAULT 0,
@@ -45,3 +57,10 @@ INSERT INTO help_articles (tenant_id, title, slug, category, excerpt, content, i
 (1, 'Managing Inventory', 'managing-inventory', 'Inventory', 'Learn how to manage your product inventory effectively.', '<h2>Inventory Management</h2><p>Keep track of your products and stock levels.</p><h3>Adding Products</h3><p>Go to Store → Products → Add New Product...</p>', 1, NOW()),
 (1, 'Creating Dive Courses', 'creating-courses', 'Courses', 'How to create and schedule dive courses.', '<h2>Course Management</h2><p>Nautilus makes it easy to manage dive courses and certifications.</p><h3>Creating a Course</h3><p>Navigate to Store → Courses → Add Course...</p>', 1, NOW()),
 (1, 'Equipment Rentals', 'equipment-rentals', 'Rentals', 'How to manage equipment rentals.', '<h2>Rental Management</h2><p>Track rental equipment and reservations.</p><h3>Creating a Rental</h3><p>Go to Store → Rentals → Create Reservation...</p>', 1, NOW());
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

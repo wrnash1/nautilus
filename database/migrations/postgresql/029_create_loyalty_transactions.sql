@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS loyalty_transactions (
     source_id INTEGER,  -- ID of related transaction/order
     description TEXT,
     expires_at TIMESTAMP,  -- When these points expire
-    created_by INT UNSIGNED,  -- user_id if manual adjustment
+    created_by BIGINT UNSIGNED,  -- user_id if manual adjustment
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS loyalty_rewards (
     points_required INTEGER NOT NULL,
     reward_type VARCHAR(50) NOT NULL,  -- 'discount_percentage', 'discount_fixed', 'free_product', 'free_shipping', 'gift_card'
     reward_value DECIMAL(10,2),  -- Value of reward (e.g., 10.00 for $10 discount)
-    product_id INT UNSIGNED,  -- If reward_type is 'free_product'
+    product_id BIGINT UNSIGNED,  -- If reward_type is 'free_product'
     min_purchase_amount DECIMAL(10,2),  -- Minimum purchase to use reward
     max_discount_amount DECIMAL(10,2),  -- Maximum discount for percentage-based rewards
     is_active SMALLINT DEFAULT 1,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS loyalty_reward_claims (
     points_spent INTEGER NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'approved', 'redeemed', 'expired', 'cancelled'
     redemption_code VARCHAR(50) UNIQUE,  -- Unique code for customer to use
-    order_id INT UNSIGNED,  -- If used in an order
+    order_id BIGINT UNSIGNED,  -- If used in an order
     expires_at TIMESTAMP,  -- When redemption code expires
     redeemed_at TIMESTAMP,
     notes TEXT,

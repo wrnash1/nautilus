@@ -4,9 +4,17 @@
 -- Description: Multi-location inventory tracking, transfers, and management
 -- ============================================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `locations`;
+DROP TABLE IF EXISTS `location_inventory`;
+DROP TABLE IF EXISTS `inventory_transfers`;
+DROP TABLE IF EXISTS `inventory_transfer_items`;
+DROP TABLE IF EXISTS `location_inventory_adjustments`;
+
 -- Store/Warehouse Locations
 CREATE TABLE IF NOT EXISTS locations (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     code VARCHAR(20) NOT NULL UNIQUE,  -- Short code for location (e.g., 'MAIN', 'WH1')
     location_type VARCHAR(20) NOT NULL,  -- 'store', 'warehouse', 'supplier', 'consignment'
@@ -17,7 +25,7 @@ CREATE TABLE IF NOT EXISTS locations (
     country VARCHAR(50) DEFAULT 'USA',
     phone VARCHAR(50),
     email VARCHAR(200),
-    manager_user_id INT UNSIGNED,
+    manager_user_id BIGINT UNSIGNED,
     is_active TINYINT(1) DEFAULT 1,
     is_default TINYINT(1) DEFAULT 0,  -- Default location for new products
     can_sell TINYINT(1) DEFAULT 1,  -- Can this location sell products?
@@ -36,12 +44,12 @@ CREATE INDEX IF NOT EXISTS idx_locations_active ON locations(is_active);
 
 -- Per-Location Inventory Levels
 CREATE TABLE IF NOT EXISTS location_inventory (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    location_id INT UNSIGNED NOT NULL,
-    product_id INT UNSIGNED NOT NULL,
-    quantity_on_hand INT UNSIGNED NOT NULL DEFAULT 0,
-    quantity_reserved INT UNSIGNED NOT NULL DEFAULT 0,  -- Reserved for orders
-    quantity_available INT UNSIGNED NOT NULL DEFAULT 0,  -- on_hand - reserved
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    location_id BIGINT UNSIGNED NOT NULL,
+    product_id BIGINT UNSIGNED NOT NULL,
+    quantity_on_hand BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    quantity_reserved BIGINT UNSIGNED NOT NULL DEFAULT 0,  -- Reserved for orders
+    quantity_available BIGINT UNSIGNED NOT NULL DEFAULT 0,  -- on_hand - reserved
     reorder_point INTEGER,  -- Location-specific reorder point
     reorder_quantity INTEGER,  -- Location-specific reorder quantity
     min_stock_level INT DEFAULT 0,
@@ -62,16 +70,16 @@ CREATE INDEX IF NOT EXISTS idx_location_inventory_available ON location_inventor
 
 -- Inventory Transfers Between Locations
 CREATE TABLE IF NOT EXISTS inventory_transfers (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     transfer_number VARCHAR(50) NOT NULL UNIQUE,
-    from_location_id INT UNSIGNED NOT NULL,
-    to_location_id INT UNSIGNED NOT NULL,
+    from_location_id BIGINT UNSIGNED NOT NULL,
+    to_location_id BIGINT UNSIGNED NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'in_transit', 'received', 'cancelled'
     transfer_type VARCHAR(20) DEFAULT 'standard',  -- 'standard', 'emergency', 'rebalance'
-    requested_by INT UNSIGNED,
-    approved_by INT UNSIGNED,
-    shipped_by INT UNSIGNED,
-    received_by INT UNSIGNED,
+    requested_by BIGINT UNSIGNED,
+    approved_by BIGINT UNSIGNED,
+    shipped_by BIGINT UNSIGNED,
+    received_by BIGINT UNSIGNED,
     requested_date DATE NOT NULL,
     approved_date DATE,
     shipped_date DATE,
@@ -98,10 +106,10 @@ CREATE INDEX IF NOT EXISTS idx_inventory_transfers_number ON inventory_transfers
 
 -- Transfer Line Items
 CREATE TABLE IF NOT EXISTS inventory_transfer_items (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    transfer_id INT UNSIGNED NOT NULL,
-    product_id INT UNSIGNED NOT NULL,
-    quantity_requested INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    transfer_id BIGINT UNSIGNED NOT NULL,
+    product_id BIGINT UNSIGNED NOT NULL,
+    quantity_requested BIGINT UNSIGNED NOT NULL,
     quantity_shipped INT DEFAULT 0,
     quantity_received INT DEFAULT 0,
     notes TEXT,
@@ -115,19 +123,19 @@ CREATE INDEX IF NOT EXISTS idx_inventory_transfer_items_product ON inventory_tra
 
 -- Location-Specific Inventory Adjustments
 CREATE TABLE IF NOT EXISTS location_inventory_adjustments (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    location_id INT UNSIGNED NOT NULL,
-    product_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    location_id BIGINT UNSIGNED NOT NULL,
+    product_id BIGINT UNSIGNED NOT NULL,
     adjustment_type VARCHAR(50) NOT NULL,  -- 'cycle_count', 'damage', 'theft', 'transfer', 'return', 'manual'
-    quantity_change INT UNSIGNED NOT NULL,  -- Positive or negative
-    quantity_before INT UNSIGNED NOT NULL,
-    quantity_after INT UNSIGNED NOT NULL,
+    quantity_change BIGINT UNSIGNED NOT NULL,  -- Positive or negative
+    quantity_before BIGINT UNSIGNED NOT NULL,
+    quantity_after BIGINT UNSIGNED NOT NULL,
     cost_per_unit DECIMAL(10,2),
     total_cost DECIMAL(10,2),
     reason TEXT,
     reference_number VARCHAR(100),  -- Transfer #, cycle count #, etc.
-    adjusted_by INT UNSIGNED,
-    approved_by INT UNSIGNED,
+    adjusted_by BIGINT UNSIGNED,
+    approved_by BIGINT UNSIGNED,
     adjustment_date DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE CASCADE,
@@ -154,6 +162,8 @@ SELECT
     stock_quantity AS quantity_available
 FROM products
 WHERE stock_quantity IS NOT NULL;
+
+SET FOREIGN_KEY_CHECKS=1;
 
 -- ============================================================================
 -- Migration Complete

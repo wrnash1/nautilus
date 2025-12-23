@@ -1,10 +1,46 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `inventory_alerts`;
+DROP TABLE IF EXISTS `product_stock_locations`;
+DROP TABLE IF EXISTS `stock_locations`;
+DROP TABLE IF EXISTS `purchase_order_items`;
+DROP TABLE IF EXISTS `purchase_orders`;
+DROP TABLE IF EXISTS `stock_transfers`;
+DROP TABLE IF EXISTS `stock_count_items`;
+DROP TABLE IF EXISTS `stock_counts`;
+DROP TABLE IF EXISTS `vendors`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `inventory_alerts`;
+DROP TABLE IF EXISTS `product_stock_locations`;
+DROP TABLE IF EXISTS `stock_locations`;
+DROP TABLE IF EXISTS `purchase_order_items`;
+DROP TABLE IF EXISTS `purchase_orders`;
+DROP TABLE IF EXISTS `stock_transfers`;
+DROP TABLE IF EXISTS `stock_count_items`;
+DROP TABLE IF EXISTS `stock_counts`;
+DROP TABLE IF EXISTS `vendors`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `inventory_alerts`;
+DROP TABLE IF EXISTS `product_stock_locations`;
+DROP TABLE IF EXISTS `stock_locations`;
+DROP TABLE IF EXISTS `purchase_order_items`;
+DROP TABLE IF EXISTS `purchase_orders`;
+DROP TABLE IF EXISTS `stock_transfers`;
+DROP TABLE IF EXISTS `stock_count_items`;
+DROP TABLE IF EXISTS `stock_counts`;
+DROP TABLE IF EXISTS `vendors`;
+
 -- Stock Management Tables
 -- Advanced inventory tracking, stock counts, transfers, and forecasting
 
 -- Vendors/Suppliers (Moved to top to satisfy FK dependency)
 CREATE TABLE IF NOT EXISTS vendors (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED,
     vendor_name VARCHAR(255) NOT NULL,
     contact_name VARCHAR(255),
     email VARCHAR(255),
@@ -29,10 +65,10 @@ CREATE TABLE IF NOT EXISTS vendors (
 
 -- Stock Counts table (for physical inventory audits)
 CREATE TABLE IF NOT EXISTS stock_counts (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED,
     count_date DATE NOT NULL,
-    counted_by INT UNSIGNED,
+    counted_by BIGINT UNSIGNED,
     status ENUM('in_progress', 'completed', 'cancelled') DEFAULT 'in_progress',
     notes TEXT,
     completed_at TIMESTAMP NULL,
@@ -48,9 +84,9 @@ CREATE TABLE IF NOT EXISTS stock_counts (
 
 -- Stock Count Items (individual product counts)
 CREATE TABLE IF NOT EXISTS stock_count_items (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    stock_count_id INT UNSIGNED NOT NULL,
-    product_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    stock_count_id BIGINT UNSIGNED NOT NULL,
+    product_id BIGINT UNSIGNED NOT NULL,
     system_quantity INT NOT NULL DEFAULT 0,
     counted_quantity INT NOT NULL DEFAULT 0,
     variance INT NOT NULL DEFAULT 0,
@@ -66,14 +102,14 @@ CREATE TABLE IF NOT EXISTS stock_count_items (
 
 -- Stock Transfers (between locations/warehouses)
 CREATE TABLE IF NOT EXISTS stock_transfers (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    product_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED,
+    product_id BIGINT UNSIGNED NOT NULL,
     from_location VARCHAR(100) NOT NULL,
     to_location VARCHAR(100) NOT NULL,
     quantity INT NOT NULL,
     transfer_date DATE NOT NULL,
-    transferred_by INT UNSIGNED,
+    transferred_by BIGINT UNSIGNED,
     status ENUM('pending', 'in_transit', 'completed', 'cancelled') DEFAULT 'pending',
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -92,10 +128,10 @@ CREATE TABLE IF NOT EXISTS stock_transfers (
 
 -- Purchase Orders
 CREATE TABLE IF NOT EXISTS purchase_orders (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED,
     po_number VARCHAR(50) UNIQUE NOT NULL,
-    vendor_id INT UNSIGNED,
+    vendor_id BIGINT UNSIGNED,
     order_date DATE NOT NULL,
     expected_delivery_date DATE,
     actual_delivery_date DATE,
@@ -105,8 +141,8 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
     shipping DECIMAL(12, 2) DEFAULT 0.00,
     total DECIMAL(12, 2) DEFAULT 0.00,
     notes TEXT,
-    created_by INT UNSIGNED,
-    approved_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
+    approved_by BIGINT UNSIGNED,
     approved_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -124,9 +160,9 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
 
 -- Purchase Order Items
 CREATE TABLE IF NOT EXISTS purchase_order_items (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    purchase_order_id INT UNSIGNED NOT NULL,
-    product_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    purchase_order_id BIGINT UNSIGNED NOT NULL,
+    product_id BIGINT UNSIGNED NOT NULL,
     quantity_ordered INT NOT NULL,
     quantity_received INT DEFAULT 0,
     unit_cost DECIMAL(10, 2) NOT NULL,
@@ -142,8 +178,8 @@ CREATE TABLE IF NOT EXISTS purchase_order_items (
 
 -- Stock Locations/Warehouses
 CREATE TABLE IF NOT EXISTS stock_locations (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED,
     location_name VARCHAR(100) NOT NULL,
     location_type ENUM('warehouse', 'store', 'vehicle', 'other') DEFAULT 'warehouse',
     address_line1 VARCHAR(255),
@@ -164,10 +200,10 @@ CREATE TABLE IF NOT EXISTS stock_locations (
 
 -- Product Stock by Location
 CREATE TABLE IF NOT EXISTS product_stock_locations (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    product_id INT UNSIGNED NOT NULL,
-    location_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED,
+    product_id BIGINT UNSIGNED NOT NULL,
+    location_id BIGINT UNSIGNED NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -182,14 +218,14 @@ CREATE TABLE IF NOT EXISTS product_stock_locations (
 
 -- Inventory Alerts/Notifications
 CREATE TABLE IF NOT EXISTS inventory_alerts (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    product_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED,
+    product_id BIGINT UNSIGNED NOT NULL,
     alert_type ENUM('low_stock', 'overstock', 'expiring_soon', 'stockout') NOT NULL,
     severity ENUM('low', 'medium', 'high', 'critical') DEFAULT 'medium',
     message TEXT NOT NULL,
     is_acknowledged BOOLEAN DEFAULT FALSE,
-    acknowledged_by INT UNSIGNED NULL,
+    acknowledged_by BIGINT UNSIGNED NULL,
     acknowledged_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -237,3 +273,10 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

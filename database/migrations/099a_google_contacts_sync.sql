@@ -1,3 +1,24 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `google_contacts_field_mapping`;
+DROP TABLE IF EXISTS `google_contacts_sync_log`;
+DROP TABLE IF EXISTS `google_contacts_sync_mapping`;
+DROP TABLE IF EXISTS `google_contacts_sync_config`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `google_contacts_field_mapping`;
+DROP TABLE IF EXISTS `google_contacts_sync_log`;
+DROP TABLE IF EXISTS `google_contacts_sync_mapping`;
+DROP TABLE IF EXISTS `google_contacts_sync_config`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `google_contacts_field_mapping`;
+DROP TABLE IF EXISTS `google_contacts_sync_log`;
+DROP TABLE IF EXISTS `google_contacts_sync_mapping`;
+DROP TABLE IF EXISTS `google_contacts_sync_config`;
+
 -- =====================================================
 -- Google Contacts Synchronization
 -- Two-way sync between Nautilus customers and Google Contacts
@@ -5,8 +26,8 @@
 
 -- Google Contacts Sync Configuration
 CREATE TABLE IF NOT EXISTS `google_contacts_sync_config` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     
     -- OAuth Credentials
     `google_client_id` VARCHAR(255) NULL,
@@ -15,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `google_contacts_sync_config` (
     `refresh_token` TEXT NULL COMMENT 'Encrypted',
     `token_expires_at` DATETIME NULL,
     `authorized_at` DATETIME NULL,
-    `authorized_by` INT UNSIGNED NULL,
+    `authorized_by` BIGINT UNSIGNED NULL,
     
     -- Sync Settings
     `sync_enabled` BOOLEAN DEFAULT FALSE,
@@ -69,8 +90,8 @@ CREATE TABLE IF NOT EXISTS `google_contacts_sync_config` (
 -- Customer to Google Contact Mapping
 CREATE TABLE IF NOT EXISTS `google_contacts_sync_mapping` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
     
     -- Google Contact Identifiers
     `google_resource_name` VARCHAR(255) NOT NULL COMMENT 'people/c1234567890',
@@ -114,13 +135,13 @@ CREATE TABLE IF NOT EXISTS `google_contacts_sync_mapping` (
 -- Sync Operation Logs
 CREATE TABLE IF NOT EXISTS `google_contacts_sync_log` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     
     -- Sync Session
     `sync_type` ENUM('full', 'incremental', 'manual', 'single_customer') NOT NULL,
     `sync_direction` ENUM('to_google', 'from_google', 'two_way') NOT NULL,
     `triggered_by` ENUM('scheduler', 'user', 'webhook', 'api') DEFAULT 'scheduler',
-    `triggered_by_user_id` INT UNSIGNED NULL,
+    `triggered_by_user_id` BIGINT UNSIGNED NULL,
     
     -- Timing
     `started_at` DATETIME NOT NULL,
@@ -158,8 +179,8 @@ CREATE TABLE IF NOT EXISTS `google_contacts_sync_log` (
 
 -- Field Mapping Configuration
 CREATE TABLE IF NOT EXISTS `google_contacts_field_mapping` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     
     -- Field Configuration
     `nautilus_field` VARCHAR(100) NOT NULL COMMENT 'Field name in customers table',
@@ -230,3 +251,10 @@ INSERT INTO `google_contacts_sync_log` (
     `started_at`, `completed_at`, `status`, `customers_processed`
 ) VALUES
 (1, 'full', 'two_way', 'user', NOW(), NOW(), 'completed', 0);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

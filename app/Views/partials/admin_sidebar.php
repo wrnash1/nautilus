@@ -153,7 +153,7 @@
                     <a class="nav-link ps-5" href="/store/admin/settings/general">General Settings</a>
                     <a class="nav-link ps-5" href="/store/admin/users">Users & Roles</a>
                     <a class="nav-link ps-5" href="/store/storefront/settings">Storefront Config</a>
-                    <a class="nav-link ps-5" href="/store/admin/integrations">Integrations</a>
+                    <a class="nav-link ps-5" href="/store/admin/settings/integrations">Integrations</a>
                 </div>
             </div>
             <?php endif; ?>

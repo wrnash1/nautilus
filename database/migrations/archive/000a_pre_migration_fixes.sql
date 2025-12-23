@@ -6,7 +6,7 @@
 -- Ensure customer_tags table exists before any migration tries to reference it
 CREATE TABLE IF NOT EXISTS `customer_tags` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `tenant_id` BIGINT UNSIGNED NULL,
     `name` VARCHAR(50) NOT NULL,
     `slug` VARCHAR(50),
     `color` VARCHAR(7) DEFAULT '#3b82f6',
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `customer_tags` (
     `display_order` INT DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `created_by` INT UNSIGNED,
+    `created_by` BIGINT UNSIGNED,
     INDEX idx_active (is_active),
     INDEX idx_slug (slug),
     INDEX idx_tenant (tenant_id)
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `certification_agencies` (
 -- Ensure settings table exists for the Settings class
 CREATE TABLE IF NOT EXISTS `settings` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `tenant_id` BIGINT UNSIGNED NULL,
     `setting_key` VARCHAR(255) NOT NULL,
     `setting_value` TEXT,
     `setting_group` VARCHAR(100) DEFAULT 'general',
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `settings` (
 -- Ensure company_settings table exists
 CREATE TABLE IF NOT EXISTS `company_settings` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED,
+    `tenant_id` BIGINT UNSIGNED,
     `setting_key` VARCHAR(100) NOT NULL,
     `setting_value` TEXT,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

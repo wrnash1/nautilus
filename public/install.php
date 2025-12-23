@@ -36,13 +36,14 @@ $dbHost = $isDocker ? 'database' : 'localhost';
 $dbPort = 3306;
 $dbName = 'nautilus';
 $dbUser = $isDocker ? 'nautilus' : 'root';
-$dbPass = $isDocker ? 'nautilus123' : 'Frogman09!';
+$dbPass = $isDocker ? 'nautilus123' : ''; // Default empty for local, or force user input
 
 // Auto-check requirements
 $requirements = [
     'PHP >= 8.0' => version_compare(PHP_VERSION, '8.0.0', '>='),
     'PDO MySQL' => extension_loaded('pdo_mysql'),
     'Storage Writable' => is_writable(ROOT_DIR . '/storage') || @mkdir(ROOT_DIR . '/storage', 0775, true),
+    'Uploads Writable' => is_writable(ROOT_DIR . '/public/uploads') || @mkdir(ROOT_DIR . '/public/uploads', 0775, true),
 ];
 
 $allPassed = !in_array(false, $requirements, true);
@@ -51,11 +52,32 @@ $allPassed = !in_array(false, $requirements, true);
 $dbOk = false;
 $dbError = null;
 if ($allPassed) {
+    // Try auto-connection first
     try {
         $pdo = new PDO("mysql:host={$dbHost};port={$dbPort}", $dbUser, $dbPass);
         $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
         $dbOk = true;
     } catch (PDOException $e) {
+        // If auto-connect fails, we will fallback to asking user
+        $dbOk = false;
+        $dbError = $e->getMessage();
+    }
+}
+
+// Logic to handle manual DB input
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['db_host'])) {
+    $dbHost = $_POST['db_host'];
+    $dbUser = $_POST['db_user'];
+    $dbPass = $_POST['db_pass'];
+    $dbName = $_POST['db_name'];
+    
+    try {
+        $pdo = new PDO("mysql:host={$dbHost};port={$dbPort}", $dbUser, $dbPass);
+        $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        $dbOk = true;
+        // Update variables for the session save later
+    } catch (PDOException $e) {
+        $dbOk = false;
         $dbError = $e->getMessage();
     }
 }
@@ -147,20 +169,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php endforeach; ?>
                     </div>
 
-                <?php elseif (!$dbOk): ?>
-                    <div class="alert alert-danger shadow-sm border-0">
-                        <h5 class="alert-heading">Connection Failed</h5>
-                        <p class="mb-0">Could not connect to database at <strong><?= $dbHost ?></strong>.</p>
-                        <hr>
-                        <small class="text-muted"><?= htmlspecialchars($dbError) ?></small>
-                    </div>
-
                 <?php else: ?>
+                    <?php if (!$dbOk): ?>
+                         <div class="alert alert-warning shadow-sm border-0 mb-4">
+                            <strong>Database Connection Required</strong><br>
+                            Could not auto-connect. Please provide database credentials.
+                            <small class="d-block mt-1 text-muted"><?= htmlspecialchars($dbError) ?></small>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($error): ?>
                         <div class="alert alert-danger shadow-sm border-0 mb-4"><?= $error ?></div>
                     <?php endif; ?>
 
                     <form method="POST">
+                        <?php if (!$dbOk): ?>
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <label class="form-label">DB Host</label>
+                                <input type="text" name="db_host" class="form-control" value="localhost" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">DB Name</label>
+                                <input type="text" name="db_name" class="form-control" value="nautilus" required>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <label class="form-label">DB User</label>
+                                <input type="text" name="db_user" class="form-control" value="root" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">DB Password</label>
+                                <input type="password" name="db_pass" class="form-control">
+                            </div>
+                        </div>
+                        <hr class="mb-4">
+                        <?php endif; ?>
                         <div class="mb-4">
                             <label class="form-label">Company Name</label>
                             <input type="text" name="company" class="form-control" placeholder="e.g. Scuba World" required

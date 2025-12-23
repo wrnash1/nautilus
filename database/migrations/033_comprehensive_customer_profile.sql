@@ -1,3 +1,30 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `customer_satisfaction_surveys`;
+DROP TABLE IF EXISTS `customer_family_members`;
+DROP TABLE IF EXISTS `customer_interactions`;
+DROP TABLE IF EXISTS `customer_documents`;
+DROP TABLE IF EXISTS `customer_prefs`;
+DROP TABLE IF EXISTS `customer_medical_info`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `customer_satisfaction_surveys`;
+DROP TABLE IF EXISTS `customer_family_members`;
+DROP TABLE IF EXISTS `customer_interactions`;
+DROP TABLE IF EXISTS `customer_documents`;
+DROP TABLE IF EXISTS `customer_prefs`;
+DROP TABLE IF EXISTS `customer_medical_info`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `customer_satisfaction_surveys`;
+DROP TABLE IF EXISTS `customer_family_members`;
+DROP TABLE IF EXISTS `customer_interactions`;
+DROP TABLE IF EXISTS `customer_documents`;
+DROP TABLE IF EXISTS `customer_prefs`;
+DROP TABLE IF EXISTS `customer_medical_info`;
+
 -- Comprehensive customer profile enhancement for dive shop operations
 -- This migration adds all necessary fields for a professional scuba diving business
 
@@ -48,8 +75,8 @@ ADD COLUMN IF NOT EXISTS `lifetime_value` DECIMAL(10,2) DEFAULT 0.00 AFTER `tota
 
 -- Create customer medical information table
 CREATE TABLE IF NOT EXISTS `customer_medical_info` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `has_allergies` BOOLEAN DEFAULT FALSE,
   `allergies_details` TEXT NULL,
   `has_medical_conditions` BOOLEAN DEFAULT FALSE,
@@ -72,9 +99,9 @@ CREATE TABLE IF NOT EXISTS `customer_medical_info` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Create customer preferences table
-CREATE TABLE IF NOT EXISTS `customer_preferences` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `customer_prefs` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `wants_personal_training` BOOLEAN DEFAULT FALSE,
   `wants_group_classes` BOOLEAN DEFAULT FALSE,
   `preferred_time_of_day` ENUM('morning', 'afternoon', 'evening', 'weekend') NULL,
@@ -87,13 +114,13 @@ CREATE TABLE IF NOT EXISTS `customer_preferences` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
-  UNIQUE KEY `idx_customer_id` (`customer_id`)
+  UNIQUE KEY `unique_pref_customer` (`customer_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Create customer documents table
 CREATE TABLE IF NOT EXISTS `customer_documents` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `document_type` ENUM('medical_form', 'liability_waiver', 'certification_card', 'photo_id', 'insurance', 'other') NOT NULL,
   `document_name` VARCHAR(255) NOT NULL,
   `file_path` VARCHAR(255) NOT NULL,
@@ -102,7 +129,7 @@ CREATE TABLE IF NOT EXISTS `customer_documents` (
   `upload_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `expiration_date` DATE NULL,
   `is_verified` BOOLEAN DEFAULT FALSE,
-  `verified_by` INT UNSIGNED NULL,
+  `verified_by` BIGINT UNSIGNED NULL,
   `verified_at` TIMESTAMP NULL,
   `notes` TEXT NULL,
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
@@ -114,9 +141,9 @@ CREATE TABLE IF NOT EXISTS `customer_documents` (
 
 -- Create customer interactions table (for tracking communications)
 CREATE TABLE IF NOT EXISTS `customer_interactions` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
-  `user_id` INT UNSIGNED NULL COMMENT 'Staff member who had the interaction',
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NULL COMMENT 'Staff member who had the interaction',
   `interaction_type` ENUM('call', 'email', 'in_person', 'sms', 'note', 'complaint', 'feedback') NOT NULL,
   `subject` VARCHAR(255) NULL,
   `description` TEXT NOT NULL,
@@ -134,9 +161,9 @@ CREATE TABLE IF NOT EXISTS `customer_interactions` (
 
 -- Create customer family members table
 CREATE TABLE IF NOT EXISTS `customer_family_members` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL COMMENT 'Primary customer',
-  `family_member_customer_id` INT UNSIGNED NULL COMMENT 'If family member is also a customer',
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary customer',
+  `family_member_customer_id` BIGINT UNSIGNED NULL COMMENT 'If family member is also a customer',
   `first_name` VARCHAR(100) NOT NULL,
   `last_name` VARCHAR(100) NOT NULL,
   `relationship` ENUM('spouse', 'child', 'parent', 'sibling', 'other') NOT NULL,
@@ -155,11 +182,11 @@ CREATE TABLE IF NOT EXISTS `customer_family_members` (
 
 -- Create customer satisfaction surveys table
 CREATE TABLE IF NOT EXISTS `customer_satisfaction_surveys` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
-  `transaction_id` INT UNSIGNED NULL,
-  `course_id` INT UNSIGNED NULL,
-  `trip_id` INT UNSIGNED NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
+  `transaction_id` BIGINT UNSIGNED NULL,
+  `course_id` BIGINT UNSIGNED NULL,
+  `trip_id` BIGINT UNSIGNED NULL,
   `overall_rating` INT NOT NULL COMMENT '1-5 star rating',
   `instructor_rating` INT NULL,
   `equipment_rating` INT NULL,
@@ -175,7 +202,14 @@ CREATE TABLE IF NOT EXISTS `customer_satisfaction_surveys` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Add indexes for performance
-ALTER TABLE `customers` ADD INDEX `idx_status` (`status`);
-ALTER TABLE `customers` ADD INDEX `idx_loyalty_member` (`is_loyalty_member`);
-ALTER TABLE `customers` ADD INDEX `idx_club_membership` (`club_membership_end`);
-ALTER TABLE `customers` ADD INDEX `idx_photo_path` (`photo_path`);
+-- ALTER TABLE `customers` ADD INDEX `idx_status` (`status`);
+-- ALTER TABLE `customers` ADD INDEX `idx_loyalty_member` (`is_loyalty_member`);
+-- ALTER TABLE `customers` ADD INDEX `idx_club_membership` (`club_membership_end`);
+-- ALTER TABLE `customers` ADD INDEX `idx_photo_path` (`photo_path`);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

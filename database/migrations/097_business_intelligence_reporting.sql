@@ -10,8 +10,8 @@
 
 -- Pre-built and custom report templates
 CREATE TABLE IF NOT EXISTS `report_templates` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `report_name` VARCHAR(200) NOT NULL,
     `report_category` ENUM('financial', 'sales', 'inventory', 'customer', 'employee', 'operations', 'marketing', 'custom') NOT NULL,
     `report_type` ENUM('summary', 'detail', 'comparison', 'trend', 'forecast', 'custom_query') NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `report_templates` (
     -- Access Control
     `required_permission` VARCHAR(100) NULL,
     `is_public` BOOLEAN DEFAULT FALSE,
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
 
     `is_active` BOOLEAN DEFAULT TRUE,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -49,13 +49,13 @@ CREATE TABLE IF NOT EXISTS `report_templates` (
 
 -- Generated report instances
 CREATE TABLE IF NOT EXISTS `generated_reports` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `template_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `template_id` BIGINT UNSIGNED NULL,
     `report_name` VARCHAR(200) NOT NULL,
 
     -- Generation Details
-    `generated_by` INT UNSIGNED NULL,
+    `generated_by` BIGINT UNSIGNED NULL,
     `generation_method` ENUM('manual', 'scheduled', 'api', 'webhook') DEFAULT 'manual',
     `parameters_used` JSON NULL,
     `date_range_start` DATE NULL,
@@ -94,9 +94,9 @@ CREATE TABLE IF NOT EXISTS `generated_reports` (
 
 -- Scheduled reports
 CREATE TABLE IF NOT EXISTS `scheduled_reports` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `template_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `template_id` BIGINT UNSIGNED NOT NULL,
     `schedule_name` VARCHAR(200) NOT NULL,
 
     -- Schedule Configuration
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS `scheduled_reports` (
     `consecutive_failures` INT DEFAULT 0,
 
     `is_active` BOOLEAN DEFAULT TRUE,
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -143,8 +143,8 @@ CREATE TABLE IF NOT EXISTS `scheduled_reports` (
 -- Drop the old dashboards table if it exists (from migration 013) and recreate with new schema
 DROP TABLE IF EXISTS `dashboards`;
 CREATE TABLE `dashboards` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `dashboard_name` VARCHAR(200) NOT NULL,
     `dashboard_category` ENUM('overview', 'sales', 'financial', 'operations', 'customer', 'employee', 'inventory', 'custom') DEFAULT 'custom',
     `description` TEXT NULL,
@@ -163,7 +163,7 @@ CREATE TABLE `dashboards` (
     `auto_refresh` BOOLEAN DEFAULT FALSE,
     `refresh_interval_seconds` INT DEFAULT 300,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `is_active` BOOLEAN DEFAULT TRUE,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -178,15 +178,15 @@ CREATE TABLE `dashboards` (
 -- Drop the old dashboard_widgets table if it exists (from migration 026) and recreate with new schema
 DROP TABLE IF EXISTS `dashboard_widgets`;
 CREATE TABLE `dashboard_widgets` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `dashboard_id` INT UNSIGNED NOT NULL,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `dashboard_id` BIGINT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `widget_name` VARCHAR(200) NOT NULL,
     `widget_type` ENUM('kpi', 'chart', 'table', 'gauge', 'map', 'calendar', 'list', 'html', 'iframe') NOT NULL,
 
     -- Data Source
     `data_source_type` ENUM('report_template', 'custom_query', 'api', 'static') DEFAULT 'report_template',
-    `report_template_id` INT UNSIGNED NULL,
+    `report_template_id` BIGINT UNSIGNED NULL,
     `custom_query` TEXT NULL,
     `api_endpoint` VARCHAR(500) NULL,
     `static_data` JSON NULL,
@@ -229,8 +229,8 @@ CREATE TABLE `dashboard_widgets` (
 
 -- Key Performance Indicators
 CREATE TABLE IF NOT EXISTS `kpi_definitions` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `kpi_name` VARCHAR(200) NOT NULL,
     `kpi_category` ENUM('financial', 'sales', 'customer', 'operational', 'employee', 'marketing', 'inventory') NOT NULL,
     `description` TEXT NULL,
@@ -260,7 +260,7 @@ CREATE TABLE IF NOT EXISTS `kpi_definitions` (
     `comparison_period` ENUM('previous_period', 'same_period_last_year', 'custom') DEFAULT 'previous_period',
 
     `is_active` BOOLEAN DEFAULT TRUE,
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -270,9 +270,9 @@ CREATE TABLE IF NOT EXISTS `kpi_definitions` (
 
 -- KPI values (historical tracking)
 CREATE TABLE IF NOT EXISTS `kpi_values` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `kpi_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `kpi_id` BIGINT UNSIGNED NOT NULL,
 
     -- Time Period
     `period_start` DATE NOT NULL,
@@ -310,9 +310,9 @@ CREATE TABLE IF NOT EXISTS `kpi_values` (
 
 -- Customer analytics and segmentation
 CREATE TABLE IF NOT EXISTS `customer_analytics` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Calculated Metrics
     `total_bookings` INT DEFAULT 0,
@@ -357,9 +357,9 @@ CREATE TABLE IF NOT EXISTS `customer_analytics` (
 
 -- Product performance analytics
 CREATE TABLE IF NOT EXISTS `product_analytics` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `product_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `product_id` BIGINT UNSIGNED NULL,
     `product_category` VARCHAR(100) NULL,
     `analysis_period_start` DATE NOT NULL,
     `analysis_period_end` DATE NOT NULL,
@@ -400,8 +400,8 @@ CREATE TABLE IF NOT EXISTS `product_analytics` (
 
 -- Revenue analytics
 CREATE TABLE IF NOT EXISTS `revenue_analytics` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `period_start` DATE NOT NULL,
     `period_end` DATE NOT NULL,
     `period_type` ENUM('daily', 'weekly', 'monthly', 'quarterly', 'yearly') NOT NULL,
@@ -452,8 +452,8 @@ CREATE TABLE IF NOT EXISTS `revenue_analytics` (
 
 -- Data export jobs
 CREATE TABLE IF NOT EXISTS `data_exports` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `export_name` VARCHAR(200) NOT NULL,
     `export_type` ENUM('customers', 'bookings', 'inventory', 'financial', 'custom_query', 'full_backup') NOT NULL,
 
@@ -466,7 +466,7 @@ CREATE TABLE IF NOT EXISTS `data_exports` (
     `custom_query` TEXT NULL,
 
     -- Execution
-    `requested_by` INT UNSIGNED NULL,
+    `requested_by` BIGINT UNSIGNED NULL,
     `requested_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `started_at` TIMESTAMP NULL,
     `completed_at` TIMESTAMP NULL,
@@ -490,16 +490,16 @@ CREATE TABLE IF NOT EXISTS `data_exports` (
 
 -- Analytics API access logs
 CREATE TABLE IF NOT EXISTS `analytics_api_logs` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `endpoint` VARCHAR(200) NOT NULL,
     `method` VARCHAR(10) NOT NULL,
 
     -- Request
     `query_params` JSON NULL,
     `request_body` TEXT NULL,
-    `requested_by` INT UNSIGNED NULL,
-    `api_token_id` INT UNSIGNED NULL,
+    `requested_by` BIGINT UNSIGNED NULL,
+    `api_token_id` BIGINT UNSIGNED NULL,
     `ip_address` VARCHAR(45) NULL,
 
     -- Response

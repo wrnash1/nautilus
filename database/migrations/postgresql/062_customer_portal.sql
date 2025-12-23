@@ -4,7 +4,7 @@
 -- Customer Portal Access (login credentials)
 CREATE TABLE IF NOT EXISTS customer_portal_access (
     id INTEGER  PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
     customer_id INTEGER NOT NULL,
     email VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,

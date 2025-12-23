@@ -76,7 +76,7 @@ CREATE TABLE oauth_providers (
 CREATE TABLE sso_login_sessions (
     id INTEGER  PRIMARY KEY,
     tenant_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
+    user_id BIGINTEGER NOT NULL,
     provider VARCHAR(50) NOT NULL,
     provider_user_id VARCHAR(255) NOT NULL,
     
@@ -111,7 +111,7 @@ CREATE TABLE sso_login_sessions (
 CREATE TABLE sso_account_links (
     id INTEGER  PRIMARY KEY,
     tenant_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
+    user_id BIGINTEGER NOT NULL,
     provider VARCHAR(50) NOT NULL,
     provider_user_id VARCHAR(255) NOT NULL,
     provider_email VARCHAR(255) NULL,
@@ -119,7 +119,7 @@ CREATE TABLE sso_account_links (
     
     -- Link Info
     linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    linked_by_user_id INTEGER NULL COMMENT 'User who created the link',
+    linked_by_user_id BIGINTEGER NULL COMMENT 'User who created the link',
     is_primary BOOLEAN DEFAULT FALSE COMMENT 'Primary SSO method',
     is_active BOOLEAN DEFAULT TRUE,
     
@@ -139,7 +139,7 @@ CREATE TABLE sso_account_links (
 CREATE TABLE sso_audit_log (
     id BIGINT  PRIMARY KEY,
     tenant_id INTEGER NOT NULL,
-    user_id INTEGER NULL,
+    user_id BIGINTEGER NULL,
     provider VARCHAR(50) NOT NULL,
     
     -- Event Info

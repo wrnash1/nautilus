@@ -4,8 +4,16 @@
 -- ==========================================
 
 -- Cash drawers (physical register drawers)
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS cash_variances;
+DROP TABLE IF EXISTS cash_deposits;
+DROP TABLE IF EXISTS cash_drawer_transactions;
+DROP TABLE IF EXISTS cash_drawer_sessions;
+DROP TABLE IF EXISTS cash_drawers;
+
 CREATE TABLE IF NOT EXISTS cash_drawers (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     location VARCHAR(100) COMMENT 'Physical location (Front Counter, Back Office, etc.)',
     drawer_number VARCHAR(20) COMMENT 'Physical drawer number or identifier',
@@ -16,7 +24,7 @@ CREATE TABLE IF NOT EXISTS cash_drawers (
     requires_count_out BOOLEAN DEFAULT TRUE COMMENT 'Require counting cash when closing',
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
@@ -26,10 +34,10 @@ CREATE TABLE IF NOT EXISTS cash_drawers (
 
 -- Cash drawer sessions (shift/day sessions)
 CREATE TABLE IF NOT EXISTS cash_drawer_sessions (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     session_number VARCHAR(50) NOT NULL UNIQUE COMMENT 'Unique session identifier',
-    drawer_id INT UNSIGNED NOT NULL,
-    user_id INT UNSIGNED NOT NULL COMMENT 'Staff member operating drawer',
+    drawer_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL COMMENT 'Staff member operating drawer',
 
     -- Opening information
     opened_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -76,8 +84,8 @@ CREATE TABLE IF NOT EXISTS cash_drawer_sessions (
 
     -- Status
     status ENUM('open', 'closed', 'balanced', 'over', 'short') DEFAULT 'open',
-    closed_by INT UNSIGNED COMMENT 'Staff member who closed session',
-    approved_by INT UNSIGNED COMMENT 'Manager who approved closing',
+    closed_by BIGINT UNSIGNED COMMENT 'Staff member who closed session',
+    approved_by BIGINT UNSIGNED COMMENT 'Manager who approved closing',
     approved_at TIMESTAMP NULL,
 
     FOREIGN KEY (drawer_id) REFERENCES cash_drawers(id) ON DELETE RESTRICT,
@@ -93,15 +101,15 @@ CREATE TABLE IF NOT EXISTS cash_drawer_sessions (
 
 -- Cash drawer transactions (detailed transaction log)
 CREATE TABLE IF NOT EXISTS cash_drawer_transactions (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    session_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    session_id BIGINT UNSIGNED NOT NULL,
     transaction_type ENUM('sale', 'return', 'refund', 'deposit', 'withdrawal', 'adjustment', 'payout', 'till_loan', 'till_payback') NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
     payment_method ENUM('cash', 'check', 'money_order', 'other') DEFAULT 'cash',
 
     -- Reference to original transaction
     reference_type VARCHAR(50) COMMENT 'Type of reference (sale, expense, etc.)',
-    reference_id INT UNSIGNED COMMENT 'ID of referenced record',
+    reference_id BIGINT UNSIGNED COMMENT 'ID of referenced record',
 
     -- Check information
     check_number VARCHAR(50),
@@ -112,12 +120,12 @@ CREATE TABLE IF NOT EXISTS cash_drawer_transactions (
     description VARCHAR(255) NOT NULL,
     notes TEXT,
     requires_approval BOOLEAN DEFAULT FALSE,
-    approved_by INT UNSIGNED,
+    approved_by BIGINT UNSIGNED,
     approved_at TIMESTAMP NULL,
 
     -- Audit trail
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED NOT NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
 
     FOREIGN KEY (session_id) REFERENCES cash_drawer_sessions(id) ON DELETE RESTRICT,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT,
@@ -130,9 +138,9 @@ CREATE TABLE IF NOT EXISTS cash_drawer_transactions (
 
 -- Cash deposits (when money is taken to bank or safe)
 CREATE TABLE IF NOT EXISTS cash_deposits (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     deposit_number VARCHAR(50) NOT NULL UNIQUE,
-    session_id INT UNSIGNED COMMENT 'Related session if applicable',
+    session_id BIGINT UNSIGNED COMMENT 'Related session if applicable',
     deposit_type ENUM('bank', 'safe', 'manager', 'other') NOT NULL DEFAULT 'bank',
 
     -- Deposit details
@@ -160,8 +168,8 @@ CREATE TABLE IF NOT EXISTS cash_deposits (
     deposit_slip_number VARCHAR(50),
 
     -- Verification
-    deposited_by INT UNSIGNED NOT NULL,
-    verified_by INT UNSIGNED COMMENT 'Person who verified deposit',
+    deposited_by BIGINT UNSIGNED NOT NULL,
+    verified_by BIGINT UNSIGNED COMMENT 'Person who verified deposit',
     verified_at TIMESTAMP NULL,
 
     -- Status
@@ -181,14 +189,14 @@ CREATE TABLE IF NOT EXISTS cash_deposits (
 
 -- Cash variances/discrepancies tracking
 CREATE TABLE IF NOT EXISTS cash_variances (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    session_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    session_id BIGINT UNSIGNED NOT NULL,
     variance_type ENUM('overage', 'shortage', 'counterfeit', 'damaged', 'other') NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
     description TEXT NOT NULL,
 
     -- Investigation
-    investigated_by INT UNSIGNED,
+    investigated_by BIGINT UNSIGNED,
     investigated_at TIMESTAMP NULL,
     investigation_notes TEXT,
     resolution TEXT,
@@ -198,7 +206,7 @@ CREATE TABLE IF NOT EXISTS cash_variances (
     resolved_at TIMESTAMP NULL,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED NOT NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
 
     FOREIGN KEY (session_id) REFERENCES cash_drawer_sessions(id) ON DELETE RESTRICT,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT,
@@ -216,7 +224,7 @@ ADD COLUMN IF NOT EXISTS status ENUM('open', 'closed', 'balanced', 'over', 'shor
 -- Add other columns from the enhanced structure if they don't exist
 ALTER TABLE cash_drawer_sessions
 ADD COLUMN IF NOT EXISTS session_number VARCHAR(50) UNIQUE COMMENT 'Unique session identifier' AFTER id,
-ADD COLUMN IF NOT EXISTS drawer_id INT UNSIGNED AFTER session_number,
+ADD COLUMN IF NOT EXISTS drawer_id BIGINT UNSIGNED AFTER session_number,
 ADD COLUMN IF NOT EXISTS starting_balance DECIMAL(10,2) COMMENT 'Cash at start of session' AFTER user_id,
 ADD COLUMN IF NOT EXISTS starting_bills_100 INT DEFAULT 0 AFTER starting_balance,
 ADD COLUMN IF NOT EXISTS starting_bills_50 INT DEFAULT 0 AFTER starting_bills_100,
@@ -258,8 +266,8 @@ ADD COLUMN IF NOT EXISTS difference DECIMAL(10,2) NULL COMMENT 'Difference betwe
 ADD COLUMN IF NOT EXISTS difference_reason TEXT COMMENT 'Explanation for cash difference';
 
 ALTER TABLE cash_drawer_sessions
-ADD COLUMN IF NOT EXISTS closed_by INT UNSIGNED COMMENT 'Staff member who closed session',
-ADD COLUMN IF NOT EXISTS approved_by INT UNSIGNED COMMENT 'Manager who approved closing',
+ADD COLUMN IF NOT EXISTS closed_by BIGINT UNSIGNED COMMENT 'Staff member who closed session',
+ADD COLUMN IF NOT EXISTS approved_by BIGINT UNSIGNED COMMENT 'Manager who approved closing',
 ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP NULL;
 
 -- Add indexes if they don't exist
@@ -285,3 +293,4 @@ ALTER TABLE cash_drawer_sessions COMMENT = 'Shift/day sessions for cash drawers'
 ALTER TABLE cash_drawer_transactions COMMENT = 'Detailed log of all cash movements';
 ALTER TABLE cash_deposits COMMENT = 'Cash deposits to bank or safe';
 ALTER TABLE cash_variances COMMENT = 'Cash discrepancies and investigations';
+SET FOREIGN_KEY_CHECKS=1;

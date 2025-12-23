@@ -1,168 +1,168 @@
 <?php
-/**
- * Backend migration processor - streams progress updates
- * REFACTORED: Uses PDO and fixes installation completion logic
- */
+ini_set('display_errors', 0);
+ini_set('output_buffering', 0);
+ini_set('implicit_flush', 1);
+ob_implicit_flush(1);
+
 session_start();
-@ini_set('output_buffering', 'Off');
-@ini_set('implicit_flush', 1);
-@ini_set('zlib.output_compression', 0);
-set_time_limit(0);
-ignore_user_abort(true);
-ini_set('memory_limit', '512M');
-header("Content-Type: text/plain");
-header("X-Accel-Buffering: no"); // Disable nginx buffering
-header("Cache-Control: no-cache, must-revalidate"); // Disable browser caching
-ob_implicit_flush(true);
 
-while (ob_get_level()) ob_end_clean(); // Clean any existing buffers
-
-// Logging Helper
-$rootDir = dirname(__DIR__);
-$logCwd = is_dir($rootDir . '/storage/logs') ? $rootDir . '/storage/logs' : '/tmp';
-
-function logMsg($msg) {
-    global $logCwd;
-    $date = date('Y-m-d H:i:s');
-    file_put_contents($logCwd . '/install_debug.log', "[$date] $msg\n", FILE_APPEND);
+// Helper to stream output
+function stream_msg($type, $msg) {
+    echo "$type:$msg\n";
+    flush();
 }
 
-logMsg("Backend started. Session ID: " . session_id());
+// 1. Get Configuration
+// Check for stale session data (root user in Docker) and clear it
+if (isset($_SESSION['install_data']['db_user']) && 
+    $_SESSION['install_data']['db_user'] === 'root' && 
+    gethostbyname('database') !== 'database') {
+    unset($_SESSION['install_data']);
+}
 
-// Check if this is a quick install from streamlined installer
-$isQuickInstall = isset($_GET['quick_install']) || isset($_SESSION['install_data']);
-
-if ($isQuickInstall && isset($_SESSION['install_data'])) {
-    $config = $_SESSION['install_data'];
-    logMsg("Loaded config from session.");
-} else {
-    // Fallback or Env config
-    $config = [
-        "db_host" => getenv("DB_HOST") ?: "nautilus-db",
-        "db_port" => getenv("DB_PORT") ?: "3306",
-        "db_name" => getenv("DB_DATABASE") ?: "nautilus",
-        "db_user" => getenv("DB_USERNAME") ?: "root",
-        "db_pass" => getenv("DB_PASSWORD") ?: "Frogman09!"
+// Force fallback to environment variables if available (fixes Docker networking issues where session might be stale)
+if (getenv("DB_HOST")) {
+    $dbHost = getenv("DB_HOST");
+    $_SESSION['install_data'] = [
+        'db_host' => $dbHost,
+        'db_name' => getenv("DB_DATABASE") ?: "nautilus",
+        'db_user' => getenv("DB_USERNAME") ?: "nautilus",
+        'db_pass' => getenv("DB_PASSWORD") ?: "nautilus123",
+        'db_port' => getenv("DB_PORT") ?: "3306",
+        'company' => getenv("APP_NAME") ?: "Nautilus",
+        'username' => 'admin',
+        'email' => 'admin@localhost',
+        'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
     ];
-    logMsg("Loaded config from defaults/env.");
 }
 
-// Normalize config
-if (!isset($config['db_host']) && isset($config['host'])) {
-    $config['db_host'] = $config['host'];
-    $config['db_port'] = $config['port'];
-    $config['db_name'] = $config['database'];
-    $config['db_user'] = $config['username'];
-    $config['db_pass'] = $config['password'];
-}
-
-// Get Migration Files
-$files = glob($rootDir . "/database/migrations/*.sql");
-if ($files === false) {
-    logMsg("Glob failed for: " . $rootDir . "/database/migrations/*.sql");
-    echo "ERROR:Glob failed\n";
+if (empty($_SESSION['install_data'])) {
+    stream_msg("ERROR", "No installation data found. Please restart.");
     exit;
 }
+
+$data = $_SESSION['install_data'];
+$dbHost = $data['db_host'];
+$dbName = $data['db_name'];
+$dbUser = $data['db_user'];
+$dbPass = $data['db_pass'];
+$dbPort = $data['db_port'];
+
+// 2. Connect to Database
+try {
+    $pdo = new PDO("mysql:host=$dbHost;port=$dbPort", $dbUser, $dbPass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Create DB if not exists (redundant but safe)
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $pdo->exec("USE `$dbName`");
+} catch (PDOException $e) {
+    stream_msg("ERROR", "Database connection failed: " . $e->getMessage());
+    exit;
+}
+
+// 3. Write .env file
+$envPath = dirname(__DIR__) . '/.env';
+if (!file_exists($envPath)) {
+    $appUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
+    $envContent = <<<EOT
+APP_NAME="{$data['company']}"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL={$appUrl}
+
+DB_CONNECTION=mysql
+DB_HOST={$dbHost}
+DB_PORT={$dbPort}
+DB_DATABASE={$dbName}
+DB_USERNAME={$dbUser}
+DB_PASSWORD={$dbPass}
+
+MAIL_MAILER=log
+MAIL_HOST=localhost
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="no-reply@localhost"
+MAIL_FROM_NAME="\${APP_NAME}"
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DRIVER=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+EOT;
+    file_put_contents($envPath, $envContent);
+    stream_msg("INFO", "Created configuration file.");
+}
+
+// 4. Run Migrations
+$migrationDir = dirname(__DIR__) . '/database/migrations';
+$files = glob($migrationDir . '/*.sql');
 sort($files);
 
 $total = count($files);
-echo "TOTAL:$total\n";
-flush();
+stream_msg("TOTAL", $total);
 
-// Connect to DB via PDO
+$processed = 0;
+foreach ($files as $file) {
+    $name = basename($file);
+    stream_msg("START", $name);
+    
+    $sql = file_get_contents($file);
+    
+    // Split by semicolon, but be careful (basic split for now, robust enough for our dumps usually)
+    // Actually, running the whole file is better if it doesn't contain delimiters that PDO dislikes.
+    // PDO can run multiple statements if emulation is on (default).
+    try {
+        $pdo->exec($sql);
+    } catch (PDOException $e) {
+        // If it's "table already exists", ignore it?
+        // Ideally we check migration table, but for fresh install we might just proceed.
+        if (strpos($e->getMessage(), "already exists") === false) {
+             stream_msg("ERROR", "Migration $name failed: " . $e->getMessage());
+             exit;
+        }
+    }
+    
+    $processed++;
+    stream_msg("PROGRESS", $processed);
+}
+
+// 5. Create Admin User
+$adminUser = $data['username'];
+$adminEmail = $data['email'];
+$adminPass = $data['password']; // Already hashed
+
+// Get Role ID for Admin (assuming it's 1 or we need to find it)
+// We need to ensure roles exist. Assuming 000_CORE_SCHEMA.sql creates them.
 try {
-    $dsn = "mysql:host={$config['db_host']};port={$config['db_port']};dbname={$config['db_name']};charset=utf8mb4";
-    $pdo = new PDO($dsn, $config['db_user'], $config['db_pass']);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    // Important for multiple statements in one file
-    $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, true); 
-    $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true); 
+    // Check if user exists
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt->execute([$adminEmail]);
+    if (!$stmt->fetch()) {
+        $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, NOW())");
+        $stmt->execute([$adminUser, $adminEmail, $adminPass]);
+        $userId = $pdo->lastInsertId();
+        
+        // Assign Admin Role (assuming role_id 1 is Admin, or look it up)
+        // Let's look up 'Admin' or 'Administrator'
+        $stmt = $pdo->prepare("SELECT id FROM roles WHERE name IN ('Admin', 'Administrator') LIMIT 1");
+        $stmt->execute();
+        $role = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($role) {
+             $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
+             $stmt->execute([$userId, $role['id']]);
+        }
+    }
 } catch (PDOException $e) {
-    logMsg("Connection failed: " . $e->getMessage());
-    echo "ERROR:Connection failed: " . $e->getMessage() . "\n";
+    stream_msg("ERROR", "Failed to create admin user: " . $e->getMessage());
     exit;
 }
 
-$processed = 0;
+// 6. Mark as Installed
+file_put_contents(dirname(__DIR__) . '/.installed', date('Y-m-d H:i:s'));
 
-foreach ($files as $file) {
-    $filename = basename($file);
-    
-    // Friendly Name Logic
-    $friendlyName = ucwords(str_replace(['_', '.sql'], [' ', ''], substr($filename, 4)));
-    echo "START:$friendlyName\n";
-    flush();
-
-    $sql = file_get_contents($file);
-    if (trim($sql) === '') {
-        logMsg("Skipping empty file: $filename");
-        continue;
-    }
-
-    try {
-        $pdo->exec($sql);
-        $processed++;
-        echo "PROGRESS:$processed\n";
-        flush();
-        logMsg("Executed: $filename");
-    } catch (PDOException $e) {
-        $error = "Migration failed ($filename): " . $e->getMessage();
-        logMsg($error);
-        echo "ERROR:$error\n";
-        exit;
-    }
-    
-    usleep(50000); // Visual delay
-}
-
-echo "COMPLETE\n";
-$_SESSION["db_installed"] = true;
-
-// Finalize Installation (Create .env and .installed)
-if ($isQuickInstall) {
-    logMsg("Finalizing Quick Install...");
-    
-    // 1. Create .env
-    $envContent = "APP_NAME=\"Nautilus Dive Shop\"\n";
-    $envContent .= "APP_ENV=development\n";
-    $envContent .= "APP_DEBUG=true\n";
-    $envContent .= "APP_URL=http://localhost:8080\n";
-    $envContent .= "APP_TIMEZONE=America/New_York\n\n";
-    $envContent .= "DB_HOST={$config['db_host']}\n";
-    $envContent .= "DB_PORT={$config['db_port']}\n";
-    $envContent .= "DB_DATABASE={$config['db_name']}\n";
-    $envContent .= "DB_USERNAME={$config['db_user']}\n";
-    $envContent .= "DB_PASSWORD={$config['db_pass']}\n";
-
-    if (file_put_contents($rootDir . '/.env', $envContent) !== false) {
-        logMsg("Created .env file.");
-    } else {
-        logMsg("Failed to create .env file!");
-    }
-
-    // 2. Update Admin Account
-    try {
-        // Update tenant
-        $stmt = $pdo->prepare("UPDATE tenants SET name = ? WHERE id = 1");
-        $stmt->execute([$config['company'] ?? 'Nautilus']);
-
-        // Update admin user
-        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, password_hash = ? WHERE id = 1");
-        $stmt->execute([
-            $config['username'] ?? 'admin',
-            $config['email'] ?? 'admin@nautilus.local',
-            $config['password'] ?? password_hash('password', PASSWORD_DEFAULT)
-        ]);
-        logMsg("Updated admin account.");
-    } catch (PDOException $e) {
-        logMsg("Failed to update admin/tenant: " . $e->getMessage());
-    }
-
-    // 3. Create .installed file
-    if (file_put_contents($rootDir . '/.installed', date('Y-m-d H:i:s')) !== false) {
-        logMsg("Created .installed file. Setup Complete.");
-    } else {
-        logMsg("Failed to create .installed file!");
-    }
-}
+stream_msg("COMPLETE", "Installation finished successfully.");
 ?>

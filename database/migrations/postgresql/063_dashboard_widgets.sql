@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS widget_types (
 CREATE TABLE IF NOT EXISTS dashboard_widgets (
     id INT  PRIMARY KEY,
     tenant_id INT,
-    user_id INT NOT NULL,
+    user_id BIGINT NOT NULL,
     widget_type_id INT NOT NULL,
     position INT NOT NULL DEFAULT 0,
     size ENUM('small', 'medium', 'large', 'full') DEFAULT 'medium',

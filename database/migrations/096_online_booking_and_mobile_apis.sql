@@ -1,3 +1,36 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `push_notifications`;
+DROP TABLE IF EXISTS `mobile_app_sessions`;
+DROP TABLE IF EXISTS `api_request_logs`;
+DROP TABLE IF EXISTS `api_tokens`;
+DROP TABLE IF EXISTS `online_bookings`;
+DROP TABLE IF EXISTS `availability_slots`;
+DROP TABLE IF EXISTS `bookable_items`;
+DROP TABLE IF EXISTS `online_booking_settings`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `push_notifications`;
+DROP TABLE IF EXISTS `mobile_app_sessions`;
+DROP TABLE IF EXISTS `api_request_logs`;
+DROP TABLE IF EXISTS `api_tokens`;
+DROP TABLE IF EXISTS `online_bookings`;
+DROP TABLE IF EXISTS `availability_slots`;
+DROP TABLE IF EXISTS `bookable_items`;
+DROP TABLE IF EXISTS `online_booking_settings`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `push_notifications`;
+DROP TABLE IF EXISTS `mobile_app_sessions`;
+DROP TABLE IF EXISTS `api_request_logs`;
+DROP TABLE IF EXISTS `api_tokens`;
+DROP TABLE IF EXISTS `online_bookings`;
+DROP TABLE IF EXISTS `availability_slots`;
+DROP TABLE IF EXISTS `bookable_items`;
+DROP TABLE IF EXISTS `online_booking_settings`;
+
 -- =====================================================
 -- Online Booking Portal & Mobile App APIs
 -- Self-service booking, mobile app support, API tokens
@@ -5,8 +38,8 @@
 
 -- Online Booking Settings
 CREATE TABLE IF NOT EXISTS `online_booking_settings` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- General Settings
     `booking_enabled` BOOLEAN DEFAULT TRUE,
@@ -61,8 +94,8 @@ CREATE TABLE IF NOT EXISTS `online_booking_settings` (
 
 -- Bookable Services/Items
 CREATE TABLE IF NOT EXISTS `bookable_items` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Item Details
     `item_type` ENUM('course', 'trip', 'rental', 'experience', 'private_lesson', 'boat_charter', 'service') NOT NULL,
@@ -135,8 +168,8 @@ CREATE TABLE IF NOT EXISTS `bookable_items` (
 -- Availability Slots
 CREATE TABLE IF NOT EXISTS `availability_slots` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `bookable_item_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `bookable_item_id` BIGINT UNSIGNED NOT NULL,
 
     -- Slot Details
     `slot_date` DATE NOT NULL,
@@ -149,9 +182,9 @@ CREATE TABLE IF NOT EXISTS `availability_slots` (
     `available_count` INT NOT NULL,
 
     -- Resources
-    `instructor_id` INT UNSIGNED NULL,
-    `boat_id` INT UNSIGNED NULL,
-    `location_id` INT UNSIGNED NULL,
+    `instructor_id` BIGINT UNSIGNED NULL,
+    `boat_id` BIGINT UNSIGNED NULL,
+    `location_id` BIGINT UNSIGNED NULL,
 
     -- Pricing
     `slot_price` DECIMAL(10, 2) NULL COMMENT 'Override base price',
@@ -177,18 +210,18 @@ CREATE TABLE IF NOT EXISTS `availability_slots` (
 -- Online Bookings
 CREATE TABLE IF NOT EXISTS `online_bookings` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `booking_reference` VARCHAR(50) NOT NULL UNIQUE,
 
     -- Customer
-    `customer_id` INT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
     `guest_name` VARCHAR(255) NULL,
     `guest_email` VARCHAR(255) NULL,
     `guest_phone` VARCHAR(20) NULL,
     `is_guest_booking` BOOLEAN DEFAULT FALSE,
 
     -- Booking Details
-    `bookable_item_id` INT UNSIGNED NOT NULL,
+    `bookable_item_id` BIGINT UNSIGNED NOT NULL,
     `slot_id` BIGINT UNSIGNED NULL,
     `booking_date` DATE NOT NULL,
     `booking_time` TIME NULL,
@@ -215,7 +248,7 @@ CREATE TABLE IF NOT EXISTS `online_bookings` (
     `booking_status` ENUM('pending', 'confirmed', 'cancelled', 'completed', 'no_show') DEFAULT 'pending',
     `requires_approval` BOOLEAN DEFAULT FALSE,
     `approved` BOOLEAN DEFAULT FALSE,
-    `approved_by` INT UNSIGNED NULL,
+    `approved_by` BIGINT UNSIGNED NULL,
     `approved_at` DATETIME NULL,
 
     -- Confirmation
@@ -247,7 +280,7 @@ CREATE TABLE IF NOT EXISTS `online_bookings` (
 
     -- Internal
     `internal_notes` TEXT NULL,
-    `assigned_to` INT UNSIGNED NULL,
+    `assigned_to` BIGINT UNSIGNED NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -263,8 +296,8 @@ CREATE TABLE IF NOT EXISTS `online_bookings` (
 
 -- API Tokens (for mobile apps and integrations)
 CREATE TABLE IF NOT EXISTS `api_tokens` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `token_name` VARCHAR(255) NOT NULL,
     `token_key` VARCHAR(64) NOT NULL UNIQUE COMMENT 'The actual API key',
 
@@ -273,8 +306,8 @@ CREATE TABLE IF NOT EXISTS `api_tokens` (
     `platform` ENUM('ios', 'android', 'web', 'server', 'other') NULL,
 
     -- Ownership
-    `user_id` INT UNSIGNED NULL,
-    `customer_id` INT UNSIGNED NULL,
+    `user_id` BIGINT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
 
     -- Permissions
     `scopes` JSON NOT NULL COMMENT 'Allowed endpoints/actions',
@@ -309,7 +342,7 @@ CREATE TABLE IF NOT EXISTS `api_tokens` (
     -- Metadata
     `notes` TEXT NULL,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -322,8 +355,8 @@ CREATE TABLE IF NOT EXISTS `api_tokens` (
 -- API Request Logs
 CREATE TABLE IF NOT EXISTS `api_request_logs` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `api_token_id` INT UNSIGNED NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `api_token_id` BIGINT UNSIGNED NULL,
 
     -- Request Details
     `request_method` VARCHAR(10) NOT NULL COMMENT 'GET, POST, PUT, DELETE',
@@ -343,8 +376,8 @@ CREATE TABLE IF NOT EXISTS `api_request_logs` (
 
     -- Authentication
     `authenticated` BOOLEAN DEFAULT FALSE,
-    `user_id` INT UNSIGNED NULL,
-    `customer_id` INT UNSIGNED NULL,
+    `user_id` BIGINT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
 
     -- Error Handling
     `is_error` BOOLEAN DEFAULT FALSE,
@@ -364,11 +397,11 @@ CREATE TABLE IF NOT EXISTS `api_request_logs` (
 -- Mobile App Sessions
 CREATE TABLE IF NOT EXISTS `mobile_app_sessions` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Session Details
     `session_token` VARCHAR(255) NOT NULL UNIQUE,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Device Info
     `device_type` ENUM('ios', 'android', 'tablet', 'other') NOT NULL,
@@ -412,10 +445,10 @@ CREATE TABLE IF NOT EXISTS `mobile_app_sessions` (
 -- Push Notifications
 CREATE TABLE IF NOT EXISTS `push_notifications` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Recipient
-    `customer_id` INT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
     `session_id` BIGINT UNSIGNED NULL,
     `device_token` VARCHAR(500) NULL,
 
@@ -494,3 +527,10 @@ INSERT INTO `api_tokens` (
 (1, 'Android Mobile App', SHA2(CONCAT('mobile_app_android_', UNIX_TIMESTAMP(), RAND()), 256), 'mobile_app', 'android',
     '["bookings.read", "bookings.create", "profile.read", "profile.update", "courses.read", "equipment.read"]',
     'read_write', TRUE);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

@@ -1,8 +1,19 @@
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `product_categories`;
+DROP TABLE IF EXISTS `vendors`;
+DROP TABLE IF EXISTS `products`;
+DROP TABLE IF EXISTS `product_images`;
+DROP TABLE IF EXISTS `product_variants`;
+DROP TABLE IF EXISTS `inventory_transactions`;
+DROP TABLE IF EXISTS `purchase_orders`;
+DROP TABLE IF EXISTS `purchase_order_items`;
+
 CREATE TABLE IF NOT EXISTS `product_categories` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` INT UNSIGNED DEFAULT 1,
-  `parent_id` INT UNSIGNED,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` BIGINT UNSIGNED DEFAULT 1,
+  `parent_id` BIGINT UNSIGNED,
   `name` VARCHAR(100) NOT NULL,
   `slug` VARCHAR(100) NOT NULL UNIQUE,
   `description` TEXT,
@@ -19,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `product_categories` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `vendors` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `contact_name` VARCHAR(200),
   `email` VARCHAR(255),
@@ -40,10 +51,10 @@ CREATE TABLE IF NOT EXISTS `vendors` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `products` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` INT UNSIGNED DEFAULT 1,
-  `category_id` INT UNSIGNED,
-  `vendor_id` INT UNSIGNED,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` BIGINT UNSIGNED DEFAULT 1,
+  `category_id` BIGINT UNSIGNED,
+  `vendor_id` BIGINT UNSIGNED,
   `sku` VARCHAR(100) NOT NULL UNIQUE,
   `model` VARCHAR(100),
   `barcode` VARCHAR(100),
@@ -86,8 +97,8 @@ CREATE TABLE IF NOT EXISTS `products` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `product_images` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `product_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `product_id` BIGINT UNSIGNED NOT NULL,
   `file_path` VARCHAR(255) NOT NULL,
   `file_name` VARCHAR(255) NOT NULL,
   `alt_text` VARCHAR(255),
@@ -99,8 +110,8 @@ CREATE TABLE IF NOT EXISTS `product_images` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `product_variants` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `product_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `product_id` BIGINT UNSIGNED NOT NULL,
   `sku` VARCHAR(100) NOT NULL UNIQUE,
   `barcode` VARCHAR(100),
   `variant_name` VARCHAR(255) NOT NULL,
@@ -118,17 +129,17 @@ CREATE TABLE IF NOT EXISTS `product_variants` (
 
 CREATE TABLE IF NOT EXISTS `inventory_transactions` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `product_id` INT UNSIGNED NOT NULL,
-  `variant_id` INT UNSIGNED,
+  `product_id` BIGINT UNSIGNED NOT NULL,
+  `variant_id` BIGINT UNSIGNED,
   `transaction_type` ENUM('sale', 'return', 'adjustment', 'purchase', 'transfer', 'damage', 'rental') NOT NULL,
   `quantity_change` INT NOT NULL,
   `quantity_before` INT NOT NULL,
   `quantity_after` INT NOT NULL,
   `reference_type` VARCHAR(50),
-  `reference_id` INT UNSIGNED,
+  `reference_id` BIGINT UNSIGNED,
   `cost_per_unit` DECIMAL(10,2),
   `notes` TEXT,
-  `user_id` INT UNSIGNED,
+  `user_id` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`variant_id`) REFERENCES `product_variants`(`id`) ON DELETE CASCADE,
@@ -139,8 +150,8 @@ CREATE TABLE IF NOT EXISTS `inventory_transactions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `purchase_orders` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `vendor_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `vendor_id` BIGINT UNSIGNED NOT NULL,
   `po_number` VARCHAR(100) NOT NULL UNIQUE,
   `order_date` DATE NOT NULL,
   `expected_delivery_date` DATE,
@@ -151,7 +162,7 @@ CREATE TABLE IF NOT EXISTS `purchase_orders` (
   `shipping` DECIMAL(10,2) DEFAULT 0.00,
   `total` DECIMAL(10,2) DEFAULT 0.00,
   `notes` TEXT,
-  `created_by` INT UNSIGNED,
+  `created_by` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`id`),
@@ -161,10 +172,10 @@ CREATE TABLE IF NOT EXISTS `purchase_orders` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `purchase_order_items` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `purchase_order_id` INT UNSIGNED NOT NULL,
-  `product_id` INT UNSIGNED NOT NULL,
-  `variant_id` INT UNSIGNED,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `purchase_order_id` BIGINT UNSIGNED NOT NULL,
+  `product_id` BIGINT UNSIGNED NOT NULL,
+  `variant_id` BIGINT UNSIGNED,
   `quantity_ordered` INT NOT NULL,
   `quantity_received` INT DEFAULT 0,
   `unit_cost` DECIMAL(10,2) NOT NULL,
@@ -175,3 +186,5 @@ CREATE TABLE IF NOT EXISTS `purchase_order_items` (
   FOREIGN KEY (`variant_id`) REFERENCES `product_variants`(`id`) ON DELETE SET NULL,
   INDEX `idx_purchase_order_id` (`purchase_order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET FOREIGN_KEY_CHECKS=1;

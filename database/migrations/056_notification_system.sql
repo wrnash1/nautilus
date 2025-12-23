@@ -1,3 +1,30 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `notification_statistics`;
+DROP TABLE IF EXISTS `customer_notification_preferences`;
+DROP TABLE IF EXISTS `scheduled_notifications`;
+DROP TABLE IF EXISTS `notification_templates`;
+DROP TABLE IF EXISTS `notification_log`;
+DROP TABLE IF EXISTS `notification_settings`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `notification_statistics`;
+DROP TABLE IF EXISTS `customer_notification_preferences`;
+DROP TABLE IF EXISTS `scheduled_notifications`;
+DROP TABLE IF EXISTS `notification_templates`;
+DROP TABLE IF EXISTS `notification_log`;
+DROP TABLE IF EXISTS `notification_settings`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `notification_statistics`;
+DROP TABLE IF EXISTS `customer_notification_preferences`;
+DROP TABLE IF EXISTS `scheduled_notifications`;
+DROP TABLE IF EXISTS `notification_templates`;
+DROP TABLE IF EXISTS `notification_log`;
+DROP TABLE IF EXISTS `notification_settings`;
+
 -- Migration: Automated Notification System
 -- Description: Creates tables for notification settings and logging
 -- Version: 056
@@ -6,7 +33,7 @@
 -- Notification Settings Table
 -- Stores global notification configuration
 CREATE TABLE IF NOT EXISTS notification_settings (
-    id INT UNSIGNED PRIMARY KEY DEFAULT 1,
+    id BIGINT UNSIGNED PRIMARY KEY DEFAULT 1,
 
     -- Feature toggles
     low_stock_enabled BOOLEAN DEFAULT TRUE,
@@ -78,7 +105,7 @@ CREATE TABLE IF NOT EXISTS notification_log (
 -- Notification Templates Table
 -- Stores customizable email templates
 CREATE TABLE IF NOT EXISTS notification_templates (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     -- Template identification
     template_key VARCHAR(50) UNIQUE NOT NULL,
@@ -100,7 +127,7 @@ CREATE TABLE IF NOT EXISTS notification_templates (
     -- Timestamps
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
 
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_template_key (template_key),
@@ -169,8 +196,8 @@ CREATE TABLE IF NOT EXISTS scheduled_notifications (
 -- Notification Preferences Table
 -- Stores customer-specific notification preferences
 CREATE TABLE IF NOT EXISTS customer_notification_preferences (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
 
     -- Communication preferences
     email_enabled BOOLEAN DEFAULT TRUE,
@@ -202,7 +229,7 @@ CREATE TABLE IF NOT EXISTS customer_notification_preferences (
 -- Notification Statistics Table
 -- Tracks notification metrics for analytics
 CREATE TABLE IF NOT EXISTS notification_statistics (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     -- Date and type
     stat_date DATE NOT NULL,
@@ -304,3 +331,10 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

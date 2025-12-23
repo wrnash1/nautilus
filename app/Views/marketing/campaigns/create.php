@@ -56,7 +56,7 @@ $activeMenu = 'marketing';
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label">Send To</label>
-                            <select name="recipient_type" class="form-select">
+                            <select name="segment" class="form-select">
                                 <option value="all">All Customers</option>
                                 <option value="newsletter">Newsletter Subscribers</option>
                                 <option value="active">Active Customers (Last 90 days)</option>

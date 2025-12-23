@@ -1,13 +1,40 @@
--- ================================================
--- Nautilus - Email Queue System
--- Migration: 074_email_queue_system.sql
--- Description: Complete email queue and automation system
--- ================================================
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `email_automation_rules`;
+DROP TABLE IF EXISTS `email_log`;
+DROP TABLE IF EXISTS `email_queue`;
+DROP TABLE IF EXISTS `email_campaigns`;
+DROP TABLE IF EXISTS `email_templates`;
+
+-- Create missing dependency tables
+CREATE TABLE IF NOT EXISTS `email_campaigns` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(255) NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `email_templates` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `display_name` VARCHAR(255) NOT NULL,
+    `description` TEXT NULL,
+    `category` VARCHAR(100) NULL,
+    `subject` VARCHAR(500) NULL,
+    `body_html` LONGTEXT NULL,
+    `body_text` LONGTEXT NULL,
+    `content` LONGTEXT NULL,
+    `is_active` BOOLEAN DEFAULT TRUE,
+    `is_system` BOOLEAN DEFAULT FALSE,
+    `available_variables` JSON NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Email Queue Table
 CREATE TABLE IF NOT EXISTS `email_queue` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Recipient Information
     `to_email` VARCHAR(255) NOT NULL,
@@ -45,10 +72,10 @@ CREATE TABLE IF NOT EXISTS `email_queue` (
 
     -- Related Entities
     `related_entity_type` VARCHAR(100) NULL COMMENT 'customer, order, booking, etc.',
-    `related_entity_id` INT UNSIGNED NULL,
-
-    -- Campaign Tracking
-    `campaign_id` INT UNSIGNED NULL,
+    `related_entity_id` BIGINT UNSIGNED NULL,
+  
+  -- Campaign Tracking
+  `campaign_id` BIGINT UNSIGNED NULL,
     `tracking_id` VARCHAR(100) NULL COMMENT 'Unique ID for open/click tracking',
 
     -- Timestamps
@@ -68,22 +95,15 @@ CREATE TABLE IF NOT EXISTS `email_queue` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Update email_templates table to match requirements
-ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS tenant_id INT UNSIGNED NULL AFTER id;
-ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS display_name VARCHAR(255) NOT NULL AFTER name;
-ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS description TEXT NULL AFTER display_name;
-ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS category VARCHAR(100) NULL AFTER description;
-ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS body_html LONGTEXT NULL AFTER subject;
-ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS body_text LONGTEXT NULL AFTER body_html;
-ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS is_system BOOLEAN DEFAULT FALSE AFTER is_active;
-ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS available_variables JSON NULL AFTER is_system;
+-- (Removed ALTER statements as table is now created correctly above)
 
 -- Make content nullable as we are using body_html/body_text now
 ALTER TABLE email_templates MODIFY COLUMN content LONGTEXT NULL;
 
 -- Email Log (for sent emails)
 CREATE TABLE IF NOT EXISTS `email_log` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Email Details
     `to_email` VARCHAR(255) NOT NULL,
@@ -104,11 +124,11 @@ CREATE TABLE IF NOT EXISTS `email_log` (
 
     -- Related Entities
     `related_entity_type` VARCHAR(100) NULL,
-    `related_entity_id` INT UNSIGNED NULL,
-    `customer_id` INT UNSIGNED NULL,
+    `related_entity_id` BIGINT UNSIGNED NULL,
+  `customer_id` BIGINT UNSIGNED NULL,
 
-    -- Campaign
-    `campaign_id` INT UNSIGNED NULL,
+  -- Campaign
+  `campaign_id` BIGINT UNSIGNED NULL,
 
     -- Error Handling
     `error_message` TEXT NULL,
@@ -127,8 +147,8 @@ CREATE TABLE IF NOT EXISTS `email_log` (
 
 -- Email Automation Rules
 CREATE TABLE IF NOT EXISTS `email_automation_rules` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Rule Identity
     `name` VARCHAR(255) NOT NULL,
@@ -156,7 +176,7 @@ CREATE TABLE IF NOT EXISTS `email_automation_rules` (
     -- Timestamps
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
 
     FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
@@ -206,3 +226,10 @@ INSERT IGNORE INTO `email_templates` (`name`, `display_name`, `description`, `ca
 '<h1>Welcome {{customer_name}}!</h1><p>We are excited to have you join our diving community.</p>',
 'Welcome {{customer_name}}! We are excited to have you join our diving community.',
 1, '["customer_name", "dive_shop_name"]');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

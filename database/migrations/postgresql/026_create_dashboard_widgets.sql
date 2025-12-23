@@ -7,7 +7,7 @@
 -- Dashboard User Widget Configuration
 CREATE TABLE IF NOT EXISTS dashboard_widgets (
     id INTEGER  PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id BIGINTEGER NOT NULL,
     widget_id VARCHAR(50) NOT NULL,
     position INT NOT NULL DEFAULT 0,
     row_position INT NOT NULL DEFAULT 0,

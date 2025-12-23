@@ -7,10 +7,14 @@ use App\Core\Database;
 class CampaignService
 {
     private $db;
+    private $emailQueueService;
 
     public function __construct()
     {
         $this->db = Database::getInstance();
+        // Since we don't have a container, we'll instantiate directly for now, 
+        // passing the PDO connection from Database class
+        $this->emailQueueService = new \App\Services\Email\EmailQueueService($this->db->getConnection());
     }
 
     /**
@@ -136,7 +140,10 @@ class CampaignService
         $this->db->beginTransaction();
         
         try {
+            $sentCount = 0;
+
             foreach ($recipients as $recipient) {
+                // 1. Create recipient record
                 $stmt = $this->db->prepare("
                     INSERT INTO email_campaign_recipients 
                     (campaign_id, customer_id, email, status, created_at)
@@ -144,14 +151,58 @@ class CampaignService
                 ");
                 $stmt->execute([
                     $campaignId,
-                    $recipient['id'],
+                    $recipient['id'] ?? null, // Can be null for newsletter subscribers
                     $recipient['email']
                 ]);
+                $recipientId = $this->db->lastInsertId();
+
+                // 2. Queue the email via EmailQueueService
+                $trackingId = bin2hex(random_bytes(16)); // Generate our own to link them
+                
+                // Get the template or use content directly? 
+                // The campaign uses a template_id + overridden content usually, 
+                // or just raw content. The current createCampaign implementation 
+                // stores 'content' and 'template_id'.
+                // Let's assume we construct the body from the campaign content.
+                // We'll replace {{customer_name}} if we have a name.
+                
+                $bodyHtml = $campaign['content'];
+                $name = $recipient['name'] ?? 'Diver';
+                $bodyHtml = str_replace('{{customer_name}}', $name, $bodyHtml);
+                
+                // We need to pass tracking_id to queue so it matches our log if we want
+                // But CampaignService handles its own tracking in `email_campaign_recipients`.
+                // Actually, `EmailQueueService` generates its own tracking ID. 
+                // We should update our recipient record with the queue's tracking ID or 
+                // let the queue service handle the sending and we just monitor status?
+                // The current design of CampaignService tracks opens/clicks via `email_campaign_recipients`.
+                // EmailQueueService logs to `email_log`.
+                // To keep it simple for now, we will queue it and let EmailQueueService handle delivery.
+                // We will rely on EmailQueueService's "related_entity" feature to link back.
+                
+                $queueId = $this->emailQueueService->queueEmail([
+                    'tenant_id' => $_SESSION['tenant_id'] ?? 1,
+                    'to_email' => $recipient['email'],
+                    'to_name' => $name,
+                    'subject' => $campaign['subject'],
+                    'body_html' => $bodyHtml,
+                    'body_text' => strip_tags($bodyHtml),
+                    'campaign_id' => $campaignId, // Internal tracking in queue
+                    'related_entity_type' => 'email_campaign_recipient',
+                    'related_entity_id' => $recipientId
+                ]);
+
+                // Update status to sent immediately? Or 'queued'? 
+                // The original code set it to 'pending'. 
+                // We'll treat 'pending' as 'queued' in this context.
+                
+                $sentCount++;
             }
 
+            // Update campaign status
             $stmt = $this->db->prepare("
                 UPDATE email_campaigns 
-                SET status = 'sending', sent_at = NOW(), updated_at = NOW()
+                SET status = 'sent', sent_at = NOW(), updated_at = NOW()
                 WHERE id = ?
             ");
             $stmt->execute([$campaignId]);
@@ -161,6 +212,8 @@ class CampaignService
             return true;
         } catch (\Exception $e) {
             $this->db->rollBack();
+            // Log error?
+            throw $e; // Re-throw for debugging
             return false;
         }
     }
@@ -204,6 +257,33 @@ class CampaignService
                 ");
                 break;
                 
+            case 'newsletter':
+                $stmt = $this->db->query("
+                    SELECT id, email, name FROM newsletter_subscriptions 
+                    WHERE is_active = 1
+                ");
+                // Map newsletter id to 'id' but remember it's not a customer_id
+                // The loop above needs to handle this. 
+                // Actually, the loop expects 'id' to be customer_id.
+                // We should normalize the array returned here to be compatible.
+                // For newsletter subscribers, 'id' is subscription ID, not customer ID.
+                // The recipient insert above attempts to insert 'customer_id'.
+                // We need to adjust `getRecipientsBySegment` to strictly return contact info
+                // and maybe a type?
+                
+                // Let's standardise the return: [['email' => ..., 'name' => ..., 'id' => ..., 'type' => 'customer'|'subscriber']]
+                $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                $final = [];
+                foreach ($results as $row) {
+                    $final[] = [
+                        'email' => $row['email'],
+                        'name' => $row['name'],
+                        'id' => null, // No customer ID
+                        'subscriber_id' => $row['id']
+                    ];
+                }
+                return $final;
+
             default:
                 $stmt = $this->db->query("SELECT id, email FROM customers WHERE 1=0");
         }

@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS cash_drawers (
     requires_count_out BOOLEAN DEFAULT TRUE COMMENT 'Require counting cash when closing',
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT UNSIGNED,
+    created_by BIGINT UNSIGNED,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS cash_drawer_sessions (
     id INTEGER  PRIMARY KEY,
     session_number VARCHAR(50) NOT NULL UNIQUE COMMENT 'Unique session identifier',
     drawer_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL COMMENT 'Staff member operating drawer',
+    user_id BIGINTEGER NOT NULL COMMENT 'Staff member operating drawer',
 
     -- Opening information
     opened_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS cash_drawer_transactions (
     description VARCHAR(255) NOT NULL,
     notes TEXT,
     requires_approval BOOLEAN DEFAULT FALSE,
-    approved_by INT UNSIGNED,
+    approved_by BIGINT UNSIGNED,
     approved_at TIMESTAMP NULL,
 
     -- Audit trail
@@ -188,7 +188,7 @@ CREATE TABLE IF NOT EXISTS cash_variances (
     description TEXT NOT NULL,
 
     -- Investigation
-    investigated_by INT UNSIGNED,
+    investigated_by BIGINT UNSIGNED,
     investigated_at TIMESTAMP NULL,
     investigation_notes TEXT,
     resolution TEXT,

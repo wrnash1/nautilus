@@ -1,3 +1,21 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `predive_safety_checks`;
+DROP TABLE IF EXISTS `incident_reports`;
+DROP TABLE IF EXISTS `training_completion_forms`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `predive_safety_checks`;
+DROP TABLE IF EXISTS `incident_reports`;
+DROP TABLE IF EXISTS `training_completion_forms`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `predive_safety_checks`;
+DROP TABLE IF EXISTS `incident_reports`;
+DROP TABLE IF EXISTS `training_completion_forms`;
+
 -- ================================================
 -- Nautilus V6 - PADI Compliance: Training Completion & Incidents
 -- Migration: 053_padi_compliance_completion_incidents.sql
@@ -6,11 +24,11 @@
 
 -- Training completion forms (PADI Form 10234)
 CREATE TABLE IF NOT EXISTS `training_completion_forms` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_id` INT UNSIGNED NOT NULL,
-    `course_id` INT UNSIGNED NOT NULL,
-    `enrollment_id` INT UNSIGNED,
-    `student_record_id` INT UNSIGNED,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `course_id` BIGINT UNSIGNED NOT NULL,
+    `enrollment_id` BIGINT UNSIGNED,
+    `student_record_id` BIGINT UNSIGNED,
 
     -- Student Information
     `student_name` VARCHAR(255) NOT NULL,
@@ -40,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `training_completion_forms` (
     `instructor_recommendations` TEXT,
 
     -- Instructor Information
-    `instructor_id` INT UNSIGNED,
+    `instructor_id` BIGINT UNSIGNED,
     `instructor_name` VARCHAR(255),
     `instructor_number` VARCHAR(50) COMMENT 'PADI instructor number',
     `instructor_signature_path` VARCHAR(255),
@@ -79,7 +97,7 @@ CREATE TABLE IF NOT EXISTS `training_completion_forms` (
 
 -- Incident reports (PADI Form 10120)
 CREATE TABLE IF NOT EXISTS `incident_reports` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `incident_number` VARCHAR(50) UNIQUE NOT NULL COMMENT 'Unique incident identifier',
 
     -- Incident Basic Information
@@ -106,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `incident_reports` (
 
     -- People Involved
     `primary_person_type` ENUM('student', 'certified_diver', 'instructor', 'staff', 'other'),
-    `customer_id` INT UNSIGNED COMMENT 'If customer involved',
+    `customer_id` BIGINT UNSIGNED COMMENT 'If customer involved',
     `person_name` VARCHAR(255),
     `person_age` INT,
     `person_certification_level` VARCHAR(100),
@@ -143,17 +161,17 @@ CREATE TABLE IF NOT EXISTS `incident_reports` (
     `witness_statements` TEXT,
 
     -- Staff/Instructor Involved
-    `instructor_id` INT UNSIGNED,
+    `instructor_id` BIGINT UNSIGNED,
     `instructor_name` VARCHAR(255),
     `instructor_number` VARCHAR(50),
     `staff_members_present` TEXT,
 
     -- Course/Activity Information
-    `course_id` INT UNSIGNED,
+    `course_id` BIGINT UNSIGNED,
     `activity_type` VARCHAR(100) COMMENT 'training, fun dive, trip, etc.',
 
     -- Report Details
-    `reported_by` INT UNSIGNED NOT NULL,
+    `reported_by` BIGINT UNSIGNED NOT NULL,
     `reported_by_name` VARCHAR(255),
     `reported_by_role` VARCHAR(100),
     `report_date` DATE NOT NULL,
@@ -181,7 +199,7 @@ CREATE TABLE IF NOT EXISTS `incident_reports` (
 
     -- Status
     `status` ENUM('draft', 'submitted', 'under_review', 'closed') DEFAULT 'draft',
-    `reviewed_by` INT UNSIGNED,
+    `reviewed_by` BIGINT UNSIGNED,
     `reviewed_at` TIMESTAMP NULL,
 
     -- Timestamps
@@ -204,13 +222,13 @@ CREATE TABLE IF NOT EXISTS `incident_reports` (
 
 -- Pre-dive safety checks (PADI Form 752DT - BWRAF)
 CREATE TABLE IF NOT EXISTS `predive_safety_checks` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `dive_date` DATE NOT NULL,
     `dive_time` TIME,
     `dive_site` VARCHAR(255),
 
     -- Diver Information
-    `customer_id` INT UNSIGNED,
+    `customer_id` BIGINT UNSIGNED,
     `diver_name` VARCHAR(255) NOT NULL,
     `buddy_name` VARCHAR(255),
 
@@ -243,12 +261,12 @@ CREATE TABLE IF NOT EXISTS `predive_safety_checks` (
     `current` VARCHAR(100),
 
     -- Course/Activity
-    `course_id` INT UNSIGNED,
+    `course_id` BIGINT UNSIGNED,
     `activity_type` VARCHAR(100),
-    `instructor_id` INT UNSIGNED,
+    `instructor_id` BIGINT UNSIGNED,
 
     -- Verification
-    `checked_by` INT UNSIGNED COMMENT 'Instructor or buddy who verified',
+    `checked_by` BIGINT UNSIGNED COMMENT 'Instructor or buddy who verified',
     `checked_by_name` VARCHAR(255),
     `all_checks_passed` BOOLEAN DEFAULT FALSE,
     `notes` TEXT,
@@ -264,3 +282,10 @@ CREATE TABLE IF NOT EXISTS `predive_safety_checks` (
     INDEX `idx_customer` (`customer_id`),
     INDEX `idx_instructor` (`instructor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

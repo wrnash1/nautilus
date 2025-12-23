@@ -49,7 +49,7 @@ class DashboardController
         $result = Database::fetchOne(
             "SELECT COALESCE(SUM(total), 0) as total 
              FROM transactions 
-             WHERE DATE(created_at) = CURDATE() AND status = 'completed'"
+             WHERE created_at >= CURDATE()"
         );
         return (float)($result['total'] ?? 0);
     }

@@ -453,6 +453,8 @@ $router->get('/store/admin/settings/rental', 'Admin\SettingsController@rental', 
 $router->get('/store/admin/settings/air-fills', 'Admin\SettingsController@airFills', [AuthMiddleware::class]);
 $router->get('/store/admin/settings/integrations', 'Admin\SettingsController@integrations', [AuthMiddleware::class]);
 $router->post('/store/admin/settings/update', 'Admin\SettingsController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/admin/settings/tax/update', 'Admin\SettingsController@updateTax', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/admin/settings/email/update', 'Admin\SettingsController@updateEmail', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/admin/settings/update-integrations', 'Admin\SettingsController@updateIntegrations', [AuthMiddleware::class]);
 $router->post('/store/admin/settings/upload-logo', 'Admin\SettingsController@uploadLogo', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/admin/settings/tax/rates', 'Admin\SettingsController@storeTaxRate', [AuthMiddleware::class, CsrfMiddleware::class]);

@@ -87,6 +87,7 @@ class SettingsController
         }
     }
 
+
     /**
      * Upload logo
      */
@@ -140,13 +141,76 @@ class SettingsController
             $this->settings->reload();
             
             $_SESSION['flash_success'] = 'Logo uploaded successfully!';
-            redirect('/store/admin/settings');
             
         } catch (\Exception $e) {
             error_log("Logo upload error: " . $e->getMessage());
             $_SESSION['flash_error'] = 'Failed to upload logo: ' . $e->getMessage();
-            redirect('/store/admin/settings');
         }
+
+        redirect('/store/admin/settings');
+    }
+
+    /**
+     * Update Tax Settings
+     */
+    public function updateTax()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('/store/admin/settings/tax');
+        }
+
+        try {
+            $this->settings->set('tax_enabled', isset($_POST['tax_enabled']));
+            // Store as decimal (e.g. 7.5 -> 0.075)
+            $rate = floatval($_POST['tax_rate'] ?? 0);
+            $this->settings->set('tax_rate', $rate / 100);
+            
+            $this->settings->set('tax_inclusive', isset($_POST['tax_inclusive']));
+            $this->settings->set('tax_label', $_POST['tax_label'] ?? 'Tax');
+            
+            $this->settings->reload();
+            $_SESSION['flash_success'] = 'Tax settings updated successfully!';
+            
+        } catch (\Exception $e) {
+            error_log("Tax update error: " . $e->getMessage());
+            $_SESSION['flash_error'] = 'Failed to update tax settings';
+        }
+        
+        redirect('/store/admin/settings/tax');
+    }
+
+    /**
+     * Update Email Settings
+     */
+    public function updateEmail()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('/store/admin/settings/email');
+        }
+
+        try {
+            $this->settings->set('smtp_host', $_POST['smtp_host'] ?? '');
+            $this->settings->set('smtp_port', (int)($_POST['smtp_port'] ?? 587));
+            $this->settings->set('smtp_username', $_POST['smtp_username'] ?? '');
+            
+            // Only update password if provided
+            if (!empty($_POST['smtp_password'])) {
+                $this->settings->set('smtp_password', $_POST['smtp_password']);
+            }
+            
+            $this->settings->set('smtp_encryption', $_POST['smtp_encryption'] ?? 'tls');
+            $this->settings->set('from_email', $_POST['from_email'] ?? '');
+            $this->settings->set('from_name', $_POST['from_name'] ?? '');
+            
+            $this->settings->reload();
+            $_SESSION['flash_success'] = 'Email settings updated successfully!';
+            
+        } catch (\Exception $e) {
+            error_log("Email update error: " . $e->getMessage());
+            $_SESSION['flash_error'] = 'Failed to update email settings';
+        }
+        
+        redirect('/store/admin/settings/email');
     }
 
     /**

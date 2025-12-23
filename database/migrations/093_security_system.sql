@@ -1,3 +1,36 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `security_incidents`;
+DROP TABLE IF EXISTS `alarm_events`;
+DROP TABLE IF EXISTS `alarm_systems`;
+DROP TABLE IF EXISTS `access_events`;
+DROP TABLE IF EXISTS `access_credentials`;
+DROP TABLE IF EXISTS `access_control_points`;
+DROP TABLE IF EXISTS `camera_events`;
+DROP TABLE IF EXISTS `security_cameras`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `security_incidents`;
+DROP TABLE IF EXISTS `alarm_events`;
+DROP TABLE IF EXISTS `alarm_systems`;
+DROP TABLE IF EXISTS `access_events`;
+DROP TABLE IF EXISTS `access_credentials`;
+DROP TABLE IF EXISTS `access_control_points`;
+DROP TABLE IF EXISTS `camera_events`;
+DROP TABLE IF EXISTS `security_cameras`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `security_incidents`;
+DROP TABLE IF EXISTS `alarm_events`;
+DROP TABLE IF EXISTS `alarm_systems`;
+DROP TABLE IF EXISTS `access_events`;
+DROP TABLE IF EXISTS `access_credentials`;
+DROP TABLE IF EXISTS `access_control_points`;
+DROP TABLE IF EXISTS `camera_events`;
+DROP TABLE IF EXISTS `security_cameras`;
+
 -- =====================================================
 -- Security System
 -- Cameras, access control, alarms, and incident tracking
@@ -5,11 +38,11 @@
 
 -- Security Cameras
 CREATE TABLE IF NOT EXISTS `security_cameras` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `camera_name` VARCHAR(255) NOT NULL,
     `camera_location` VARCHAR(255) NOT NULL,
-    `location_id` INT UNSIGNED NULL COMMENT 'Link to inventory_locations',
+    `location_id` BIGINT UNSIGNED NULL COMMENT 'Link to inventory_locations',
 
     -- Camera Details
     `camera_type` ENUM('ip', 'analog', 'ptz', 'dome', 'bullet', 'hidden') NOT NULL DEFAULT 'ip',
@@ -79,8 +112,8 @@ CREATE TABLE IF NOT EXISTS `security_cameras` (
 -- Camera Events (motion, alerts, etc.)
 CREATE TABLE IF NOT EXISTS `camera_events` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `camera_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `camera_id` BIGINT UNSIGNED NOT NULL,
 
     -- Event Details
     `event_type` ENUM('motion_detected', 'person_detected', 'vehicle_detected', 'alert', 'offline', 'tamper', 'other') NOT NULL,
@@ -103,13 +136,13 @@ CREATE TABLE IF NOT EXISTS `camera_events` (
 
     -- Review
     `reviewed` BOOLEAN DEFAULT FALSE,
-    `reviewed_by` INT UNSIGNED NULL,
+    `reviewed_by` BIGINT UNSIGNED NULL,
     `reviewed_at` DATETIME NULL,
     `review_notes` TEXT NULL,
     `false_positive` BOOLEAN DEFAULT FALSE,
 
     -- Related Incident
-    `security_incident_id` INT UNSIGNED NULL,
+    `security_incident_id` BIGINT UNSIGNED NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -122,10 +155,10 @@ CREATE TABLE IF NOT EXISTS `camera_events` (
 
 -- Access Control Points (doors, gates, etc.)
 CREATE TABLE IF NOT EXISTS `access_control_points` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `point_name` VARCHAR(255) NOT NULL,
-    `location_id` INT UNSIGNED NULL,
+    `location_id` BIGINT UNSIGNED NULL,
 
     -- Point Details
     `point_type` ENUM('door', 'gate', 'turnstile', 'elevator', 'cabinet', 'safe') NOT NULL,
@@ -178,8 +211,8 @@ CREATE TABLE IF NOT EXISTS `access_control_points` (
 
 -- Access Cards/Credentials
 CREATE TABLE IF NOT EXISTS `access_credentials` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
 
     -- Credential Details
     `credential_type` ENUM('card', 'fob', 'pin', 'biometric', 'mobile', 'temporary') NOT NULL,
@@ -189,8 +222,8 @@ CREATE TABLE IF NOT EXISTS `access_credentials` (
 
     -- Ownership
     `holder_type` ENUM('employee', 'customer', 'vendor', 'contractor', 'guest') NOT NULL,
-    `employee_id` INT UNSIGNED NULL,
-    `customer_id` INT UNSIGNED NULL,
+    `employee_id` BIGINT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
     `holder_name` VARCHAR(255) NULL,
 
     -- Access Level
@@ -216,7 +249,7 @@ CREATE TABLE IF NOT EXISTS `access_credentials` (
     `status` ENUM('active', 'suspended', 'revoked', 'lost', 'expired') DEFAULT 'active',
     `status_reason` TEXT NULL,
     `revoked_at` DATETIME NULL,
-    `revoked_by` INT UNSIGNED NULL,
+    `revoked_by` BIGINT UNSIGNED NULL,
 
     -- Usage Stats
     `total_uses` INT DEFAULT 0,
@@ -236,9 +269,9 @@ CREATE TABLE IF NOT EXISTS `access_credentials` (
 -- Access Events (door access log)
 CREATE TABLE IF NOT EXISTS `access_events` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `access_point_id` INT UNSIGNED NOT NULL,
-    `credential_id` INT UNSIGNED NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `access_point_id` BIGINT UNSIGNED NOT NULL,
+    `credential_id` BIGINT UNSIGNED NULL,
 
     -- Event Details
     `event_type` ENUM('access_granted', 'access_denied', 'door_forced', 'door_propped', 'door_unlocked', 'door_locked', 'emergency_unlock') NOT NULL,
@@ -249,8 +282,8 @@ CREATE TABLE IF NOT EXISTS `access_events` (
     `pin_used` BOOLEAN DEFAULT FALSE,
 
     -- Person
-    `employee_id` INT UNSIGNED NULL,
-    `customer_id` INT UNSIGNED NULL,
+    `employee_id` BIGINT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
     `person_name` VARCHAR(255) NULL,
 
     -- Denial Reason
@@ -266,7 +299,7 @@ CREATE TABLE IF NOT EXISTS `access_events` (
 
     -- Review
     `reviewed` BOOLEAN DEFAULT FALSE,
-    `reviewed_by` INT UNSIGNED NULL,
+    `reviewed_by` BIGINT UNSIGNED NULL,
     `reviewed_at` DATETIME NULL,
     `review_notes` TEXT NULL,
 
@@ -282,10 +315,10 @@ CREATE TABLE IF NOT EXISTS `access_events` (
 
 -- Alarm System
 CREATE TABLE IF NOT EXISTS `alarm_systems` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `system_name` VARCHAR(255) NOT NULL,
-    `location_id` INT UNSIGNED NULL,
+    `location_id` BIGINT UNSIGNED NULL,
 
     -- System Details
     `manufacturer` VARCHAR(100) NULL,
@@ -305,7 +338,7 @@ CREATE TABLE IF NOT EXISTS `alarm_systems` (
     -- Status
     `current_status` ENUM('disarmed', 'armed_stay', 'armed_away', 'triggered', 'trouble', 'offline') DEFAULT 'disarmed',
     `status_changed_at` DATETIME NULL,
-    `status_changed_by` INT UNSIGNED NULL,
+    `status_changed_by` BIGINT UNSIGNED NULL,
 
     -- Zones
     `total_zones` INT DEFAULT 0,
@@ -340,8 +373,8 @@ CREATE TABLE IF NOT EXISTS `alarm_systems` (
 -- Alarm Events
 CREATE TABLE IF NOT EXISTS `alarm_events` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `alarm_system_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `alarm_system_id` BIGINT UNSIGNED NOT NULL,
 
     -- Event Details
     `event_type` ENUM('armed', 'disarmed', 'triggered', 'cancelled', 'trouble', 'tamper', 'low_battery', 'ac_loss', 'test') NOT NULL,
@@ -350,7 +383,7 @@ CREATE TABLE IF NOT EXISTS `alarm_events` (
     `zone_name` VARCHAR(100) NULL,
 
     -- Person
-    `triggered_by_user_id` INT UNSIGNED NULL,
+    `triggered_by_user_id` BIGINT UNSIGNED NULL,
     `user_name` VARCHAR(255) NULL,
     `user_code_used` VARCHAR(10) NULL COMMENT 'Which code was used (not the actual code)',
 
@@ -386,15 +419,15 @@ CREATE TABLE IF NOT EXISTS `alarm_events` (
 
 -- Security Incidents
 CREATE TABLE IF NOT EXISTS `security_incidents` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `incident_number` VARCHAR(50) NOT NULL UNIQUE,
 
     -- Incident Details
     `incident_type` ENUM('theft', 'burglary', 'robbery', 'vandalism', 'trespassing', 'assault', 'suspicious_activity', 'lost_property', 'found_property', 'other') NOT NULL,
     `severity` ENUM('low', 'medium', 'high', 'critical') DEFAULT 'medium',
     `incident_date` DATETIME NOT NULL,
-    `location_id` INT UNSIGNED NULL,
+    `location_id` BIGINT UNSIGNED NULL,
     `specific_location` VARCHAR(255) NULL,
 
     -- Description
@@ -404,7 +437,7 @@ CREATE TABLE IF NOT EXISTS `security_incidents` (
     `items_stolen` JSON NULL,
 
     -- Parties Involved
-    `reporter_id` INT UNSIGNED NULL COMMENT 'Employee who reported',
+    `reporter_id` BIGINT UNSIGNED NULL COMMENT 'Employee who reported',
     `reporter_name` VARCHAR(255) NULL,
     `witnesses` JSON NULL,
     `suspects` JSON NULL,
@@ -429,7 +462,7 @@ CREATE TABLE IF NOT EXISTS `security_incidents` (
     `resolution` TEXT NULL,
 
     -- Follow-up
-    `assigned_to` INT UNSIGNED NULL,
+    `assigned_to` BIGINT UNSIGNED NULL,
     `follow_up_required` BOOLEAN DEFAULT FALSE,
     `follow_up_date` DATE NULL,
 
@@ -437,7 +470,7 @@ CREATE TABLE IF NOT EXISTS `security_incidents` (
     `preventive_measures` TEXT NULL,
     `security_improvements` TEXT NULL,
 
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -483,3 +516,10 @@ INSERT INTO `access_credentials` (
 (1, 'card', 'CARD-002', 'employee', 2, 'Mike Chen', 'employee', '2024-01-15', TRUE, 'active'),
 (1, 'card', 'CARD-003', 'employee', 3, 'Jessica Martinez', 'employee', '2024-01-20', TRUE, 'active'),
 (1, 'fob', 'FOB-001', 'employee', 1, 'Sarah Johnson', 'admin', '2024-01-15', TRUE, 'active');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

@@ -1,3 +1,27 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `feedback_triggers`;
+DROP TABLE IF EXISTS `quality_control_alerts`;
+DROP TABLE IF EXISTS `instructor_performance_metrics`;
+DROP TABLE IF EXISTS `feedback_email_log`;
+DROP TABLE IF EXISTS `customer_feedback`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `feedback_triggers`;
+DROP TABLE IF EXISTS `quality_control_alerts`;
+DROP TABLE IF EXISTS `instructor_performance_metrics`;
+DROP TABLE IF EXISTS `feedback_email_log`;
+DROP TABLE IF EXISTS `customer_feedback`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `feedback_triggers`;
+DROP TABLE IF EXISTS `quality_control_alerts`;
+DROP TABLE IF EXISTS `instructor_performance_metrics`;
+DROP TABLE IF EXISTS `feedback_email_log`;
+DROP TABLE IF EXISTS `customer_feedback`;
+
 -- ================================================
 -- Nautilus V6 - Quality Control & Customer Feedback
 -- Migration: 054_quality_control_feedback.sql
@@ -6,11 +30,11 @@
 
 -- Customer feedback collection
 CREATE TABLE IF NOT EXISTS `customer_feedback` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_id` INT UNSIGNED NOT NULL,
-    `course_id` INT UNSIGNED,
-    `enrollment_id` INT UNSIGNED,
-    `trip_id` INT UNSIGNED,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `course_id` BIGINT UNSIGNED,
+    `enrollment_id` BIGINT UNSIGNED,
+    `trip_id` BIGINT UNSIGNED,
     `feedback_type` ENUM('course', 'trip', 'rental', 'store_visit', 'general') NOT NULL,
 
     -- Ratings (1-5 stars)
@@ -32,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `customer_feedback` (
     `pace_appropriate` BOOLEAN COMMENT 'Was course pace appropriate?',
 
     -- Instructor-specific (for courses)
-    `instructor_id` INT UNSIGNED,
+    `instructor_id` BIGINT UNSIGNED,
     `instructor_professional` BOOLEAN,
     `instructor_patient` BOOLEAN,
     `instructor_knowledgeable` BOOLEAN,
@@ -57,7 +81,7 @@ CREATE TABLE IF NOT EXISTS `customer_feedback` (
     -- Follow-up
     `requires_follow_up` BOOLEAN DEFAULT FALSE,
     `follow_up_reason` VARCHAR(255),
-    `follow_up_assigned_to` INT UNSIGNED COMMENT 'Staff member assigned',
+    `follow_up_assigned_to` BIGINT UNSIGNED COMMENT 'Staff member assigned',
     `follow_up_completed` BOOLEAN DEFAULT FALSE,
     `follow_up_completed_at` TIMESTAMP NULL,
     `follow_up_notes` TEXT,
@@ -84,10 +108,10 @@ CREATE TABLE IF NOT EXISTS `customer_feedback` (
 
 -- Feedback email tracking
 CREATE TABLE IF NOT EXISTS `feedback_email_log` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `customer_id` INT UNSIGNED NOT NULL,
-    `enrollment_id` INT UNSIGNED,
-    `trip_id` INT UNSIGNED,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
+    `enrollment_id` BIGINT UNSIGNED,
+    `trip_id` BIGINT UNSIGNED,
     `email_type` VARCHAR(100) NOT NULL COMMENT 'course_feedback, trip_feedback, etc.',
     `email_subject` VARCHAR(255),
     `feedback_link_token` VARCHAR(100) UNIQUE COMMENT 'Unique token for feedback form access',
@@ -106,7 +130,7 @@ CREATE TABLE IF NOT EXISTS `feedback_email_log` (
     `last_reminder_sent` TIMESTAMP NULL,
 
     -- Response
-    `feedback_id` INT UNSIGNED COMMENT 'Linked feedback response',
+    `feedback_id` BIGINT UNSIGNED COMMENT 'Linked feedback response',
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -122,8 +146,8 @@ CREATE TABLE IF NOT EXISTS `feedback_email_log` (
 
 -- Instructor performance metrics (aggregated from feedback)
 CREATE TABLE IF NOT EXISTS `instructor_performance_metrics` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `instructor_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `instructor_id` BIGINT UNSIGNED NOT NULL,
     `period_start` DATE NOT NULL,
     `period_end` DATE NOT NULL,
 
@@ -164,15 +188,15 @@ CREATE TABLE IF NOT EXISTS `instructor_performance_metrics` (
 
 -- Quality control alerts (for management)
 CREATE TABLE IF NOT EXISTS `quality_control_alerts` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `alert_type` ENUM('low_rating', 'negative_feedback', 'equipment_issue', 'safety_concern', 'complaint') NOT NULL,
     `severity` ENUM('low', 'medium', 'high', 'critical') NOT NULL,
 
     -- Related records
-    `feedback_id` INT UNSIGNED,
-    `customer_id` INT UNSIGNED,
-    `instructor_id` INT UNSIGNED,
-    `course_id` INT UNSIGNED,
+    `feedback_id` BIGINT UNSIGNED,
+    `customer_id` BIGINT UNSIGNED,
+    `instructor_id` BIGINT UNSIGNED,
+    `course_id` BIGINT UNSIGNED,
 
     -- Alert details
     `alert_title` VARCHAR(255) NOT NULL,
@@ -181,10 +205,10 @@ CREATE TABLE IF NOT EXISTS `quality_control_alerts` (
 
     -- Response
     `status` ENUM('new', 'acknowledged', 'investigating', 'resolved', 'escalated') DEFAULT 'new',
-    `assigned_to` INT UNSIGNED,
-    `acknowledged_by` INT UNSIGNED,
+    `assigned_to` BIGINT UNSIGNED,
+    `acknowledged_by` BIGINT UNSIGNED,
     `acknowledged_at` TIMESTAMP NULL,
-    `resolved_by` INT UNSIGNED,
+    `resolved_by` BIGINT UNSIGNED,
     `resolved_at` TIMESTAMP NULL,
     `resolution_notes` TEXT,
 
@@ -211,7 +235,7 @@ CREATE TABLE IF NOT EXISTS `quality_control_alerts` (
 
 -- Feedback triggers (automated feedback requests)
 CREATE TABLE IF NOT EXISTS `feedback_triggers` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `trigger_name` VARCHAR(255) NOT NULL,
     `trigger_type` ENUM('course_completion', 'trip_completion', 'rental_return', 'visit', 'quarterly') NOT NULL,
     `is_active` BOOLEAN DEFAULT TRUE,
@@ -250,3 +274,10 @@ INSERT INTO `feedback_triggers` (`trigger_name`, `trigger_type`, `delay_hours`, 
 ('Quarterly Check-in', 'quarterly', 2160,
 'We miss you! How are you doing?',
 '<p>Hi {customer_name},</p><p>It has been a while since your last visit. We wanted to check in and see how you are doing!</p><p>Are you interested in:</p><ul><li>Continuing your dive education?</li><li>Joining us on an upcoming trip?</li><li>Refreshing your skills?</li></ul><p><a href="{feedback_link}">Let us know!</a></p>');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

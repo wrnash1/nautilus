@@ -1,6 +1,16 @@
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `reports`;
+DROP TABLE IF EXISTS `dashboards`;
+DROP TABLE IF EXISTS `documents`;
+DROP TABLE IF EXISTS `appointments`;
+DROP TABLE IF EXISTS `integrations`;
+DROP TABLE IF EXISTS `settings`;
+DROP TABLE IF EXISTS `notifications`;
+
 CREATE TABLE IF NOT EXISTS `reports` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `type` ENUM('sales', 'inventory', 'customer', 'financial', 'operational', 'custom') NOT NULL,
   `description` TEXT,
@@ -8,15 +18,15 @@ CREATE TABLE IF NOT EXISTS `reports` (
   `parameters` JSON,
   `schedule` ENUM('none', 'daily', 'weekly', 'monthly') DEFAULT 'none',
   `recipients` JSON,
-  `created_by` INT UNSIGNED,
+  `created_by` BIGINT UNSIGNED,
   `is_active` BOOLEAN DEFAULT TRUE,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `dashboards` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `user_id` BIGINT UNSIGNED NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `widgets` JSON NOT NULL,
   `layout` JSON,
@@ -28,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `dashboards` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `documents` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `document_type` VARCHAR(100) NOT NULL,
   `title` VARCHAR(255) NOT NULL,
   `description` TEXT,
@@ -37,10 +47,10 @@ CREATE TABLE IF NOT EXISTS `documents` (
   `file_size` BIGINT UNSIGNED,
   `mime_type` VARCHAR(100),
   `version` INT DEFAULT 1,
-  `parent_id` INT UNSIGNED,
+  `parent_id` BIGINT UNSIGNED,
   `google_drive_id` VARCHAR(255),
   `tags` JSON,
-  `uploaded_by` INT UNSIGNED,
+  `uploaded_by` BIGINT UNSIGNED,
   `is_active` BOOLEAN DEFAULT TRUE,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -51,12 +61,12 @@ CREATE TABLE IF NOT EXISTS `documents` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `appointments` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `appointment_type` ENUM('fitting', 'consultation', 'pickup', 'other') NOT NULL,
   `start_time` DATETIME NOT NULL,
   `end_time` DATETIME NOT NULL,
-  `assigned_to` INT UNSIGNED,
+  `assigned_to` BIGINT UNSIGNED,
   `location` VARCHAR(255),
   `status` ENUM('scheduled', 'confirmed', 'completed', 'no_show', 'cancelled') DEFAULT 'scheduled',
   `notes` TEXT,
@@ -72,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `appointments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `integrations` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(100) NOT NULL UNIQUE,
   `type` ENUM('payment', 'shipping', 'accounting', 'marketing', 'communication', 'certification', 'other') NOT NULL,
   `credentials` TEXT,
@@ -84,13 +94,13 @@ CREATE TABLE IF NOT EXISTS `integrations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `settings` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `category` VARCHAR(50) NOT NULL,
   `key` VARCHAR(100) NOT NULL,
   `value` TEXT,
   `type` ENUM('string', 'integer', 'boolean', 'json', 'encrypted') DEFAULT 'string',
   `description` TEXT,
-  `updated_by` INT UNSIGNED,
+  `updated_by` BIGINT UNSIGNED,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY `unique_setting` (`category`, `key`),
   FOREIGN KEY (`updated_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
@@ -98,7 +108,7 @@ CREATE TABLE IF NOT EXISTS `settings` (
 
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
   `type` VARCHAR(50) NOT NULL,
   `title` VARCHAR(255) NOT NULL,
   `message` TEXT NOT NULL,
@@ -110,3 +120,5 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_is_read` (`is_read`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET FOREIGN_KEY_CHECKS=1;

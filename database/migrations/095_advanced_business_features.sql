@@ -5,13 +5,13 @@
 
 -- Point of Sale Terminals
 CREATE TABLE IF NOT EXISTS `pos_terminals` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `terminal_name` VARCHAR(255) NOT NULL,
     `terminal_number` VARCHAR(50) NOT NULL UNIQUE,
 
     -- Location
-    `location_id` INT UNSIGNED NULL,
+    `location_id` BIGINT UNSIGNED NULL,
     `register_number` INT NULL,
 
     -- Hardware
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `pos_terminals` (
     `status` ENUM('active', 'offline', 'maintenance', 'closed') DEFAULT 'active',
     `currently_open` BOOLEAN DEFAULT FALSE,
     `opened_at` DATETIME NULL,
-    `opened_by` INT UNSIGNED NULL,
+    `opened_by` BIGINT UNSIGNED NULL,
 
     -- Stats
     `total_transactions_today` INT DEFAULT 0,
@@ -62,16 +62,16 @@ CREATE TABLE IF NOT EXISTS `pos_terminals` (
 -- POS Transactions (separate from orders for detailed tracking)
 CREATE TABLE IF NOT EXISTS `pos_transactions` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `transaction_number` VARCHAR(50) NOT NULL UNIQUE,
-    `terminal_id` INT UNSIGNED NOT NULL,
+    `terminal_id` BIGINT UNSIGNED NOT NULL,
 
     -- Transaction Details
     `transaction_type` ENUM('sale', 'return', 'exchange', 'void', 'refund') DEFAULT 'sale',
     `transaction_date` DATETIME NOT NULL,
 
     -- Customer
-    `customer_id` INT UNSIGNED NULL,
+    `customer_id` BIGINT UNSIGNED NULL,
     `customer_name` VARCHAR(255) NULL,
     `customer_email` VARCHAR(255) NULL,
     `customer_phone` VARCHAR(20) NULL,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `pos_transactions` (
     `change_given` DECIMAL(10, 2) DEFAULT 0.00,
 
     -- Staff
-    `cashier_id` INT UNSIGNED NOT NULL,
+    `cashier_id` BIGINT UNSIGNED NOT NULL,
     `cashier_name` VARCHAR(255) NULL,
 
     -- Items
@@ -108,13 +108,13 @@ CREATE TABLE IF NOT EXISTS `pos_transactions` (
     `receipt_url` VARCHAR(500) NULL,
 
     -- Related Records
-    `order_id` INT UNSIGNED NULL,
+    `order_id` BIGINT UNSIGNED NULL,
     `original_transaction_id` BIGINT UNSIGNED NULL COMMENT 'For returns/exchanges',
 
     -- Status
     `status` ENUM('completed', 'voided', 'refunded', 'pending') DEFAULT 'completed',
     `voided_at` DATETIME NULL,
-    `voided_by` INT UNSIGNED NULL,
+    `voided_by` BIGINT UNSIGNED NULL,
     `void_reason` TEXT NULL,
 
     -- Notes
@@ -134,13 +134,13 @@ CREATE TABLE IF NOT EXISTS `pos_transactions` (
 -- Cash Drawer Operations
 CREATE TABLE IF NOT EXISTS `cash_drawer_operations` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `terminal_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `terminal_id` BIGINT UNSIGNED NOT NULL,
 
     -- Operation Details
     `operation_type` ENUM('open', 'close', 'deposit', 'withdrawal', 'payout', 'reconciliation') NOT NULL,
     `operation_time` DATETIME NOT NULL,
-    `performed_by` INT UNSIGNED NOT NULL,
+    `performed_by` BIGINT UNSIGNED NOT NULL,
 
     -- Amounts
     `amount` DECIMAL(10, 2) NOT NULL,
@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS `cash_drawer_operations` (
     `notes` TEXT NULL,
 
     -- Verification
-    `verified_by` INT UNSIGNED NULL,
+    `verified_by` BIGINT UNSIGNED NULL,
     `verified_at` DATETIME NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -176,8 +176,8 @@ DROP TABLE IF EXISTS `loyalty_programs`;
 SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE `loyalty_programs` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `program_name` VARCHAR(255) NOT NULL,
     `program_type` ENUM('points', 'tiers', 'punch_card', 'subscription', 'hybrid') DEFAULT 'points',
 
@@ -235,9 +235,9 @@ CREATE TABLE `loyalty_programs` (
 -- Customer Loyalty Accounts
 CREATE TABLE IF NOT EXISTS `customer_loyalty_accounts` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `program_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `program_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Account Details
     `loyalty_number` VARCHAR(50) NOT NULL UNIQUE,
@@ -289,9 +289,9 @@ CREATE TABLE IF NOT EXISTS `customer_loyalty_accounts` (
 -- Loyalty Points Transactions
 CREATE TABLE IF NOT EXISTS `loyalty_points_transactions` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `loyalty_account_id` BIGINT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Transaction Details
     `transaction_type` ENUM('earned', 'redeemed', 'expired', 'adjusted', 'bonus', 'refunded') NOT NULL,
@@ -305,7 +305,7 @@ CREATE TABLE IF NOT EXISTS `loyalty_points_transactions` (
     -- Purchase Details (if applicable)
     `purchase_amount` DECIMAL(10, 2) NULL,
     `pos_transaction_id` BIGINT UNSIGNED NULL,
-    `order_id` INT UNSIGNED NULL,
+    `order_id` BIGINT UNSIGNED NULL,
 
     -- Redemption Details (if applicable)
     `redemption_value` DECIMAL(10, 2) NULL,
@@ -318,7 +318,7 @@ CREATE TABLE IF NOT EXISTS `loyalty_points_transactions` (
 
     -- Notes
     `notes` TEXT NULL,
-    `created_by` INT UNSIGNED NULL,
+    `created_by` BIGINT UNSIGNED NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -332,7 +332,7 @@ CREATE TABLE IF NOT EXISTS `loyalty_points_transactions` (
 -- Gift Cards
 CREATE TABLE IF NOT EXISTS `gift_cards` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `card_number` VARCHAR(50) NOT NULL UNIQUE,
     `card_pin` VARCHAR(255) NULL COMMENT 'Encrypted',
 
@@ -341,10 +341,10 @@ CREATE TABLE IF NOT EXISTS `gift_cards` (
     `design_template` VARCHAR(100) NULL,
 
     -- Purchase Details
-    `purchased_by_customer_id` INT UNSIGNED NULL,
+    `purchased_by_customer_id` BIGINT UNSIGNED NULL,
     `purchase_date` DATE NULL,
     `purchase_amount` DECIMAL(10, 2) NOT NULL,
-    `purchase_order_id` INT UNSIGNED NULL,
+    `purchase_order_id` BIGINT UNSIGNED NULL,
 
     -- Recipient (if gift)
     `recipient_name` VARCHAR(255) NULL,
@@ -363,7 +363,7 @@ CREATE TABLE IF NOT EXISTS `gift_cards` (
     -- Activation
     `is_activated` BOOLEAN DEFAULT TRUE,
     `activation_date` DATE NULL,
-    `activated_by` INT UNSIGNED NULL,
+    `activated_by` BIGINT UNSIGNED NULL,
 
     -- Expiration
     `expiration_date` DATE NULL,
@@ -397,7 +397,7 @@ CREATE TABLE IF NOT EXISTS `gift_cards` (
 -- Gift Card Transactions
 CREATE TABLE IF NOT EXISTS `gift_card_transactions` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `gift_card_id` BIGINT UNSIGNED NOT NULL,
 
     -- Transaction Details
@@ -407,14 +407,14 @@ CREATE TABLE IF NOT EXISTS `gift_card_transactions` (
 
     -- Related Records
     `pos_transaction_id` BIGINT UNSIGNED NULL,
-    `order_id` INT UNSIGNED NULL,
+    `order_id` BIGINT UNSIGNED NULL,
 
     -- Balance
     `balance_before` DECIMAL(10, 2) NOT NULL,
     `balance_after` DECIMAL(10, 2) NOT NULL,
 
     -- Staff
-    `performed_by` INT UNSIGNED NULL,
+    `performed_by` BIGINT UNSIGNED NULL,
 
     -- Notes
     `notes` TEXT NULL,
@@ -430,8 +430,8 @@ CREATE TABLE IF NOT EXISTS `gift_card_transactions` (
 
 -- Memberships/Subscriptions
 CREATE TABLE IF NOT EXISTS `membership_plans` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
     `plan_name` VARCHAR(255) NOT NULL,
     `plan_code` VARCHAR(50) NULL,
 
@@ -482,9 +482,9 @@ CREATE TABLE IF NOT EXISTS `membership_plans` (
 -- Customer Memberships
 CREATE TABLE IF NOT EXISTS `customer_memberships` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NOT NULL,
-    `plan_id` INT UNSIGNED NOT NULL,
-    `customer_id` INT UNSIGNED NOT NULL,
+    `tenant_id` BIGINT UNSIGNED NOT NULL,
+    `plan_id` BIGINT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Membership Details
     `membership_number` VARCHAR(50) NOT NULL UNIQUE,
@@ -499,7 +499,7 @@ CREATE TABLE IF NOT EXISTS `customer_memberships` (
     -- Billing
     `current_price` DECIMAL(10, 2) NOT NULL,
     `auto_renew` BOOLEAN DEFAULT TRUE,
-    `payment_method_id` INT UNSIGNED NULL,
+    `payment_method_id` BIGINT UNSIGNED NULL,
 
     -- Usage Tracking
     `rentals_used_this_period` INT DEFAULT 0,

@@ -124,7 +124,7 @@ case "${1:-up}" in
 
             echo ""
             echo "✓ Fresh install ready!"
-            echo "  Visit: http://localhost:8080/install_streamlined.php"
+            echo "  Visit: http://localhost:8080/install"
         else
             echo "Cancelled."
         fi

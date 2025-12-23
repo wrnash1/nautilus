@@ -4,10 +4,15 @@
 -- Description: User-customizable dashboard widgets with drag-and-drop layout
 -- ============================================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `dashboard_widgets`;
+DROP TABLE IF EXISTS `widget_categories`;
+
 -- Dashboard User Widget Configuration
 CREATE TABLE IF NOT EXISTS dashboard_widgets (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
     widget_id VARCHAR(50) NOT NULL,
     position INT NOT NULL DEFAULT 0,
     row_position INT NOT NULL DEFAULT 0,
@@ -27,7 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_dashboard_widgets_position ON dashboard_widgets(u
 
 -- Widget Categories for Organization
 CREATE TABLE IF NOT EXISTS widget_categories (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
     sort_order INT DEFAULT 0,

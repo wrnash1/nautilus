@@ -1,6 +1,18 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `time_clock_entries`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `time_clock_entries`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `time_clock_entries`;
+
 CREATE TABLE IF NOT EXISTS time_clock_entries (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
     clock_in DATETIME NOT NULL,
     clock_out DATETIME NULL,
     total_hours DECIMAL(10, 2) NULL,
@@ -11,3 +23,10 @@ CREATE TABLE IF NOT EXISTS time_clock_entries (
 );
 
 CREATE INDEX idx_user_clock_in ON time_clock_entries(user_id, clock_in);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

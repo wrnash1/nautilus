@@ -12,22 +12,22 @@ function addToCart(productId, quantity = 1) {
             quantity: quantity
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update cart count
-            updateCartCount();
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count
+                updateCartCount();
 
-            // Show success message
-            showNotification('Product added to cart!', 'success');
-        } else {
-            showNotification(data.message || 'Failed to add to cart', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('An error occurred', 'error');
-    });
+                // Show success message
+                showNotification('Product added to cart!', 'success');
+            } else {
+                showNotification(data.message || 'Failed to add to cart', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred', 'error');
+        });
 }
 
 // Add to Wishlist Function
@@ -41,18 +41,18 @@ function addToWishlist(productId) {
             product_id: productId
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Added to wishlist!', 'success');
-        } else {
-            showNotification(data.message || 'Failed to add to wishlist', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Please login to add to wishlist', 'info');
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Added to wishlist!', 'success');
+            } else {
+                showNotification(data.message || 'Failed to add to wishlist', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Please login to add to wishlist', 'info');
+        });
 }
 
 // Update Cart Count
@@ -101,11 +101,11 @@ function quickView(productId) {
 }
 
 // Newsletter Subscription
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const newsletterForms = document.querySelectorAll('form[action="/newsletter/subscribe"]');
 
     newsletterForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', function (e) {
             e.preventDefault();
 
             const formData = new FormData(form);
@@ -114,25 +114,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification('Thank you for subscribing!', 'success');
-                    form.reset();
-                } else {
-                    showNotification(data.message || 'Subscription failed', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('An error occurred', 'error');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Thank you for subscribing!', 'success');
+                        form.reset();
+                    } else {
+                        showNotification(data.message || 'Subscription failed', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('An error occurred', 'error');
+                });
         });
     });
 });
 
 // Sticky Header on Scroll
-window.addEventListener('scroll', function() {
+window.addEventListener('scroll', function () {
     const header = document.querySelector('.storefront-header .navbar');
     if (header && header.style.position === 'sticky') {
         if (window.scrollY > 100) {
@@ -174,7 +174,7 @@ const searchInput = document.querySelector('input[name="q"]');
 if (searchInput) {
     let searchTimeout;
 
-    searchInput.addEventListener('input', function() {
+    searchInput.addEventListener('input', function () {
         clearTimeout(searchTimeout);
 
         const query = this.value;
@@ -194,7 +194,7 @@ if (searchInput) {
 }
 
 // Quantity Selector
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
     if (e.target.classList.contains('qty-increase')) {
         const input = e.target.previousElementSibling;
         input.value = parseInt(input.value) + 1;
@@ -209,3 +209,62 @@ document.addEventListener('click', function(e) {
 
 // Update on page load
 updateCartCount();
+
+// Aquarium Animation Logic
+function initAquarium() {
+    const container = document.getElementById('aquarium-container');
+    if (!container) return;
+
+    const fishImages = [
+        '/assets/images/sealife_fish1.png',
+        '/assets/images/sealife_jellyfish.png',
+        '/assets/images/sealife_ray.png',
+        '/assets/images/sealife_turtle.png'
+    ];
+
+    // Spawn bubbles
+    setInterval(() => {
+        const bubble = document.createElement('div');
+        bubble.classList.add('bubble');
+        const size = Math.random() * 20 + 10;
+        bubble.style.width = `${size}px`;
+        bubble.style.height = `${size}px`;
+        bubble.style.left = `${Math.random() * 100}vw`;
+        bubble.style.setProperty('--duration', `${Math.random() * 5 + 5}s`);
+        bubble.style.setProperty('--sway', `${Math.random() * 100 - 50}`);
+        container.appendChild(bubble);
+
+        setTimeout(() => bubble.remove(), 10000);
+    }, 500);
+
+    // Spawn fish
+    function spawnFish() {
+        if (document.querySelectorAll('.fish').length > 15) return; // Limit fish count
+
+        const fish = document.createElement('img');
+        fish.src = fishImages[Math.floor(Math.random() * fishImages.length)];
+        fish.classList.add('fish');
+
+        const direction = Math.random() > 0.5 ? 'swim-right' : 'swim-left';
+        fish.classList.add(direction);
+
+        // Randomize size and position
+        const scale = Math.random() * 0.5 + 0.5;
+        fish.style.top = `${Math.random() * 90}vh`;
+        fish.style.width = `${60 * scale}px`;
+        fish.style.setProperty('--swim-duration', `${Math.random() * 10 + 15}s`);
+
+        container.appendChild(fish);
+
+        setTimeout(() => fish.remove(), 25000);
+    }
+
+    // Initial school
+    for (let i = 0; i < 5; i++) spawnFish();
+
+    // Ongoing spawning
+    setInterval(spawnFish, 3000);
+}
+
+// Start Aquarium
+document.addEventListener('DOMContentLoaded', initAquarium);

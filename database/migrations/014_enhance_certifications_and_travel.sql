@@ -1,3 +1,21 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+-- Drop new tables if they exist to prevent partial state issues
+DROP TABLE IF EXISTS `dive_sites`;
+DROP TABLE IF EXISTS `dive_site_conditions`;
+DROP TABLE IF EXISTS `trip_dive_sites`;
+DROP TABLE IF EXISTS `customer_travel_documents`;
+DROP TABLE IF EXISTS `customer_medical_info`;
+DROP TABLE IF EXISTS `travel_packets`;
+DROP TABLE IF EXISTS `travel_packet_participants`;
+DROP TABLE IF EXISTS `service_reminder_templates`;
+DROP TABLE IF EXISTS `service_reminders`;
+DROP TABLE IF EXISTS `equipment_service_history`;
+DROP TABLE IF EXISTS `vendor_catalogs`;
+DROP TABLE IF EXISTS `vendor_catalog_items`;
+DROP TABLE IF EXISTS `integration_configs`;
+DROP TABLE IF EXISTS `mobile_tokens`;
+
 -- Enhancement for certification bodies, dive sites, travel packets, and service reminders
 
 -- Add logo and color scheme to certification agencies (conditional)
@@ -29,7 +47,7 @@ ALTER TABLE `customer_certifications` ADD COLUMN IF NOT EXISTS `auto_verified` B
 ALTER TABLE `customer_certifications` ADD COLUMN IF NOT EXISTS `verified_at` TIMESTAMP NULL;
 
 -- Add verified_by
-ALTER TABLE `customer_certifications` ADD COLUMN IF NOT EXISTS `verified_by` INT UNSIGNED NULL;
+ALTER TABLE `customer_certifications` ADD COLUMN IF NOT EXISTS `verified_by` BIGINT UNSIGNED NULL;
 
 -- Add foreign key if it doesn't exist
 -- Note: MariaDB doesn't support ADD CONSTRAINT IF NOT EXISTS directly in the same way for FK naming, 
@@ -53,7 +71,7 @@ ALTER TABLE `customers` ADD COLUMN IF NOT EXISTS `photo_path` VARCHAR(255);
 
 -- Dive Sites Table
 CREATE TABLE IF NOT EXISTS `dive_sites` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `location` VARCHAR(255) NOT NULL,
   `country` VARCHAR(100) NOT NULL,
@@ -85,8 +103,8 @@ CREATE TABLE IF NOT EXISTS `dive_sites` (
 
 -- Dive Site Conditions (Weather/Water tracking)
 CREATE TABLE IF NOT EXISTS `dive_site_conditions` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `dive_site_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `dive_site_id` BIGINT UNSIGNED NOT NULL,
   `date` DATE NOT NULL,
   `time` TIME,
   `water_temp_celsius` DECIMAL(4, 2),
@@ -99,7 +117,7 @@ CREATE TABLE IF NOT EXISTS `dive_site_conditions` (
   `weather_condition` ENUM('sunny', 'partly_cloudy', 'cloudy', 'rainy', 'stormy'),
   `tide` ENUM('low', 'rising', 'high', 'falling'),
   `notes` TEXT,
-  `reported_by` INT UNSIGNED,
+  `reported_by` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`dive_site_id`) REFERENCES `dive_sites`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`reported_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
@@ -109,9 +127,9 @@ CREATE TABLE IF NOT EXISTS `dive_site_conditions` (
 
 -- Trip Dive Sites (linking trips to dive sites)
 CREATE TABLE IF NOT EXISTS `trip_dive_sites` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `trip_schedule_id` INT UNSIGNED NOT NULL,
-  `dive_site_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `trip_schedule_id` BIGINT UNSIGNED NOT NULL,
+  `dive_site_id` BIGINT UNSIGNED NOT NULL,
   `planned_date` DATE,
   `dive_number` INT,
   `notes` TEXT,
@@ -122,8 +140,8 @@ CREATE TABLE IF NOT EXISTS `trip_dive_sites` (
 
 -- Customer Travel Documents
 CREATE TABLE IF NOT EXISTS `customer_travel_documents` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `document_type` ENUM('passport', 'visa', 'travel_insurance', 'medical_clearance', 'other') NOT NULL,
   `document_number` VARCHAR(100),
   `issue_date` DATE,
@@ -140,8 +158,8 @@ CREATE TABLE IF NOT EXISTS `customer_travel_documents` (
 
 -- Customer Medical Information
 CREATE TABLE IF NOT EXISTS `customer_medical_info` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `blood_type` VARCHAR(10),
   `allergies` TEXT,
   `medications` TEXT,
@@ -159,9 +177,9 @@ CREATE TABLE IF NOT EXISTS `customer_medical_info` (
 
 -- Travel Packets (for sending customer info to resorts)
 CREATE TABLE IF NOT EXISTS `travel_packets` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `packet_number` VARCHAR(50) NOT NULL UNIQUE,
-  `trip_booking_id` INT UNSIGNED,
+  `trip_booking_id` BIGINT UNSIGNED,
   `destination_name` VARCHAR(255) NOT NULL,
   `destination_contact_name` VARCHAR(200),
   `destination_email` VARCHAR(255),
@@ -173,7 +191,7 @@ CREATE TABLE IF NOT EXISTS `travel_packets` (
   `confirmed_at` TIMESTAMP NULL,
   `packet_data` JSON,
   `notes` TEXT,
-  `created_by` INT UNSIGNED,
+  `created_by` BIGINT UNSIGNED,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`trip_booking_id`) REFERENCES `trip_bookings`(`id`) ON DELETE SET NULL,
@@ -184,9 +202,9 @@ CREATE TABLE IF NOT EXISTS `travel_packets` (
 
 -- Travel Packet Participants
 CREATE TABLE IF NOT EXISTS `travel_packet_participants` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `travel_packet_id` INT UNSIGNED NOT NULL,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `travel_packet_id` BIGINT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `include_passport` BOOLEAN DEFAULT TRUE,
   `include_medical` BOOLEAN DEFAULT TRUE,
   `include_certifications` BOOLEAN DEFAULT TRUE,
@@ -203,7 +221,7 @@ CREATE TABLE IF NOT EXISTS `travel_packet_participants` (
 
 -- Service Reminders System
 CREATE TABLE IF NOT EXISTS `service_reminder_templates` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `reminder_type` ENUM('tank_vip', 'tank_hydro', 'regulator_service', 'bcd_service', 'certification_renewal', 'course_followup', 'birthday', 'anniversary', 'custom') NOT NULL,
   `days_before` INT NOT NULL DEFAULT 30,
@@ -219,12 +237,12 @@ CREATE TABLE IF NOT EXISTS `service_reminder_templates` (
 
 -- Service Reminders Queue
 CREATE TABLE IF NOT EXISTS `service_reminders` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `template_id` INT UNSIGNED NOT NULL,
-  `customer_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `template_id` BIGINT UNSIGNED NOT NULL,
+  `customer_id` BIGINT UNSIGNED NOT NULL,
   `reminder_type` ENUM('tank_vip', 'tank_hydro', 'regulator_service', 'bcd_service', 'certification_renewal', 'course_followup', 'birthday', 'anniversary', 'custom') NOT NULL,
   `reference_type` VARCHAR(50),
-  `reference_id` INT UNSIGNED,
+  `reference_id` BIGINT UNSIGNED,
   `due_date` DATE NOT NULL,
   `scheduled_send_date` DATE NOT NULL,
   `status` ENUM('pending', 'sent', 'failed', 'cancelled', 'completed') DEFAULT 'pending',
@@ -244,8 +262,8 @@ CREATE TABLE IF NOT EXISTS `service_reminders` (
 
 -- Equipment Service History (for tracking when equipment was serviced)
 CREATE TABLE IF NOT EXISTS `equipment_service_history` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `customer_id` INT UNSIGNED,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `customer_id` BIGINT UNSIGNED,
   `equipment_type` ENUM('tank', 'regulator', 'bcd', 'computer', 'wetsuit', 'other') NOT NULL,
   `equipment_serial` VARCHAR(100),
   `equipment_brand` VARCHAR(100),
@@ -254,8 +272,8 @@ CREATE TABLE IF NOT EXISTS `equipment_service_history` (
   `service_date` DATE NOT NULL,
   `next_service_due` DATE,
   `service_notes` TEXT,
-  `work_order_id` INT UNSIGNED,
-  `serviced_by` INT UNSIGNED,
+  `work_order_id` BIGINT UNSIGNED,
+  `serviced_by` BIGINT UNSIGNED,
   `cost` DECIMAL(10, 2),
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE SET NULL,
@@ -268,8 +286,8 @@ CREATE TABLE IF NOT EXISTS `equipment_service_history` (
 
 -- Vendor Product Catalogs (for importing products from vendors)
 CREATE TABLE IF NOT EXISTS `vendor_catalogs` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `vendor_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `vendor_id` BIGINT UNSIGNED NOT NULL,
   `catalog_name` VARCHAR(255) NOT NULL,
   `catalog_year` INT,
   `import_format` ENUM('csv', 'xml', 'json', 'api') DEFAULT 'csv',
@@ -288,8 +306,8 @@ CREATE TABLE IF NOT EXISTS `vendor_catalogs` (
 
 -- Vendor Product Catalog Items (staging area before import)
 CREATE TABLE IF NOT EXISTS `vendor_catalog_items` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `vendor_catalog_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `vendor_catalog_id` BIGINT UNSIGNED NOT NULL,
   `vendor_sku` VARCHAR(100) NOT NULL,
   `product_name` VARCHAR(255) NOT NULL,
   `description` TEXT,
@@ -303,7 +321,7 @@ CREATE TABLE IF NOT EXISTS `vendor_catalog_items` (
   `image_url` VARCHAR(500),
   `specifications` JSON,
   `stock_status` VARCHAR(50),
-  `imported_to_product_id` INT UNSIGNED NULL,
+  `imported_to_product_id` BIGINT UNSIGNED NULL,
   `import_status` ENUM('pending', 'imported', 'skipped', 'error') DEFAULT 'pending',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -316,7 +334,7 @@ CREATE TABLE IF NOT EXISTS `vendor_catalog_items` (
 
 -- Add API configuration columns to integrations (for QuickBooks, etc.)
 CREATE TABLE IF NOT EXISTS `integration_configs` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `integration_name` VARCHAR(100) NOT NULL UNIQUE,
   `integration_type` ENUM('accounting', 'certification', 'weather', 'payment', 'shipping', 'other') NOT NULL,
   `is_enabled` BOOLEAN DEFAULT FALSE,
@@ -335,8 +353,8 @@ CREATE TABLE IF NOT EXISTS `integration_configs` (
 
 -- Mobile Session Tokens (for mobile app authentication)
 CREATE TABLE IF NOT EXISTS `mobile_tokens` (
-  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `user_id` BIGINT UNSIGNED NOT NULL,
   `token` VARCHAR(255) NOT NULL UNIQUE,
   `device_type` VARCHAR(50),
   `device_name` VARCHAR(100),
@@ -350,3 +368,5 @@ CREATE TABLE IF NOT EXISTS `mobile_tokens` (
   INDEX `idx_token` (`token`),
   INDEX `idx_user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET FOREIGN_KEY_CHECKS=1;

@@ -1,0 +1,1 @@
+{"message":"Installation failed: SQLSTATE[HY000] [2002] php_network_getaddresses: getaddrinfo for database failed: Temporary failure in name resolution","percent":-1,"timestamp":1766333005}

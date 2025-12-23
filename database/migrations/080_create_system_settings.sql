@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS `system_settings`;
 CREATE TABLE IF NOT EXISTS `system_settings` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `setting_key` VARCHAR(100) NOT NULL UNIQUE,
     `setting_value` TEXT,
     `setting_type` VARCHAR(20) DEFAULT 'string',

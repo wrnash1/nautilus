@@ -1,1 +1,0 @@
-DB Connection Failed: SQLSTATE[HY000] [2002] php_network_getaddresses: getaddrinfo for database failed: Name or service not known

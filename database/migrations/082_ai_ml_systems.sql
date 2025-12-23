@@ -1,3 +1,42 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `dynamic_pricing_recommendations`;
+DROP TABLE IF EXISTS `nlp_extracted_entities`;
+DROP TABLE IF EXISTS `ai_training_data`;
+DROP TABLE IF EXISTS `predictive_maintenance_alerts`;
+DROP TABLE IF EXISTS `ai_chatbot_messages`;
+DROP TABLE IF EXISTS `ai_chatbot_conversations`;
+DROP TABLE IF EXISTS `customer_ai_insights`;
+DROP TABLE IF EXISTS `inventory_demand_forecasts`;
+DROP TABLE IF EXISTS `ai_predictions`;
+DROP TABLE IF EXISTS `ai_models`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `dynamic_pricing_recommendations`;
+DROP TABLE IF EXISTS `nlp_extracted_entities`;
+DROP TABLE IF EXISTS `ai_training_data`;
+DROP TABLE IF EXISTS `predictive_maintenance_alerts`;
+DROP TABLE IF EXISTS `ai_chatbot_messages`;
+DROP TABLE IF EXISTS `ai_chatbot_conversations`;
+DROP TABLE IF EXISTS `customer_ai_insights`;
+DROP TABLE IF EXISTS `inventory_demand_forecasts`;
+DROP TABLE IF EXISTS `ai_predictions`;
+DROP TABLE IF EXISTS `ai_models`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `dynamic_pricing_recommendations`;
+DROP TABLE IF EXISTS `nlp_extracted_entities`;
+DROP TABLE IF EXISTS `ai_training_data`;
+DROP TABLE IF EXISTS `predictive_maintenance_alerts`;
+DROP TABLE IF EXISTS `ai_chatbot_messages`;
+DROP TABLE IF EXISTS `ai_chatbot_conversations`;
+DROP TABLE IF EXISTS `customer_ai_insights`;
+DROP TABLE IF EXISTS `inventory_demand_forecasts`;
+DROP TABLE IF EXISTS `ai_predictions`;
+DROP TABLE IF EXISTS `ai_models`;
+
 -- ================================================
 -- Nautilus - AI & Machine Learning Systems
 -- Migration: 082_ai_ml_systems.sql
@@ -6,8 +45,8 @@
 
 -- AI Model Registry
 CREATE TABLE IF NOT EXISTS `ai_models` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Model Identity
     `model_name` VARCHAR(255) NOT NULL,
@@ -43,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `ai_models` (
 
     -- Training Metadata
     `trained_at` TIMESTAMP NULL,
-    `trained_by_user_id` INT UNSIGNED NULL,
+    `trained_by_user_id` BIGINT UNSIGNED NULL,
     `training_duration_seconds` INT NULL,
     `training_notes` TEXT NULL,
 
@@ -76,10 +115,10 @@ CREATE TABLE IF NOT EXISTS `ai_models` (
 
 -- AI Predictions & Forecasts
 CREATE TABLE IF NOT EXISTS `ai_predictions` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
-    `model_id` INT UNSIGNED NOT NULL,
+    `model_id` BIGINT UNSIGNED NOT NULL,
     `prediction_type` VARCHAR(100) NOT NULL COMMENT 'inventory_demand, customer_churn, etc.',
 
     -- Prediction Input
@@ -93,7 +132,7 @@ CREATE TABLE IF NOT EXISTS `ai_predictions` (
 
     -- Related Entity
     `entity_type` VARCHAR(100) NULL COMMENT 'product, customer, course, etc.',
-    `entity_id` INT UNSIGNED NULL,
+    `entity_id` BIGINT UNSIGNED NULL,
 
     -- Prediction Metadata
     `prediction_date` DATE NOT NULL,
@@ -120,10 +159,10 @@ CREATE TABLE IF NOT EXISTS `ai_predictions` (
 
 -- Inventory Demand Forecasts (AI-powered)
 CREATE TABLE IF NOT EXISTS `inventory_demand_forecasts` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
-    `product_id` INT UNSIGNED NOT NULL,
+    `product_id` BIGINT UNSIGNED NOT NULL,
     `forecast_date` DATE NOT NULL,
 
     -- AI Predictions
@@ -154,7 +193,7 @@ CREATE TABLE IF NOT EXISTS `inventory_demand_forecasts` (
     `forecast_accuracy` DECIMAL(5,4) NULL COMMENT 'Percentage accuracy',
 
     -- Model Used
-    `model_id` INT UNSIGNED NULL,
+    `model_id` BIGINT UNSIGNED NULL,
     `algorithm_used` VARCHAR(100) NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -171,10 +210,10 @@ CREATE TABLE IF NOT EXISTS `inventory_demand_forecasts` (
 
 -- Customer Intelligence & Insights
 CREATE TABLE IF NOT EXISTS `customer_ai_insights` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
-    `customer_id` INT UNSIGNED NOT NULL,
+    `customer_id` BIGINT UNSIGNED NOT NULL,
 
     -- Churn Prediction
     `churn_probability` DECIMAL(5,4) NULL COMMENT '0-1 probability of churning',
@@ -217,7 +256,7 @@ CREATE TABLE IF NOT EXISTS `customer_ai_insights` (
     `action_priority` ENUM('low', 'medium', 'high', 'urgent') NULL,
 
     -- Model Metadata
-    `model_id` INT UNSIGNED NULL,
+    `model_id` BIGINT UNSIGNED NULL,
     `last_analyzed_at` TIMESTAMP NULL,
     `next_analysis_due` DATE NULL,
 
@@ -235,12 +274,12 @@ CREATE TABLE IF NOT EXISTS `customer_ai_insights` (
 
 -- AI Chatbot Conversations
 CREATE TABLE IF NOT EXISTS `ai_chatbot_conversations` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     `session_id` VARCHAR(100) NOT NULL,
-    `customer_id` INT UNSIGNED NULL,
-    `user_id` INT UNSIGNED NULL COMMENT 'If staff member',
+    `customer_id` BIGINT UNSIGNED NULL,
+    `user_id` BIGINT UNSIGNED NULL COMMENT 'If staff member',
 
     -- Conversation Metadata
     `channel` ENUM('website', 'facebook', 'whatsapp', 'sms', 'email') DEFAULT 'website',
@@ -267,7 +306,7 @@ CREATE TABLE IF NOT EXISTS `ai_chatbot_conversations` (
     `resolved` BOOLEAN DEFAULT FALSE,
     `escalated_to_human` BOOLEAN DEFAULT FALSE,
     `escalated_at` TIMESTAMP NULL,
-    `escalated_to_user_id` INT UNSIGNED NULL,
+    `escalated_to_user_id` BIGINT UNSIGNED NULL,
     `resolution_type` VARCHAR(100) NULL COMMENT 'booking_made, question_answered, etc.',
 
     -- Satisfaction
@@ -293,9 +332,9 @@ CREATE TABLE IF NOT EXISTS `ai_chatbot_conversations` (
 
 -- Chatbot Messages
 CREATE TABLE IF NOT EXISTS `ai_chatbot_messages` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-    `conversation_id` INT UNSIGNED NOT NULL,
+    `conversation_id` BIGINT UNSIGNED NOT NULL,
     `message_type` ENUM('user', 'ai', 'system') NOT NULL,
 
     -- Message Content
@@ -333,12 +372,12 @@ CREATE TABLE IF NOT EXISTS `ai_chatbot_messages` (
 
 -- Predictive Maintenance
 CREATE TABLE IF NOT EXISTS `predictive_maintenance_alerts` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
     -- Equipment
     `equipment_type` VARCHAR(100) NOT NULL COMMENT 'compressor, tank, regulator, etc.',
-    `equipment_id` INT UNSIGNED NULL,
+    `equipment_id` BIGINT UNSIGNED NULL,
     `serial_number` VARCHAR(255) NULL,
 
     -- Prediction
@@ -367,11 +406,11 @@ CREATE TABLE IF NOT EXISTS `predictive_maintenance_alerts` (
     -- Status
     `status` ENUM('active', 'acknowledged', 'scheduled', 'completed', 'ignored') DEFAULT 'active',
     `acknowledged_at` TIMESTAMP NULL,
-    `acknowledged_by_user_id` INT UNSIGNED NULL,
-    `work_order_id` INT UNSIGNED NULL,
+    `acknowledged_by_user_id` BIGINT UNSIGNED NULL,
+    `work_order_id` BIGINT UNSIGNED NULL,
 
     -- Model Used
-    `model_id` INT UNSIGNED NULL,
+    `model_id` BIGINT UNSIGNED NULL,
 
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -387,10 +426,10 @@ CREATE TABLE IF NOT EXISTS `predictive_maintenance_alerts` (
 
 -- AI Training Data
 CREATE TABLE IF NOT EXISTS `ai_training_data` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
-    `model_id` INT UNSIGNED NULL,
+    `model_id` BIGINT UNSIGNED NULL,
     `data_type` VARCHAR(100) NOT NULL COMMENT 'sales, inventory, customer_behavior, etc.',
 
     -- Data
@@ -422,10 +461,10 @@ CREATE TABLE IF NOT EXISTS `ai_training_data` (
 
 -- Natural Language Processing (NLP) Entities
 CREATE TABLE IF NOT EXISTS `nlp_extracted_entities` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     `source_type` VARCHAR(100) NOT NULL COMMENT 'review, chatbot, email, etc.',
-    `source_id` INT UNSIGNED NOT NULL,
+    `source_id` BIGINT UNSIGNED NOT NULL,
     `text_content` TEXT NOT NULL,
 
     -- Extracted Entities
@@ -459,10 +498,10 @@ CREATE TABLE IF NOT EXISTS `nlp_extracted_entities` (
 
 -- AI-Powered Pricing Optimization
 CREATE TABLE IF NOT EXISTS `dynamic_pricing_recommendations` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `tenant_id` INT UNSIGNED NULL,
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` BIGINT UNSIGNED NULL,
 
-    `product_id` INT UNSIGNED NOT NULL,
+    `product_id` BIGINT UNSIGNED NOT NULL,
     `current_price` DECIMAL(10,2) NOT NULL,
 
     -- AI Recommendations
@@ -488,7 +527,7 @@ CREATE TABLE IF NOT EXISTS `dynamic_pricing_recommendations` (
     -- Status
     `status` ENUM('pending', 'approved', 'applied', 'rejected') DEFAULT 'pending',
     `applied_at` TIMESTAMP NULL,
-    `approved_by_user_id` INT UNSIGNED NULL,
+    `approved_by_user_id` BIGINT UNSIGNED NULL,
 
     -- Effectiveness (tracked after implementation)
     `actual_sales_change_pct` DECIMAL(5,2) NULL,
@@ -519,3 +558,10 @@ INSERT INTO `ai_models` (`model_name`, `model_type`, `model_version`, `purpose`,
 ('Equipment Failure Predictor', 'classification', '1.0', 'Predict equipment failures before they occur', 'predictive_maintenance', 'deployed'),
 ('Sentiment Analyzer', 'nlp', '1.0', 'Analyze customer review sentiment', 'sentiment_analysis', 'deployed'),
 ('Chatbot Intent Classifier', 'nlp', '1.0', 'Classify customer intent from messages', 'chatbot_intent', 'deployed');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

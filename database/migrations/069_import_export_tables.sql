@@ -1,9 +1,27 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `import_history`;
+DROP TABLE IF EXISTS `export_history`;
+DROP TABLE IF EXISTS `export_schedules`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `import_history`;
+DROP TABLE IF EXISTS `export_history`;
+DROP TABLE IF EXISTS `export_schedules`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `import_history`;
+DROP TABLE IF EXISTS `export_history`;
+DROP TABLE IF EXISTS `export_schedules`;
+
 -- Import/Export Tables
 
 -- Export Schedules
 CREATE TABLE IF NOT EXISTS export_schedules (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
     name VARCHAR(255) NOT NULL,
     export_type VARCHAR(50) NOT NULL COMMENT 'customers, products, transactions, inventory, etc',
     format VARCHAR(20) DEFAULT 'csv' COMMENT 'csv, excel, json, pdf',
@@ -26,7 +44,7 @@ CREATE TABLE IF NOT EXISTS export_schedules (
 CREATE TABLE IF NOT EXISTS export_history (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     schedule_id INT NULL,
-    tenant_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
     filename VARCHAR(255) NOT NULL,
     filepath VARCHAR(500) NOT NULL,
     record_count INT DEFAULT 0,
@@ -41,7 +59,7 @@ CREATE TABLE IF NOT EXISTS export_history (
 -- Import History
 CREATE TABLE IF NOT EXISTS import_history (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
     import_type VARCHAR(50) NOT NULL,
     filename VARCHAR(255) NOT NULL,
     total_rows INT DEFAULT 0,
@@ -49,7 +67,14 @@ CREATE TABLE IF NOT EXISTS import_history (
     skipped_rows INT DEFAULT 0,
     errors TEXT NULL COMMENT 'JSON array of errors',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT NULL,
+    created_by BIGINT NULL,
     INDEX idx_import_tenant (tenant_id),
     INDEX idx_import_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

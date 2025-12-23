@@ -225,10 +225,7 @@ const processCheckout = async (action = 'pay') => {
         speakTotal(total);
     }
 
-    // Voice Feedback (if enabled)
-    if (action === 'pay') {
-        speakTotal(total);
-    }
+
 
     // Handle Payment Specifics logic only for 'pay' action
     if (action === 'pay') {
@@ -323,19 +320,18 @@ const processCheckout = async (action = 'pay') => {
                 if (action === 'layaway') msg = 'Layaway created successfully!';
 
                 showToast(msg, 'success');
-                setTimeout(() => {
-                    cart = [];
-                    updateCart();
-                    // Clear Customer as well
-                    clearCustomer();
-                    cart = [];
-                    updateCart();
-                    // Clear Customer as well
-                    clearCustomer();
 
-                    // Force reload if redirecting to self to ensure clean state
-                    const target = data.redirect || '/store/pos';
+                // Clear state immediately to be safe
+                cart = [];
+                updateCart();
+                const target = data.redirect || '/store/pos';
+
+                setTimeout(() => {
+                    clearCustomer(); // Async, but we don't wait
                     window.location.href = target;
+
+                    // Fallback reload if href doesn't trigger for some reason
+                    setTimeout(() => window.location.reload(), 500);
                 }, 1500);
             }
         } else {
@@ -1201,17 +1197,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Initialize Voice Feedback
+    // Initialize Voice Feedback
     initVoiceFeedback();
 
     // Initialize Time Clock
     initTimeClock();
 });
 
-const initTimeClock = async () => {
+async function initTimeClock() {
     const btn = document.getElementById('timeClockBtn');
     const label = document.getElementById('timeClockLabel');
     if (!btn) return;
 
+    // Helper to update button state
     const updateBtn = (status) => {
         if (status === 'clocked_in') {
             btn.classList.remove('btn-outline-secondary', 'btn-outline-primary');
@@ -1220,7 +1218,7 @@ const initTimeClock = async () => {
             btn.dataset.status = 'clocked_in';
         } else {
             btn.classList.remove('btn-danger', 'btn-outline-secondary');
-            btn.classList.add('btn-outline-primary'); // Blue for Clock In
+            btn.classList.add('btn-outline-success'); // Green for Clock In
             btn.innerHTML = '<i class="bi bi-clock"></i> <span class="d-none d-md-inline">Clock In</span>';
             btn.dataset.status = 'clocked_out';
         }
@@ -1232,19 +1230,22 @@ const initTimeClock = async () => {
         const data = await res.json();
         updateBtn(data.status);
     } catch (e) {
-        if (btn && btn.dataset.status !== 'clocked_in') {
-            btn.innerHTML = '<i class="bi bi-clock"></i> <span class="d-none d-md-inline">Clock In</span>';
-        }
         console.error('Time clock status check failed', e);
-        if (label) label.textContent = 'Err'; // Short error
+        if (btn && !btn.dataset.status) {
+            btn.innerHTML = '<i class="bi bi-clock"></i> <span class="d-none d-md-inline">Clock In</span>';
+            btn.dataset.status = 'clocked_out'; // Default to clocked out on error
+        }
     }
 
     // Click handler
     btn.addEventListener('click', async () => {
-        const currentStatus = btn.dataset.status;
+        const currentStatus = btn.dataset.status || 'clocked_out';
         const action = currentStatus === 'clocked_in' ? 'clockout' : 'clockin';
 
+        // Optimistic UI update
+        const originalContent = btn.innerHTML;
         btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
         try {
             const res = await fetch(`/store/staff/timeclock/${action}`, {
@@ -1264,11 +1265,14 @@ const initTimeClock = async () => {
                 updateBtn(data.status);
             } else {
                 showToast(data.message || 'Action failed', 'error');
+                btn.innerHTML = originalContent; // Revert on failure
             }
         } catch (e) {
             showToast('Connection error', 'error');
+            console.error(e);
+            btn.innerHTML = originalContent;
         } finally {
             btn.disabled = false;
         }
     });
-};
+}

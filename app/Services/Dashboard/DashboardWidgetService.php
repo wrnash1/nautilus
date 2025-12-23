@@ -113,8 +113,8 @@ class DashboardWidgetService
         $todayStats = TenantDatabase::fetchOneTenant(
             "SELECT
                 COUNT(*) as transaction_count,
-                COALESCE(SUM(total_amount), 0) as total_sales,
-                COALESCE(AVG(total_amount), 0) as average_sale
+                COALESCE(SUM(total), 0) as total_sales,
+                COALESCE(AVG(total), 0) as average_sale
              FROM transactions
              WHERE DATE(transaction_date) = ?
              AND status = 'completed'",
@@ -124,7 +124,7 @@ class DashboardWidgetService
         // Compare to yesterday
         $yesterday = date('Y-m-d', strtotime('-1 day'));
         $yesterdayStats = TenantDatabase::fetchOneTenant(
-            "SELECT COALESCE(SUM(total_amount), 0) as total_sales
+            "SELECT COALESCE(SUM(total), 0) as total_sales
              FROM transactions
              WHERE DATE(transaction_date) = ?
              AND status = 'completed'",
@@ -159,8 +159,8 @@ class DashboardWidgetService
             "SELECT
                 DATE(transaction_date) as date,
                 COUNT(*) as transaction_count,
-                COALESCE(SUM(total_amount), 0) as total_sales,
-                COALESCE(SUM(total_amount - tax_amount), 0) as subtotal
+                COALESCE(SUM(total), 0) as total_sales,
+                COALESCE(SUM(total - tax), 0) as subtotal
              FROM transactions
              WHERE transaction_date BETWEEN ? AND ?
              AND status = 'completed'
@@ -264,7 +264,7 @@ class DashboardWidgetService
                 t.id,
                 t.transaction_number,
                 t.transaction_date,
-                t.total_amount,
+                t.total,
                 t.payment_method,
                 CONCAT(c.first_name, ' ', c.last_name) as customer_name,
                 CONCAT(u.first_name, ' ', u.last_name) as cashier_name
@@ -310,7 +310,7 @@ class DashboardWidgetService
             "SELECT
                 CONCAT(c.first_name, ' ', c.last_name) as customer_name,
                 COUNT(t.id) as transaction_count,
-                SUM(t.total_amount) as total_spent
+                SUM(t.total) as total_spent
              FROM customers c
              JOIN transactions t ON c.id = t.customer_id
              WHERE t.transaction_date >= ?
@@ -506,8 +506,8 @@ class DashboardWidgetService
             "SELECT
                 DATE_FORMAT(transaction_date, '%Y-%m') as month,
                 COUNT(*) as transaction_count,
-                SUM(total_amount) as total_sales,
-                AVG(total_amount) as average_sale,
+                SUM(total) as total_sales,
+                AVG(total) as average_sale,
                 COUNT(DISTINCT customer_id) as unique_customers
              FROM transactions
              WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)

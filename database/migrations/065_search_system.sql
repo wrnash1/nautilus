@@ -1,11 +1,32 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `popular_searches`;
+DROP TABLE IF EXISTS `search_analytics`;
+DROP TABLE IF EXISTS `saved_searches`;
+DROP TABLE IF EXISTS `search_history`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `popular_searches`;
+DROP TABLE IF EXISTS `search_analytics`;
+DROP TABLE IF EXISTS `saved_searches`;
+DROP TABLE IF EXISTS `search_history`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `popular_searches`;
+DROP TABLE IF EXISTS `search_analytics`;
+DROP TABLE IF EXISTS `saved_searches`;
+DROP TABLE IF EXISTS `search_history`;
+
 -- Search and Filtering System
 -- Track searches and provide analytics
 
 -- Search History (track all searches for analytics)
 CREATE TABLE IF NOT EXISTS search_history (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    user_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED,
     search_query VARCHAR(500) NOT NULL,
     entity_type VARCHAR(50) NOT NULL COMMENT 'products, customers, transactions, etc.',
     result_count INT DEFAULT 0,
@@ -24,8 +45,8 @@ CREATE TABLE IF NOT EXISTS search_history (
 -- Saved Searches (user-saved search filters)
 CREATE TABLE IF NOT EXISTS saved_searches (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
-    user_id INT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED NOT NULL,
     search_name VARCHAR(100) NOT NULL,
     entity_type VARCHAR(50) NOT NULL,
     search_query VARCHAR(500),
@@ -44,7 +65,7 @@ CREATE TABLE IF NOT EXISTS saved_searches (
 -- Search Analytics (aggregated search metrics)
 CREATE TABLE IF NOT EXISTS search_analytics (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
     date DATE NOT NULL,
     entity_type VARCHAR(50) NOT NULL,
     total_searches INT DEFAULT 0,
@@ -64,7 +85,7 @@ CREATE TABLE IF NOT EXISTS search_analytics (
 -- Popular Searches (frequently searched terms)
 CREATE TABLE IF NOT EXISTS popular_searches (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT UNSIGNED,
+    tenant_id BIGINT UNSIGNED,
     search_term VARCHAR(500) NOT NULL,
     entity_type VARCHAR(50) NOT NULL,
     search_count INT DEFAULT 1,
@@ -91,3 +112,10 @@ CREATE FULLTEXT INDEX IF NOT EXISTS ft_courses_search ON courses(name, descripti
 
 -- Equipment full-text search
 CREATE FULLTEXT INDEX IF NOT EXISTS ft_equipment_search ON equipment(name, serial_number, description);
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
