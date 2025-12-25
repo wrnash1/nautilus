@@ -113,8 +113,8 @@ You can install Nautilus locally for testing or on a server for production.
 
 ## 📊 Statistics
 
-- 210+ database tables
-- 107 migrations
+- 200+ database tables
+- 120+ migrations
 - Production-ready code
 
 ---

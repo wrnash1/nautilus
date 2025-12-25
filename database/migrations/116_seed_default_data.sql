@@ -41,6 +41,6 @@ INSERT IGNORE INTO `system_settings` (`setting_key`, `setting_value`, `setting_t
 INSERT IGNORE INTO `tenants` (`id`, `company_name`, `subdomain`, `status`, `contact_email`, `tenant_uuid`, `created_at`)
 VALUES (1, 'Default Tenant', 'default', 'active', 'admin@local.test', UUID(), NOW());
 
-SELECT 'Migration 116 Complete' AS status;
+-- Migration complete
 
 SET FOREIGN_KEY_CHECKS=1;

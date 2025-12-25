@@ -1,20 +1,7 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `pos_transactions`;
-DROP TABLE IF EXISTS `transaction_items`;
-DROP TABLE IF EXISTS `payments`;
-DROP TABLE IF EXISTS `refunds`;
-DROP TABLE IF EXISTS `gift_cards`;
-DROP TABLE IF EXISTS `gift_card_transactions`;
-DROP TABLE IF EXISTS `store_credits`;
-DROP TABLE IF EXISTS `store_credit_transactions`;
-DROP TABLE IF EXISTS `layaways`;
-DROP TABLE IF EXISTS `layaway_items`;
-DROP TABLE IF EXISTS `layaway_payments`;
-DROP TABLE IF EXISTS `cash_registers`;
-DROP TABLE IF EXISTS `cash_drawer_sessions`;
-DROP TABLE IF EXISTS `tax_rates`;
+-- Migration: 004 Create POS Transaction Tables
 
 CREATE TABLE IF NOT EXISTS `cash_registers` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

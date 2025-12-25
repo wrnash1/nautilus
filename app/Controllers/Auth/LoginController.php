@@ -27,7 +27,29 @@ class LoginController
         }
 
         if (Auth::attempt($email, $password)) {
-            $redirect = $_POST['redirect'] ?? '/store';
+            $user = Auth::user();
+            $redirect = $_POST['redirect'] ?? '';
+            
+            // If no specific redirect or redirect loops back to login
+            if (empty($redirect) || $redirect === '/store/login') {
+                $roleName = $user['role_name'] ?? '';
+                
+                switch ($roleName) {
+                    case 'Instructor':
+                        $redirect = '/store/courses/schedules'; // Valid instructor route
+                        break;
+                    case 'Sales':
+                    case 'Sales Associate':
+                        $redirect = '/store/pos'; // Valid sales route
+                        break;
+                    case 'Customer':
+                        $redirect = '/account'; // Valid customer route
+                        break;
+                    default:
+                        $redirect = '/store'; // Default admin dashboard
+                }
+            }
+            
             redirect($redirect);
         }
 

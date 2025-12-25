@@ -1,18 +1,7 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `coupons`;
-DROP TABLE IF EXISTS `coupon_usage`;
-DROP TABLE IF EXISTS `loyalty_programs`;
-DROP TABLE IF EXISTS `loyalty_tiers`;
-DROP TABLE IF EXISTS `loyalty_points`;
-DROP TABLE IF EXISTS `referral_program`;
-DROP TABLE IF EXISTS `email_campaigns`;
-DROP TABLE IF EXISTS `email_templates`;
-DROP TABLE IF EXISTS `email_campaign_recipients`;
-DROP TABLE IF EXISTS `sms_messages`;
-DROP TABLE IF EXISTS `automation_workflows`;
-DROP TABLE IF EXISTS `automation_logs`;
+-- Migration: 011 Create Marketing Tables
 
 CREATE TABLE IF NOT EXISTS `coupons` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

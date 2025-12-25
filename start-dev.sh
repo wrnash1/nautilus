@@ -47,7 +47,8 @@ case "${1:-up}" in
         podman exec nautilus-web chmod -R 775 /var/www/html/storage
         podman exec nautilus-web chgrp www-data /var/www/html
         podman exec nautilus-web chmod 775 /var/www/html
-        touch .env .installed
+        touch .env
+        echo "Installed" > .installed
         chmod 666 .env .installed
 
         # Fix PHP file permissions (readable by web server)
@@ -59,8 +60,9 @@ case "${1:-up}" in
         podman exec nautilus-web mkdir -p /var/www/html/storage/cache
         podman exec nautilus-web mkdir -p /var/www/html/storage/sessions
         podman exec nautilus-web mkdir -p /var/www/html/storage/backups
-        podman exec nautilus-web chown -R www-data:www-data /var/www/html/storage
-        podman exec nautilus-web chmod -R 775 /var/www/html/storage
+        podman exec nautilus-web mkdir -p /var/www/html/public/uploads
+        podman exec nautilus-web chown -R www-data:www-data /var/www/html/storage /var/www/html/public/uploads
+        podman exec nautilus-web chmod -R 775 /var/www/html/storage /var/www/html/public/uploads
 
         echo ""
         echo "✓ Containers started!"
@@ -119,6 +121,9 @@ case "${1:-up}" in
             podman unshare chown -R 0:0 .
             podman exec nautilus-web chown -R www-data:www-data /var/www/html/storage
             podman exec nautilus-web chmod -R 775 /var/www/html/storage
+            podman exec nautilus-web mkdir -p /var/www/html/public/uploads
+            podman exec nautilus-web chown -R www-data:www-data /var/www/html/public/uploads
+            podman exec nautilus-web chmod -R 775 /var/www/html/public/uploads
             touch .env .installed
             chmod 666 .env .installed
 
@@ -174,6 +179,9 @@ case "${1:-up}" in
         echo "  Fixing container file permissions (for web server)..."
         podman exec nautilus-web chown -R www-data:www-data /var/www/html/storage
         podman exec nautilus-web chmod -R 775 /var/www/html/storage
+        podman exec nautilus-web mkdir -p /var/www/html/public/uploads
+        podman exec nautilus-web chown -R www-data:www-data /var/www/html/public/uploads
+        podman exec nautilus-web chmod -R 775 /var/www/html/public/uploads
         podman exec nautilus-web find /var/www/html -type f -name "*.php" -exec chmod 644 {} \;
         podman exec nautilus-web find /var/www/html/public -type d -exec chmod 755 {} \;
         # CRITICAL: Ensure .env and .installed are writable by container regardless of ownership

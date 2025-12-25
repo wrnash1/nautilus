@@ -1,14 +1,7 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `b2b_contacts`;
-DROP TABLE IF EXISTS `customer_communications`;
-DROP TABLE IF EXISTS `customer_documents`;
-DROP TABLE IF EXISTS `customer_notes`;
-DROP TABLE IF EXISTS `customer_tag_assignments`;
-DROP TABLE IF EXISTS `customer_tags`;
-DROP TABLE IF EXISTS `customer_addresses`;
-DROP TABLE IF EXISTS `customers`;
+-- Migration: 002 Create Customer Tables
 
 CREATE TABLE IF NOT EXISTS `customers` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

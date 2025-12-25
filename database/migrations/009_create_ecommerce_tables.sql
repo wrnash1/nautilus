@@ -1,15 +1,7 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `orders`;
-DROP TABLE IF EXISTS `order_items`;
-DROP TABLE IF EXISTS `shipments`;
-DROP TABLE IF EXISTS `shopping_carts`;
-DROP TABLE IF EXISTS `wishlists`;
-DROP TABLE IF EXISTS `wishlist_items`;
-DROP TABLE IF EXISTS `product_reviews`;
-DROP TABLE IF EXISTS `shipping_zones`;
-DROP TABLE IF EXISTS `shipping_rates`;
+-- Migration: 009 Create Ecommerce Tables
 
 CREATE TABLE IF NOT EXISTS `orders` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

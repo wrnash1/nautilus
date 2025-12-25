@@ -2,4 +2,4 @@
 -- Status: Consolidated into 104_consolidate_fix_migration_issues.sql to resolve execution errors.
 -- This file is intentionally left empty to satisfy the migration runner.
 
-SELECT 1;
+-- Empty migration

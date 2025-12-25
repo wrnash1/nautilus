@@ -83,16 +83,69 @@ class TransactionController
             jsonResponse(['error' => 'Access denied'], 403);
         }
         
-        $query = sanitizeInput($_GET['q'] ?? '');
+        $rawQuery = $_GET['q'] ?? '';
+        $query = sanitizeInput($rawQuery);
+        
+        error_log("POS Search: Raw='$rawQuery', Sanitized='$query'");
         
         if (empty($query)) {
             jsonResponse([]);
         }
         
         $products = Product::search($query, 20);
+        error_log("POS Search Result Count: " . count($products));
+        
         jsonResponse($products);
     }
     
+    public function processCheckout()
+    {
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                jsonResponse(['error' => 'Method not allowed'], 405);
+            }
+
+            if (!hasPermission('pos.create')) {
+                jsonResponse(['error' => 'Access denied'], 403);
+            }
+
+            $input = $_POST;
+            $customerId = empty($input['customer_id']) ? null : (int)$input['customer_id'];
+            $paymentMethod = $input['payment_method'] ?? 'cash';
+            $amountPaid = (float)($input['amount_paid'] ?? 0);
+            $items = json_decode($input['items'] ?? '[]', true);
+            $note = $input['note'] ?? null;
+            
+            error_log("Processing Checkout: Cust=$customerId, Amt=$amountPaid, Items=" . count($items));
+
+            if (empty($items)) {
+                jsonResponse(['error' => 'No items in cart'], 400);
+            }
+
+            // Create Transaction
+            $transactionId = $this->transactionService->createTransaction($customerId, $items);
+            error_log("Transaction Created: ID=$transactionId");
+
+            // Process Payment
+            if ($amountPaid > 0) {
+                $this->transactionService->processPayment($transactionId, $paymentMethod, $amountPaid, $note);
+                error_log("Payment Processed");
+            }
+
+            // Get Receipt URL (Mock or Real)
+            $receiptUrl = "/store/pos/receipt/$transactionId";
+
+            jsonResponse([
+                'success' => true,
+                'transaction_id' => $transactionId,
+                'receipt_url' => $receiptUrl
+            ]);
+        } catch (\Throwable $e) {
+            error_log("Checkout Failed: " . $e->getMessage());
+            jsonResponse(['error' => 'Checkout Failed: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function checkout()
     {
         if (!hasPermission('pos.create')) {

@@ -1,21 +1,5 @@
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `compressor_logs`;
-DROP TABLE IF EXISTS `compressors`;
-DROP TABLE IF EXISTS `customer_equipment`;
-
-SET FOREIGN_KEY_CHECKS=0;
-
-DROP TABLE IF EXISTS `compressor_logs`;
-DROP TABLE IF EXISTS `compressors`;
-DROP TABLE IF EXISTS `customer_equipment`;
-
-SET FOREIGN_KEY_CHECKS=0;
-
-DROP TABLE IF EXISTS `compressor_logs`;
-DROP TABLE IF EXISTS `compressors`;
-DROP TABLE IF EXISTS `customer_equipment`;
-
 -- Migration: Add Air Fill Deep Dive Tables
 
 -- 1. Customer Equipment Table

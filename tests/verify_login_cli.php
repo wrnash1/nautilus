@@ -1,34 +1,50 @@
 <?php
-require __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../app/Core/Database.php';
+require_once __DIR__ . '/../app/Core/Auth.php';
+require_once __DIR__ . '/../app/Models/User.php';
 
-use App\Core\Database;
+use App\Core\Auth;
+use App\Models\User;
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
-$dotenv->load();
+// Mock environment
+if (file_exists(__DIR__ . '/../.env')) {
+    $lines = file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, '#') === 0) continue;
+        list($name, $value) = explode('=', $line, 2);
+        $_ENV[$name] = $value;
+        putenv("$name=$value");
+    }
+}
 
-// Override for CLI if needed to match what I think is correct
-$_ENV['DB_HOST'] = '127.0.0.1'; 
-// If port 3306 is mapped, this works.
+echo "Attempting login check for admin@nautilus.local...\n";
 
 $email = 'admin@nautilus.local';
-$password = 'password123';
+$password = 'password';
 
-try {
-    $user = Database::fetchOne("SELECT * FROM users WHERE email = ?", [$email]);
-    if (!$user) {
-        echo "User not found.\n";
-        exit;
+$user = User::findByEmail($email);
+
+if (!$user) {
+    echo "FAIL: User not found via User::findByEmail\n";
+    // Debug raw query
+    $db = \App\Core\Database::getInstance()->getConnection();
+    $stmt = $db->prepare("SELECT * FROM users WHERE email = ?");
+    $stmt->execute([$email]);
+    $rawUser = $stmt->fetch();
+    echo "Raw DB check matches: " . ($rawUser ? 'Yes' : 'No') . "\n";
+} else {
+    echo "User found. ID: " . $user['id'] . "\n";
+    echo "Hash in DB: " . $user['password_hash'] . "\n";
+    
+    $verify = password_verify($password, $user['password_hash']);
+    echo "password_verify result: " . ($verify ? 'TRUE' : 'FALSE') . "\n";
+    
+    // Test Auth::attempt
+    // Mock session
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
     }
     
-    echo "User found: " . $user['id'] . "\n";
-    echo "Hash: " . $user['password'] . "\n"; // Check column name - reset_admin used 'password' in UPDATE but 'password_hash' in INSERT? 
-    // Wait, check reset_admin.php again!
-    
-    if (password_verify($password, $user['password'])) {
-        echo "Password Match!\n";
-    } else {
-        echo "Password Mismatch.\n";
-    }
-} catch (Exception $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    $result = Auth::attempt($email, $password);
+    echo "Auth::attempt result: " . ($result ? 'TRUE' : 'FALSE') . "\n";
 }

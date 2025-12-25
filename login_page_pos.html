@@ -149,49 +149,22 @@
     </style>
 </head>
 <body>
-    <?php
-    $settings = \App\Core\Settings::getInstance()->getCompanyInfo();
-    $companyName = $settings['name'] ?? 'Nautilus';
-    $tagline = \App\Core\Settings::getInstance()->get('business_tagline', 'Dive Shop Management System');
-    $logoPath = $settings['logo'] ?? '';
-    ?>
-    <div class="login-card">
+        <div class="login-card">
         <div class="logo-area">
-            <?php if (!empty($logoPath) && file_exists(BASE_PATH . '/public' . $logoPath)): ?>
-                <img src="<?= htmlspecialchars($logoPath) ?>" alt="<?= htmlspecialchars($companyName) ?>" class="logo-img">
-            <?php else: ?>
-                <i class="bi bi-water"></i>
-            <?php endif; ?>
-            <h1><?= htmlspecialchars($companyName) ?></h1>
-            <p class="text-white"><?= htmlspecialchars($tagline) ?></p>
+                            <i class="bi bi-water"></i>
+                        <h1>Nautilus Dive Shop</h1>
+            <p class="text-white">Dive Shop Management System</p>
         </div>
         
         <div class="card shadow-lg">
             <div class="card-body p-4">
                 <h2 class="card-title text-center mb-4">Sign In</h2>
                 
-                <?php if (isset($_SESSION['flash_error'])): ?>
-                <div class="alert alert-danger" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    <?= htmlspecialchars($_SESSION['flash_error']) ?>
-                </div>
-                <?php unset($_SESSION['flash_error']); ?>
-                <?php endif; ?>
-                
-                <?php if (isset($_SESSION['flash_success'])): ?>
-                <div class="alert alert-success" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i>
-                    <?= htmlspecialchars($_SESSION['flash_success']) ?>
-                </div>
-                <?php unset($_SESSION['flash_success']); ?>
-                <?php endif; ?>
-                
-                <form method="POST" action="<?= url('/store/login') ?>">
-                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-                    <?php if (isset($_GET['redirect']) || isset($_POST['redirect'])): ?>
-                    <input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? $_POST['redirect']) ?>">
-                    <?php endif; ?>
-                    
+                                
+                                
+                <form method="POST" action="/store/login">
+                    <input type="hidden" name="csrf_token" value="5b5b165d160312e9b03ad23246fa44ffca2e09a26009d96f5f5b31679b2966e6">
+                                        
                     <div class="mb-3">
                         <label for="email" class="form-label">Email Address</label>
                         <div class="input-group">
@@ -224,42 +197,10 @@
                     </div>
                 </form>
                 
-                <?php
-                // Check if SSO is enabled
-                /* SSO Disabled by Request
-                $ssoEnabled = $_ENV['SSO_ENABLED'] ?? 'true';
-                if ($ssoEnabled === 'true' || $ssoEnabled === true):
-                ?>
-                
-                <div class="divider">
-                    <span>OR CONTINUE WITH</span>
-                </div>
-                
-                <div class="sso-buttons">
-                    <a href="/store/auth/sso/google" class="btn btn-sso btn-google">
-                        <i class="bi bi-google"></i>
-                        <span>Sign in with Google</span>
-                    </a>
-                    
-                    <a href="/store/auth/sso/microsoft" class="btn btn-sso btn-microsoft">
-                        <i class="bi bi-microsoft"></i>
-                        <span>Sign in with Microsoft</span>
-                    </a>
-                    
-                    <a href="/store/auth/sso/github" class="btn btn-sso btn-github">
-                        <i class="bi bi-github"></i>
-                        <span>Sign in with GitHub</span>
-                    </a>
-                </div>
-                
-                <?php endif; */ ?>
-                
+                                
                 <hr class="my-4">
                 
-                <?php if (($_ENV['APP_ENV'] ?? 'local') !== 'production'): ?>
-                <!-- Default credentials removed for security/install flow -->
-                <?php endif; ?>
-            </div>
+                            </div>
         </div>
         
         <div class="text-center mt-3">

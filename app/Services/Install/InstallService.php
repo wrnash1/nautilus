@@ -93,6 +93,9 @@ class InstallService
             // Step 5: Create admin user
             $this->updateProgress('Creating admin account...', 80);
             $this->createAdminUser($config);
+            
+            // Step 5b: Create default test users (Instructor, Customer)
+            $this->createTestUsers($config);
 
             // Step 6: Finalize
             $this->updateProgress('Finalizing installation...', 95);
@@ -296,6 +299,58 @@ class InstallService
         ");
         
         $stmt->execute([$userId]);
+    }
+
+    /**
+     * Create default test users (Instructor, Customer)
+     */
+    private function createTestUsers(array $config): void
+    {
+        $dsn = "mysql:host={$config['db_host']};port={$config['db_port']};dbname={$config['db_database']};charset=utf8mb4";
+        $pdo = new PDO($dsn, $config['db_username'], $config['db_password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        ]);
+
+        $users = [
+            [
+                'email' => 'instructor2@nautilus.local',
+                'first_name' => 'Jane',
+                'last_name' => 'Divemaster',
+                'role' => 'Instructor'
+            ],
+            [
+                'email' => 'diver@nautilus.local',
+                'first_name' => 'Dave',
+                'last_name' => 'Diver',
+                'role' => 'Customer'
+            ]
+        ];
+
+        foreach ($users as $user) {
+            // Check if exists
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->execute([$user['email']]);
+            if ($stmt->fetch()) continue;
+
+            // Create User
+            $passwordHash = password_hash('password', PASSWORD_BCRYPT);
+            $stmt = $pdo->prepare("
+                INSERT INTO users (tenant_id, first_name, last_name, email, password_hash, is_active, created_at)
+                VALUES (1, ?, ?, ?, ?, 1, NOW())
+            ");
+            $stmt->execute([$user['first_name'], $user['last_name'], $user['email'], $passwordHash]);
+            $userId = $pdo->lastInsertId();
+
+            // Assign Role
+            $stmt = $pdo->prepare("SELECT id FROM roles WHERE role_name = ? LIMIT 1");
+            $stmt->execute([$user['role']]);
+            $roleId = $stmt->fetchColumn();
+
+            if ($roleId) {
+                $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
+                $stmt->execute([$userId, $roleId]);
+            }
+        }
     }
 
     /**

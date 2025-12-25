@@ -1,0 +1,74 @@
+Starting Schema Check...
+Connected successfully.
+Schema for 'roles' table:
+id (bigint(20) unsigned)
+tenant_id (bigint(20) unsigned)
+role_name (varchar(100))
+role_code (varchar(50))
+description (text)
+is_system_role (tinyint(1))
+is_active (tinyint(1))
+created_at (timestamp)
+updated_at (timestamp)
+
+Check if any roles exist:
+Array
+(
+    [id] => 1
+    [tenant_id] => 1
+    [role_name] => Admin
+    [role_code] => admin
+    [description] => Store administrator
+    [is_system_role] => 0
+    [is_active] => 1
+    [created_at] => 2025-12-24 01:37:04
+    [updated_at] => 2025-12-24 01:37:04
+)
+Array
+(
+    [id] => 2
+    [tenant_id] => 1
+    [role_name] => Sales
+    [role_code] => sales
+    [description] => Sales associate
+    [is_system_role] => 0
+    [is_active] => 1
+    [created_at] => 2025-12-24 01:37:04
+    [updated_at] => 2025-12-24 01:37:04
+)
+Array
+(
+    [id] => 3
+    [tenant_id] => 1
+    [role_name] => Instructor
+    [role_code] => instructor
+    [description] => Diving instructor
+    [is_system_role] => 0
+    [is_active] => 1
+    [created_at] => 2025-12-24 01:37:04
+    [updated_at] => 2025-12-24 01:37:04
+)
+Array
+(
+    [id] => 4
+    [tenant_id] => 1
+    [role_name] => Dive Master
+    [role_code] => dive_master
+    [description] => Certified Dive Master
+    [is_system_role] => 0
+    [is_active] => 1
+    [created_at] => 2025-12-24 01:37:04
+    [updated_at] => 2025-12-24 01:37:04
+)
+Array
+(
+    [id] => 5
+    [tenant_id] => 1
+    [role_name] => Customer
+    [role_code] => customer
+    [description] => Registered customer
+    [is_system_role] => 0
+    [is_active] => 1
+    [created_at] => 2025-12-24 01:37:04
+    [updated_at] => 2025-12-24 01:37:04
+)

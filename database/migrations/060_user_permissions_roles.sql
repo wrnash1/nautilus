@@ -146,13 +146,15 @@ CREATE TABLE IF NOT EXISTS permission_audit_log (
 -- COMMENTED OUT: roles table from migration 000 has different schema (id, name, display_name, description)
 -- This migration 060 tries to use columns that don't exist: tenant_id, role_name, role_code, is_system_role
 -- The admin role is already created in migration 000
--- INSERT INTO roles (tenant_id, role_name, role_code, description, is_system_role) VALUES
--- (NULL, 'Super Admin', 'super_admin', 'Full system access across all tenants', TRUE),
--- (NULL, 'Tenant Admin', 'tenant_admin', 'Full access within tenant', TRUE),
--- (NULL, 'Manager', 'manager', 'Manage daily operations', TRUE),
--- (NULL, 'Sales Associate', 'sales_associate', 'Process sales and assist customers', TRUE),
--- (NULL, 'Instructor', 'instructor', 'Manage courses and students', TRUE),
--- (NULL, 'Viewer', 'viewer', 'Read-only access', TRUE);
+INSERT INTO roles (tenant_id, role_name, role_code, description, is_system_role) VALUES
+(NULL, 'Super Admin', 'super_admin', 'Full system access across all tenants', TRUE),
+(NULL, 'Admin', 'admin', 'Store administrator', TRUE),
+(NULL, 'Manager', 'manager', 'Manage daily operations', TRUE),
+(NULL, 'Sales Associate', 'sales_associate', 'Process sales and assist customers', TRUE),
+(NULL, 'Instructor', 'instructor', 'Manage courses and students', TRUE),
+(NULL, 'Dive Master', 'dive_master', 'Dive master', TRUE),
+(NULL, 'Customer', 'customer', 'Registered customer', TRUE),
+(NULL, 'Viewer', 'viewer', 'Read-only access', TRUE);
 
 
 SET FOREIGN_KEY_CHECKS=1;

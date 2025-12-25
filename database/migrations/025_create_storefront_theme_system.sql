@@ -5,12 +5,7 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `storefront_settings`;
-DROP TABLE IF EXISTS `theme_config`;
-DROP TABLE IF EXISTS `homepage_sections`;
-DROP TABLE IF EXISTS `navigation_menus`;
-DROP TABLE IF EXISTS `promotional_banners`;
-DROP TABLE IF EXISTS `theme_assets`;
+-- Migration: 025 Create Storefront Theme System
 
 -- Storefront Settings (General store configuration)
 CREATE TABLE IF NOT EXISTS storefront_settings (

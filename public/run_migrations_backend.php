@@ -13,23 +13,37 @@ function stream_msg($type, $msg) {
 }
 
 // 1. Get Configuration
-// Check for stale session data (root user in Docker) and clear it
-if (isset($_SESSION['install_data']['db_user']) && 
-    $_SESSION['install_data']['db_user'] === 'root' && 
-    gethostbyname('database') !== 'database') {
-    unset($_SESSION['install_data']);
+// Helper to parse .env file
+function parseEnv($path) {
+    if (!file_exists($path)) return [];
+    $env = [];
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') !== false) {
+            list($name, $value) = explode('=', $line, 2);
+            $env[trim($name)] = trim($value);
+        }
+    }
+    return $env;
 }
 
-// Force fallback to environment variables if available (fixes Docker networking issues where session might be stale)
-if (getenv("DB_HOST")) {
-    $dbHost = getenv("DB_HOST");
+// Force fallback to environment variables if available 
+// OR try to read from .env file directly (important for CLI usage)
+$envPath = dirname(__DIR__) . '/.env';
+$envVars = parseEnv($envPath);
+
+// Merge real env vars with file env vars (real env takes precedence)
+$dbHost = getenv("DB_HOST") ?: ($envVars['DB_HOST'] ?? null);
+
+if ($dbHost) {
     $_SESSION['install_data'] = [
         'db_host' => $dbHost,
-        'db_name' => getenv("DB_DATABASE") ?: "nautilus",
-        'db_user' => getenv("DB_USERNAME") ?: "nautilus",
-        'db_pass' => getenv("DB_PASSWORD") ?: "nautilus123",
-        'db_port' => getenv("DB_PORT") ?: "3306",
-        'company' => getenv("APP_NAME") ?: "Nautilus",
+        'db_name' => getenv("DB_DATABASE") ?: ($envVars['DB_DATABASE'] ?? "nautilus"),
+        'db_user' => getenv("DB_USERNAME") ?: ($envVars['DB_USERNAME'] ?? "nautilus"),
+        'db_pass' => getenv("DB_PASSWORD") ?: ($envVars['DB_PASSWORD'] ?? "nautilus123"),
+        'db_port' => getenv("DB_PORT") ?: ($envVars['DB_PORT'] ?? "3306"),
+        'company' => getenv("APP_NAME") ?: ($envVars['APP_NAME'] ?? "Nautilus"),
         'username' => 'admin',
         'email' => 'admin@localhost',
         'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
@@ -105,25 +119,70 @@ sort($files);
 $total = count($files);
 stream_msg("TOTAL", $total);
 
+// Ensure migrations table exists first
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS migrations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        filename VARCHAR(255) UNIQUE NOT NULL,
+        status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+        error_message TEXT,
+        executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+} catch (PDOException $e) {
+    // If this fails, we can't track anything, but let's try to proceed carefully
+    stream_msg("ERROR", "Could not ensure migrations table exists: " . $e->getMessage());
+    exit;
+}
+
 $processed = 0;
 foreach ($files as $file) {
     $name = basename($file);
     stream_msg("START", $name);
     
+    // Check if already completed
+    $stmt = $pdo->prepare("SELECT status FROM migrations WHERE filename = ?");
+    $stmt->execute([$name]);
+    $migration = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($migration && $migration['status'] === 'completed') {
+        stream_msg("SKIP", "Already completed");
+        $processed++;
+        stream_msg("PROGRESS", $processed);
+        continue;
+    }
+
     $sql = file_get_contents($file);
     
-    // Split by semicolon, but be careful (basic split for now, robust enough for our dumps usually)
-    // Actually, running the whole file is better if it doesn't contain delimiters that PDO dislikes.
-    // PDO can run multiple statements if emulation is on (default).
     try {
+        // Record attempt
+        $stmt = $pdo->prepare("INSERT INTO migrations (filename, status) VALUES (?, 'pending') ON DUPLICATE KEY UPDATE status='pending'");
+        $stmt->execute([$name]);
+
+        // Execute SQL
         $pdo->exec($sql);
+
+        // Mark complete
+        $stmt = $pdo->prepare("UPDATE migrations SET status='completed', error_message=NULL WHERE filename=?");
+        $stmt->execute([$name]);
+
     } catch (PDOException $e) {
-        // If it's "table already exists", ignore it?
-        // Ideally we check migration table, but for fresh install we might just proceed.
-        if (strpos($e->getMessage(), "already exists") === false) {
-             stream_msg("ERROR", "Migration $name failed: " . $e->getMessage());
-             exit;
+        $errorMsg = $e->getMessage();
+        
+        // Log failure
+        try {
+            $stmt = $pdo->prepare("UPDATE migrations SET status='failed', error_message=? WHERE filename=?");
+            $stmt->execute([$errorMsg, $name]);
+        } catch (Exception $logEx) {
+            // Should not happen if DB is reachable
         }
+
+        // Special handling for "table exists" if we want to be lenient, 
+        // BUT strict mode is safer. Let's fail and let user retry/fix.
+        // Identify if it's a "create table" error on a table that exists, maybe we mark it as done?
+        // No, safer to stop.
+        
+        stream_msg("ERROR", "Migration $name failed: " . $errorMsg);
+        exit;
     }
     
     $processed++;
@@ -159,6 +218,36 @@ try {
 } catch (PDOException $e) {
     stream_msg("ERROR", "Failed to create admin user: " . $e->getMessage());
     exit;
+}
+
+// 5b. Create Test Users (Instructor, Customer)
+try {
+    $testUsers = [
+        ['email' => 'instructor2@nautilus.local', 'user' => 'Jane', 'role' => 'Instructor'],
+        ['email' => 'diver@nautilus.local', 'user' => 'Dave', 'role' => 'Customer']
+    ];
+
+    foreach ($testUsers as $tu) {
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->execute([$tu['email']]);
+        if (!$stmt->fetch()) {
+             $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, NOW())");
+             $stmt->execute([$tu['user'], $tu['email'], $adminPass]); // Use same password
+             $userId = $pdo->lastInsertId();
+             
+             // Assign Role
+             $stmt = $pdo->prepare("SELECT id FROM roles WHERE naming_convention = ? OR name = ? LIMIT 1");
+             $stmt->execute([$tu['role'], $tu['role']]);
+             $role = $stmt->fetch(PDO::FETCH_ASSOC);
+             if ($role) {
+                 $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
+                 $stmt->execute([$userId, $role['id']]);
+                 stream_msg("INFO", "Created test user: " . $tu['role']);
+             }
+        }
+    }
+} catch (Exception $e) {
+    stream_msg("INFO", "Skipping test users: " . $e->getMessage());
 }
 
 // 6. Mark as Installed

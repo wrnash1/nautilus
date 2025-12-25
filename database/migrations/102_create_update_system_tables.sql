@@ -1,26 +1,6 @@
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `maintenance_mode`;
-DROP TABLE IF EXISTS `update_notifications`;
-DROP TABLE IF EXISTS `system_version`;
-DROP TABLE IF EXISTS `system_backups`;
-DROP TABLE IF EXISTS `system_updates`;
-
-SET FOREIGN_KEY_CHECKS=0;
-
-DROP TABLE IF EXISTS `maintenance_mode`;
-DROP TABLE IF EXISTS `update_notifications`;
-DROP TABLE IF EXISTS `system_version`;
-DROP TABLE IF EXISTS `system_backups`;
-DROP TABLE IF EXISTS `system_updates`;
-
-SET FOREIGN_KEY_CHECKS=0;
-
-DROP TABLE IF EXISTS `maintenance_mode`;
-DROP TABLE IF EXISTS `update_notifications`;
-DROP TABLE IF EXISTS `system_version`;
-DROP TABLE IF EXISTS `system_backups`;
-DROP TABLE IF EXISTS `system_updates`;
+-- Migration: 102 Create Update System Tables
 
 -- ============================================================================
 -- UPDATE SYSTEM TABLES - Migration 102
@@ -173,11 +153,8 @@ FOREIGN KEY (`backup_id`) REFERENCES `system_backups`(`id`) ON DELETE SET NULL;
 -- COMPLETION MESSAGE
 -- ============================================================================
 
-SELECT 
-    'Migration 102 Complete!' AS status,
-    (SELECT COUNT(*) FROM system_version) AS version_records,
-    (SELECT COUNT(*) FROM maintenance_mode) AS maintenance_records,
-    'Update system tables created successfully' AS message;
+-- Migration complete
+
 
 -- ============================================================================
 -- This migration creates:

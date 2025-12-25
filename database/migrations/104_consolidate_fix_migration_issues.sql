@@ -3,4 +3,4 @@
 -- This migration was causing installation failures due to redundant schema checks.
 -- It has been replaced by safer, targeted migrations.
 
-SELECT 1;
+-- Empty migration

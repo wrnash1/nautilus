@@ -1,14 +1,7 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `product_categories`;
-DROP TABLE IF EXISTS `vendors`;
-DROP TABLE IF EXISTS `products`;
-DROP TABLE IF EXISTS `product_images`;
-DROP TABLE IF EXISTS `product_variants`;
-DROP TABLE IF EXISTS `inventory_transactions`;
-DROP TABLE IF EXISTS `purchase_orders`;
-DROP TABLE IF EXISTS `purchase_order_items`;
+-- Migration: 003 Create Product Inventory Tables
 
 CREATE TABLE IF NOT EXISTS `product_categories` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

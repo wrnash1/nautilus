@@ -1,0 +1,3 @@
+Attempting login check for admin@nautilus.local...
+FAIL: User not found via User::findByEmail
+Raw DB check matches: Yes

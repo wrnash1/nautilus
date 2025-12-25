@@ -164,7 +164,7 @@ INSERT INTO `environment_settings` (`environment`, `setting_key`, `setting_value
 CREATE OR REPLACE VIEW `v_tenant_db_config` AS
 SELECT
     t.id as tenant_id,
-    t.name as tenant_name,
+    t.company_name as tenant_name,
     t.status as tenant_status,
     tdc.environment,
     tdc.use_dedicated_db,

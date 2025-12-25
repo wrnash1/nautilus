@@ -680,7 +680,7 @@ $router->get('/admin/system/update', 'Admin\SystemController@index', [AuthMiddle
 $router->post('/admin/system/update', 'Admin\SystemController@update', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 // POS Routes
-$router->get('/pos', 'POS\PosController@index', [AuthMiddleware::class]);
+$router->get('/pos', 'POS\TransactionController@index', [AuthMiddleware::class]);
 $router->get('/store/maintenance/create', 'MaintenanceController@create', [AuthMiddleware::class]);
 $router->post('/store/maintenance/record', 'MaintenanceController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/maintenance/schedule', 'MaintenanceController@schedule', [AuthMiddleware::class]);

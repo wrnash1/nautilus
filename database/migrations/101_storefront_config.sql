@@ -1,20 +1,6 @@
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `navigation_menus`;
-DROP TABLE IF EXISTS `promotional_banners`;
-DROP TABLE IF EXISTS `storefront_settings`;
-
-SET FOREIGN_KEY_CHECKS=0;
-
-DROP TABLE IF EXISTS `navigation_menus`;
-DROP TABLE IF EXISTS `promotional_banners`;
-DROP TABLE IF EXISTS `storefront_settings`;
-
-SET FOREIGN_KEY_CHECKS=0;
-
-DROP TABLE IF EXISTS `navigation_menus`;
-DROP TABLE IF EXISTS `promotional_banners`;
-DROP TABLE IF EXISTS `storefront_settings`;
+-- Migration: 101 Storefront Config
 
 -- Storefront Configuration, Announcements, and Navigation
 -- Migration: 101_storefront_config.sql

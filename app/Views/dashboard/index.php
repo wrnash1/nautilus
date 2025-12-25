@@ -5,13 +5,18 @@ $user = currentUser();
 
 ob_start();
 ?>
+<?php
+$settings = \App\Core\Settings::getInstance();
+$companyName = $settings->get('company_name') ?? 'Nautilus Dive Shop';
+$logo = $settings->get('company_logo') ?? '';
+?>
 
 <!-- Dashboard Header -->
 <div class="dashboard-header slide-up">
     <div class="row align-items-center">
         <div class="col-md-8">
             <h1><i class="bi bi-water"></i> Nautilus Dashboard</h1>
-            <p>Welcome back, <?= htmlspecialchars($user['first_name']) ?>! Here's what's happening with your scuba diving business today.</p>
+            <p>Welcome back, <?= htmlspecialchars($user['first_name'] ?? 'User') ?>! Here's what's happening with your scuba diving business today.</p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
             <button onclick="refreshDashboard()" id="refreshDashboard" class="btn btn-light text-primary fw-bold shadow-sm">
