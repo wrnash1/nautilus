@@ -9,66 +9,83 @@ session_start();
 // Helper to stream output
 function stream_msg($type, $msg) {
     echo "$type:$msg\n";
-    flush();
+    if (ob_get_level() > 0) ob_flush();
+    flush(); 
+}
+
+// Check for Reset Flag
+$doReset = isset($_GET['reset']) && $_GET['reset'] == '1';
+if ($doReset) {
+    stream_msg("INFO", "Reset mode active: Existing data will be cleared.");
 }
 
 // 1. Get Configuration
-// Helper to parse .env file
-function parseEnv($path) {
-    if (!file_exists($path)) return [];
-    $env = [];
-    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos(trim($line), '#') === 0) continue;
-        if (strpos($line, '=') !== false) {
-            list($name, $value) = explode('=', $line, 2);
-            $env[trim($name)] = trim($value);
+// Use Dotenv if available for robust parsing
+$envVars = [];
+if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
+    require_once dirname(__DIR__) . '/vendor/autoload.php';
+    if (class_exists('Dotenv\Dotenv')) {
+        try {
+            $dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+            $envVars = $dotenv->safeLoad();
+        } catch (Exception $e) {
+            // Ignore error if env file invalid, we will try to proceed
         }
     }
-    return $env;
 }
 
-// Force fallback to environment variables if available 
-// OR try to read from .env file directly (important for CLI usage)
-$envPath = dirname(__DIR__) . '/.env';
-$envVars = parseEnv($envPath);
+// Fallback to manual parsing if needed or merge
+// Manual parsing excluded for brevity as Dotenv is standard, but keeping getenv checks
+$dbHost = getenv("DB_HOST") ?: ($_ENV['DB_HOST'] ?? 'localhost');
+$dbName = getenv("DB_DATABASE") ?: ($_ENV['DB_DATABASE'] ?? 'nautilus');
+$dbUser = getenv("DB_USERNAME") ?: ($_ENV['DB_USERNAME'] ?? 'nautilus');
+$dbPass = getenv("DB_PASSWORD") ?: ($_ENV['DB_PASSWORD'] ?? 'nautilus123');
+$dbPort = getenv("DB_PORT") ?: ($_ENV['DB_PORT'] ?? '3306');
+$company = getenv("APP_NAME") ?: ($_ENV['APP_NAME'] ?? 'Nautilus');
 
-// Merge real env vars with file env vars (real env takes precedence)
-$dbHost = getenv("DB_HOST") ?: ($envVars['DB_HOST'] ?? null);
-
-if ($dbHost) {
-    $_SESSION['install_data'] = [
-        'db_host' => $dbHost,
-        'db_name' => getenv("DB_DATABASE") ?: ($envVars['DB_DATABASE'] ?? "nautilus"),
-        'db_user' => getenv("DB_USERNAME") ?: ($envVars['DB_USERNAME'] ?? "nautilus"),
-        'db_pass' => getenv("DB_PASSWORD") ?: ($envVars['DB_PASSWORD'] ?? "nautilus123"),
-        'db_port' => getenv("DB_PORT") ?: ($envVars['DB_PORT'] ?? "3306"),
-        'company' => getenv("APP_NAME") ?: ($envVars['APP_NAME'] ?? "Nautilus"),
-        'username' => 'admin',
-        'email' => 'admin@localhost',
-        'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
-    ];
+// In reset mode, we rely on these defaults or environment. 
+// In install mode, session data overrides everything.
+if (!$doReset && isset($_SESSION['install_data'])) {
+    $data = $_SESSION['install_data'];
+    $dbHost = $data['db_host'];
+    $dbName = $data['db_name'];
+    $dbUser = $data['db_user'];
+    $dbPass = $data['db_pass'];
+    $dbPort = $data['db_port'];
+} elseif (!$doReset && empty($_SESSION['install_data'])) {
+     // If not resetting and no install data, we might be re-running migrations manually
+     // Just proceed with Environment variables found above
 }
-
-if (empty($_SESSION['install_data'])) {
-    stream_msg("ERROR", "No installation data found. Please restart.");
-    exit;
-}
-
-$data = $_SESSION['install_data'];
-$dbHost = $data['db_host'];
-$dbName = $data['db_name'];
-$dbUser = $data['db_user'];
-$dbPass = $data['db_pass'];
-$dbPort = $data['db_port'];
 
 // 2. Connect to Database
 try {
     $pdo = new PDO("mysql:host=$dbHost;port=$dbPort", $dbUser, $dbPass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
     // Create DB if not exists (redundant but safe)
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("USE `$dbName`");
+
+    // RESET LOGIC: Drop all tables if requested
+    if ($doReset) {
+        stream_msg("INFO", "Dropping existing tables...");
+        $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+        $stmt = $pdo->query("SHOW TABLES");
+        $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        foreach ($tables as $table) {
+            $pdo->exec("DROP TABLE IF EXISTS `$table`");
+            // stream_msg("INFO", "Dropped $table"); 
+        }
+        $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+        stream_msg("INFO", "Tables dropped. Removing install flag.");
+        
+        $installedFile = dirname(__DIR__) . '/.installed';
+        if (file_exists($installedFile)) {
+            unlink($installedFile);
+        }
+    }
+
 } catch (PDOException $e) {
     stream_msg("ERROR", "Database connection failed: " . $e->getMessage());
     exit;

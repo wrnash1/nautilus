@@ -15,9 +15,41 @@ $installedExists = file_exists(ROOT_DIR . '/.installed');
 $isInstalled = $envExists && $installedExists && filesize(ROOT_DIR . '/.installed') > 0;
 
 if ($isInstalled) {
-    // Fully installed, redirect to homepage
-    header('Location: /');
-    exit;
+    // Check for explicit re-install request
+    $action = $_GET['action'] ?? '';
+    if ($action === 'reinstall') {
+        // Proceed to show form, but we'll need to warn user
+    } else {
+        // Show "Already Installed" page with options
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nautilus Installed</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; background: #f7fafc; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .card { border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 12px; width: 100%; max-width: 500px; }
+        .btn-primary { background: #3182ce; border: none; padding: 12px 24px; font-weight: 600; }
+        .btn-outline-danger { padding: 12px 24px; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="card p-5 text-center">
+        <h1 class="mb-4" style="font-family: 'Cinzel', serif; color: #1a365d;">System Installed</h1>
+        <p class="text-muted mb-5">Nautilus is already installed and ready to use.</p>
+        
+        <div class="d-grid gap-3">
+            <a href="/" class="btn btn-primary">Go to Homepage</a>
+            <a href="run_migrations.php?reset=1" class="btn btn-outline-danger" onclick="return confirm('WARNING: This will delete ALL data. Are you sure?');">Fresh Install (Reset Data)</a>
+        </div>
+    </div>
+</body>
+</html>
+<?php
+        exit;
+    }
 }
 
 // Ensure files are writable if they exist

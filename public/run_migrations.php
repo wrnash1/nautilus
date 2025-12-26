@@ -92,7 +92,9 @@ if ($isQuickInstall) {
 
     async function runMigrations() {
         try {
-            const response = await fetch('run_migrations_backend.php');
+            // Forward quick_install and reset params
+            const params = new URLSearchParams(window.location.search);
+            const response = await fetch('run_migrations_backend.php?' + params.toString());
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
 

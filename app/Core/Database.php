@@ -32,12 +32,27 @@ class Database
     {
         if (self::$instance === null) {
             try {
-                $connection = $_ENV['DB_CONNECTION'] ?? 'mysql';
-                $host = $_ENV['DB_HOST'] ?? 'localhost';
-                $port = $_ENV['DB_PORT'] ?? self::getDefaultPort($connection);
-                $database = $_ENV['DB_DATABASE'] ?? 'nautilus';
-                $username = $_ENV['DB_USERNAME'] ?? 'root';
-                $password = $_ENV['DB_PASSWORD'] ?? '';
+                // Ensure Environment is loaded
+                if (empty($_ENV['DB_HOST']) && empty(getenv('DB_HOST'))) {
+                    if (file_exists(dirname(__DIR__, 2) . '/vendor/autoload.php')) {
+                        require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
+                        if (class_exists('Dotenv\Dotenv')) {
+                            try {
+                                $dotenv = \Dotenv\Dotenv::createImmutable(dirname(__DIR__, 2));
+                                $dotenv->safeLoad();
+                            } catch (\Exception $e) {
+                                // Ignore
+                            }
+                        }
+                    }
+                }
+
+                $connection = $_ENV['DB_CONNECTION'] ?? $_SERVER['DB_CONNECTION'] ?? getenv('DB_CONNECTION') ?: 'mysql';
+                $host = $_ENV['DB_HOST'] ?? $_SERVER['DB_HOST'] ?? getenv('DB_HOST') ?: 'localhost';
+                $port = $_ENV['DB_PORT'] ?? $_SERVER['DB_PORT'] ?? getenv('DB_PORT') ?: self::getDefaultPort($connection);
+                $database = $_ENV['DB_DATABASE'] ?? $_SERVER['DB_DATABASE'] ?? getenv('DB_DATABASE') ?: 'nautilus';
+                $username = $_ENV['DB_USERNAME'] ?? $_SERVER['DB_USERNAME'] ?? getenv('DB_USERNAME') ?: 'root';
+                $password = $_ENV['DB_PASSWORD'] ?? $_SERVER['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '';
                 
                 // Build DSN based on database type
                 $dsn = self::buildDsn($connection, $host, $port, $database);
