@@ -1,0 +1,27 @@
+✓ Using Podman Compose
+
+==========================================
+  Nautilus Development Environment
+==========================================
+
+🚀 Starting Nautilus development environment...
+
+nautilus-db
+nautilus-web
+nautilus-phpmyadmin
+🔧 Fixing file permissions for development...
+
+✓ Containers started!
+
+Access points:
+  • Nautilus Installer: http://localhost:8080/install.php
+  • Nautilus App:       http://localhost:8080/
+  • phpMyAdmin:         http://localhost:8081/
+
+Database credentials for installer:
+  Host:     database
+  Port:     3306
+  Database: nautilus
+  Username: root
+  Password: Frogman09!
+
