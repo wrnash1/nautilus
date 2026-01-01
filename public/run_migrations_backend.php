@@ -120,7 +120,10 @@ try {
 
 // 3. Write .env file
 $envPath = dirname(__DIR__) . '/.env';
-if (!file_exists($envPath)) {
+// Write if missing, empty, or if we have new install data via POST/Session
+$shouldWrite = !file_exists($envPath) || filesize($envPath) < 10 || isset($postData['company']) || isset($_SESSION['install_data']);
+
+if ($shouldWrite) {
     $appUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
     $envContent = <<<EOT
 APP_ENV=production
