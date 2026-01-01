@@ -8,13 +8,10 @@
 // Define base path constant for the application
 define('BASE_PATH', dirname(__DIR__));
 
-// Check if application is installed - BOTH files must exist and .installed must have content
-$envExists = file_exists(BASE_PATH . '/.env');
-$installedExists = file_exists(BASE_PATH . '/.installed');
-$installedValid = $installedExists && filesize(BASE_PATH . '/.installed') > 0;
+// Check if application is installed - .env must exist and have content
+$envExists = file_exists(BASE_PATH . '/.env') && filesize(BASE_PATH . '/.env') > 0;
 
-
-if (!$envExists || !$installedValid) {
+if (!$envExists) {
     // If either file is missing, redirect to installer
     // This prevents redirect loops from partial installations
     $scriptName = basename($_SERVER['SCRIPT_FILENAME'] ?? '');
@@ -101,18 +98,7 @@ $errorHandler->register();
 // ============================================
 // CHECK IF APPLICATION IS INSTALLED
 // ============================================
-$installedFile = __DIR__ . '/../.installed';
-$requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-$scriptName = basename($_SERVER['SCRIPT_FILENAME'] ?? '');
 
-// Additional check: if not installed and not accessing installer
-// This is redundant now but kept for safety
-/*
-if (!file_exists($installedFile) && $scriptName !== 'install_streamlined.php' && $scriptName !== 'install.php' && $scriptName !== 'run_migrations.php' && $scriptName !== 'run_migrations_backend.php') {
-    header('Location: /install_streamlined.php');
-    exit;
-}
-*/
 
 // Load routes
 $router = require __DIR__ . '/../routes/web.php';

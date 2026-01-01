@@ -8,7 +8,7 @@
     use App\Core\Settings;
     // Direct access to ensure we get the latest value regardless of category logic
     $settings = Settings::getInstance();
-    $companyName = $settings->get('business_name') ?: 'Nautilus Dive Shop';
+    $companyName = $settings->get('business_name') ?: (getenv('APP_NAME') ?: 'Nautilus Dive Shop');
     $favicon = $settings->get('company_favicon_path');
     $brandingSettings = $settings->all(); // Pass all settings to be safe
     ?>

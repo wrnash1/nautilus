@@ -1,9 +1,0 @@
-Connecting to 127.0.0.1:3307...
-Table 'users': 1 rows
-Table 'roles': 8 rows
-Table 'permissions': 0 rows
-Table 'role_permissions': 0 rows
-Table 'user_roles': 1 rows
-Admin User Found: ID 1
-Admin Roles: Super Admin
-Total Permissions for Admin: 0

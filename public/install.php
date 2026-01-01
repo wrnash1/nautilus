@@ -9,10 +9,9 @@ define('ROOT_DIR', dirname(__DIR__));
 
 // Check if already installed - BOTH files must exist and be non-empty for complete installation
 $envExists = file_exists(ROOT_DIR . '/.env');
-$installedExists = file_exists(ROOT_DIR . '/.installed');
 
 // Check if valid install (files exist and have content)
-$isInstalled = $envExists && $installedExists && filesize(ROOT_DIR . '/.installed') > 0;
+$isInstalled = $envExists && filesize(ROOT_DIR . '/.env') > 0;
 
 if ($isInstalled) {
     // Check for explicit re-install request

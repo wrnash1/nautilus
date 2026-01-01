@@ -110,8 +110,17 @@ case "${1:-up}" in
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             $COMPOSE_CMD down -v
-            rm -f .env .installed
-            echo "✓ All data destroyed!"
+            
+            # Explicitly remove the named volume to force DB wipe
+            # (podman-compose down -v sometimes misses named volumes)
+            if [[ "$COMPOSE_CMD" == *"podman"* ]]; then
+                podman volume rm nautilus-mariadb-data --force || true
+            else
+                docker volume rm nautilus-mariadb-data || true
+            fi
+            
+            rm -f .env public/install_debug.log
+            echo "✓ All data destroyed (Volumes & Configs removed)!"
             echo ""
             echo "Starting fresh environment..."
             $COMPOSE_CMD up -d

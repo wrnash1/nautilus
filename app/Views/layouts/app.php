@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <?php
     // Get company branding settings for title and favicon
     use App\Services\Admin\SettingsService;
     $settingsService = new SettingsService();
     $brandingSettings = $settingsService->getSettingsByCategory('general');
-    $companyName = $brandingSettings['business_name'] ?? 'Nautilus Dive Shop';
+    $companyName = $brandingSettings['business_name'] ?? (getenv('APP_NAME') ?: 'Nautilus Dive Shop');
     $favicon = $brandingSettings['company_favicon_path'] ?? '';
     ?>
     <meta charset="UTF-8">
@@ -21,21 +22,21 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="<?= htmlspecialchars($companyName) ?>">
     <meta name="mobile-web-app-capable" content="yes">
-    
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
-    
+
     <!-- Favicons -->
     <?php if ($favicon): ?>
-    <link rel="icon" type="image/x-icon" href="<?= htmlspecialchars($favicon) ?>">
+        <link rel="icon" type="image/x-icon" href="<?= htmlspecialchars($favicon) ?>">
     <?php else: ?>
-    <link rel="icon" type="image/svg+xml" href="/favicon.ico">
+        <link rel="icon" type="image/svg+xml" href="/favicon.ico">
     <?php endif; ?>
     <link rel="apple-touch-icon" href="/assets/images/icon-192x192.png">
     <link rel="apple-touch-icon" sizes="152x152" href="/assets/images/icon-152x152.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/icon-180x180.png">
     <link rel="apple-touch-icon" sizes="167x167" href="/assets/images/icon-167x167.png">
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -153,7 +154,7 @@
             color: white;
             border: none;
             border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             cursor: pointer;
             z-index: 1001;
             display: flex;
@@ -217,16 +218,18 @@
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
             <span class="navbar-brand mb-0 h1">
                 <?php if (!empty($brandingSettings['company_logo_small_path'])): ?>
                     <img src="<?= htmlspecialchars($brandingSettings['company_logo_small_path']) ?>"
-                         alt="<?= htmlspecialchars($companyName) ?>"
-                         style="height: 32px; width: auto; margin-right: 0.5rem; vertical-align: middle;">
+                        alt="<?= htmlspecialchars($companyName) ?>"
+                        style="height: 32px; width: auto; margin-right: 0.5rem; vertical-align: middle;">
                 <?php else: ?>
-                    <i class="bi bi-water" style="color: <?= htmlspecialchars($brandingSettings['brand_primary_color'] ?? '#0066CC') ?>"></i>
+                    <i class="bi bi-water"
+                        style="color: <?= htmlspecialchars($brandingSettings['brand_primary_color'] ?? '#0066CC') ?>"></i>
                 <?php endif; ?>
                 <?= htmlspecialchars($companyName) ?>
             </span>
@@ -252,136 +255,147 @@
     <div class="sidebar">
         <nav class="nav flex-column">
             <?php if (hasPermission('dashboard.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'dashboard' ? 'active' : '' ?>" href="<?= url('/store') ?>">
-                <i class="bi bi-speedometer2"></i><span>Dashboard</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'dashboard' ? 'active' : '' ?>" href="<?= url('/store') ?>">
+                    <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('pos.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'pos' ? 'active' : '' ?>" href="<?= url('/store/pos') ?>">
-                <i class="bi bi-cart-check"></i><span>Point of Sale</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'pos' ? 'active' : '' ?>" href="<?= url('/store/pos') ?>">
+                    <i class="bi bi-cart-check"></i><span>Point of Sale</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('customers.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'customers' ? 'active' : '' ?>" href="<?= url('/store/customers') ?>">
-                <i class="bi bi-people"></i><span>Customers</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'customers' ? 'active' : '' ?>"
+                    href="<?= url('/store/customers') ?>">
+                    <i class="bi bi-people"></i><span>Customers</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('products.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'products' ? 'active' : '' ?>" href="<?= url('/store/products') ?>">
-                <i class="bi bi-box-seam"></i><span>Products</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'products' ? 'active' : '' ?>" href="<?= url('/store/products') ?>">
+                    <i class="bi bi-box-seam"></i><span>Products</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('categories.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'categories' ? 'active' : '' ?>" href="<?= url('/store/categories') ?>">
-                <i class="bi bi-tags"></i><span>Categories</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'categories' ? 'active' : '' ?>"
+                    href="<?= url('/store/categories') ?>">
+                    <i class="bi bi-tags"></i><span>Categories</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('products.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'vendors' ? 'active' : '' ?>" href="<?= url('/store/vendors') ?>">
-                <i class="bi bi-building"></i><span>Vendors</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'vendors' ? 'active' : '' ?>" href="<?= url('/store/vendors') ?>">
+                    <i class="bi bi-building"></i><span>Vendors</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('pos.access')): ?>
-            <a class="nav-link <?= $activeMenu === 'cash-drawer' ? 'active' : '' ?>" href="<?= url('/store/cash-drawer') ?>">
-                <i class="bi bi-cash-stack"></i><span>Cash Drawer</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'cash-drawer' ? 'active' : '' ?>"
+                    href="<?= url('/store/cash-drawer') ?>">
+                    <i class="bi bi-cash-stack"></i><span>Cash Drawer</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('customers.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'customer-tags' ? 'active' : '' ?>" href="<?= url('/store/customers/tags') ?>">
-                <i class="bi bi-tags-fill"></i><span>Customer Tags</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'customer-tags' ? 'active' : '' ?>"
+                    href="<?= url('/store/customers/tags') ?>">
+                    <i class="bi bi-tags-fill"></i><span>Customer Tags</span>
+                </a>
             <?php endif; ?>
-            
+
             <?php if (hasPermission('dashboard.view')): ?>
-            <div class="nav-item">
-                <a class="nav-link <?= $activeMenu === 'reports' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#reportsMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-clipboard-data"></i><span>Reports</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <div class="collapse" id="reportsMenu">
-                    <a class="nav-link ps-5" href="/store/reports/sales">Sales Report</a>
-                    <a class="nav-link ps-5" href="/store/reports/customers">Customer Report</a>
-                    <a class="nav-link ps-5" href="/store/reports/products">Product Report</a>
-                    <a class="nav-link ps-5" href="/store/reports/payments">Payment Report</a>
-                    <a class="nav-link ps-5" href="/store/reports/inventory">Inventory Report</a>
-                    <a class="nav-link ps-5" href="/store/reports/low-stock">Low Stock Alert</a>
+                <div class="nav-item">
+                    <a class="nav-link <?= $activeMenu === 'reports' ? 'active' : '' ?>" data-bs-toggle="collapse"
+                        href="#reportsMenu" role="button" aria-expanded="false">
+                        <i class="bi bi-clipboard-data"></i><span>Reports</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="reportsMenu">
+                        <a class="nav-link ps-5" href="/store/reports/sales">Sales Report</a>
+                        <a class="nav-link ps-5" href="/store/reports/customers">Customer Report</a>
+                        <a class="nav-link ps-5" href="/store/reports/products">Product Report</a>
+                        <a class="nav-link ps-5" href="/store/reports/payments">Payment Report</a>
+                        <a class="nav-link ps-5" href="/store/reports/inventory">Inventory Report</a>
+                        <a class="nav-link ps-5" href="/store/reports/low-stock">Low Stock Alert</a>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
-            
+
             <?php if (hasPermission('rentals.view')): ?>
-            <div class="nav-item">
-                <a class="nav-link <?= $activeMenu === 'rentals' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#rentalsMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-briefcase"></i><span>Rentals</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <div class="collapse" id="rentalsMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/rentals') ?>">Equipment</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/rentals/reservations') ?>">Reservations</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/maintenance') ?>">Maintenance</a>
+                <div class="nav-item">
+                    <a class="nav-link <?= $activeMenu === 'rentals' ? 'active' : '' ?>" data-bs-toggle="collapse"
+                        href="#rentalsMenu" role="button" aria-expanded="false">
+                        <i class="bi bi-briefcase"></i><span>Rentals</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="rentalsMenu">
+                        <a class="nav-link ps-5" href="<?= url('/store/rentals') ?>">Equipment</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/rentals/reservations') ?>">Reservations</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/maintenance') ?>">Maintenance</a>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <?php if (hasPermission('air_fills.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'air-fills' ? 'active' : '' ?>" href="<?= url('/store/air-fills') ?>">
-                <i class="bi bi-wind"></i><span>Air Fills</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'air-fills' ? 'active' : '' ?>"
+                    href="<?= url('/store/air-fills') ?>">
+                    <i class="bi bi-wind"></i><span>Air Fills</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('dashboard.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'waivers' ? 'active' : '' ?>" href="<?= url('/store/waivers') ?>">
-                <i class="bi bi-file-earmark-check"></i><span>Waivers</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'waivers' ? 'active' : '' ?>" href="<?= url('/store/waivers') ?>">
+                    <i class="bi bi-file-earmark-check"></i><span>Waivers</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('courses.view')): ?>
-            <div class="nav-item">
-                <a class="nav-link <?= $activeMenu === 'courses' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#coursesMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-mortarboard"></i><span>Courses</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <div class="collapse" id="coursesMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/courses') ?>">Course Catalog</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/courses/schedules') ?>">Schedules</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/courses/enrollments') ?>">Enrollments</a>
+                <div class="nav-item">
+                    <a class="nav-link <?= $activeMenu === 'courses' ? 'active' : '' ?>" data-bs-toggle="collapse"
+                        href="#coursesMenu" role="button" aria-expanded="false">
+                        <i class="bi bi-mortarboard"></i><span>Courses</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="coursesMenu">
+                        <a class="nav-link ps-5" href="<?= url('/store/courses') ?>">Course Catalog</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/courses/schedules') ?>">Schedules</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/courses/enrollments') ?>">Enrollments</a>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <?php if (hasPermission('certifications.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'certifications' ? 'active' : '' ?>" href="<?= url('/certifications') ?>">
-                <i class="bi bi-award"></i><span>Certifications</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'certifications' ? 'active' : '' ?>"
+                    href="<?= url('/certifications') ?>">
+                    <i class="bi bi-award"></i><span>Certifications</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('trips.view')): ?>
-            <div class="nav-item">
-                <a class="nav-link <?= $activeMenu === 'trips' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#tripsMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-airplane"></i><span>Trips</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <div class="collapse" id="tripsMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/trips') ?>">Trip Catalog</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/trips/schedules') ?>">Schedules</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/trips/bookings') ?>">Bookings</a>
+                <div class="nav-item">
+                    <a class="nav-link <?= $activeMenu === 'trips' ? 'active' : '' ?>" data-bs-toggle="collapse"
+                        href="#tripsMenu" role="button" aria-expanded="false">
+                        <i class="bi bi-airplane"></i><span>Trips</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="tripsMenu">
+                        <a class="nav-link ps-5" href="<?= url('/store/trips') ?>">Trip Catalog</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/trips/schedules') ?>">Schedules</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/trips/bookings') ?>">Bookings</a>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <?php if (hasPermission('workorders.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'workorders' ? 'active' : '' ?>" href="<?= url('/store/workorders') ?>">
-                <i class="bi bi-tools"></i><span>Work Orders</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'workorders' ? 'active' : '' ?>"
+                    href="<?= url('/store/workorders') ?>">
+                    <i class="bi bi-tools"></i><span>Work Orders</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('orders.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'orders' ? 'active' : '' ?>" href="<?= url('/store/orders') ?>">
-                <i class="bi bi-box-seam"></i><span>Orders</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'orders' ? 'active' : '' ?>" href="<?= url('/store/orders') ?>">
+                    <i class="bi bi-box-seam"></i><span>Orders</span>
+                </a>
             <?php endif; ?>
 
             <a class="nav-link" href="<?= url('/shop') ?>" target="_blank">
@@ -391,157 +405,170 @@
             <hr class="my-2 text-white-50">
 
             <?php if (hasPermission('dashboard.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'dive-sites' ? 'active' : '' ?>" href="<?= url('/store/dive-sites') ?>">
-                <i class="bi bi-geo-alt"></i><span>Dive Sites</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'dive-sites' ? 'active' : '' ?>"
+                    href="<?= url('/store/dive-sites') ?>">
+                    <i class="bi bi-geo-alt"></i><span>Dive Sites</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('products.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'serial-numbers' ? 'active' : '' ?>" href="<?= url('/store/serial-numbers') ?>">
-                <i class="bi bi-upc-scan"></i><span>Serial Numbers</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'serial-numbers' ? 'active' : '' ?>"
+                    href="<?= url('/store/serial-numbers') ?>">
+                    <i class="bi bi-upc-scan"></i><span>Serial Numbers</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('products.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'vendor-catalog' ? 'active' : '' ?>" href="<?= url('/store/vendor-catalog/import') ?>">
-                <i class="bi bi-cloud-download"></i><span>Vendor Import</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'vendor-catalog' ? 'active' : '' ?>"
+                    href="<?= url('/store/vendor-catalog/import') ?>">
+                    <i class="bi bi-cloud-download"></i><span>Vendor Import</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('sales.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'layaway' ? 'active' : '' ?>" href="<?= url('/store/layaway') ?>">
-                <i class="bi bi-calendar2-check"></i><span>Layaway</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'layaway' ? 'active' : '' ?>" href="<?= url('/store/layaway') ?>">
+                    <i class="bi bi-calendar2-check"></i><span>Layaway</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('transactions.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'gift-cards' ? 'active' : '' ?>" href="<?= url('/store/gift-cards') ?>">
-                <i class="bi bi-gift"></i><span>Gift Cards</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'gift-cards' ? 'active' : '' ?>"
+                    href="<?= url('/store/gift-cards') ?>">
+                    <i class="bi bi-gift"></i><span>Gift Cards</span>
+                </a>
             <?php endif; ?>
 
             <hr class="my-2 text-white-50">
 
             <?php if (hasPermission('customers.view')): ?>
-            <div class="nav-item">
-                <a class="nav-link <?= $activeMenu === 'community' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#communityMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-people-fill"></i><span>Community</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <div class="collapse" id="communityMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/clubs') ?>">Diving Clubs</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/buddies') ?>">Buddy Pairs</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/conservation') ?>">Conservation</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/insurance') ?>">Insurance</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/dive-logs') ?>">Dive Logs</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/safety-checks') ?>">Safety Checks</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/incidents') ?>">Incident Reports</a>
+                <div class="nav-item">
+                    <a class="nav-link <?= $activeMenu === 'community' ? 'active' : '' ?>" data-bs-toggle="collapse"
+                        href="#communityMenu" role="button" aria-expanded="false">
+                        <i class="bi bi-people-fill"></i><span>Community</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="communityMenu">
+                        <a class="nav-link ps-5" href="<?= url('/store/clubs') ?>">Diving Clubs</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/buddies') ?>">Buddy Pairs</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/conservation') ?>">Conservation</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/insurance') ?>">Insurance</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/dive-logs') ?>">Dive Logs</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/safety-checks') ?>">Safety Checks</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/incidents') ?>">Incident Reports</a>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <?php if (hasPermission('dashboard.view')): ?>
-            <div class="nav-item">
-                <a class="nav-link <?= $activeMenu === 'marketing' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#marketingMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-megaphone"></i><span>Marketing</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <div class="collapse" id="marketingMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/marketing/loyalty') ?>">Loyalty Program</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/marketing/coupons') ?>">Coupons</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/marketing/campaigns') ?>">Email Campaigns</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/marketing/referrals') ?>">Referrals</a>
+                <div class="nav-item">
+                    <a class="nav-link <?= $activeMenu === 'marketing' ? 'active' : '' ?>" data-bs-toggle="collapse"
+                        href="#marketingMenu" role="button" aria-expanded="false">
+                        <i class="bi bi-megaphone"></i><span>Marketing</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="marketingMenu">
+                        <a class="nav-link ps-5" href="<?= url('/store/marketing/loyalty') ?>">Loyalty Program</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/marketing/coupons') ?>">Coupons</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/marketing/campaigns') ?>">Email Campaigns</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/marketing/referrals') ?>">Referrals</a>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <?php if (hasPermission('dashboard.view')): ?>
-            <div class="nav-item">
-                <a class="nav-link <?= $activeMenu === 'cms' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#cmsMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-file-earmark-text"></i><span>Content</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <div class="collapse" id="cmsMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/cms/pages') ?>">Pages</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/cms/blog') ?>">Blog Posts</a>
+                <div class="nav-item">
+                    <a class="nav-link <?= $activeMenu === 'cms' ? 'active' : '' ?>" data-bs-toggle="collapse"
+                        href="#cmsMenu" role="button" aria-expanded="false">
+                        <i class="bi bi-file-earmark-text"></i><span>Content</span><i
+                            class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="cmsMenu">
+                        <a class="nav-link ps-5" href="<?= url('/store/cms/pages') ?>">Pages</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/cms/blog') ?>">Blog Posts</a>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <?php if (hasPermission('staff.view')): ?>
-            <div class="nav-item">
-                <a class="nav-link <?= $activeMenu === 'staff' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#staffMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-person-badge"></i><span>Staff</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <div class="collapse" id="staffMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/staff') ?>">Employees</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/staff/schedules') ?>">Schedules</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/staff/timeclock') ?>">Time Clock</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/staff/commissions') ?>">Commissions</a>
+                <div class="nav-item">
+                    <a class="nav-link <?= $activeMenu === 'staff' ? 'active' : '' ?>" data-bs-toggle="collapse"
+                        href="#staffMenu" role="button" aria-expanded="false">
+                        <i class="bi bi-person-badge"></i><span>Staff</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="staffMenu">
+                        <a class="nav-link ps-5" href="<?= url('/store/staff') ?>">Employees</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/staff/schedules') ?>">Schedules</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/staff/timeclock') ?>">Time Clock</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/staff/commissions') ?>">Commissions</a>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <hr class="my-2 text-white-50">
 
             <?php if (hasPermission('admin.integrations')): ?>
-            <div class="nav-item">
-                <a class="nav-link <?= $activeMenu === 'integrations' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#integrationsMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-plugin"></i><span>Integrations</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <div class="collapse" id="integrationsMenu">
-                    <a class="nav-link ps-5" href="<?= url('/store/integrations/wave') ?>">Wave Accounting</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/integrations/quickbooks') ?>">QuickBooks</a>
-                    <a class="nav-link ps-5" href="<?= url('/store/integrations/google-workspace') ?>">Google Workspace</a>
+                <div class="nav-item">
+                    <a class="nav-link <?= $activeMenu === 'integrations' ? 'active' : '' ?>" data-bs-toggle="collapse"
+                        href="#integrationsMenu" role="button" aria-expanded="false">
+                        <i class="bi bi-plugin"></i><span>Integrations</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="integrationsMenu">
+                        <a class="nav-link ps-5" href="<?= url('/store/integrations/wave') ?>">Wave Accounting</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/integrations/quickbooks') ?>">QuickBooks</a>
+                        <a class="nav-link ps-5" href="<?= url('/store/integrations/google-workspace') ?>">Google
+                            Workspace</a>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <?php if (hasPermission('admin.api')): ?>
-            <a class="nav-link <?= $activeMenu === 'api' ? 'active' : '' ?>" href="<?= url('/store/api/tokens') ?>">
-                <i class="bi bi-key"></i><span>API Tokens</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'api' ? 'active' : '' ?>" href="<?= url('/store/api/tokens') ?>">
+                    <i class="bi bi-key"></i><span>API Tokens</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('settings.view') || hasPermission('settings.edit')): ?>
-            <a class="nav-link <?= $activeMenu === 'settings' ? 'active' : '' ?>" data-bs-toggle="collapse" href="#settingsMenu" role="button" aria-expanded="false">
-                <i class="bi bi-gear"></i><span>Settings</span> <i class="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <div class="collapse" id="settingsMenu">
-                <a class="nav-link ps-5" href="<?= url('/store/admin/settings/general') ?>">
-                    <i class="bi bi-building"></i><span>General Settings</span>
+                <a class="nav-link <?= $activeMenu === 'settings' ? 'active' : '' ?>" data-bs-toggle="collapse"
+                    href="#settingsMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-gear"></i><span>Settings</span> <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <a class="nav-link ps-5" href="<?= url('/store/admin/settings/integrations') ?>">
-                    <i class="bi bi-plugin"></i><span>Integrations & AI</span>
-                </a>
-                <a class="nav-link ps-5" href="<?= url('/store/admin/demo-data') ?>">
-                    <i class="bi bi-database-add"></i><span>Demo Data</span>
-                </a>
-                <a class="nav-link ps-5" href="<?= url('/store/admin/settings/tax') ?>">
-                    <i class="bi bi-receipt"></i><span>Tax Settings</span>
-                </a>
-            </div>
+                <div class="collapse" id="settingsMenu">
+                    <a class="nav-link ps-5" href="<?= url('/store/admin/settings/general') ?>">
+                        <i class="bi bi-building"></i><span>General Settings</span>
+                    </a>
+                    <a class="nav-link ps-5" href="<?= url('/store/admin/settings/integrations') ?>">
+                        <i class="bi bi-plugin"></i><span>Integrations & AI</span>
+                    </a>
+                    <a class="nav-link ps-5" href="<?= url('/store/admin/demo-data') ?>">
+                        <i class="bi bi-database-add"></i><span>Demo Data</span>
+                    </a>
+                    <a class="nav-link ps-5" href="<?= url('/store/admin/settings/tax') ?>">
+                        <i class="bi bi-receipt"></i><span>Tax Settings</span>
+                    </a>
+                </div>
             <?php endif; ?>
 
             <?php if (hasPermission('admin.users')): ?>
-            <a class="nav-link <?= $activeMenu === 'users' ? 'active' : '' ?>" href="<?= url('/store/admin/users') ?>">
-                <i class="bi bi-people-fill"></i><span>User Management</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'users' ? 'active' : '' ?>" href="<?= url('/store/admin/users') ?>">
+                    <i class="bi bi-people-fill"></i><span>User Management</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('admin.roles')): ?>
-            <a class="nav-link <?= $activeMenu === 'roles' ? 'active' : '' ?>" href="<?= url('/store/admin/roles') ?>">
-                <i class="bi bi-shield-lock"></i><span>Roles & Permissions</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'roles' ? 'active' : '' ?>" href="<?= url('/store/admin/roles') ?>">
+                    <i class="bi bi-shield-lock"></i><span>Roles & Permissions</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('errors.view')): ?>
-            <a class="nav-link <?= $activeMenu === 'errors' ? 'active' : '' ?>" href="<?= url('/store/admin/errors') ?>">
-                <i class="bi bi-exclamation-triangle"></i><span>Error Logs</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'errors' ? 'active' : '' ?>"
+                    href="<?= url('/store/admin/errors') ?>">
+                    <i class="bi bi-exclamation-triangle"></i><span>Error Logs</span>
+                </a>
             <?php endif; ?>
 
             <?php if (hasPermission('feedback.submit')): ?>
-            <a class="nav-link <?= $activeMenu === 'feedback' ? 'active' : '' ?>" href="<?= url('/store/feedback') ?>">
-                <i class="bi bi-chat-left-text"></i><span>Staff Feedback</span>
-            </a>
+                <a class="nav-link <?= $activeMenu === 'feedback' ? 'active' : '' ?>" href="<?= url('/store/feedback') ?>">
+                    <i class="bi bi-chat-left-text"></i><span>Staff Feedback</span>
+                </a>
             <?php endif; ?>
         </nav>
     </div>
@@ -554,27 +581,27 @@
     <div class="main-content">
         <div class="container-fluid py-4">
             <?php if (isset($_SESSION['flash_success'])): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($_SESSION['flash_success']) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php unset($_SESSION['flash_success']); ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <?= htmlspecialchars($_SESSION['flash_success']) ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php unset($_SESSION['flash_success']); ?>
             <?php endif; ?>
-            
+
             <?php if (isset($_SESSION['flash_error'])): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($_SESSION['flash_error']) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php unset($_SESSION['flash_error']); ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <?= htmlspecialchars($_SESSION['flash_error']) ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php unset($_SESSION['flash_error']); ?>
             <?php endif; ?>
-            
+
             <?php if (isset($_SESSION['flash_warning'])): ?>
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($_SESSION['flash_warning']) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php unset($_SESSION['flash_warning']); ?>
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <?= htmlspecialchars($_SESSION['flash_warning']) ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php unset($_SESSION['flash_warning']); ?>
             <?php endif; ?>
 
             <?php
@@ -582,17 +609,18 @@
             require BASE_PATH . '/app/Views/partials/alpha-warning.php';
             ?>
 
-            <?php if (isset($content)) echo $content; ?>
+            <?php if (isset($content))
+                echo $content; ?>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    
+
     <!-- Alpine.js for interactive components -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
     <!-- Nautilus Core JavaScript -->
     <script src="/assets/js/notifications.js"></script>
     <script src="/assets/js/keyboard-shortcuts.js"></script>
@@ -600,7 +628,7 @@
     <script src="/assets/js/form-validation.js"></script>
     <script src="/assets/js/alpine-components.js"></script>
     <script src="/assets/js/pwa-installer.js"></script>
-    
+
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
@@ -611,7 +639,7 @@
         });
 
         // Sidebar Toggle Functionality
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.querySelector('.main-content');
             const navbar = document.querySelector('.navbar');
@@ -627,7 +655,7 @@
             }
 
             // Toggle button click handler
-            toggleBtn.addEventListener('click', function() {
+            toggleBtn.addEventListener('click', function () {
                 const isCollapsed = sidebar.classList.toggle('collapsed');
                 mainContent.classList.toggle('sidebar-collapsed');
                 navbar.classList.toggle('sidebar-collapsed');
@@ -639,31 +667,31 @@
 
             // Mobile: Toggle sidebar on button click
             if (window.innerWidth <= 768) {
-                toggleBtn.addEventListener('click', function() {
+                toggleBtn.addEventListener('click', function () {
                     sidebar.classList.toggle('show');
                 });
 
                 // Close sidebar when clicking outside on mobile
-                document.addEventListener('click', function(event) {
+                document.addEventListener('click', function (event) {
                     if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
                         sidebar.classList.remove('show');
                     }
                 });
             }
-            
+
             // Convert flash messages to toast notifications
             <?php if (isset($_SESSION['flash_success'])): ?>
                 if (window.toast) {
                     toast.success('<?= addslashes($_SESSION['flash_success']) ?>');
                 }
             <?php endif; ?>
-            
+
             <?php if (isset($_SESSION['flash_error'])): ?>
                 if (window.toast) {
                     toast.error('<?= addslashes($_SESSION['flash_error']) ?>');
                 }
             <?php endif; ?>
-            
+
             <?php if (isset($_SESSION['flash_warning'])): ?>
                 if (window.toast) {
                     toast.warning('<?= addslashes($_SESSION['flash_warning']) ?>');
@@ -672,6 +700,8 @@
         });
     </script>
 
-    <?php if (isset($additionalJs)) echo $additionalJs; ?>
+    <?php if (isset($additionalJs))
+        echo $additionalJs; ?>
 </body>
+
 </html>

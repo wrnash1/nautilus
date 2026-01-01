@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($page_title ?? 'Shop') ?> | <?= htmlspecialchars($branding['business_name'] ?? 'Nautilus Dive Shop') ?></title>
-    <meta name="description" content="<?= htmlspecialchars($store_settings['meta_description'] ?? 'Professional dive equipment, courses, and trips') ?>">
+    <title><?= htmlspecialchars($page_title ?? 'Shop') ?> |
+        <?= htmlspecialchars($branding['business_name'] ?? (getenv('APP_NAME') ?: 'Nautilus Dive Shop')) ?></title>
+    <meta name="description"
+        content="<?= htmlspecialchars($store_settings['meta_description'] ?? 'Professional dive equipment, courses, and trips') ?>">
 
     <!-- Favicon -->
     <?php if (!empty($branding['favicon'])): ?>
-    <link rel="icon" href="<?= htmlspecialchars($branding['favicon']) ?>">
+        <link rel="icon" href="<?= htmlspecialchars($branding['favicon']) ?>">
     <?php endif; ?>
 
     <!-- Fonts -->
@@ -21,9 +24,15 @@
 
     <style>
         :root {
-            --primary-color: <?= $branding['primary_color'] ?? '#0066cc' ?>;
-            --secondary-color: <?= $branding['secondary_color'] ?? '#003d7a' ?>;
-            --accent-color: <?= $branding['accent_color'] ?? '#ff6b35' ?>;
+            --primary-color:
+                <?= $branding['primary_color'] ?? '#0066cc' ?>
+            ;
+            --secondary-color:
+                <?= $branding['secondary_color'] ?? '#003d7a' ?>
+            ;
+            --accent-color:
+                <?= $branding['accent_color'] ?? '#ff6b35' ?>
+            ;
             --text-color: #333;
             --light-gray: #f8f9fa;
             --border-color: #e0e0e0;
@@ -44,7 +53,7 @@
         /* Header */
         .header {
             background: #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -159,7 +168,7 @@
         .hero {
             position: relative;
             height: 600px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/images/hero_default.png') no-repeat center center/cover;
             color: white;
             display: flex;
             align-items: center;
@@ -204,7 +213,7 @@
         .btn-primary:hover {
             background: #ff5520;
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(255,107,53,0.3);
+            box-shadow: 0 10px 25px rgba(255, 107, 53, 0.3);
         }
 
         .btn-secondary {
@@ -249,7 +258,7 @@
             background: white;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             transition: all 0.3s;
             text-decoration: none;
             color: inherit;
@@ -257,7 +266,7 @@
 
         .category-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
         }
 
         .category-image {
@@ -296,14 +305,14 @@
             background: white;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             transition: all 0.3s;
             position: relative;
         }
 
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         }
 
         .product-image {
@@ -494,26 +503,31 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
+            border: 3px solid rgba(255, 255, 255, .3);
             border-radius: 50%;
             border-top-color: #fff;
             animation: spin 1s ease-in-out infinite;
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
         <div class="header-top">
             <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <i class="bi bi-telephone"></i> <?= htmlspecialchars($store_settings['phone'] ?? '(555) 123-4567') ?>
+                    <i class="bi bi-telephone"></i>
+                    <?= htmlspecialchars($store_settings['phone'] ?? '(555) 123-4567') ?>
                     <span style="margin: 0 1rem;">|</span>
-                    <i class="bi bi-envelope"></i> <?= htmlspecialchars($store_settings['email'] ?? 'info@nautilus.com') ?>
+                    <i class="bi bi-envelope"></i>
+                    <?= htmlspecialchars($store_settings['email'] ?? 'info@nautilus.com') ?>
                 </div>
                 <div>
                     <a href="/customer/login" style="color: white; text-decoration: none; margin-left: 1rem;">
@@ -531,7 +545,7 @@
                             <img src="<?= htmlspecialchars($branding['logo']) ?>" alt="Logo">
                         <?php else: ?>
                             <i class="bi bi-droplet-fill"></i>
-                            <?= htmlspecialchars($branding['business_name'] ?? 'Nautilus Dive Shop') ?>
+                            <?= htmlspecialchars($branding['business_name'] ?? (getenv('APP_NAME') ?: 'Nautilus Dive Shop')) ?>
                         <?php endif; ?>
                     </a>
 
@@ -550,7 +564,8 @@
                     <div class="header-actions">
                         <div class="search-box">
                             <form action="/shop" method="GET">
-                                <input type="text" name="search" placeholder="Search products..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                                <input type="text" name="search" placeholder="Search products..."
+                                    value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                                 <i class="bi bi-search"></i>
                             </form>
                         </div>
@@ -570,7 +585,8 @@
         <div class="container">
             <div class="hero-content">
                 <h1><?= htmlspecialchars($store_settings['hero_title'] ?? 'Dive Into Adventure') ?></h1>
-                <p><?= htmlspecialchars($store_settings['hero_subtitle'] ?? 'Premium dive equipment, expert courses, and unforgettable underwater experiences') ?></p>
+                <p><?= htmlspecialchars($store_settings['hero_subtitle'] ?? 'Premium dive equipment, expert courses, and unforgettable underwater experiences') ?>
+                </p>
                 <div>
                     <a href="/shop" class="btn btn-primary">Shop Now</a>
                     <a href="/courses" class="btn btn-secondary">View Courses</a>
@@ -599,17 +615,18 @@
                 ];
 
                 foreach ($categories ?? [] as $category):
-                    if (($category['product_count'] ?? 0) == 0) continue;
-                ?>
-                <a href="/shop?category=<?= $category['id'] ?>" class="category-card">
-                    <div class="category-image">
-                        <i class="bi <?= $categoryIcons[$category['name']] ?? 'bi-box' ?>"></i>
-                    </div>
-                    <div class="category-content">
-                        <h3><?= htmlspecialchars($category['name']) ?></h3>
-                        <p><?= $category['product_count'] ?> products</p>
-                    </div>
-                </a>
+                    if (($category['product_count'] ?? 0) == 0)
+                        continue;
+                    ?>
+                    <a href="/shop?category=<?= $category['id'] ?>" class="category-card">
+                        <div class="category-image">
+                            <i class="bi <?= $categoryIcons[$category['name']] ?? 'bi-box' ?>"></i>
+                        </div>
+                        <div class="category-content">
+                            <h3><?= htmlspecialchars($category['name']) ?></h3>
+                            <p><?= $category['product_count'] ?> products</p>
+                        </div>
+                    </a>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -625,41 +642,42 @@
 
             <div class="products-grid">
                 <?php foreach ($featured_products ?? [] as $product): ?>
-                <div class="product-card">
-                    <div class="product-image">
-                        <?php if ($product['image']): ?>
-                            <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
-                        <?php else: ?>
-                            <i class="bi bi-image" style="font-size: 4rem; color: #ccc;"></i>
-                        <?php endif; ?>
+                    <div class="product-card">
+                        <div class="product-image">
+                            <?php if ($product['image']): ?>
+                                <img src="<?= htmlspecialchars($product['image']) ?>"
+                                    alt="<?= htmlspecialchars($product['name']) ?>">
+                            <?php else: ?>
+                                <i class="bi bi-image" style="font-size: 4rem; color: #ccc;"></i>
+                            <?php endif; ?>
 
-                        <?php if ($product['is_featured'] ?? false): ?>
-                            <div class="product-badge">Featured</div>
-                        <?php endif; ?>
-                    </div>
+                            <?php if ($product['is_featured'] ?? false): ?>
+                                <div class="product-badge">Featured</div>
+                            <?php endif; ?>
+                        </div>
 
-                    <div class="product-content">
-                        <div class="product-category">
-                            <?= htmlspecialchars($product['category_name'] ?? 'Products') ?>
-                        </div>
-                        <div class="product-title">
-                            <a href="/product/<?= $product['id'] ?>">
-                                <?= htmlspecialchars($product['name']) ?>
-                            </a>
-                        </div>
-                        <div class="product-price">
-                            $<?= number_format($product['price'], 2) ?>
-                        </div>
-                        <div class="product-footer">
-                            <button class="btn-add-cart" onclick="addToCart(<?= $product['id'] ?>)">
-                                <i class="bi bi-cart-plus"></i> Add to Cart
-                            </button>
-                            <button class="btn-wishlist">
-                                <i class="bi bi-heart"></i>
-                            </button>
+                        <div class="product-content">
+                            <div class="product-category">
+                                <?= htmlspecialchars($product['category_name'] ?? 'Products') ?>
+                            </div>
+                            <div class="product-title">
+                                <a href="/product/<?= $product['id'] ?>">
+                                    <?= htmlspecialchars($product['name']) ?>
+                                </a>
+                            </div>
+                            <div class="product-price">
+                                $<?= number_format($product['price'], 2) ?>
+                            </div>
+                            <div class="product-footer">
+                                <button class="btn-add-cart" onclick="addToCart(<?= $product['id'] ?>)">
+                                    <i class="bi bi-cart-plus"></i> Add to Cart
+                                </button>
+                                <button class="btn-wishlist">
+                                    <i class="bi bi-heart"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
                 <?php endforeach; ?>
             </div>
 
@@ -698,8 +716,10 @@
         <div class="container">
             <div class="footer-grid">
                 <div>
-                    <h4><?= htmlspecialchars($branding['business_name'] ?? 'Nautilus Dive Shop') ?></h4>
-                    <p style="color: #ccc; margin-bottom: 1rem;">Your trusted partner for diving equipment, training, and adventure.</p>
+                    <h4><?= htmlspecialchars($branding['business_name'] ?? (getenv('APP_NAME') ?: 'Nautilus Dive Shop')) ?>
+                    </h4>
+                    <p style="color: #ccc; margin-bottom: 1rem;">Your trusted partner for diving equipment, training,
+                        and adventure.</p>
                     <div style="font-size: 1.5rem; margin-top: 1rem;">
                         <a href="#" style="margin-right: 1rem;"><i class="bi bi-facebook"></i></a>
                         <a href="#" style="margin-right: 1rem;"><i class="bi bi-instagram"></i></a>
@@ -733,16 +753,21 @@
                 <div>
                     <h4>Contact</h4>
                     <ul>
-                        <li><i class="bi bi-geo-alt"></i> <?= htmlspecialchars($store_settings['address'] ?? '123 Ocean Ave, Miami, FL') ?></li>
-                        <li><i class="bi bi-telephone"></i> <?= htmlspecialchars($store_settings['phone'] ?? '(555) 123-4567') ?></li>
-                        <li><i class="bi bi-envelope"></i> <?= htmlspecialchars($store_settings['email'] ?? 'info@nautilus.com') ?></li>
+                        <li><i class="bi bi-geo-alt"></i>
+                            <?= htmlspecialchars($store_settings['address'] ?? '123 Ocean Ave, Miami, FL') ?></li>
+                        <li><i class="bi bi-telephone"></i>
+                            <?= htmlspecialchars($store_settings['phone'] ?? '(555) 123-4567') ?></li>
+                        <li><i class="bi bi-envelope"></i>
+                            <?= htmlspecialchars($store_settings['email'] ?? 'info@nautilus.com') ?></li>
                         <li><i class="bi bi-clock"></i> Mon-Sat: 9AM-6PM</li>
                     </ul>
                 </div>
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; <?= date('Y') ?> <?= htmlspecialchars($branding['business_name'] ?? 'Nautilus Dive Shop') ?>. All rights reserved.</p>
+                <p>&copy; <?= date('Y') ?>
+                    <?= htmlspecialchars($branding['business_name'] ?? (getenv('APP_NAME') ?: 'Nautilus Dive Shop')) ?>.
+                    All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -768,30 +793,30 @@
                     quantity: 1
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    button.innerHTML = '<i class="bi bi-check2"></i> Added!';
-                    button.style.background = '#28a745';
-                    updateCartCount();
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        button.innerHTML = '<i class="bi bi-check2"></i> Added!';
+                        button.style.background = '#28a745';
+                        updateCartCount();
 
-                    setTimeout(() => {
+                        setTimeout(() => {
+                            button.innerHTML = originalText;
+                            button.style.background = '';
+                            button.disabled = false;
+                        }, 2000);
+                    } else {
+                        alert(data.message || 'Error adding to cart');
                         button.innerHTML = originalText;
-                        button.style.background = '';
                         button.disabled = false;
-                    }, 2000);
-                } else {
-                    alert(data.message || 'Error adding to cart');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error adding to cart');
                     button.innerHTML = originalText;
                     button.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error adding to cart');
-                button.innerHTML = originalText;
-                button.disabled = false;
-            });
+                });
         }
 
         function updateCartCount() {
@@ -804,4 +829,5 @@
         }
     </script>
 </body>
+
 </html>

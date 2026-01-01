@@ -11,10 +11,18 @@ session_start();
 // Helper to stream output
 function stream_msg($type, $msg)
 {
+    file_put_contents(__DIR__ . '/install_debug.log', date('Y-m-d H:i:s') . " [$type] $msg\n", FILE_APPEND);
     echo "$type:$msg\n";
     if (ob_get_level() > 0)
         ob_flush();
     flush();
+}
+// Start Logging
+file_put_contents(__DIR__ . '/install_debug.log', "--- Migration Backend Started ---\nSession ID: " . session_id() . "\n");
+if (isset($_SESSION['install_data'])) {
+    file_put_contents(__DIR__ . '/install_debug.log', "Session Data Found: Yes\n", FILE_APPEND);
+} else {
+    file_put_contents(__DIR__ . '/install_debug.log', "Session Data Found: NO\n", FILE_APPEND);
 }
 
 // Check for Reset Flag
@@ -47,9 +55,20 @@ $dbPass = getenv("DB_PASSWORD") ?: ($_ENV['DB_PASSWORD'] ?? 'nautilus123');
 $dbPort = getenv("DB_PORT") ?: ($_ENV['DB_PORT'] ?? '3306');
 $company = getenv("APP_NAME") ?: ($_ENV['APP_NAME'] ?? 'Nautilus');
 
-// In reset mode, we rely on these defaults or environment. 
-// In install mode, session data overrides everything.
-if (!$doReset && isset($_SESSION['install_data'])) {
+// Check for POST JSON Input first (Most Reliable)
+$postInput = file_get_contents('php://input');
+$postData = json_decode($postInput, true);
+
+if (!empty($postData) && isset($postData['db_host'])) {
+    file_put_contents(__DIR__ . '/install_debug.log', "Config Source: POST JSON\n", FILE_APPEND);
+    $data = $postData;
+    $dbHost = $data['db_host'];
+    $dbName = $data['db_name'];
+    $dbUser = $data['db_user'];
+    $dbPass = $data['db_pass'];
+    $dbPort = $data['db_port'] ?? 3306;
+} elseif (!$doReset && isset($_SESSION['install_data'])) {
+    file_put_contents(__DIR__ . '/install_debug.log', "Config Source: SESSION\n", FILE_APPEND);
     $data = $_SESSION['install_data'];
     $dbHost = $data['db_host'];
     $dbName = $data['db_name'];
@@ -59,6 +78,7 @@ if (!$doReset && isset($_SESSION['install_data'])) {
 } elseif (!$doReset && empty($_SESSION['install_data'])) {
     // If not resetting and no install data, we might be re-running migrations manually
     // Just proceed with Environment variables found above
+    file_put_contents(__DIR__ . '/install_debug.log', "Config Source: ENV (Fallback)\n", FILE_APPEND);
 }
 
 // 2. Connect to Database
@@ -103,7 +123,6 @@ $envPath = dirname(__DIR__) . '/.env';
 if (!file_exists($envPath)) {
     $appUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
     $envContent = <<<EOT
-APP_NAME="{$data['company']}"
 APP_ENV=production
 APP_DEBUG=false
 APP_URL={$appUrl}
@@ -115,15 +134,6 @@ DB_DATABASE={$dbName}
 DB_USERNAME={$dbUser}
 DB_PASSWORD={$dbPass}
 
-MAIL_MAILER=log
-MAIL_HOST=localhost
-MAIL_PORT=1025
-MAIL_USERNAME=null
-MAIL_PASSWORD=null
-MAIL_ENCRYPTION=null
-MAIL_FROM_ADDRESS="no-reply@localhost"
-MAIL_FROM_NAME="\${APP_NAME}"
-
 BROADCAST_DRIVER=log
 CACHE_DRIVER=file
 FILESYSTEM_DRIVER=local
@@ -131,8 +141,32 @@ QUEUE_CONNECTION=sync
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
 EOT;
-    file_put_contents($envPath, $envContent);
-    stream_msg("INFO", "Created configuration file.");
+    if (file_put_contents($envPath, $envContent) === false) {
+        stream_msg("ERROR", "Failed to write .env file. Check permissions.");
+        file_put_contents(__DIR__ . '/install_debug.log', "ERROR: Failed to write .env\n", FILE_APPEND);
+    } else {
+        stream_msg("INFO", "Created configuration file (Minimal .env).");
+        file_put_contents(__DIR__ . '/install_debug.log', "SUCCESS: Wrote .env file\n", FILE_APPEND);
+    }
+
+    // seed Mail text to DB
+    try {
+        $pdo->exec("INSERT IGNORE INTO system_settings (category, setting_key, setting_value) VALUES 
+            ('mail', 'mail_mailer', 'log'),
+            ('mail', 'mail_host', 'localhost'),
+            ('mail', 'mail_port', '1025'),
+            ('mail', 'mail_username', ''),
+            ('mail', 'mail_password', ''),
+            ('mail', 'mail_encryption', 'null'),
+            ('mail', 'mail_from_address', 'no-reply@localhost'),
+            ('mail', 'mail_from_name', '{$data['company']}')
+        ");
+        stream_msg("INFO", "Seeded default Mail settings to DB.");
+    } catch (Exception $e) {
+        stream_msg("INFO", "Skipped seeding mail settings: " . $e->getMessage());
+    }
+} else {
+    file_put_contents(__DIR__ . '/install_debug.log', "INFO: .env already exists, skipping write.\n", FILE_APPEND);
 }
 
 // 4. Run Migrations
@@ -253,6 +287,29 @@ try {
     exit;
 }
 
+// 5a. Update System Settings (Business Name)
+try {
+    // Check if system_settings table exists (created by migrations)
+    $stmt = $pdo->query("SHOW TABLES LIKE 'system_settings'");
+    if ($stmt->fetch()) {
+        $companyName = $data['company'];
+
+        // Update or Insert 'business_name'
+        $stmt = $pdo->prepare("SELECT id FROM system_settings WHERE setting_key = 'business_name'");
+        $stmt->execute();
+        if ($stmt->fetch()) {
+            $update = $pdo->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = 'business_name'");
+            $update->execute([$companyName]);
+        } else {
+            $insert = $pdo->prepare("INSERT INTO system_settings (category, setting_key, setting_value) VALUES ('general', 'business_name', ?)");
+            $insert->execute([$companyName]);
+        }
+        stream_msg("INFO", "Updated Business Name in Database Settings.");
+    }
+} catch (Exception $e) {
+    stream_msg("INFO", "Skipping settings update: " . $e->getMessage());
+}
+
 // 5b. Create Test Users (Instructor, Customer)
 try {
     $testUsers = [
@@ -282,9 +339,6 @@ try {
 } catch (Exception $e) {
     stream_msg("INFO", "Skipping test users: " . $e->getMessage());
 }
-
-// 6. Mark as Installed
-file_put_contents(dirname(__DIR__) . '/.installed', date('Y-m-d H:i:s'));
 
 stream_msg("COMPLETE", "Installation finished successfully.");
 ?>

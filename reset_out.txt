@@ -1,5 +1,0 @@
-Found User: admin (ID: 1)
-Email: admin@nautilus.local
-Active: 1
-Password RESET to 'password123' successfully.
-Verification Check: SUCCESS

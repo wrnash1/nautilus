@@ -26,15 +26,18 @@ class EmailService
      */
     private function loadConfig(): void
     {
+        // Load Settings from DB
+        $settings = \App\Core\Settings::getInstance();
+
         $this->config = [
-            'from_email' => $_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@nautilus.local',
-            'from_name' => $_ENV['MAIL_FROM_NAME'] ?? 'Nautilus Dive Shop',
-            'smtp_host' => $_ENV['MAIL_HOST'] ?? 'localhost',
-            'smtp_port' => $_ENV['MAIL_PORT'] ?? 587,
-            'smtp_username' => $_ENV['MAIL_USERNAME'] ?? '',
-            'smtp_password' => $_ENV['MAIL_PASSWORD'] ?? '',
-            'smtp_encryption' => $_ENV['MAIL_ENCRYPTION'] ?? 'tls',
-            'use_smtp' => filter_var($_ENV['MAIL_USE_SMTP'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'from_email' => $settings->get('mail_from_address') ?? ($_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@nautilus.local'),
+            'from_name' => $settings->get('mail_from_name') ?? ($_ENV['MAIL_FROM_NAME'] ?? 'Nautilus Dive Shop'),
+            'smtp_host' => $settings->get('mail_host') ?? ($_ENV['MAIL_HOST'] ?? 'localhost'),
+            'smtp_port' => $settings->get('mail_port') ?? ($_ENV['MAIL_PORT'] ?? 587),
+            'smtp_username' => $settings->get('mail_username') ?? ($_ENV['MAIL_USERNAME'] ?? ''),
+            'smtp_password' => $settings->get('mail_password') ?? ($_ENV['MAIL_PASSWORD'] ?? ''),
+            'smtp_encryption' => $settings->get('mail_encryption') ?? ($_ENV['MAIL_ENCRYPTION'] ?? 'tls'),
+            'use_smtp' => $settings->get('mail_use_smtp') ?? filter_var($_ENV['MAIL_USE_SMTP'] ?? false, FILTER_VALIDATE_BOOLEAN),
         ];
     }
 
