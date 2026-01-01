@@ -1,0 +1,7 @@
+--- TESTING LOGIN ---
+Attempting login with: User='admin', Pass='password123'
+1. Finding User...
+   User FOUND: ID 1 (admin@nautilus.local)
+2. Password Verification: SUCCESS
+3. Testing Auth::attempt()...
+   Auth::attempt returned: TRUE

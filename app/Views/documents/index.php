@@ -400,5 +400,5 @@ function formatBytes($bytes, $precision = 2) {
     return round($bytes, $precision) . ' ' . $units[$pow];
 }
 
-require __DIR__ . '/../layouts/app.php';
+require __DIR__ . '/../layouts/admin.php';
 ?>

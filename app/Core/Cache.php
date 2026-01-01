@@ -18,7 +18,7 @@ class Cache
     {
         $this->driver = $_ENV['CACHE_DRIVER'] ?? 'file';
         $this->prefix = $_ENV['CACHE_PREFIX'] ?? 'nautilus_';
-        $this->defaultTTL = (int)($_ENV['CACHE_TTL'] ?? 3600);
+        $this->defaultTTL = (int) ($_ENV['CACHE_TTL'] ?? 3600);
 
         $this->connect();
     }
@@ -41,7 +41,7 @@ class Cache
                 if (class_exists('\Redis')) {
                     $this->connection = new \Redis();
                     $host = $_ENV['REDIS_HOST'] ?? '127.0.0.1';
-                    $port = (int)($_ENV['REDIS_PORT'] ?? 6379);
+                    $port = (int) ($_ENV['REDIS_PORT'] ?? 6379);
                     $this->connection->connect($host, $port);
 
                     if (!empty($_ENV['REDIS_PASSWORD'])) {
@@ -54,7 +54,7 @@ class Cache
                 if (class_exists('\Memcached')) {
                     $this->connection = new \Memcached();
                     $host = $_ENV['MEMCACHED_HOST'] ?? '127.0.0.1';
-                    $port = (int)($_ENV['MEMCACHED_PORT'] ?? 11211);
+                    $port = (int) ($_ENV['MEMCACHED_PORT'] ?? 11211);
                     $this->connection->addServer($host, $port);
                 }
                 break;
@@ -232,7 +232,7 @@ class Cache
                     return $this->connection?->increment($key, $value) ?? false;
 
                 case 'file':
-                    $current = (int)$this->get($key, 0);
+                    $current = (int) $this->get($key, 0);
                     $new = $current + $value;
                     $this->set($key, $new);
                     return $new;
@@ -261,7 +261,7 @@ class Cache
                     return $this->connection?->decrement($key, $value) ?? false;
 
                 case 'file':
-                    $current = (int)$this->get($key, 0);
+                    $current = (int) $this->get($key, 0);
                     $new = $current - $value;
                     $this->set($key, $new);
                     return $new;
@@ -278,9 +278,11 @@ class Cache
 
     private function getCachePath(): string
     {
-        $path = BASE_PATH . '/storage/cache';
+        $path = sys_get_temp_dir() . '/nautilus_cache';
         if (!is_dir($path)) {
-            mkdir($path, 0755, true);
+            if (!@mkdir($path, 0777, true)) {
+                return sys_get_temp_dir();
+            }
         }
         return $path;
     }

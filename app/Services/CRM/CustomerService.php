@@ -10,24 +10,31 @@ class CustomerService
     public function createCustomer(array $data): int
     {
         $this->validateCustomerData($data);
-        
-        return Customer::create($data);
+
+        $customer = Customer::create($data);
+        return $customer->id;
     }
-    
+
     public function updateCustomer(int $id, array $data): bool
     {
         $this->validateCustomerData($data, $id);
-        
-        return Customer::update($id, $data);
+
+        $customer = Customer::findOrFail($id);
+        return $customer->update($data);
     }
-    
+
     public function search(string $query): array
     {
+        // Eloquent search returns Collection
         $customers = Customer::search($query);
-        
+
         // Enrich with certification info
-        foreach ($customers as &$customer) {
-            // Get highest certification
+        $results = [];
+        foreach ($customers as $customerModel) {
+            $customer = $customerModel->toArray();
+
+            // Get highest certification (using relationship if possible, but complex query originally)
+            // Or just use query builder for speed/complexity handling
             $highestCert = Database::fetchOne("
                 SELECT
                     c.name as certification_name,
@@ -42,18 +49,19 @@ class CustomerService
                 ORDER BY c.level DESC, cc.issue_date DESC
                 LIMIT 1
             ", [$customer['id']]);
-            
+
             $customer['certification'] = $highestCert ?: null;
-            
+
             // Add placeholder photo if missing
             if (empty($customer['photo_url'])) {
-                $customer['photo_url'] = '/assets/img/default-avatar.png'; // Ensure this exists or handle on frontend
+                $customer['photo_url'] = '/assets/img/default-avatar.png';
             }
+            $results[] = $customer;
         }
-        
-        return $customers;
+
+        return $results;
     }
-    
+
     public function getCustomer360(int $id): array
     {
         $customer = Customer::find($id);
@@ -62,11 +70,23 @@ class CustomerService
             return [];
         }
 
-        $addresses = Customer::getAllAddresses($id);
-        $transactions = Customer::getTransactionHistory($id);
-        $certifications = Customer::getCertifications($id);
+        // Convert customer to array for view compatibility (views might use array access)
+        // Eloquent model supports array access, but toArray() is rigorous.
+        $customerArray = $customer->toArray();
+
+        // Use relationships for simple fetchs
+        $addresses = $customer->addresses()->orderBy('is_default', 'desc')->get()->toArray();
+        $transactions = $customer->transactions()->orderBy('created_at', 'desc')->get()->toArray();
+        $certifications = $customer->certifications()
+            ->leftJoin('certifications as c', 'customer_certifications.certification_id', '=', 'c.id')
+            ->leftJoin('certification_agencies as ca', 'c.agency_id', '=', 'ca.id')
+            ->select('customer_certifications.*', 'ca.name as agency_name', 'ca.abbreviation as agency_code', 'c.name as certification_name')
+            ->orderBy('issue_date', 'desc')
+            ->get()
+            ->toArray();
 
         // Get highest certification with agency info
+        // Keeping raw query for complex join logic unless simple
         $highestCert = null;
         if (!empty($certifications)) {
             $highestCert = Database::fetchOne("
@@ -89,25 +109,11 @@ class CustomerService
             ", [$id]);
         }
 
-        // Fetch phones, emails, contacts, and tags
-        $phones = Database::fetchAll("
-            SELECT * FROM customer_phones
-            WHERE customer_id = ?
-            ORDER BY is_primary DESC, phone_type
-        ", [$id]);
+        $phones = $customer->phones()->orderBy('is_default', 'desc')->orderBy('phone_type')->get()->toArray();
+        $emails = $customer->emails()->orderBy('is_default', 'desc')->orderBy('email_type')->get()->toArray();
+        $contacts = $customer->contacts()->orderBy('is_primary_emergency', 'desc')->orderBy('last_name')->get()->toArray();
 
-        $emails = Database::fetchAll("
-            SELECT * FROM customer_emails
-            WHERE customer_id = ?
-            ORDER BY is_primary DESC, email_type
-        ", [$id]);
-
-        $contacts = Database::fetchAll("
-            SELECT * FROM customer_contacts
-            WHERE customer_id = ?
-            ORDER BY is_primary DESC, contact_name
-        ", [$id]);
-
+        // Tags - keeping Database query as no relationship defined yet
         $customerTags = Database::fetchAll("
             SELECT t.*, cta.assigned_at, cta.notes,
                    CONCAT(u.first_name, ' ', u.last_name) as assigned_by_name
@@ -119,7 +125,7 @@ class CustomerService
         ", [$id]);
 
         return [
-            'customer' => $customer,
+            'customer' => $customerArray,
             'addresses' => $addresses,
             'transactions' => $transactions,
             'certifications' => $certifications,
@@ -128,44 +134,44 @@ class CustomerService
             'emails' => $emails,
             'contacts' => $contacts,
             'customerTags' => $customerTags,
-            'equipment'    => Database::fetchAll(
-                "SELECT * FROM customer_equipment WHERE customer_id = ? ORDER BY serial_number", 
-                [$id]
-            )
+            'equipment' => $customer->equipment()->orderBy('serial_number')->get()->toArray()
         ];
     }
-    
+
     private function validateCustomerData(array $data, ?int $id = null): void
     {
         $errors = [];
-        
+
         if (empty($data['first_name'])) {
             $errors[] = 'First name is required';
         }
-        
+
         if (empty($data['last_name'])) {
             $errors[] = 'Last name is required';
         }
-        
+
         if (!empty($data['email'])) {
             if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
                 $errors[] = 'Invalid email format';
             }
-            
-            $existingCustomer = \App\Core\Database::fetchOne(
-                "SELECT id FROM customers WHERE email = ? AND id != ? AND is_active = 1",
-                [$data['email'], $id ?? 0]
-            );
-            
-            if ($existingCustomer) {
+
+            // Replaced raw query with Eloquent count
+            $query = Customer::where('email', $data['email'])
+                ->where('is_active', 1);
+
+            if ($id) {
+                $query->where('id', '!=', $id);
+            }
+
+            if ($query->count() > 0) {
                 $errors[] = 'Email already exists';
             }
         }
-        
+
         if (($data['customer_type'] ?? 'B2C') === 'B2B' && empty($data['company_name'])) {
             $errors[] = 'Company name is required for B2B customers';
         }
-        
+
         if (!empty($errors)) {
             throw new \Exception(implode(', ', $errors));
         }
@@ -174,12 +180,11 @@ class CustomerService
     public function getCustomerStatus(int $id): array
     {
         // 1. Outstanding Balance (Pending transactions)
-        $outstanding = Database::fetchOne("
-            SELECT COALESCE(SUM(total), 0) as total
-            FROM transactions
-            WHERE customer_id = ? AND status = 'pending'
-        ", [$id]);
-        
+        // Using Eloquent sum
+        $outstanding = \App\Models\Transaction::where('customer_id', $id)
+            ->where('status', 'pending')
+            ->sum('total');
+
         // 2. Active Work Orders
         $workOrders = Database::fetchAll("
             SELECT id, work_order_number, equipment_type, status, estimated_cost
@@ -189,7 +194,6 @@ class CustomerService
         ", [$id]);
 
         // 3. Upcoming Courses
-        // Assuming table 'course_enrollments' and 'course_schedules'
         $courses = Database::fetchAll("
             SELECT cs.id, c.name, cs.start_date, ce.status
             FROM course_enrollments ce
@@ -202,7 +206,6 @@ class CustomerService
         ", [$id]);
 
         // 4. Upcoming Trips
-        // Assuming 'trip_bookings' and 'trip_schedules'
         $trips = Database::fetchAll("
             SELECT ts.id, t.name, ts.departure_date, tb.status
             FROM trip_bookings tb
@@ -215,7 +218,7 @@ class CustomerService
         ", [$id]);
 
         return [
-            'outstanding_balance' => (float)($outstanding['total'] ?? 0),
+            'outstanding_balance' => (float) $outstanding,
             'work_orders' => $workOrders ?? [],
             'upcoming_courses' => $courses ?? [],
             'upcoming_trips' => $trips ?? []

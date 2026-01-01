@@ -1,46 +1,27 @@
 <IfModule mod_rewrite.c>
-    RewriteEngine On
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
 
-    # Redirect to HTTPS (disabled for local development)
-    # Uncomment for production with SSL:
-    # RewriteCond %{HTTPS} off
-    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    RewriteEngine On
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    Options -MultiViews
-    RewriteBase /
-
-    # Installer Route - handled by Front Controller
-    RewriteRule ^install/?$ install.php [L]
-
-    # Redirect Trailing Slashes
+    # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Front Controller
+    # Handle Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
 
-# Security Headers
-<IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
-    Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
-</IfModule>
-
-# Disable Directory Browsing
-Options -Indexes
-
-# Block access to sensitive files
-<FilesMatch "\.(env|log|sql|md)$">
+# Block access to backups and logs if somehow exposed
+<FilesMatch "\.(log|sql|sqlite|env)$">
     Order allow,deny
     Deny from all
 </FilesMatch>

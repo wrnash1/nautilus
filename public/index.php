@@ -40,6 +40,21 @@ try {
     error_log("Failed to load .env: " . $e->getMessage());
 }
 
+// Enable Error Reporting for Debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+use App\Core\Router;
+
+// Initialize Database
+try {
+    \App\Core\Database::init();
+} catch (\Exception $e) {
+    error_log("Database Init Failed: " . $e->getMessage());
+    die("Database Error: " . $e->getMessage());
+}
+
 // Set error reporting based on environment
 // FORCE DEBUGGING ON
 error_reporting(E_ALL);
@@ -50,6 +65,7 @@ ini_set('display_startup_errors', '1');
 date_default_timezone_set($_ENV['APP_TIMEZONE'] ?? 'America/New_York');
 
 // Start session
+session_save_path(sys_get_temp_dir());
 session_start();
 
 // Generate CSRF token if not exists
@@ -105,7 +121,13 @@ $router = require __DIR__ . '/../routes/web.php';
 $requestUri = $_SERVER['REQUEST_URI'];
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
-$requestUri = $_SERVER['REQUEST_URI'];
-$requestMethod = $_SERVER['REQUEST_METHOD'];
-
-$router->dispatch($requestMethod, $requestUri);
+try {
+    $router->dispatch($requestMethod, $requestUri);
+} catch (\Throwable $e) {
+    http_response_code(500);
+    echo "<h1>CRITICAL ERROR (Caught in index.php)</h1>";
+    echo "<p><strong>Message:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
+    echo "<p><strong>File:</strong> " . htmlspecialchars($e->getFile()) . " on line " . $e->getLine() . "</p>";
+    echo "<h3>Stack Trace:</h3>";
+    echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+}

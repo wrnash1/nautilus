@@ -2,82 +2,54 @@
 
 namespace App\Models;
 
-use App\Core\Database;
+use Illuminate\Database\Eloquent\Model;
 
-class Category
+class Category extends Model
 {
-    public static function all(): array
+    protected $table = 'product_categories';
+    protected $guarded = ['id'];
+
+    // Relationships
+    public function parent()
     {
-        return Database::fetchAll(
-            "SELECT * FROM product_categories WHERE is_active = 1 ORDER BY sort_order ASC, name ASC"
-        ) ?? [];
+        return $this->belongsTo(Category::class, 'parent_id');
     }
-    
-    public static function find(int $id): ?array
+
+    public function children()
     {
-        return Database::fetchOne(
-            "SELECT * FROM product_categories WHERE id = ? AND is_active = 1",
-            [$id]
-        );
+        return $this->hasMany(Category::class, 'parent_id');
     }
-    
-    public static function create(array $data): int
+
+    public function products()
     {
-        Database::query(
-            "INSERT INTO product_categories (parent_id, name, slug, description, is_active) 
-             VALUES (?, ?, ?, ?, ?)",
-            [
-                $data['parent_id'] ?? null,
-                $data['name'],
-                $data['slug'],
-                $data['description'] ?? null,
-                $data['is_active'] ?? 1
-            ]
-        );
-        
-        $categoryId = (int)Database::lastInsertId();
-        logActivity('create', 'categories', $categoryId);
-        
-        return $categoryId;
+        return $this->hasMany(Product::class);
     }
-    
-    public static function update(int $id, array $data): bool
+
+    // Static wrappers removed - use standard Eloquent method in controllers
+    // - all()
+    // - create()
+    // - update()
+    // - delete()
+    // - count()
+
+    // Explicit find override to filter active only?
+    // Not recommended to override find() as arguments vary.
+    // Use scopes instead if needed.
+    // For now, controllers use where('is_active', 1) or find($id) (which returns active ones if ID matches, wait find($id) doesn't check active unless we construct it).
+    // The previous find() checked is_active.
+    // But findOrFail in controller does NOT check is_active.
+    // I should add a global scope for is_active if I want to enforce it everywhere, 
+    // OR just rely on controllers.
+    // Given the refactor, I'll rely on controllers (I added where is_active active)
+    // For find(), if ID exists but is inactive, Eloquent find returns it.
+    // But legacy find($id) filtered active.
+    // So current controller Category::find($id) might return inactive category.
+    // I'll add a global scope for safety!
+
+    protected static function booted()
     {
-        Database::query(
-            "UPDATE product_categories SET 
-                parent_id = ?, name = ?, slug = ?, description = ?, 
-                is_active = ?, updated_at = NOW()
-             WHERE id = ?",
-            [
-                $data['parent_id'] ?? null,
-                $data['name'],
-                $data['slug'],
-                $data['description'] ?? null,
-                $data['is_active'] ?? 1,
-                $id
-            ]
-        );
-        
-        logActivity('update', 'categories', $id);
-        
-        return true;
-    }
-    
-    public static function delete(int $id): bool
-    {
-        Database::query(
-            "UPDATE product_categories SET is_active = 0, updated_at = NOW() WHERE id = ?",
-            [$id]
-        );
-        
-        logActivity('delete', 'categories', $id);
-        
-        return true;
-    }
-    
-    public static function count(): int
-    {
-        $result = Database::fetchOne("SELECT COUNT(*) as count FROM product_categories WHERE is_active = 1");
-        return (int)($result['count'] ?? 0);
+        static::addGlobalScope('active', function ($builder) {
+            $builder->where('is_active', 1);
+        });
     }
 }

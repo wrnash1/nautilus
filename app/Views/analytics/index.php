@@ -344,5 +344,5 @@ setTimeout(() => {
 }, 1000);
 </script>';
 
-require __DIR__ . '/../layouts/app.php';
+require __DIR__ . '/../layouts/admin.php';
 ?>

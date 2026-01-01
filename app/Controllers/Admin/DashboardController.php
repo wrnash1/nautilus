@@ -29,21 +29,21 @@ class DashboardController
         $recent_transactions = $this->getRecentTransactions(10);
         $alerts = $this->getAlerts(); // Assuming getAlerts based on grep
 
-        
+
         // System Updates
         $updates = ['has_update' => false];
         try {
             $updateService = new \App\Services\System\UpdateService();
-             $updates = $updateService->checkForUpdates();
+            $updates = $updateService->checkForUpdates();
         } catch (\Exception $e) {
-             error_log("Update check failed: " . $e->getMessage());
+            error_log("Update check failed: " . $e->getMessage());
         }
 
 
 
         require __DIR__ . '/../../Views/dashboard/index.php';
     }
-    
+
     private function getTodaySales(): float
     {
         $result = Database::fetchOne(
@@ -51,17 +51,17 @@ class DashboardController
              FROM transactions 
              WHERE created_at >= CURDATE()"
         );
-        return (float)($result['total'] ?? 0);
+        return (float) (($result ?? [])['total'] ?? 0);
     }
-    
+
     private function getTotalCustomers(): int
     {
         $result = Database::fetchOne(
             "SELECT COUNT(*) as count FROM customers WHERE is_active = 1"
         );
-        return (int)($result['count'] ?? 0);
+        return (int) (($result ?? [])['count'] ?? 0);
     }
-    
+
     private function getLowStockCount(): int
     {
         $result = Database::fetchOne(
@@ -70,17 +70,17 @@ class DashboardController
              AND stock_quantity <= low_stock_threshold 
              AND is_active = 1"
         );
-        return (int)($result['count'] ?? 0);
+        return (int) (($result ?? [])['count'] ?? 0);
     }
-    
+
     private function getTotalProducts(): int
     {
         $result = Database::fetchOne(
             "SELECT COUNT(*) as count FROM products WHERE is_active = 1"
         );
-        return (int)($result['count'] ?? 0);
+        return (int) (($result ?? [])['count'] ?? 0);
     }
-    
+
     private function getRecentTransactions(int $limit): array
     {
         return Database::fetchAll(
@@ -93,7 +93,7 @@ class DashboardController
             [$limit]
         ) ?? [];
     }
-    
+
     private function getSalesChartData(int $days): array
     {
         return Database::fetchAll(
@@ -106,7 +106,7 @@ class DashboardController
             [$days]
         ) ?? [];
     }
-    
+
     private function getTotalSales(): float
     {
         $result = Database::fetchOne(
@@ -116,7 +116,7 @@ class DashboardController
              AND YEAR(created_at) = YEAR(CURDATE())
              AND status = 'completed'"
         );
-        return (float)($result['total'] ?? 0);
+        return (float) (($result ?? [])['total'] ?? 0);
     }
 
     private function getActiveRentals(): int
@@ -126,7 +126,7 @@ class DashboardController
              FROM rental_reservations
              WHERE status IN ('confirmed', 'picked_up')"
         );
-        return (int)($result['count'] ?? 0);
+        return (int) (($result ?? [])['count'] ?? 0);
     }
 
     private function getUpcomingCoursesCount(): int
@@ -137,7 +137,7 @@ class DashboardController
              WHERE status = 'scheduled'
              AND start_date >= CURDATE()"
         );
-        return (int)($result['count'] ?? 0);
+        return (int) (($result ?? [])['count'] ?? 0);
     }
 
     private function getUpcomingTripsCount(): int
@@ -148,7 +148,7 @@ class DashboardController
              WHERE status IN ('scheduled', 'confirmed')
              AND departure_date >= CURDATE()"
         );
-        return (int)($result['count'] ?? 0);
+        return (int) (($result ?? [])['count'] ?? 0);
     }
 
     private function getEquipmentMaintenanceCount(): int
@@ -158,7 +158,7 @@ class DashboardController
              FROM rental_equipment
              WHERE status IN ('maintenance', 'damaged')"
         );
-        return (int)($result['count'] ?? 0);
+        return (int) (($result ?? [])['count'] ?? 0);
     }
 
     private function getPendingCertifications(): int
@@ -169,7 +169,7 @@ class DashboardController
              WHERE status = 'completed'
              AND (certification_number IS NULL OR certification_number = '')"
         );
-        return (int)($result['count'] ?? 0);
+        return (int) (($result ?? [])['count'] ?? 0);
     }
 
     private function getTodayAirFills(): int
@@ -179,7 +179,7 @@ class DashboardController
              FROM air_fills
              WHERE created_at >= CURDATE()"
         );
-        return (int)($result['count'] ?? 0);
+        return (int) (($result ?? [])['count'] ?? 0);
     }
 
     private function getSalesTrend(): float
@@ -200,10 +200,11 @@ class DashboardController
              AND status = 'completed'"
         );
 
-        $thisTotal = (float)($thisMonth['total'] ?? 0);
-        $lastTotal = (float)($lastMonth['total'] ?? 0);
+        $thisTotal = (float) (($thisMonth ?? [])['total'] ?? 0);
+        $lastTotal = (float) (($lastMonth ?? [])['total'] ?? 0);
 
-        if ($lastTotal == 0) return 0;
+        if ($lastTotal == 0)
+            return 0;
 
         return (($thisTotal - $lastTotal) / $lastTotal) * 100;
     }
@@ -224,10 +225,11 @@ class DashboardController
              AND YEAR(created_at) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))"
         );
 
-        $thisCount = (int)($thisMonth['count'] ?? 0);
-        $lastCount = (int)($lastMonth['count'] ?? 0);
+        $thisCount = (int) (($thisMonth ?? [])['count'] ?? 0);
+        $lastCount = (int) (($lastMonth ?? [])['count'] ?? 0);
 
-        if ($lastCount == 0) return $thisCount > 0 ? 100 : 0;
+        if ($lastCount == 0)
+            return $thisCount > 0 ? 100 : 0;
 
         return (($thisCount - $lastCount) / $lastCount) * 100;
     }
@@ -273,11 +275,11 @@ class DashboardController
         return [
             'labels' => ['Retail Sales', 'Rentals', 'Courses', 'Trips', 'Air Fills'],
             'values' => [
-                (float)($retail['total'] ?? 0),
-                (float)($rentals['total'] ?? 0),
-                (float)($courses['total'] ?? 0),
-                (float)($trips['total'] ?? 0),
-                (float)($airFills['total'] ?? 0)
+                (float) ($retail['total'] ?? 0),
+                (float) ($rentals['total'] ?? 0),
+                (float) ($courses['total'] ?? 0),
+                (float) ($trips['total'] ?? 0),
+                (float) ($airFills['total'] ?? 0)
             ]
         ];
     }
@@ -299,7 +301,7 @@ class DashboardController
 
         foreach ($results as $row) {
             if (isset($statusMap[$row['status']])) {
-                $statusMap[$row['status']] = (int)$row['count'];
+                $statusMap[$row['status']] = (int) $row['count'];
             }
         }
 
@@ -358,7 +360,7 @@ class DashboardController
         }
 
         // Sort by date
-        usort($events, function($a, $b) {
+        usort($events, function ($a, $b) {
             return strtotime($a['date']) - strtotime($b['date']);
         });
 
@@ -471,7 +473,7 @@ class DashboardController
         $result = Database::fetchOne(
             "SELECT COUNT(*) as count FROM cash_drawer_sessions WHERE status = 'open'"
         );
-        return (int)($result['count'] ?? 0);
+        return (int) (($result ?? [])['count'] ?? 0);
     }
 
     private function getTodayCashVariance(): float
@@ -482,7 +484,7 @@ class DashboardController
              WHERE DATE(closed_at) = CURDATE()
              AND status IN ('over', 'short')"
         );
-        return (float)($result['total_variance'] ?? 0);
+        return (float) (($result ?? [])['total_variance'] ?? 0);
     }
 
     private function getNewCustomersThisMonth(): int
@@ -493,6 +495,6 @@ class DashboardController
              WHERE YEAR(created_at) = YEAR(CURDATE())
              AND MONTH(created_at) = MONTH(CURDATE())"
         );
-        return (int)($result['count'] ?? 0);
+        return (int) (($result ?? [])['count'] ?? 0);
     }
 }

@@ -481,5 +481,5 @@ function getModuleIcon($module) {
     return $icons[$module] ?? 'search';
 }
 
-require __DIR__ . '/../layouts/app.php';
+require __DIR__ . '/../layouts/admin.php';
 ?>

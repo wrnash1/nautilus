@@ -1,0 +1,2 @@
+--- EXISTING USERS ---
+ID: 1 | User: admin | Email: admin@nautilus.local | Active: 1

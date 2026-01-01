@@ -171,5 +171,5 @@ new Chart(document.getElementById("salesChart"), {
 });
 </script>';
 
-require __DIR__ . '/../layouts/app.php';
+require __DIR__ . '/../layouts/admin.php';
 ?>

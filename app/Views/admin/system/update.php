@@ -1,7 +1,7 @@
 <?php
 $pageTitle = 'System Update';
 $activeMenu = 'admin';
-require __DIR__ . '/../../layouts/app.php';
+require __DIR__ . '/../../layouts/admin.php';
 ?>
 
 <div class="container-fluid">

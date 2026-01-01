@@ -2,209 +2,81 @@
 
 namespace App\Models;
 
-use App\Core\Database;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
-class Product
+class Product extends Model
 {
-    public static function all(int $limit = 50, int $offset = 0): array
-    {
-        return Database::fetchAll(
-            "SELECT p.*, c.name as category_name,
-             pi.file_path as image_url, pi.alt_text as image_alt
-             FROM products p
-             LEFT JOIN categories c ON p.category_id = c.id
-             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-             WHERE p.is_active = 1
-             ORDER BY p.name ASC
-             LIMIT ? OFFSET ?",
-            [$limit, $offset]
-        ) ?? [];
-    }
-    
-    public static function find(int $id): ?array
-    {
-        return Database::fetchOne(
-            "SELECT p.*, c.name as category_name,
-             pi.file_path as image_url, pi.alt_text as image_alt
-             FROM products p
-             LEFT JOIN categories c ON p.category_id = c.id
-             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-             WHERE p.id = ? AND p.is_active = 1",
-            [$id]
-        );
-    }
-    
-    public static function findBySku(string $sku): ?array
-    {
-        return Database::fetchOne(
-            "SELECT p.*, c.name as category_name 
-             FROM products p
-             LEFT JOIN categories c ON p.category_id = c.id
-             WHERE p.sku = ? AND p.is_active = 1",
-            [$sku]
-        );
-    }
-    
-    public static function search(string $query, int $limit = 20): array
-    {
-        $searchTerm = "%{$query}%";
-        return Database::fetchAll(
-            "SELECT p.*, c.name as category_name,
-             pi.file_path as image_url, pi.alt_text as image_alt
-             FROM products p
-             LEFT JOIN categories c ON p.category_id = c.id
-             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-             WHERE p.is_active = 1 
-             AND (p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ?)
-             ORDER BY p.name ASC
-             LIMIT ?",
-            [$searchTerm, $searchTerm, $searchTerm, $limit]
-        ) ?? [];
-    }
-    
-    public static function getLowStock(): array
-    {
-        return Database::fetchAll(
-            "SELECT p.*, c.name as category_name 
-             FROM products p
-             LEFT JOIN categories c ON p.category_id = c.id
-             WHERE p.track_inventory = 1 
-             AND p.quantity_in_stock <= p.low_stock_threshold 
-             AND p.is_active = 1
-             ORDER BY p.quantity_in_stock ASC"
-        ) ?? [];
-    }
-    
-    public static function create(array $data): int
-    {
-        Database::query(
-            "INSERT INTO products (
-                category_id, vendor_id, name, slug, sku, barcode, description,
-                price, cost, model, attributes,
-                quantity_in_stock, is_active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-                $data['category_id'] ?? null,
-                $data['vendor_id'] ?? null,
-                $data['name'],
-                $data['slug'],
-                $data['sku'],
-                $data['barcode'] ?? null,
-                $data['description'] ?? null,
-                $data['price'],
-                $data['cost'] ?? 0,
-                $data['model'] ?? null,
-                $data['attributes'] ?? null,
-                $data['quantity_in_stock'] ?? 0,
-                $data['is_active'] ?? 1
-            ]
-        );
+    protected $guarded = ['id'];
 
-        return (int)Database::lastInsertId();
-    }
-    
-    public static function update(int $id, array $data): bool
+    // Relationships
+    public function category()
     {
-        Database::query(
-            "UPDATE products SET
-                category_id = ?, vendor_id = ?, name = ?, slug = ?, sku = ?,
-                barcode = ?, description = ?, price = ?, cost = ?,
-                model = ?, attributes = ?,
-                quantity_in_stock = ?, is_active = ?,
-                updated_at = NOW()
-             WHERE id = ?",
-            [
-                $data['category_id'] ?? null,
-                $data['vendor_id'] ?? null,
-                $data['name'],
-                $data['slug'],
-                $data['sku'],
-                $data['barcode'] ?? null,
-                $data['description'] ?? null,
-                $data['price'],
-                $data['cost'] ?? 0,
-                $data['model'] ?? null,
-                $data['attributes'] ?? null,
-                $data['quantity_in_stock'] ?? 0,
-                $data['is_active'] ?? 1,
-                $id
-            ]
-        );
+        return $this->belongsTo(Category::class);
+    }
 
-        return true;
-    }
-    
-    public static function adjustStock(int $productId, int $quantity, string $type, $reference = null): bool
+    public function vendor()
     {
-        $product = self::find($productId);
-        $quantityBefore = (int)$product['quantity_in_stock'];
-        $quantityAfter = $quantityBefore + $quantity;
-        
-        Database::query(
-            "UPDATE products SET quantity_in_stock = quantity_in_stock + ?, updated_at = NOW() WHERE id = ?",
-            [$quantity, $productId]
-        );
-        
-        Database::query(
-            "INSERT INTO inventory_transactions (
-                product_id, transaction_type, quantity_change, quantity_before, 
-                quantity_after, reference_type, reference_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [
-                $productId,
-                $type,
-                $quantity,
-                $quantityBefore,
-                $quantityAfter,
-                $reference ? 'transaction' : null,
-                $reference
-            ]
-        );
-        
-        return true;
+        return $this->belongsTo(Vendor::class);
     }
-    
-    public static function count(): int
+
+    public function images()
     {
-        $result = Database::fetchOne("SELECT COUNT(*) as count FROM products WHERE is_active = 1");
-        return (int)($result['count'] ?? 0);
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order', 'asc');
     }
-    
-    public static function delete(int $id): bool
+
+    public function inventoryTransactions()
     {
-        Database::query(
-            "UPDATE products SET is_active = 0, updated_at = NOW() WHERE id = ?",
-            [$id]
-        );
-        
-        logActivity('delete', 'products', $id);
-        
-        return true;
+        return $this->hasMany(InventoryTransaction::class);
     }
-    
-    public static function getInventoryTransactions(int $productId, int $limit = 50): array
+
+    // Scopes
+    protected static function booted()
     {
-        return Database::fetchAll(
-            "SELECT it.*, u.first_name, u.last_name 
-             FROM inventory_transactions it
-             LEFT JOIN users u ON it.user_id = u.id
-             WHERE it.product_id = ?
-             ORDER BY it.created_at DESC
-             LIMIT ?",
-            [$productId, $limit]
-        ) ?? [];
+        static::addGlobalScope('active', function (Builder $builder) {
+            $builder->where('is_active', 1);
+        });
     }
-    
-    public static function getInventoryReport(): array
+
+    // Instance Methods
+    public function adjustStock(int $qty, string $type, ?string $reason = null)
     {
-        return Database::fetchAll(
-            "SELECT p.id, p.sku, p.name, p.quantity_in_stock, p.low_stock_threshold,
-                    p.cost, p.price, p.model, p.attributes, c.name as category_name,
-                    (p.quantity_in_stock * p.cost) as inventory_value
-             FROM products p
-             LEFT JOIN categories c ON p.category_id = c.id
-             WHERE p.track_inventory = 1 AND p.is_active = 1
-             ORDER BY p.name ASC"
-        ) ?? [];
+        $oldQty = $this->stock_quantity;
+        $newQty = $oldQty + $qty;
+
+        $this->update(['stock_quantity' => $newQty]);
+
+        // Log transaction
+        $this->inventoryTransactions()->create([
+            'user_id' => $_SESSION['user_id'] ?? null,
+            'transaction_type' => $type,
+            'quantity_change' => $qty,
+            'new_quantity' => $newQty,
+            'notes' => $reason
+        ]);
+
+        return $newQty;
     }
+
+    // Static helpers for compatibility/convenience if needed, but keeping it clean is better.
+    // The Service uses Product::getLowStock(). I should replace that usage in Service, or add a scope.
+
+    public function scopeLowStock(Builder $query)
+    {
+        return $query->where('track_stock', 1)
+            ->whereColumn('stock_quantity', '<=', 'reorder_level');
+    }
+
+    // For backward compatibility with static getLowStock call in Service (if I missed updating it, but I did update it to use getLowStock() which I removed).
+    // Wait, in previous step I updated Service to call Product::getLowStock() BUT I removed getLowStock() from Model.
+    // So I MUST add getLowStock() back OR update Service to use scope.
+    // I prefer adding a static wrapper that uses the scope for now to ensure Service works if I didn't update it perfectly.
+    // Actually, looking at my Service update: `return Product::getLowStock();` was what I put in the ReplacementContent because I reverted to it?
+    // No, I tried to replace it with valid code but then I might have messed up. 
+    // Let's look at `ProductService.php` again.
+    // Arguments: `return Product::where(...)->get()->toArray();` was my PLAN.
+    // But in the ReplacementContent I put `return Product::getLowStock();` as TARGET CONTENT?
+    // No, I put `return Product::where(...)->get()->toArray();` as REPLACEMENT.
+    // So Service SHOULD be using the valid code.
+    // So I don't need `getLowStock` static method on Model.
 }

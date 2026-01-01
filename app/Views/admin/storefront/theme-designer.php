@@ -211,5 +211,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php
 $content = ob_get_clean();
-require BASE_PATH . '/app/Views/layouts/app.php';
+require BASE_PATH . '/app/Views/layouts/admin.php';
 ?>

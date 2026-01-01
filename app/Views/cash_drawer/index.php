@@ -1,7 +1,7 @@
 <?php
 $pageTitle = 'Cash Drawer Management';
 $activeMenu = 'cash-drawer';
-// This view content will be rendered inside layouts/app.php
+// This view content will be rendered inside layouts/admin.php
 ?>
 
 <div class="container-fluid">

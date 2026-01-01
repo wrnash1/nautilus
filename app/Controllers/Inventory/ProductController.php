@@ -10,38 +10,41 @@ use App\Models\Vendor;
 class ProductController
 {
     private ProductService $productService;
-    
+
     public function __construct()
     {
         $this->productService = new ProductService();
     }
-    
+
     public function index()
     {
         if (!hasPermission('products.view')) {
             $_SESSION['flash_error'] = 'Access denied';
             redirect('/');
         }
-        
-        $page = (int)($_GET['page'] ?? 1);
+
+        $page = (int) ($_GET['page'] ?? 1);
         $limit = 20;
         $offset = ($page - 1) * $limit;
         $search = sanitizeInput($_GET['search'] ?? '');
-        
+
         if (!empty($search)) {
             $products = Product::search($search, $limit);
             $total = count($products);
         } else {
-            $products = Product::all($limit, $offset);
+            $products = Product::limit($limit)->offset($offset)->get();
             $total = Product::count();
         }
-        
-        $categories = Category::all();
+
+        $categories = Category::where('is_active', 1)
+            ->orderBy('sort_order', 'ASC')
+            ->orderBy('name', 'ASC')
+            ->get();
         $totalPages = ceil($total / $limit);
-        
+
         require __DIR__ . '/../../Views/products/index.php';
     }
-    
+
     public function create()
     {
         if (!hasPermission('products.create')) {
@@ -49,12 +52,17 @@ class ProductController
             redirect('/store/products');
         }
 
-        $categories = Category::all();
-        $vendors = Vendor::all();
+        $categories = Category::where('is_active', 1)
+            ->orderBy('sort_order', 'ASC')
+            ->orderBy('name', 'ASC')
+            ->get();
+        $vendors = Vendor::where('is_active', 1)
+            ->orderBy('name', 'ASC')
+            ->get();
 
         require __DIR__ . '/../../Views/products/create.php';
     }
-    
+
     public function store()
     {
         if (!hasPermission('products.create')) {
@@ -63,16 +71,16 @@ class ProductController
 
         try {
             $data = [
-                'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
-                'vendor_id' => !empty($_POST['vendor_id']) ? (int)$_POST['vendor_id'] : null,
+                'category_id' => !empty($_POST['category_id']) ? (int) $_POST['category_id'] : null,
+                'vendor_id' => !empty($_POST['vendor_id']) ? (int) $_POST['vendor_id'] : null,
                 'name' => sanitizeInput($_POST['name'] ?? ''),
                 'sku' => sanitizeInput($_POST['sku'] ?? ''),
                 'barcode' => sanitizeInput($_POST['barcode'] ?? ''),
                 'qr_code' => sanitizeInput($_POST['qr_code'] ?? ''),
                 'description' => sanitizeInput($_POST['description'] ?? ''),
-                'cost_price' => (float)($_POST['cost_price'] ?? 0),
-                'retail_price' => (float)($_POST['retail_price'] ?? 0),
-                'weight' => !empty($_POST['weight']) ? (float)$_POST['weight'] : null,
+                'cost_price' => (float) ($_POST['cost_price'] ?? 0),
+                'retail_price' => (float) ($_POST['retail_price'] ?? 0),
+                'weight' => !empty($_POST['weight']) ? (float) $_POST['weight'] : null,
                 'weight_unit' => sanitizeInput($_POST['weight_unit'] ?? 'lb'),
                 'dimensions' => sanitizeInput($_POST['dimensions'] ?? ''),
                 'color' => sanitizeInput($_POST['color'] ?? ''),
@@ -82,12 +90,12 @@ class ProductController
                 'location_in_store' => sanitizeInput($_POST['location_in_store'] ?? ''),
                 'supplier_info' => sanitizeInput($_POST['supplier_info'] ?? ''),
                 'expiration_date' => !empty($_POST['expiration_date']) ? $_POST['expiration_date'] : null,
-                'stock_quantity' => (int)($_POST['stock_quantity'] ?? 0),
-                'low_stock_threshold' => (int)($_POST['low_stock_threshold'] ?? 5),
+                'stock_quantity' => (int) ($_POST['stock_quantity'] ?? 0),
+                'low_stock_threshold' => (int) ($_POST['low_stock_threshold'] ?? 5),
                 'track_inventory' => isset($_POST['track_inventory']) ? 1 : 0,
                 'is_active' => isset($_POST['is_active']) ? 1 : 0
             ];
-            
+
             $productId = $this->productService->createProduct($data);
 
             $_SESSION['flash_success'] = 'Product created successfully';
@@ -97,7 +105,7 @@ class ProductController
             redirect('/store/products/create');
         }
     }
-    
+
     public function show(int $id)
     {
         if (!hasPermission('products.view')) {
@@ -116,7 +124,7 @@ class ProductController
 
         require __DIR__ . '/../../Views/products/show.php';
     }
-    
+
     public function edit(int $id)
     {
         if (!hasPermission('products.edit')) {
@@ -131,12 +139,17 @@ class ProductController
             redirect('/store/products');
         }
 
-        $categories = Category::all();
-        $vendors = Vendor::all();
+        $categories = Category::where('is_active', 1)
+            ->orderBy('sort_order', 'ASC')
+            ->orderBy('name', 'ASC')
+            ->get();
+        $vendors = Vendor::where('is_active', 1)
+            ->orderBy('name', 'ASC')
+            ->get();
 
         require __DIR__ . '/../../Views/products/edit.php';
     }
-    
+
     public function update(int $id)
     {
         if (!hasPermission('products.edit')) {
@@ -145,16 +158,16 @@ class ProductController
 
         try {
             $data = [
-                'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
-                'vendor_id' => !empty($_POST['vendor_id']) ? (int)$_POST['vendor_id'] : null,
+                'category_id' => !empty($_POST['category_id']) ? (int) $_POST['category_id'] : null,
+                'vendor_id' => !empty($_POST['vendor_id']) ? (int) $_POST['vendor_id'] : null,
                 'name' => sanitizeInput($_POST['name'] ?? ''),
                 'sku' => sanitizeInput($_POST['sku'] ?? ''),
                 'barcode' => sanitizeInput($_POST['barcode'] ?? ''),
                 'qr_code' => sanitizeInput($_POST['qr_code'] ?? ''),
                 'description' => sanitizeInput($_POST['description'] ?? ''),
-                'cost_price' => (float)($_POST['cost_price'] ?? 0),
-                'retail_price' => (float)($_POST['retail_price'] ?? 0),
-                'weight' => !empty($_POST['weight']) ? (float)$_POST['weight'] : null,
+                'cost_price' => (float) ($_POST['cost_price'] ?? 0),
+                'retail_price' => (float) ($_POST['retail_price'] ?? 0),
+                'weight' => !empty($_POST['weight']) ? (float) $_POST['weight'] : null,
                 'weight_unit' => sanitizeInput($_POST['weight_unit'] ?? 'lb'),
                 'dimensions' => sanitizeInput($_POST['dimensions'] ?? ''),
                 'color' => sanitizeInput($_POST['color'] ?? ''),
@@ -164,12 +177,12 @@ class ProductController
                 'location_in_store' => sanitizeInput($_POST['location_in_store'] ?? ''),
                 'supplier_info' => sanitizeInput($_POST['supplier_info'] ?? ''),
                 'expiration_date' => !empty($_POST['expiration_date']) ? $_POST['expiration_date'] : null,
-                'stock_quantity' => (int)($_POST['stock_quantity'] ?? 0),
-                'low_stock_threshold' => (int)($_POST['low_stock_threshold'] ?? 5),
+                'stock_quantity' => (int) ($_POST['stock_quantity'] ?? 0),
+                'low_stock_threshold' => (int) ($_POST['low_stock_threshold'] ?? 5),
                 'track_inventory' => isset($_POST['track_inventory']) ? 1 : 0,
                 'is_active' => isset($_POST['is_active']) ? 1 : 0
             ];
-            
+
             $this->productService->updateProduct($id, $data);
 
             $_SESSION['flash_success'] = 'Product updated successfully';
@@ -179,7 +192,7 @@ class ProductController
             redirect("/store/products/{$id}/edit");
         }
     }
-    
+
     public function delete(int $id)
     {
         if (!hasPermission('products.delete')) {
@@ -187,42 +200,42 @@ class ProductController
             redirect('/store/products');
         }
 
-        Product::delete($id);
+        Product::destroy($id);
 
         $_SESSION['flash_success'] = 'Product deleted successfully';
         redirect('/store/products');
     }
-    
+
     public function search()
     {
         if (!hasPermission('products.view')) {
             jsonResponse(['error' => 'Access denied'], 403);
         }
-        
+
         $query = sanitizeInput($_GET['q'] ?? '');
-        
+
         if (empty($query)) {
             jsonResponse([]);
         }
-        
+
         $products = Product::search($query);
         jsonResponse($products);
     }
-    
+
     public function adjustStock(int $id)
     {
         if (!hasPermission('products.adjust_stock')) {
             jsonResponse(['error' => 'Access denied'], 403);
         }
-        
+
         try {
-            $quantity = (int)($_POST['quantity'] ?? 0);
+            $quantity = (int) ($_POST['quantity'] ?? 0);
             $reason = sanitizeInput($_POST['reason'] ?? '');
-            
+
             if ($quantity == 0) {
                 throw new \Exception('Quantity cannot be zero');
             }
-            
+
             $this->productService->updateStock($id, $quantity, $reason);
 
             $_SESSION['flash_success'] = 'Stock adjusted successfully';

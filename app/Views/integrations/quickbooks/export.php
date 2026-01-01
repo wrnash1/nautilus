@@ -282,5 +282,5 @@ function loadPreview() {
 }
 </script>';
 
-require __DIR__ . '/../../layouts/app.php';
+require __DIR__ . '/../../layouts/admin.php';
 ?>

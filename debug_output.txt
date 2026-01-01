@@ -1,0 +1,14 @@
+Instantiating StorefrontController...
+Calling index()...
+Database fetchOne error: SQLSTATE[HY000]: General error: 1 no such table: company_settings
+Database fetchAll error: SQLSTATE[HY000]: General error: 1 no such table: storefront_carousel_slides
+Database fetchAll error: SQLSTATE[HY000]: General error: 1 no such table: storefront_service_boxes
+
+CRITICAL ERROR:
+SQLSTATE[HY000]: General error: 1 no such table: promotional_banners
+File: /home/wrnash1/development/nautilus/app/Services/Storefront/StorefrontSettingsService.php on line 483
+#0 /home/wrnash1/development/nautilus/app/Services/Storefront/StorefrontSettingsService.php(483): PDO->prepare()
+#1 /home/wrnash1/development/nautilus/app/Controllers/Storefront/StorefrontController.php(56): App\Services\Storefront\StorefrontSettingsService->getActiveBanners()
+#2 /home/wrnash1/development/nautilus/app/Controllers/Storefront/StorefrontController.php(47): App\Controllers\Storefront\StorefrontController->renderStorefront()
+#3 /home/wrnash1/development/nautilus/debug_home.php(28): App\Controllers\Storefront\StorefrontController->index()
+#4 {main}

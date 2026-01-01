@@ -424,5 +424,5 @@ function timeAgo($datetime) {
     return date('M j, Y', $time);
 }
 
-require __DIR__ . '/../layouts/app.php';
+require __DIR__ . '/../layouts/admin.php';
 ?>

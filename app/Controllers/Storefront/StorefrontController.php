@@ -22,7 +22,7 @@ class StorefrontController extends Controller
     {
         // Get business name from settings
         $settings = Database::fetchOne("SELECT setting_value FROM company_settings WHERE setting_key = 'business_name'");
-        $businessName = $settings['setting_value'] ?? 'Nautilus Dive Shop';
+        $businessName = ($settings ?? [])['setting_value'] ?? 'Nautilus Dive Shop';
 
         // Get carousel slides from database (if configured)
         $carouselSlides = Database::fetchAll("
@@ -57,12 +57,12 @@ class StorefrontController extends Controller
         $socialSettings = $this->settingsService->getByCategory('social');
         $socialLinks = [];
         foreach ($socialSettings as $key => $val) {
-             $socialLinks[$key] = $val['value'];
+            $socialLinks[$key] = $val['value'];
         }
         $data['social_links'] = $socialLinks;
-        
+
         $data['store_stats'] = $this->settingsService->getStoreStats(); // Get dynamic stats
-        
+
         // Pass settings service for direct access
         $data['settings'] = $this->settingsService;
 
@@ -70,7 +70,7 @@ class StorefrontController extends Controller
         $generalSettings = $this->settingsService->getByCategory('general');
         $theme = [];
         foreach ($generalSettings as $key => $val) {
-             $theme[$key] = $val['value'];
+            $theme[$key] = $val['value'];
         }
         $data['theme'] = $theme;
 
@@ -268,6 +268,6 @@ class StorefrontController extends Controller
     private function getBusinessName(): string
     {
         $settings = Database::fetchOne("SELECT setting_value FROM company_settings WHERE setting_key = 'business_name'");
-        return $settings['setting_value'] ?? 'Nautilus Dive Shop';
+        return ($settings ?? [])['setting_value'] ?? 'Nautilus Dive Shop';
     }
 }

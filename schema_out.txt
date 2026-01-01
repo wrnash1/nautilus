@@ -1,0 +1,19 @@
+--- PERMISSIONS Table ---
+id (bigint(20) unsigned)
+permission_name (varchar(100))
+permission_code (varchar(100))
+category (varchar(50))
+description (text)
+is_active (tinyint(1))
+created_at (timestamp)
+
+--- ROLES Table ---
+id (bigint(20) unsigned)
+tenant_id (bigint(20) unsigned)
+name (varchar(100))
+role_code (varchar(50))
+description (text)
+is_system_role (tinyint(1))
+is_active (tinyint(1))
+created_at (timestamp)
+updated_at (timestamp)

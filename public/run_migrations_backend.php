@@ -2,15 +2,19 @@
 ini_set('display_errors', 0);
 ini_set('output_buffering', 0);
 ini_set('implicit_flush', 1);
+ini_set('implicit_flush', 1);
 ob_implicit_flush(1);
 
+session_save_path(sys_get_temp_dir());
 session_start();
 
 // Helper to stream output
-function stream_msg($type, $msg) {
+function stream_msg($type, $msg)
+{
     echo "$type:$msg\n";
-    if (ob_get_level() > 0) ob_flush();
-    flush(); 
+    if (ob_get_level() > 0)
+        ob_flush();
+    flush();
 }
 
 // Check for Reset Flag
@@ -53,15 +57,18 @@ if (!$doReset && isset($_SESSION['install_data'])) {
     $dbPass = $data['db_pass'];
     $dbPort = $data['db_port'];
 } elseif (!$doReset && empty($_SESSION['install_data'])) {
-     // If not resetting and no install data, we might be re-running migrations manually
-     // Just proceed with Environment variables found above
+    // If not resetting and no install data, we might be re-running migrations manually
+    // Just proceed with Environment variables found above
 }
 
 // 2. Connect to Database
 try {
-    $pdo = new PDO("mysql:host=$dbHost;port=$dbPort", $dbUser, $dbPass);
+    stream_msg("INFO", "Connecting to database at $dbHost:$dbPort...");
+    $pdo = new PDO("mysql:host=$dbHost;port=$dbPort", $dbUser, $dbPass, [
+        PDO::MYSQL_ATTR_MULTI_STATEMENTS => true
+    ]);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
+
     // Create DB if not exists (redundant but safe)
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("USE `$dbName`");
@@ -72,14 +79,14 @@ try {
         $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
         $stmt = $pdo->query("SHOW TABLES");
         $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        
+
         foreach ($tables as $table) {
             $pdo->exec("DROP TABLE IF EXISTS `$table`");
             // stream_msg("INFO", "Dropped $table"); 
         }
         $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
         stream_msg("INFO", "Tables dropped. Removing install flag.");
-        
+
         $installedFile = dirname(__DIR__) . '/.installed';
         if (file_exists($installedFile)) {
             unlink($installedFile);
@@ -155,7 +162,7 @@ $processed = 0;
 foreach ($files as $file) {
     $name = basename($file);
     stream_msg("START", $name);
-    
+
     // Check if already completed
     $stmt = $pdo->prepare("SELECT status FROM migrations WHERE filename = ?");
     $stmt->execute([$name]);
@@ -169,7 +176,7 @@ foreach ($files as $file) {
     }
 
     $sql = file_get_contents($file);
-    
+
     try {
         // Record attempt
         $stmt = $pdo->prepare("INSERT INTO migrations (filename, status) VALUES (?, 'pending') ON DUPLICATE KEY UPDATE status='pending'");
@@ -184,7 +191,7 @@ foreach ($files as $file) {
 
     } catch (PDOException $e) {
         $errorMsg = $e->getMessage();
-        
+
         // Log failure
         try {
             $stmt = $pdo->prepare("UPDATE migrations SET status='failed', error_message=? WHERE filename=?");
@@ -197,11 +204,11 @@ foreach ($files as $file) {
         // BUT strict mode is safer. Let's fail and let user retry/fix.
         // Identify if it's a "create table" error on a table that exists, maybe we mark it as done?
         // No, safer to stop.
-        
+
         stream_msg("ERROR", "Migration $name failed: " . $errorMsg);
         exit;
     }
-    
+
     $processed++;
     stream_msg("PROGRESS", $processed);
 }
@@ -209,31 +216,40 @@ foreach ($files as $file) {
 // 5. Create Admin User
 $adminUser = $data['username'];
 $adminEmail = $data['email'];
-$adminPass = $data['password']; // Already hashed
+$adminPass = $data['password'];
 
-// Get Role ID for Admin (assuming it's 1 or we need to find it)
-// We need to ensure roles exist. Assuming 000_CORE_SCHEMA.sql creates them.
 try {
-    // Check if user exists
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->execute([$adminEmail]);
-    if (!$stmt->fetch()) {
+    // Check if user exists by username OR email
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+    $stmt->execute([$adminUser, $adminEmail]);
+    $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($existing) {
+        $userId = $existing['id'];
+        // Update password and details for existing user
+        $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, email = ?, username = ? WHERE id = ?");
+        $stmt->execute([$adminPass, $adminEmail, $adminUser, $userId]);
+    } else {
         $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, NOW())");
         $stmt->execute([$adminUser, $adminEmail, $adminPass]);
         $userId = $pdo->lastInsertId();
-        
-        // Assign Admin Role (assuming role_id 1 is Admin, or look it up)
-        // Let's look up 'Admin' or 'Administrator'
-        $stmt = $pdo->prepare("SELECT id FROM roles WHERE name IN ('Admin', 'Administrator') LIMIT 1");
-        $stmt->execute();
-        $role = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($role) {
-             $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
-             $stmt->execute([$userId, $role['id']]);
-        }
     }
+
+    // Assign Admin Role (Idempotent)
+    $stmt = $pdo->prepare("SELECT id FROM roles WHERE name = 'Super Admin' LIMIT 1");
+    $stmt->execute();
+    $role = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($role) {
+        // Remove existing roles to ensure clean state
+        $stmt = $pdo->prepare("DELETE FROM user_roles WHERE user_id = ?");
+        $stmt->execute([$userId]);
+
+        $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
+        $stmt->execute([$userId, $role['id']]);
+    }
+
 } catch (PDOException $e) {
-    stream_msg("ERROR", "Failed to create admin user: " . $e->getMessage());
+    stream_msg("ERROR", "Failed to create/update admin user: " . $e->getMessage());
     exit;
 }
 
@@ -248,19 +264,19 @@ try {
         $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->execute([$tu['email']]);
         if (!$stmt->fetch()) {
-             $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, NOW())");
-             $stmt->execute([$tu['user'], $tu['email'], $adminPass]); // Use same password
-             $userId = $pdo->lastInsertId();
-             
-             // Assign Role
-             $stmt = $pdo->prepare("SELECT id FROM roles WHERE naming_convention = ? OR name = ? LIMIT 1");
-             $stmt->execute([$tu['role'], $tu['role']]);
-             $role = $stmt->fetch(PDO::FETCH_ASSOC);
-             if ($role) {
-                 $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
-                 $stmt->execute([$userId, $role['id']]);
-                 stream_msg("INFO", "Created test user: " . $tu['role']);
-             }
+            $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, NOW())");
+            $stmt->execute([$tu['user'], $tu['email'], $adminPass]); // Use same password
+            $userId = $pdo->lastInsertId();
+
+            // Assign Role
+            $stmt = $pdo->prepare("SELECT id FROM roles WHERE naming_convention = ? OR name = ? LIMIT 1");
+            $stmt->execute([$tu['role'], $tu['role']]);
+            $role = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($role) {
+                $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
+                $stmt->execute([$userId, $role['id']]);
+                stream_msg("INFO", "Created test user: " . $tu['role']);
+            }
         }
     }
 } catch (Exception $e) {

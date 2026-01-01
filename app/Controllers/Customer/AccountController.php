@@ -10,167 +10,175 @@ class AccountController
 {
     public function dashboard()
     {
-        $customer = CustomerAuth::customer();
-        
-        $orders = Database::fetchAll(
-            "SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC LIMIT 5",
-            [$customer['id']]
-        ) ?? [];
-        
+        $customerData = CustomerAuth::customer();
+
+        $orders = \App\Models\Order::where('customer_id', $customerData['id'])
+            ->orderBy('created_at', 'DESC')
+            ->limit(5)
+            ->get()
+            ->toArray();
+
         require __DIR__ . '/../../Views/customer/dashboard.php';
     }
-    
+
     public function orders()
     {
-        $customer = CustomerAuth::customer();
-        
-        $orders = Database::fetchAll(
-            "SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC",
-            [$customer['id']]
-        ) ?? [];
-        
+        $customerData = CustomerAuth::customer();
+
+        $orders = \App\Models\Order::where('customer_id', $customerData['id'])
+            ->orderBy('created_at', 'DESC')
+            ->get()
+            ->toArray();
+
         require __DIR__ . '/../../Views/customer/orders.php';
     }
-    
+
     public function orderDetail(int $id)
     {
-        $customer = CustomerAuth::customer();
-        
-        $order = Database::fetchOne(
-            "SELECT * FROM orders WHERE id = ? AND customer_id = ?",
-            [$id, $customer['id']]
-        );
-        
+        $customerData = CustomerAuth::customer();
+
+        $order = \App\Models\Order::where('id', $id)
+            ->where('customer_id', $customerData['id'])
+            ->first();
+
         if (!$order) {
             $_SESSION['flash_error'] = 'Order not found';
             redirect('/account/orders');
         }
-        
-        $orderItems = Database::fetchAll(
-            "SELECT * FROM order_items WHERE order_id = ?",
-            [$id]
-        ) ?? [];
-        
+
+        $order = $order->toArray();
+
+        $orderItems = \App\Models\OrderItem::where('order_id', $id)
+            ->get()
+            ->toArray();
+
         require __DIR__ . '/../../Views/customer/order-detail.php';
     }
-    
+
     public function profile()
     {
         $customer = CustomerAuth::customer();
         require __DIR__ . '/../../Views/customer/profile.php';
     }
-    
+
     public function updateProfile()
     {
-        $customer = CustomerAuth::customer();
-        
+        $customerData = CustomerAuth::customer();
+
         $firstName = sanitizeInput($_POST['first_name'] ?? '');
         $lastName = sanitizeInput($_POST['last_name'] ?? '');
         $email = sanitizeInput($_POST['email'] ?? '');
         $phone = sanitizeInput($_POST['phone'] ?? '');
-        
+
         if (empty($firstName) || empty($lastName) || empty($email)) {
             $_SESSION['flash_error'] = 'Please fill in all required fields';
             redirect('/account/profile');
         }
-        
-        $existingCustomer = Customer::findByEmail($email);
-        if ($existingCustomer && $existingCustomer['id'] != $customer['id']) {
+
+        // Check email uniqueness
+        $existingCustomer = Customer::where('email', $email)->where('is_active', 1)->first();
+        if ($existingCustomer && $existingCustomer->id != $customerData['id']) {
             $_SESSION['flash_error'] = 'Email already in use';
             redirect('/account/profile');
         }
-        
-        Customer::update($customer['id'], [
+
+        $customer = Customer::findOrFail($customerData['id']);
+        $customer->update([
             'first_name' => $firstName,
             'last_name' => $lastName,
             'email' => $email,
             'phone' => $phone
         ]);
-        
+
+        // Update session
+        $_SESSION['customer'] = $customer->toArray();
+
         $_SESSION['flash_success'] = 'Profile updated successfully!';
         redirect('/account/profile');
     }
-    
+
     public function addresses()
     {
-        $customer = CustomerAuth::customer();
-        
-        $addresses = Database::fetchAll(
-            "SELECT * FROM customer_addresses WHERE customer_id = ? ORDER BY is_default DESC, id ASC",
-            [$customer['id']]
-        ) ?? [];
-        
+        $customerData = CustomerAuth::customer();
+
+        $addresses = \App\Models\CustomerAddress::where('customer_id', $customerData['id'])
+            ->orderBy('is_default', 'DESC')
+            ->orderBy('id', 'ASC')
+            ->get()
+            ->toArray();
+
         require __DIR__ . '/../../Views/customer/addresses.php';
     }
-    
+
     public function createAddress()
     {
-        $customer = CustomerAuth::customer();
-        
-        Database::query(
-            "INSERT INTO customer_addresses (customer_id, address_type, address_line1, address_line2, city, state, postal_code, country, is_default) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-                $customer['id'],
-                $_POST['address_type'] ?? 'both',
-                sanitizeInput($_POST['address_line1'] ?? ''),
-                sanitizeInput($_POST['address_line2'] ?? ''),
-                sanitizeInput($_POST['city'] ?? ''),
-                sanitizeInput($_POST['state'] ?? ''),
-                sanitizeInput($_POST['postal_code'] ?? ''),
-                sanitizeInput($_POST['country'] ?? 'US'),
-                isset($_POST['is_default']) ? 1 : 0
-            ]
-        );
-        
+        $customerData = CustomerAuth::customer();
+
+        $customer = Customer::findOrFail($customerData['id']);
+
+        $isDefault = isset($_POST['is_default']) ? 1 : 0;
+
+        if ($isDefault) {
+            $customer->addresses()->update(['is_default' => 0]);
+        }
+
+        $customer->addresses()->create([
+            'address_type' => $_POST['address_type'] ?? 'both',
+            'address_line1' => sanitizeInput($_POST['address_line1'] ?? ''),
+            'address_line2' => sanitizeInput($_POST['address_line2'] ?? ''),
+            'city' => sanitizeInput($_POST['city'] ?? ''),
+            'state' => sanitizeInput($_POST['state'] ?? ''),
+            'postal_code' => sanitizeInput($_POST['postal_code'] ?? ''),
+            'country' => sanitizeInput($_POST['country'] ?? 'US'),
+            'is_default' => $isDefault
+        ]);
+
         $_SESSION['flash_success'] = 'Address added successfully!';
         redirect('/account/addresses');
     }
-    
+
     public function updateAddress(int $id)
     {
-        $customer = CustomerAuth::customer();
-        
-        $address = Database::fetchOne(
-            "SELECT * FROM customer_addresses WHERE id = ? AND customer_id = ?",
-            [$id, $customer['id']]
-        );
-        
+        $customerData = CustomerAuth::customer();
+
+        $address = \App\Models\CustomerAddress::where('id', $id)
+            ->where('customer_id', $customerData['id'])
+            ->first();
+
         if (!$address) {
             $_SESSION['flash_error'] = 'Address not found';
             redirect('/account/addresses');
         }
-        
-        Database::query(
-            "UPDATE customer_addresses SET address_type = ?, address_line1 = ?, address_line2 = ?, 
-             city = ?, state = ?, postal_code = ?, country = ?, is_default = ? 
-             WHERE id = ?",
-            [
-                $_POST['address_type'] ?? 'both',
-                sanitizeInput($_POST['address_line1'] ?? ''),
-                sanitizeInput($_POST['address_line2'] ?? ''),
-                sanitizeInput($_POST['city'] ?? ''),
-                sanitizeInput($_POST['state'] ?? ''),
-                sanitizeInput($_POST['postal_code'] ?? ''),
-                sanitizeInput($_POST['country'] ?? 'US'),
-                isset($_POST['is_default']) ? 1 : 0,
-                $id
-            ]
-        );
-        
+
+        $isDefault = isset($_POST['is_default']) ? 1 : 0;
+
+        if ($isDefault) {
+            \App\Models\CustomerAddress::where('customer_id', $customerData['id'])->update(['is_default' => 0]);
+        }
+
+        $address->update([
+            'address_type' => $_POST['address_type'] ?? 'both',
+            'address_line1' => sanitizeInput($_POST['address_line1'] ?? ''),
+            'address_line2' => sanitizeInput($_POST['address_line2'] ?? ''),
+            'city' => sanitizeInput($_POST['city'] ?? ''),
+            'state' => sanitizeInput($_POST['state'] ?? ''),
+            'postal_code' => sanitizeInput($_POST['postal_code'] ?? ''),
+            'country' => sanitizeInput($_POST['country'] ?? 'US'),
+            'is_default' => $isDefault
+        ]);
+
         $_SESSION['flash_success'] = 'Address updated successfully!';
         redirect('/account/addresses');
     }
-    
+
     public function deleteAddress(int $id)
     {
-        $customer = CustomerAuth::customer();
-        
-        Database::query(
-            "DELETE FROM customer_addresses WHERE id = ? AND customer_id = ?",
-            [$id, $customer['id']]
-        );
-        
+        $customerData = CustomerAuth::customer();
+
+        \App\Models\CustomerAddress::where('id', $id)
+            ->where('customer_id', $customerData['id'])
+            ->delete();
+
         $_SESSION['flash_success'] = 'Address deleted successfully!';
         redirect('/account/addresses');
     }

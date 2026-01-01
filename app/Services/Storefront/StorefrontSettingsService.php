@@ -14,7 +14,7 @@ class StorefrontSettingsService
 
     public function __construct()
     {
-        $this->db = Database::getInstance()->getConnection();
+        $this->db = Database::getInstance();
         $this->cache = Cache::getInstance();
     }
 
@@ -80,25 +80,29 @@ class StorefrontSettingsService
      */
     public function getByCategory(string $category): array
     {
-        $stmt = $this->db->prepare("
-            SELECT setting_key, setting_value, setting_type, description
-            FROM storefront_settings
-            WHERE category = ?
-            ORDER BY setting_key ASC
-        ");
-        $stmt->execute([$category]);
-        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare("
+                SELECT setting_key, setting_value, setting_type, description
+                FROM storefront_settings
+                WHERE category = ?
+                ORDER BY setting_key ASC
+            ");
+            $stmt->execute([$category]);
+            $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        $settings = [];
-        foreach ($results as $row) {
-            $settings[$row['setting_key']] = [
-                'value' => $this->castValue($row['setting_value'], $row['setting_type']),
-                'type' => $row['setting_type'],
-                'description' => $row['description']
-            ];
+            $settings = [];
+            foreach ($results as $row) {
+                $settings[$row['setting_key']] = [
+                    'value' => $this->castValue($row['setting_value'], $row['setting_type']),
+                    'type' => $row['setting_type'],
+                    'description' => $row['description']
+                ];
+            }
+
+            return $settings;
+        } catch (\PDOException $e) {
+            return [];
         }
-
-        return $settings;
     }
 
     /**
@@ -115,26 +119,27 @@ class StorefrontSettingsService
 
         try {
             // Certified Divers
-            $stats['certified_divers'] = $this->db->query("SELECT COUNT(*) FROM customer_certifications")->fetchColumn();
+            $res = Database::fetchOne("SELECT COUNT(*) as c FROM customer_certifications");
+            $stats['certified_divers'] = ($res['c'] ?? 0);
 
             // Years Experience
             $foundingYear = $this->get('founding_year', 'general');
             if ($foundingYear) {
-                $stats['years_experience'] = date('Y') - (int)$foundingYear;
+                $stats['years_experience'] = date('Y') - (int) $foundingYear;
             } else {
-                // Fallback attempt to guess or default
-                $stats['years_experience'] = 10; // Default placeholder
+                $stats['years_experience'] = 10;
             }
 
             // Customer Rating
             $rating = $this->get('social_google_rating', 'social');
-            $stats['customer_rating'] = $rating ? (float)$rating : 5.0;
+            $stats['customer_rating'] = $rating ? (float) $rating : 5.0;
 
-            // Dive Trips (This Year) - Interpreting "Dive destinations" as "Trips this year" per user request
+            // Dive Trips
             $currentYear = date('Y');
-            $stats['dive_destinations'] = $this->db->query("SELECT COUNT(*) FROM trip_schedules WHERE YEAR(start_date) = '$currentYear'")->fetchColumn();
+            $res = Database::fetchOne("SELECT COUNT(*) as c FROM trip_schedules WHERE strftime('%Y', start_date) = ?", [$currentYear]);
+            $stats['dive_destinations'] = ($res['c'] ?? 0);
 
-        } catch (\PDOException $e) {
+        } catch (\Throwable $e) {
             // Keep defaults on error
         }
 
@@ -415,9 +420,17 @@ class StorefrontSettingsService
         $values = [];
 
         $allowedFields = [
-            'menu_location', 'display_order', 'parent_id', 'label', 'url',
-            'link_type', 'link_target', 'icon_class', 'is_active',
-            'requires_auth', 'visible_to'
+            'menu_location',
+            'display_order',
+            'parent_id',
+            'label',
+            'url',
+            'link_type',
+            'link_target',
+            'icon_class',
+            'is_active',
+            'requires_auth',
+            'visible_to'
         ];
 
         foreach ($allowedFields as $field) {
@@ -474,7 +487,7 @@ class StorefrontSettingsService
 
             // Filter by page if specified
             if ($page) {
-                $banners = array_filter($banners, function($banner) use ($page) {
+                $banners = array_filter($banners, function ($banner) use ($page) {
                     if (empty($banner['show_on_pages'])) {
                         return true;
                     }
@@ -484,13 +497,9 @@ class StorefrontSettingsService
             }
 
             return $banners;
-        } catch (\PDOException $e) {
-            // If promotional_banners table doesn't exist, return empty array
-            if ($e->getCode() === '42S02') {
-                return [];
-            } else {
-                throw $e;
-            }
+        } catch (\Throwable $e) {
+            // If table missing or query error, return empty list to prevent crash
+            return [];
         }
     }
 
@@ -571,19 +580,27 @@ class StorefrontSettingsService
     {
         $fields = [];
         $values = [];
-        
+
         $allowedFields = [
-            'banner_type', 'title', 'content', 'button_text', 'button_url',
-            'is_active', 'start_date', 'end_date', 'show_on_pages', 'display_order'
+            'banner_type',
+            'title',
+            'content',
+            'button_text',
+            'button_url',
+            'is_active',
+            'start_date',
+            'end_date',
+            'show_on_pages',
+            'display_order'
         ];
 
         foreach ($allowedFields as $field) {
             if (array_key_exists($field, $data)) {
                 $fields[] = "$field = ?";
                 if ($field === 'show_on_pages' && is_array($data[$field])) {
-                     $values[] = json_encode($data[$field]);
+                    $values[] = json_encode($data[$field]);
                 } else {
-                     $values[] = $data[$field];
+                    $values[] = $data[$field];
                 }
             }
         }
@@ -617,7 +634,7 @@ class StorefrontSettingsService
             case 'boolean':
                 return filter_var($value, FILTER_VALIDATE_BOOLEAN);
             case 'number':
-                return is_numeric($value) ? (strpos($value, '.') !== false ? (float)$value : (int)$value) : $value;
+                return is_numeric($value) ? (strpos($value, '.') !== false ? (float) $value : (int) $value) : $value;
             case 'json':
                 return json_decode($value, true);
             default:
@@ -636,7 +653,7 @@ class StorefrontSettingsService
             case 'json':
                 return json_encode($value);
             default:
-                return (string)$value;
+                return (string) $value;
         }
     }
 

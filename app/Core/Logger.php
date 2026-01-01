@@ -29,7 +29,7 @@ class Logger
 
         // Ensure log directory exists
         if (!is_dir($this->logPath)) {
-            mkdir($this->logPath, 0755, true);
+            @mkdir($this->logPath, 0755, true);
         }
     }
 
@@ -126,7 +126,27 @@ class Logger
         $logFile = $this->getLogFile($level);
 
         // Write to log file
-        file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+        try {
+            // Attempt to write to configured path
+            if (!file_exists(dirname($logFile))) {
+                @mkdir(dirname($logFile), 0755, true);
+            }
+            if (@file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX) === false) {
+                throw new \Exception("Authored logging failed");
+            }
+        } catch (\Throwable $e) {
+            // Fallback: Try System Temp Dir
+            $tmpDir = sys_get_temp_dir() . '/nautilus_logs';
+            if (!file_exists($tmpDir)) {
+                @mkdir($tmpDir, 0777, true);
+            }
+
+            $tmpFile = $tmpDir . '/' . basename($logFile);
+            if (@file_put_contents($tmpFile, $logEntry, FILE_APPEND | LOCK_EX) === false) {
+                // Final Fallback: STDERR
+                error_log("FALLBACK LOG [{$level}]: {$message}");
+            }
+        }
 
         // Also log to database for important errors
         if (in_array(strtolower($level), ['emergency', 'alert', 'critical', 'error'])) {

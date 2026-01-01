@@ -8,37 +8,42 @@ use App\Models\Customer;
 class CustomerController
 {
     private CustomerService $customerService;
-    
+
     public function __construct()
     {
         $this->customerService = new CustomerService();
     }
-    
+
     public function index()
     {
         if (!hasPermission('customers.view')) {
             $_SESSION['flash_error'] = 'Access denied';
             redirect('/');
         }
-        
-        $page = (int)($_GET['page'] ?? 1);
+
+        $page = (int) ($_GET['page'] ?? 1);
         $limit = 20;
         $offset = ($page - 1) * $limit;
         $search = sanitizeInput($_GET['search'] ?? '');
-        
+
         if (!empty($search)) {
             $customers = Customer::search($search, $limit);
             $total = count($customers);
         } else {
-            $customers = Customer::all($limit, $offset);
-            $total = Customer::count();
+            $customers = Customer::where('is_active', 1)
+                ->orderBy('last_name', 'ASC')
+                ->orderBy('first_name', 'ASC')
+                ->offset($offset)
+                ->limit($limit)
+                ->get();
+            $total = Customer::where('is_active', 1)->count();
         }
-        
+
         $totalPages = ceil($total / $limit);
-        
+
         require __DIR__ . '/../../Views/customers/index.php';
     }
-    
+
     public function create()
     {
         if (!hasPermission('customers.create')) {
@@ -46,18 +51,17 @@ class CustomerController
             redirect('/store/customers');
         }
 
-        // Load certification agencies
-        $certificationAgencies = \App\Core\Database::fetchAll("SELECT id, name, code FROM certification_agencies WHERE is_active = 1 ORDER BY name");
-        
+        $certificationAgencies = \App\Models\CertificationAgency::where('is_active', 1)->orderBy('name')->get();
+
         require __DIR__ . '/../../Views/customers/create.php';
     }
-    
+
     public function store()
     {
         if (!hasPermission('customers.create')) {
             jsonResponse(['error' => 'Access denied'], 403);
         }
-        
+
         try {
             $birthDate = sanitizeInput($_POST['birth_date'] ?? '');
 
@@ -74,7 +78,7 @@ class CustomerController
                 'emergency_contact_phone' => sanitizeInput($_POST['emergency_contact_phone'] ?? ''),
                 'tax_exempt' => isset($_POST['tax_exempt']) ? 1 : 0,
                 'tax_exempt_number' => sanitizeInput($_POST['tax_exempt_number'] ?? ''),
-                'credit_limit' => (float)($_POST['credit_limit'] ?? 0),
+                'credit_limit' => (float) ($_POST['credit_limit'] ?? 0),
                 'credit_terms' => sanitizeInput($_POST['credit_terms'] ?? ''),
                 'address_line1' => sanitizeInput($_POST['address_line1'] ?? ''),
                 'address_line2' => sanitizeInput($_POST['address_line2'] ?? ''),
@@ -86,34 +90,26 @@ class CustomerController
             ];
 
             $customerId = $this->customerService->createCustomer($data);
-            
-            // Handle initial certification if provided
+
             if (!empty($_POST['certification_agency_id'])) {
                 try {
-                    $db = \App\Core\Database::getInstance();
-                    $stmt = $db->prepare("
-                        INSERT INTO customer_certifications (customer_id, certification_agency_id, certification_level, certification_number, issue_date, notes)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    ");
-                    $stmt->execute([
-                        $customerId,
-                        (int)$_POST['certification_agency_id'],
-                        sanitizeInput($_POST['certification_level'] ?? ''),
-                        sanitizeInput($_POST['certification_number'] ?? ''),
-                        !empty($_POST['certification_issue_date']) ? $_POST['certification_issue_date'] : null,
-                        sanitizeInput($_POST['certification_notes'] ?? '')
+                    $customer = Customer::find($customerId);
+                    $customer->certifications()->create([
+                        'certification_agency_id' => (int) $_POST['certification_agency_id'],
+                        'certification_level' => sanitizeInput($_POST['certification_level'] ?? ''),
+                        'certification_number' => sanitizeInput($_POST['certification_number'] ?? ''),
+                        'issue_date' => !empty($_POST['certification_issue_date']) ? $_POST['certification_issue_date'] : null,
+                        'notes' => sanitizeInput($_POST['certification_notes'] ?? '')
                     ]);
                 } catch (\Exception $e) {
-                    // Log error but don't fail customer creation
                     error_log("Failed to add initial certification: " . $e->getMessage());
                 }
             }
-            
+
             $_SESSION['flash_success'] = 'Customer created successfully';
 
             $returnTo = $_POST['return_to'] ?? '';
             if ($returnTo === 'pos') {
-                // If returning to POS, we should set the new customer as active in POS session
                 $_SESSION['pos_customer_id'] = $customerId;
                 redirect('/store/pos');
             }
@@ -124,14 +120,14 @@ class CustomerController
             redirect('/store/customers/create');
         }
     }
-    
+
     public function show(int $id)
     {
         if (!hasPermission('customers.view')) {
             $_SESSION['flash_error'] = 'Access denied';
             redirect('/');
         }
-        
+
         $data = $this->customerService->getCustomer360($id);
 
         if (empty($data)) {
@@ -139,12 +135,11 @@ class CustomerController
             redirect('/store/customers');
         }
 
-        // Use EXTR_SKIP to prevent overwriting existing variables (security measure)
         extract($data, EXTR_SKIP);
 
         require __DIR__ . '/../../Views/customers/show.php';
     }
-    
+
     public function edit(int $id)
     {
         if (!hasPermission('customers.edit')) {
@@ -153,34 +148,31 @@ class CustomerController
         }
 
         $customer = Customer::find($id);
-        $address = Customer::getDefaultAddress($id);
 
         if (!$customer) {
             $_SESSION['flash_error'] = 'Customer not found';
             redirect('/store/customers');
         }
 
-        // Load certification agencies
-        $certificationAgencies = \App\Core\Database::fetchAll("SELECT id, name, code FROM certification_agencies WHERE is_active = 1 ORDER BY name");
+        $address = $customer->addresses()->where('is_default', 1)->first();
 
-        // Load customer certifications
-        $certifications = \App\Core\Database::fetchAll("
-            SELECT cc.*, ca.name as agency_name, ca.code as agency_code
-            FROM customer_certifications cc
-            LEFT JOIN certification_agencies ca ON cc.certification_agency_id = ca.id
-            WHERE cc.customer_id = ?
-            ORDER BY cc.issue_date DESC
-        ", [$id]);
+        $certificationAgencies = \App\Models\CertificationAgency::where('is_active', 1)->orderBy('name')->get();
+
+        $certifications = $customer->certifications()
+            ->leftJoin('certification_agencies as ca', 'customer_certifications.certification_agency_id', '=', 'ca.id')
+            ->select('customer_certifications.*', 'ca.name as agency_name', 'ca.code as agency_code')
+            ->orderBy('issue_date', 'DESC')
+            ->get();
 
         require __DIR__ . '/../../Views/customers/edit.php';
     }
-    
+
     public function update(int $id)
     {
         if (!hasPermission('customers.edit')) {
             jsonResponse(['error' => 'Access denied'], 403);
         }
-        
+
         try {
             $birthDate = sanitizeInput($_POST['birth_date'] ?? '');
 
@@ -197,7 +189,7 @@ class CustomerController
                 'emergency_contact_phone' => sanitizeInput($_POST['emergency_contact_phone'] ?? ''),
                 'tax_exempt' => isset($_POST['tax_exempt']) ? 1 : 0,
                 'tax_exempt_number' => sanitizeInput($_POST['tax_exempt_number'] ?? ''),
-                'credit_limit' => (float)($_POST['credit_limit'] ?? 0),
+                'credit_limit' => (float) ($_POST['credit_limit'] ?? 0),
                 'credit_terms' => sanitizeInput($_POST['credit_terms'] ?? ''),
                 'address_line1' => sanitizeInput($_POST['address_line1'] ?? ''),
                 'address_line2' => sanitizeInput($_POST['address_line2'] ?? ''),
@@ -209,7 +201,7 @@ class CustomerController
             ];
 
             $this->customerService->updateCustomer($id, $data);
-            
+
             $_SESSION['flash_success'] = 'Customer updated successfully';
             redirect("/store/customers/{$id}");
         } catch (\Exception $e) {
@@ -217,73 +209,79 @@ class CustomerController
             redirect("/store/customers/{$id}/edit");
         }
     }
-    
+
     public function delete(int $id)
     {
         if (!hasPermission('customers.delete')) {
             $_SESSION['flash_error'] = 'Access denied';
             redirect('/store/customers');
         }
-        
-        Customer::delete($id);
-        
+
+        $customer = Customer::findOrFail($id);
+        $customer->update(['is_active' => 0]);
+
         $_SESSION['flash_success'] = 'Customer deleted successfully';
         redirect('/store/customers');
     }
-    
+
     public function search()
     {
         if (!hasPermission('customers.view')) {
             jsonResponse(['error' => 'Access denied'], 403);
         }
-        
+
         $query = sanitizeInput($_GET['q'] ?? '');
-        
+
         if (empty($query)) {
             jsonResponse([]);
         }
-        
+
         $customers = $this->customerService->search($query);
         jsonResponse($customers);
     }
-    
+
     public function transactions(int $id)
     {
         if (!hasPermission('customers.view')) {
             jsonResponse(['error' => 'Access denied'], 403);
         }
-        
-        // Fetch transactions for this customer
-        $db = \App\Core\Database::getInstance();
-        $transactions = $db->fetchAll("
-            SELECT t.id, t.transaction_number, t.created_at, t.payment_method, t.status, t.total
-            FROM transactions t
-            WHERE t.customer_id = ?
-            ORDER BY t.created_at DESC
-        ", [$id]);
-        
+
+        $customer = Customer::findOrFail($id);
+        $transactions = $customer->transactions()
+            ->select('id', 'transaction_number', 'created_at', 'payment_method', 'status', 'total')
+            ->orderBy('created_at', 'DESC')
+            ->get()
+            ->toArray();
+
         jsonResponse($transactions);
     }
-    
+
     public function exportCsv()
     {
         if (!hasPermission('customers.export')) {
             $_SESSION['flash_error'] = 'Access denied';
             redirect('/store/customers');
         }
-        
-        $customers = Customer::all(10000, 0);
-        
+
+        $customers = Customer::limit(10000)->get();
+
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename="customers-' . date('Y-m-d') . '.csv"');
-        
+
         $output = fopen('php://output', 'w');
-        
+
         fputcsv($output, [
-            'ID', 'Type', 'First Name', 'Last Name', 'Email', 'Phone', 
-            'Company', 'Credit Limit', 'Created At'
+            'ID',
+            'Type',
+            'First Name',
+            'Last Name',
+            'Email',
+            'Phone',
+            'Company',
+            'Credit Limit',
+            'Created At'
         ]);
-        
+
         foreach ($customers as $customer) {
             fputcsv($output, [
                 $customer['id'],
@@ -297,17 +295,17 @@ class CustomerController
                 $customer['created_at']
             ]);
         }
-        
+
         fclose($output);
         exit;
     }
-    
+
     public function createAddress(int $id)
     {
         if (!hasPermission('customers.edit')) {
             jsonResponse(['error' => 'Access denied'], 403);
         }
-        
+
         try {
             $data = [
                 'address_type' => sanitizeInput($_POST['address_type'] ?? 'billing'),
@@ -319,13 +317,17 @@ class CustomerController
                 'country' => sanitizeInput($_POST['country'] ?? 'US'),
                 'is_default' => isset($_POST['is_default']) ? 1 : 0
             ];
-            
+
             if (empty($data['address_line1'])) {
                 throw new \Exception('Address line 1 is required');
             }
-            
-            Customer::createAddress($id, $data);
-            
+
+            $customer = Customer::findOrFail($id);
+            if ($data['is_default']) {
+                $customer->addresses()->update(['is_default' => 0]);
+            }
+            $customer->addresses()->create($data);
+
             $_SESSION['flash_success'] = 'Address added successfully';
             redirect("/store/customers/{$id}");
         } catch (\Exception $e) {
@@ -333,13 +335,13 @@ class CustomerController
             redirect("/store/customers/{$id}");
         }
     }
-    
+
     public function updateAddress(int $id, int $address_id)
     {
         if (!hasPermission('customers.edit')) {
             jsonResponse(['error' => 'Access denied'], 403);
         }
-        
+
         try {
             $data = [
                 'address_type' => sanitizeInput($_POST['address_type'] ?? 'billing'),
@@ -351,13 +353,18 @@ class CustomerController
                 'country' => sanitizeInput($_POST['country'] ?? 'US'),
                 'is_default' => isset($_POST['is_default']) ? 1 : 0
             ];
-            
+
             if (empty($data['address_line1'])) {
                 throw new \Exception('Address line 1 is required');
             }
-            
-            Customer::updateAddress($address_id, $data);
-            
+
+            if ($data['is_default']) {
+                \App\Models\CustomerAddress::where('customer_id', $id)->update(['is_default' => 0]);
+            }
+
+            $address = \App\Models\CustomerAddress::where('id', $address_id)->where('customer_id', $id)->firstOrFail();
+            $address->update($data);
+
             $_SESSION['flash_success'] = 'Address updated successfully';
             redirect("/store/customers/{$id}");
         } catch (\Exception $e) {
@@ -365,7 +372,7 @@ class CustomerController
             redirect("/store/customers/{$id}");
         }
     }
-    
+
     public function deleteAddress(int $id, int $address_id)
     {
         if (!hasPermission('customers.edit')) {
@@ -373,9 +380,14 @@ class CustomerController
             redirect("/store/customers/{$id}");
         }
 
-        Customer::deleteAddress($address_id);
+        try {
+            $address = \App\Models\CustomerAddress::where('id', $address_id)->where('customer_id', $id)->firstOrFail();
+            $address->delete();
 
-        $_SESSION['flash_success'] = 'Address deleted successfully';
+            $_SESSION['flash_success'] = 'Address deleted successfully';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+        }
         redirect("/store/customers/{$id}");
     }
 
@@ -388,21 +400,16 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("
-                INSERT INTO customer_phones (customer_id, phone_type, phone_number, extension, is_default, can_sms, can_call, notes, label)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ");
-            $stmt->execute([
-                $id,
-                sanitizeInput($_POST['phone_type'] ?? 'mobile'),
-                sanitizeInput($_POST['phone_number'] ?? ''),
-                sanitizeInput($_POST['extension'] ?? ''),
-                isset($_POST['is_default']) ? 1 : 0,
-                isset($_POST['can_sms']) ? 1 : 0,
-                isset($_POST['can_call']) ? 1 : 0,
-                sanitizeInput($_POST['notes'] ?? ''),
-                sanitizeInput($_POST['label'] ?? '')
+            $customer = Customer::findOrFail($id);
+            $customer->phones()->create([
+                'phone_type' => sanitizeInput($_POST['phone_type'] ?? 'mobile'),
+                'phone_number' => sanitizeInput($_POST['phone_number'] ?? ''),
+                'extension' => sanitizeInput($_POST['extension'] ?? ''),
+                'is_default' => isset($_POST['is_default']) ? 1 : 0,
+                'can_sms' => isset($_POST['can_sms']) ? 1 : 0,
+                'can_call' => isset($_POST['can_call']) ? 1 : 0,
+                'notes' => sanitizeInput($_POST['notes'] ?? ''),
+                'label' => sanitizeInput($_POST['label'] ?? '')
             ]);
 
             jsonResponse(['success' => true, 'message' => 'Phone added successfully']);
@@ -418,23 +425,16 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("
-                UPDATE customer_phones
-                SET phone_type = ?, phone_number = ?, extension = ?, is_default = ?, can_sms = ?, can_call = ?, notes = ?, label = ?
-                WHERE id = ? AND customer_id = ?
-            ");
-            $stmt->execute([
-                sanitizeInput($_POST['phone_type'] ?? 'mobile'),
-                sanitizeInput($_POST['phone_number'] ?? ''),
-                sanitizeInput($_POST['extension'] ?? ''),
-                isset($_POST['is_default']) ? 1 : 0,
-                isset($_POST['can_sms']) ? 1 : 0,
-                isset($_POST['can_call']) ? 1 : 0,
-                sanitizeInput($_POST['notes'] ?? ''),
-                sanitizeInput($_POST['label'] ?? ''),
-                $phoneId,
-                $id
+            $phone = \App\Models\CustomerPhone::where('id', $phoneId)->where('customer_id', $id)->firstOrFail();
+            $phone->update([
+                'phone_type' => sanitizeInput($_POST['phone_type'] ?? 'mobile'),
+                'phone_number' => sanitizeInput($_POST['phone_number'] ?? ''),
+                'extension' => sanitizeInput($_POST['extension'] ?? ''),
+                'is_default' => isset($_POST['is_default']) ? 1 : 0,
+                'can_sms' => isset($_POST['can_sms']) ? 1 : 0,
+                'can_call' => isset($_POST['can_call']) ? 1 : 0,
+                'notes' => sanitizeInput($_POST['notes'] ?? ''),
+                'label' => sanitizeInput($_POST['label'] ?? '')
             ]);
 
             jsonResponse(['success' => true, 'message' => 'Phone updated successfully']);
@@ -450,10 +450,7 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("DELETE FROM customer_phones WHERE id = ? AND customer_id = ?");
-            $stmt->execute([$phoneId, $id]);
-
+            \App\Models\CustomerPhone::where('id', $phoneId)->where('customer_id', $id)->delete();
             jsonResponse(['success' => true, 'message' => 'Phone deleted successfully']);
         } catch (\Exception $e) {
             jsonResponse(['error' => $e->getMessage()], 400);
@@ -469,19 +466,14 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("
-                INSERT INTO customer_emails (customer_id, email_type, email, is_default, can_market, notes, label)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ");
-            $stmt->execute([
-                $id,
-                sanitizeInput($_POST['email_type'] ?? 'personal'),
-                sanitizeInput($_POST['email'] ?? ''),
-                isset($_POST['is_default']) ? 1 : 0,
-                isset($_POST['can_market']) ? 1 : 0,
-                sanitizeInput($_POST['notes'] ?? ''),
-                sanitizeInput($_POST['label'] ?? '')
+            $customer = Customer::findOrFail($id);
+            $customer->emails()->create([
+                'email_type' => sanitizeInput($_POST['email_type'] ?? 'personal'),
+                'email' => sanitizeInput($_POST['email'] ?? ''),
+                'is_default' => isset($_POST['is_default']) ? 1 : 0,
+                'can_market' => isset($_POST['can_market']) ? 1 : 0,
+                'notes' => sanitizeInput($_POST['notes'] ?? ''),
+                'label' => sanitizeInput($_POST['label'] ?? '')
             ]);
 
             jsonResponse(['success' => true, 'message' => 'Email added successfully']);
@@ -497,21 +489,14 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("
-                UPDATE customer_emails
-                SET email_type = ?, email = ?, is_default = ?, can_market = ?, notes = ?, label = ?
-                WHERE id = ? AND customer_id = ?
-            ");
-            $stmt->execute([
-                sanitizeInput($_POST['email_type'] ?? 'personal'),
-                sanitizeInput($_POST['email'] ?? ''),
-                isset($_POST['is_default']) ? 1 : 0,
-                isset($_POST['can_market']) ? 1 : 0,
-                sanitizeInput($_POST['notes'] ?? ''),
-                sanitizeInput($_POST['label'] ?? ''),
-                $emailId,
-                $id
+            $email = \App\Models\CustomerEmail::where('id', $emailId)->where('customer_id', $id)->firstOrFail();
+            $email->update([
+                'email_type' => sanitizeInput($_POST['email_type'] ?? 'personal'),
+                'email' => sanitizeInput($_POST['email'] ?? ''),
+                'is_default' => isset($_POST['is_default']) ? 1 : 0,
+                'can_market' => isset($_POST['can_market']) ? 1 : 0,
+                'notes' => sanitizeInput($_POST['notes'] ?? ''),
+                'label' => sanitizeInput($_POST['label'] ?? '')
             ]);
 
             jsonResponse(['success' => true, 'message' => 'Email updated successfully']);
@@ -527,10 +512,7 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("DELETE FROM customer_emails WHERE id = ? AND customer_id = ?");
-            $stmt->execute([$emailId, $id]);
-
+            \App\Models\CustomerEmail::where('id', $emailId)->where('customer_id', $id)->delete();
             jsonResponse(['success' => true, 'message' => 'Email deleted successfully']);
         } catch (\Exception $e) {
             jsonResponse(['error' => $e->getMessage()], 400);
@@ -546,21 +528,16 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("
-                INSERT INTO customer_contacts (customer_id, contact_type, first_name, last_name, phone, email, relationship, is_primary_emergency, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ");
-            $stmt->execute([
-                $id,
-                sanitizeInput($_POST['contact_type'] ?? 'emergency'),
-                sanitizeInput($_POST['first_name'] ?? ''),
-                sanitizeInput($_POST['last_name'] ?? ''),
-                sanitizeInput($_POST['phone'] ?? ''),
-                sanitizeInput($_POST['email'] ?? ''),
-                sanitizeInput($_POST['relationship'] ?? ''),
-                isset($_POST['is_primary_emergency']) ? 1 : 0,
-                sanitizeInput($_POST['notes'] ?? '')
+            $customer = Customer::findOrFail($id);
+            $customer->contacts()->create([
+                'contact_type' => sanitizeInput($_POST['contact_type'] ?? 'emergency'),
+                'first_name' => sanitizeInput($_POST['first_name'] ?? ''),
+                'last_name' => sanitizeInput($_POST['last_name'] ?? ''),
+                'phone' => sanitizeInput($_POST['phone'] ?? ''),
+                'email' => sanitizeInput($_POST['email'] ?? ''),
+                'relationship' => sanitizeInput($_POST['relationship'] ?? ''),
+                'is_primary_emergency' => isset($_POST['is_primary_emergency']) ? 1 : 0,
+                'notes' => sanitizeInput($_POST['notes'] ?? '')
             ]);
 
             jsonResponse(['success' => true, 'message' => 'Contact added successfully']);
@@ -576,23 +553,16 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("
-                UPDATE customer_contacts
-                SET contact_type = ?, first_name = ?, last_name = ?, phone = ?, email = ?, relationship = ?, is_primary_emergency = ?, notes = ?
-                WHERE id = ? AND customer_id = ?
-            ");
-            $stmt->execute([
-                sanitizeInput($_POST['contact_type'] ?? 'emergency'),
-                sanitizeInput($_POST['first_name'] ?? ''),
-                sanitizeInput($_POST['last_name'] ?? ''),
-                sanitizeInput($_POST['phone'] ?? ''),
-                sanitizeInput($_POST['email'] ?? ''),
-                sanitizeInput($_POST['relationship'] ?? ''),
-                isset($_POST['is_primary_emergency']) ? 1 : 0,
-                sanitizeInput($_POST['notes'] ?? ''),
-                $contactId,
-                $id
+            $contact = \App\Models\CustomerContact::where('id', $contactId)->where('customer_id', $id)->firstOrFail();
+            $contact->update([
+                'contact_type' => sanitizeInput($_POST['contact_type'] ?? 'emergency'),
+                'first_name' => sanitizeInput($_POST['first_name'] ?? ''),
+                'last_name' => sanitizeInput($_POST['last_name'] ?? ''),
+                'phone' => sanitizeInput($_POST['phone'] ?? ''),
+                'email' => sanitizeInput($_POST['email'] ?? ''),
+                'relationship' => sanitizeInput($_POST['relationship'] ?? ''),
+                'is_primary_emergency' => isset($_POST['is_primary_emergency']) ? 1 : 0,
+                'notes' => sanitizeInput($_POST['notes'] ?? '')
             ]);
 
             jsonResponse(['success' => true, 'message' => 'Contact updated successfully']);
@@ -608,10 +578,7 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("DELETE FROM customer_contacts WHERE id = ? AND customer_id = ?");
-            $stmt->execute([$contactId, $id]);
-
+            \App\Models\CustomerContact::where('id', $contactId)->where('customer_id', $id)->delete();
             jsonResponse(['success' => true, 'message' => 'Contact deleted successfully']);
         } catch (\Exception $e) {
             jsonResponse(['error' => $e->getMessage()], 400);
@@ -627,20 +594,15 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("
-                INSERT INTO customer_certifications (customer_id, certification_agency_id, certification_level, certification_number, issue_date, expiration_date, instructor_name, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ");
-            $stmt->execute([
-                $id,
-                (int)($_POST['certification_agency_id'] ?? 0),
-                sanitizeInput($_POST['certification_level'] ?? ''),
-                sanitizeInput($_POST['certification_number'] ?? ''),
-                sanitizeInput($_POST['issue_date'] ?? null),
-                sanitizeInput($_POST['expiration_date'] ?? null),
-                sanitizeInput($_POST['instructor_name'] ?? ''),
-                sanitizeInput($_POST['notes'] ?? '')
+            $customer = Customer::findOrFail($id);
+            $customer->certifications()->create([
+                'certification_agency_id' => (int) ($_POST['certification_agency_id'] ?? 0),
+                'certification_level' => sanitizeInput($_POST['certification_level'] ?? ''),
+                'certification_number' => sanitizeInput($_POST['certification_number'] ?? ''),
+                'issue_date' => !empty($_POST['issue_date']) ? $_POST['issue_date'] : null,
+                'expiration_date' => !empty($_POST['expiration_date']) ? $_POST['expiration_date'] : null,
+                'instructor_name' => sanitizeInput($_POST['instructor_name'] ?? ''),
+                'notes' => sanitizeInput($_POST['notes'] ?? '')
             ]);
 
             $_SESSION['flash_success'] = 'Certification added successfully';
@@ -657,10 +619,7 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("DELETE FROM customer_certifications WHERE id = ? AND customer_id = ?");
-            $stmt->execute([$certId, $id]);
-
+            \App\Models\CustomerCertification::where('id', $certId)->where('customer_id', $id)->delete();
             jsonResponse(['success' => true, 'message' => 'Certification deleted successfully']);
         } catch (\Exception $e) {
             jsonResponse(['error' => $e->getMessage()], 400);
@@ -675,21 +634,16 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
-            $stmt = $db->prepare("
-                INSERT INTO customer_equipment (customer_id, serial_number, manufacturer, model, size, material, last_vip_date, last_hydro_date, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ");
-            $stmt->execute([
-                $id,
-                sanitizeInput($_POST['serial_number'] ?? ''),
-                sanitizeInput($_POST['manufacturer'] ?? ''),
-                sanitizeInput($_POST['model'] ?? ''),
-                sanitizeInput($_POST['size'] ?? ''),
-                sanitizeInput($_POST['material'] ?? ''),
-                !empty($_POST['last_vip_date']) ? $_POST['last_vip_date'] : null,
-                !empty($_POST['last_hydro_date']) ? $_POST['last_hydro_date'] : null,
-                sanitizeInput($_POST['notes'] ?? '')
+            $customer = Customer::findOrFail($id);
+            $customer->equipment()->create([
+                'serial_number' => sanitizeInput($_POST['serial_number'] ?? ''),
+                'manufacturer' => sanitizeInput($_POST['manufacturer'] ?? ''),
+                'model' => sanitizeInput($_POST['model'] ?? ''),
+                'size' => sanitizeInput($_POST['size'] ?? ''),
+                'material' => sanitizeInput($_POST['material'] ?? ''),
+                'last_vip_date' => !empty($_POST['last_vip_date']) ? $_POST['last_vip_date'] : null,
+                'last_hydro_date' => !empty($_POST['last_hydro_date']) ? $_POST['last_hydro_date'] : null,
+                'notes' => sanitizeInput($_POST['notes'] ?? '')
             ]);
 
             $_SESSION['flash_success'] = 'Equipment added successfully';
@@ -706,11 +660,9 @@ class CustomerController
         }
 
         try {
-            $db = \App\Core\Database::getInstance();
             // Optional: Check if used in air fills? For now just delete.
             // Ideally we soft delete or block if used.
-            $stmt = $db->prepare("DELETE FROM customer_equipment WHERE id = ? AND customer_id = ?");
-            $stmt->execute([$equipId, $id]);
+            \App\Models\CustomerEquipment::where('id', $equipId)->where('customer_id', $id)->delete();
 
             jsonResponse(['success' => true, 'message' => 'Equipment deleted successfully']);
         } catch (\Exception $e) {

@@ -10,7 +10,8 @@ ob_start();
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/store/customers">Customers</a></li>
-            <li class="breadcrumb-item active"><?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?></li>
+            <li class="breadcrumb-item active">
+                <?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?></li>
         </ol>
     </nav>
     <div class="d-flex justify-content-between align-items-start">
@@ -19,12 +20,12 @@ ob_start();
             <div class="me-3">
                 <?php if (!empty($customer['photo_path'])): ?>
                     <img src="<?= htmlspecialchars($customer['photo_path']) ?>"
-                         alt="<?= htmlspecialchars($customer['first_name']) ?>"
-                         class="rounded-circle border border-3 border-primary"
-                         style="width: 100px; height: 100px; object-fit: cover;">
+                        alt="<?= htmlspecialchars($customer['first_name']) ?>"
+                        class="rounded-circle border border-3 border-primary"
+                        style="width: 100px; height: 100px; object-fit: cover;">
                 <?php else: ?>
                     <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white"
-                         style="width: 100px; height: 100px; font-size: 2.5rem;">
+                        style="width: 100px; height: 100px; font-size: 2.5rem;">
                         <?= strtoupper(substr($customer['first_name'], 0, 1) . substr($customer['last_name'], 0, 1)) ?>
                     </div>
                 <?php endif; ?>
@@ -41,19 +42,20 @@ ob_start();
 
                 <!-- Highest Certification Badge -->
                 <?php if (!empty($highestCert)): ?>
-                <div class="mb-2">
-                    <span class="badge" style="background-color: <?= htmlspecialchars($highestCert['primary_color'] ?? '#0066CC') ?>; font-size: 0.9rem; padding: 0.5rem 0.75rem;">
-                        <?php if (!empty($highestCert['logo_path'])): ?>
-                            <img src="<?= htmlspecialchars($highestCert['logo_path']) ?>"
-                                 alt="<?= htmlspecialchars($highestCert['agency_name']) ?>"
-                                 style="height: 16px; vertical-align: middle; margin-right: 5px;">
-                        <?php endif; ?>
-                        <?= htmlspecialchars($highestCert['certification_name']) ?>
-                        <?php if ($highestCert['verification_status'] === 'verified'): ?>
-                            <i class="bi bi-patch-check-fill ms-1"></i>
-                        <?php endif; ?>
-                    </span>
-                </div>
+                    <div class="mb-2">
+                        <span class="badge"
+                            style="background-color: <?= htmlspecialchars($highestCert['primary_color'] ?? '#0066CC') ?>; font-size: 0.9rem; padding: 0.5rem 0.75rem;">
+                            <?php if (!empty($highestCert['logo_path'])): ?>
+                                <img src="<?= htmlspecialchars($highestCert['logo_path']) ?>"
+                                    alt="<?= htmlspecialchars($highestCert['agency_name']) ?>"
+                                    style="height: 16px; vertical-align: middle; margin-right: 5px;">
+                            <?php endif; ?>
+                            <?= htmlspecialchars($highestCert['certification_name']) ?>
+                            <?php if ($highestCert['verification_status'] === 'verified'): ?>
+                                <i class="bi bi-patch-check-fill ms-1"></i>
+                            <?php endif; ?>
+                        </span>
+                    </div>
                 <?php endif; ?>
 
                 <p class="text-muted mb-1">
@@ -67,9 +69,9 @@ ob_start();
 
         <div>
             <?php if (hasPermission('customers.edit')): ?>
-            <a href="/store/customers/<?= $customer['id'] ?>/edit" class="btn btn-primary">
-                <i class="bi bi-pencil"></i> Edit
-            </a>
+                <a href="/store/customers/<?= $customer['id'] ?>/edit" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
             <?php endif; ?>
         </div>
     </div>
@@ -97,7 +99,8 @@ ob_start();
         </button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="certifications-tab" data-bs-toggle="tab" data-bs-target="#certifications" type="button">
+        <button class="nav-link" id="certifications-tab" data-bs-toggle="tab" data-bs-target="#certifications"
+            type="button">
             <i class="bi bi-award"></i> Certifications (<?= count($certifications) ?>)
         </button>
     </li>
@@ -107,7 +110,8 @@ ob_start();
         </button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button">
+        <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions"
+            type="button">
             <i class="bi bi-receipt"></i> Transactions (<?= count($transactions) ?>)
         </button>
     </li>
@@ -139,353 +143,361 @@ ob_start();
                                 <td><?= htmlspecialchars($customer['mobile'] ?? '-') ?></td>
                             </tr>
                             <?php if ($customer['customer_type'] === 'B2B'): ?>
-                            <tr>
-                                <th>Company:</th>
-                                <td><?= htmlspecialchars($customer['company_name'] ?? '-') ?></td>
-                            </tr>
+                                <tr>
+                                    <th>Company:</th>
+                                    <td><?= htmlspecialchars($customer['company_name'] ?? '-') ?></td>
+                                </tr>
                             <?php endif; ?>
                         </table>
                     </div>
                 </div>
-                
+
                 <?php if ($customer['customer_type'] === 'B2C' && (!empty($customer['emergency_contact_name']) || !empty($customer['emergency_contact_phone']))): ?>
-                <div class="card mb-3">
-                    <div class="card-header"><strong>Emergency Contact</strong></div>
-                    <div class="card-body">
-                        <table class="table table-sm">
-                            <tr>
-                                <th width="40%">Name:</th>
-                                <td><?= htmlspecialchars($customer['emergency_contact_name'] ?? '-') ?></td>
-                            </tr>
-                            <tr>
-                                <th>Phone:</th>
-                                <td><?= htmlspecialchars($customer['emergency_contact_phone'] ?? '-') ?></td>
-                            </tr>
-                        </table>
+                    <div class="card mb-3">
+                        <div class="card-header"><strong>Emergency Contact</strong></div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th width="40%">Name:</th>
+                                    <td><?= htmlspecialchars($customer['emergency_contact_name'] ?? '-') ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Phone:</th>
+                                    <td><?= htmlspecialchars($customer['emergency_contact_phone'] ?? '-') ?></td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
-                </div>
                 <?php endif; ?>
             </div>
-            
+
             <div class="col-md-6">
-                
+
                 <?php if ($customer['customer_type'] === 'B2B'): ?>
-                <div class="card mb-3">
-                    <div class="card-header"><strong>Business Details</strong></div>
-                    <div class="card-body">
-                        <table class="table table-sm">
-                            <tr>
-                                <th width="40%">Credit Limit:</th>
-                                <td><?= formatCurrency($customer['credit_limit'] ?? 0) ?></td>
-                            </tr>
-                            <tr>
-                                <th>Credit Terms:</th>
-                                <td><?= htmlspecialchars($customer['credit_terms'] ?? '-') ?></td>
-                            </tr>
-                            <tr>
-                                <th>Tax Exempt:</th>
-                                <td>
-                                    <?php if (!empty($customer['tax_exempt'])): ?>
-                                        <span class="badge bg-success">Yes</span>
-                                        <?php if (!empty($customer['tax_exempt_number'])): ?>
-                                            <br><small><?= htmlspecialchars($customer['tax_exempt_number']) ?></small>
+                    <div class="card mb-3">
+                        <div class="card-header"><strong>Business Details</strong></div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th width="40%">Credit Limit:</th>
+                                    <td><?= formatCurrency($customer['credit_limit'] ?? 0) ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Credit Terms:</th>
+                                    <td><?= htmlspecialchars($customer['credit_terms'] ?? '-') ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Tax Exempt:</th>
+                                    <td>
+                                        <?php if (!empty($customer['tax_exempt'])): ?>
+                                            <span class="badge bg-success">Yes</span>
+                                            <?php if (!empty($customer['tax_exempt_number'])): ?>
+                                                <br><small><?= htmlspecialchars($customer['tax_exempt_number']) ?></small>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">No</span>
                                         <?php endif; ?>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary">No</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
-                </div>
                 <?php endif; ?>
-                
+
                 <?php if (!empty($customer['notes'])): ?>
-                <div class="card mb-3">
-                    <div class="card-header"><strong>Notes</strong></div>
-                    <div class="card-body">
-                        <?= nl2br(htmlspecialchars($customer['notes'])) ?>
+                    <div class="card mb-3">
+                        <div class="card-header"><strong>Notes</strong></div>
+                        <div class="card-body">
+                            <?= nl2br(htmlspecialchars($customer['notes'])) ?>
+                        </div>
                     </div>
-                </div>
                 <?php endif; ?>
             </div>
         </div>
     </div>
-    
+
     <div class="tab-pane fade" id="addresses" role="tabpanel">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5>Addresses</h5>
             <?php if (hasPermission('customers.edit')): ?>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAddressModal">
-                <i class="bi bi-plus-circle"></i> Add Address
-            </button>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#addAddressModal">
+                    <i class="bi bi-plus-circle"></i> Add Address
+                </button>
             <?php endif; ?>
         </div>
-        
+
         <?php if (empty($addresses)): ?>
-        <p class="text-muted text-center py-4">No addresses found.</p>
+            <p class="text-muted text-center py-4">No addresses found.</p>
         <?php else: ?>
-        <div class="row">
-            <?php foreach ($addresses as $addr): ?>
-            <div class="col-md-6 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <span class="badge bg-<?= $addr['address_type'] === 'billing' ? 'primary' : 'success' ?>">
-                                    <?= ucfirst($addr['address_type']) ?>
-                                </span>
-                                <?php if (!empty($addr['is_default'])): ?>
-                                <span class="badge bg-warning text-dark">Default</span>
-                                <?php endif; ?>
+            <div class="row">
+                <?php foreach ($addresses as $addr): ?>
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span
+                                            class="badge bg-<?= $addr['address_type'] === 'billing' ? 'primary' : 'success' ?>">
+                                            <?= ucfirst($addr['address_type']) ?>
+                                        </span>
+                                        <?php if (!empty($addr['is_default'])): ?>
+                                            <span class="badge bg-warning text-dark">Default</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if (hasPermission('customers.edit')): ?>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                onclick="editAddress(<?= $addr['id'] ?>, <?= htmlspecialchars(json_encode($addr)) ?>)">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <form method="POST"
+                                                action="/store/customers/<?= $customer['id'] ?>/addresses/<?= $addr['id'] ?>/delete"
+                                                class="d-inline" onsubmit="return confirm('Delete this address?')">
+                                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                                                <button type="submit" class="btn btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <address class="mb-0">
+                                    <?= htmlspecialchars($addr['address_line1']) ?><br>
+                                    <?php if (!empty($addr['address_line2'])): ?>
+                                        <?= htmlspecialchars($addr['address_line2']) ?><br>
+                                    <?php endif; ?>
+                                    <?= htmlspecialchars($addr['city'] ?? '') ?>,
+                                    <?= htmlspecialchars($addr['state'] ?? '') ?>
+                                    <?= htmlspecialchars($addr['postal_code'] ?? '') ?><br>
+                                    <?= htmlspecialchars($addr['country'] ?? 'US') ?>
+                                </address>
                             </div>
-                            <?php if (hasPermission('customers.edit')): ?>
-                            <div class="btn-group btn-group-sm">
-                                <button type="button" class="btn btn-outline-secondary" 
-                                        onclick="editAddress(<?= $addr['id'] ?>, <?= htmlspecialchars(json_encode($addr)) ?>)">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <form method="POST" action="/store/customers/<?= $customer['id'] ?>/addresses/<?= $addr['id'] ?>/delete" 
-                                      class="d-inline" onsubmit="return confirm('Delete this address?')">
-                                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-                                    <button type="submit" class="btn btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                            <?php endif; ?>
                         </div>
-                        <address class="mb-0">
-                            <?= htmlspecialchars($addr['address_line1']) ?><br>
-                            <?php if (!empty($addr['address_line2'])): ?>
-                                <?= htmlspecialchars($addr['address_line2']) ?><br>
-                            <?php endif; ?>
-                            <?= htmlspecialchars($addr['city'] ?? '') ?>, 
-                            <?= htmlspecialchars($addr['state'] ?? '') ?> 
-                            <?= htmlspecialchars($addr['postal_code'] ?? '') ?><br>
-                            <?= htmlspecialchars($addr['country'] ?? 'US') ?>
-                        </address>
                     </div>
-                </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
-        </div>
         <?php endif; ?>
     </div>
-    
+
     <div class="tab-pane fade" id="transactions" role="tabpanel">
         <?php if (empty($transactions)): ?>
-        <p class="text-muted text-center py-4">No transactions found.</p>
+            <p class="text-muted text-center py-4">No transactions found.</p>
         <?php else: ?>
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Transaction #</th>
-                        <th>Payment Method</th>
-                        <th>Status</th>
-                        <th>Total</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($transactions as $transaction): ?>
-                    <tr>
-                        <td><?= date('M d, Y', strtotime($transaction['created_at'])) ?></td>
-                        <td><?= htmlspecialchars($transaction['transaction_number'] ?? $transaction['id']) ?></td>
-                        <td><?= htmlspecialchars($transaction['payment_method'] ?? '-') ?></td>
-                        <td>
-                            <span class="badge bg-<?= $transaction['status'] === 'completed' ? 'success' : 'warning' ?>">
-                                <?= ucfirst($transaction['status']) ?>
-                            </span>
-                        </td>
-                        <td><?= formatCurrency($transaction['total']) ?></td>
-                        <td>
-                            <a href="/pos/receipt/<?= $transaction['id'] ?>" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-receipt"></i> View
-                            </a>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Transaction #</th>
+                            <th>Payment Method</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($transactions as $transaction): ?>
+                            <tr>
+                                <td><?= date('M d, Y', strtotime($transaction['created_at'])) ?></td>
+                                <td><?= htmlspecialchars($transaction['transaction_number'] ?? $transaction['id']) ?></td>
+                                <td><?= htmlspecialchars($transaction['payment_method'] ?? '-') ?></td>
+                                <td>
+                                    <span
+                                        class="badge bg-<?= $transaction['status'] === 'completed' ? 'success' : 'warning' ?>">
+                                        <?= ucfirst($transaction['status']) ?>
+                                    </span>
+                                </td>
+                                <td><?= formatCurrency($transaction['total']) ?></td>
+                                <td>
+                                    <a href="/pos/receipt/<?= $transaction['id'] ?>" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-receipt"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         <?php endif; ?>
     </div>
-    
+
     <div class="tab-pane fade" id="certifications" role="tabpanel">
         <?php if (empty($certifications)): ?>
-        <div class="text-center py-5">
-            <i class="bi bi-award" style="font-size: 3rem; color: #ccc;"></i>
-            <p class="text-muted mt-3">No certifications found.</p>
-            <?php if (hasPermission('customers.edit')): ?>
-            <button class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-circle"></i> Add Certification
-            </button>
-            <?php endif; ?>
-        </div>
+            <div class="text-center py-5">
+                <i class="bi bi-award" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">No certifications found.</p>
+                <?php if (hasPermission('customers.edit')): ?>
+                    <button class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> Add Certification
+                    </button>
+                <?php endif; ?>
+            </div>
         <?php else: ?>
-        <div class="row">
-            <?php foreach ($certifications as $cert): ?>
-            <div class="col-lg-4 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm cert-card"
-                     style="border-left: 4px solid <?= htmlspecialchars($cert['primary_color'] ?? '#0066CC') ?>;">
-                    <div class="card-body">
-                        <!-- Agency Logo and Badge -->
-                        <div class="d-flex align-items-start justify-content-between mb-3">
-                            <div>
-                                <?php if (!empty($cert['logo_path'])): ?>
-                                    <img src="<?= htmlspecialchars($cert['logo_path']) ?>"
-                                         alt="<?= htmlspecialchars($cert['agency_abbreviation']) ?>"
-                                         style="height: 40px; max-width: 120px; object-fit: contain;">
-                                <?php else: ?>
-                                    <span class="badge" style="background-color: <?= htmlspecialchars($cert['primary_color'] ?? '#0066CC') ?>; font-size: 0.9rem;">
-                                        <?= htmlspecialchars($cert['agency_abbreviation'] ?? 'N/A') ?>
-                                    </span>
+            <div class="row">
+                <?php foreach ($certifications as $cert): ?>
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="card h-100 shadow-sm cert-card"
+                            style="border-left: 4px solid <?= htmlspecialchars($cert['primary_color'] ?? '#0066CC') ?>;">
+                            <div class="card-body">
+                                <!-- Agency Logo and Badge -->
+                                <div class="d-flex align-items-start justify-content-between mb-3">
+                                    <div>
+                                        <?php if (!empty($cert['logo_path'])): ?>
+                                            <img src="<?= htmlspecialchars($cert['logo_path']) ?>"
+                                                alt="<?= htmlspecialchars($cert['agency_abbreviation']) ?>"
+                                                style="height: 40px; max-width: 120px; object-fit: contain;">
+                                        <?php else: ?>
+                                            <span class="badge"
+                                                style="background-color: <?= htmlspecialchars($cert['primary_color'] ?? '#0066CC') ?>; font-size: 0.9rem;">
+                                                <?= htmlspecialchars($cert['agency_abbreviation'] ?? 'N/A') ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div>
+                                        <?php
+                                        $statusColors = [
+                                            'verified' => 'success',
+                                            'pending' => 'warning',
+                                            'expired' => 'danger',
+                                            'invalid' => 'secondary'
+                                        ];
+                                        $statusColor = $statusColors[$cert['verification_status']] ?? 'secondary';
+                                        $statusIcons = [
+                                            'verified' => 'patch-check-fill',
+                                            'pending' => 'hourglass-split',
+                                            'expired' => 'exclamation-triangle-fill',
+                                            'invalid' => 'x-circle-fill'
+                                        ];
+                                        $statusIcon = $statusIcons[$cert['verification_status']] ?? 'question-circle';
+                                        ?>
+                                        <span class="badge bg-<?= $statusColor ?>">
+                                            <i class="bi bi-<?= $statusIcon ?>"></i>
+                                            <?= ucfirst($cert['verification_status'] ?? 'Unknown') ?>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Certification Name -->
+                                <h5 class="card-title mb-2">
+                                    <?= htmlspecialchars($cert['certification_name'] ?? 'Certification') ?>
+                                </h5>
+
+                                <!-- Level Badge -->
+                                <?php if (!empty($cert['certification_level'])): ?>
+                                    <div class="mb-2">
+                                        <span class="badge bg-light text-dark border">
+                                            Level <?= $cert['certification_level'] ?>
+                                            <?php if (!empty($cert['certification_code'])): ?>
+                                                | <?= htmlspecialchars($cert['certification_code']) ?>
+                                            <?php endif; ?>
+                                        </span>
+                                    </div>
                                 <?php endif; ?>
-                            </div>
-                            <div>
-                                <?php
-                                $statusColors = [
-                                    'verified' => 'success',
-                                    'pending' => 'warning',
-                                    'expired' => 'danger',
-                                    'invalid' => 'secondary'
-                                ];
-                                $statusColor = $statusColors[$cert['verification_status']] ?? 'secondary';
-                                $statusIcons = [
-                                    'verified' => 'patch-check-fill',
-                                    'pending' => 'hourglass-split',
-                                    'expired' => 'exclamation-triangle-fill',
-                                    'invalid' => 'x-circle-fill'
-                                ];
-                                $statusIcon = $statusIcons[$cert['verification_status']] ?? 'question-circle';
-                                ?>
-                                <span class="badge bg-<?= $statusColor ?>">
-                                    <i class="bi bi-<?= $statusIcon ?>"></i>
-                                    <?= ucfirst($cert['verification_status'] ?? 'Unknown') ?>
-                                </span>
-                            </div>
-                        </div>
 
-                        <!-- Certification Name -->
-                        <h5 class="card-title mb-2">
-                            <?= htmlspecialchars($cert['certification_name'] ?? 'Certification') ?>
-                        </h5>
-
-                        <!-- Level Badge -->
-                        <?php if (!empty($cert['certification_level'])): ?>
-                        <div class="mb-2">
-                            <span class="badge bg-light text-dark border">
-                                Level <?= $cert['certification_level'] ?>
-                                <?php if (!empty($cert['certification_code'])): ?>
-                                    | <?= htmlspecialchars($cert['certification_code']) ?>
-                                <?php endif; ?>
-                            </span>
-                        </div>
-                        <?php endif; ?>
-
-                        <!-- Details -->
-                        <div class="mt-3">
-                            <?php if (!empty($cert['certification_number'])): ?>
-                            <p class="mb-1 small">
-                                <strong><i class="bi bi-hash"></i> Cert #:</strong>
-                                <span class="text-monospace"><?= htmlspecialchars($cert['certification_number']) ?></span>
-                            </p>
-                            <?php endif; ?>
-
-                            <?php if (!empty($cert['issue_date'])): ?>
-                            <p class="mb-1 small">
-                                <strong><i class="bi bi-calendar-check"></i> Issued:</strong>
-                                <?= date('M d, Y', strtotime($cert['issue_date'])) ?>
-                            </p>
-                            <?php endif; ?>
-
-                            <?php if (!empty($cert['expiry_date'])): ?>
-                            <p class="mb-1 small">
-                                <strong><i class="bi bi-calendar-x"></i> Expires:</strong>
-                                <?php
-                                $expiryDate = strtotime($cert['expiry_date']);
-                                $today = time();
-                                $daysUntilExpiry = floor(($expiryDate - $today) / 86400);
-                                $expiryClass = $daysUntilExpiry < 0 ? 'text-danger' : ($daysUntilExpiry < 90 ? 'text-warning' : 'text-success');
-                                ?>
-                                <span class="<?= $expiryClass ?>">
-                                    <?= date('M d, Y', $expiryDate) ?>
-                                    <?php if ($daysUntilExpiry < 0): ?>
-                                        (Expired)
-                                    <?php elseif ($daysUntilExpiry < 90): ?>
-                                        (<?= $daysUntilExpiry ?> days left)
+                                <!-- Details -->
+                                <div class="mt-3">
+                                    <?php if (!empty($cert['certification_number'])): ?>
+                                        <p class="mb-1 small">
+                                            <strong><i class="bi bi-hash"></i> Cert #:</strong>
+                                            <span
+                                                class="text-monospace"><?= htmlspecialchars($cert['certification_number']) ?></span>
+                                        </p>
                                     <?php endif; ?>
-                                </span>
-                            </p>
-                            <?php endif; ?>
 
-                            <?php if (!empty($cert['instructor_name'])): ?>
-                            <p class="mb-1 small">
-                                <strong><i class="bi bi-person"></i> Instructor:</strong>
-                                <?= htmlspecialchars($cert['instructor_name']) ?>
-                            </p>
-                            <?php endif; ?>
+                                    <?php if (!empty($cert['issue_date'])): ?>
+                                        <p class="mb-1 small">
+                                            <strong><i class="bi bi-calendar-check"></i> Issued:</strong>
+                                            <?= date('M d, Y', strtotime($cert['issue_date'])) ?>
+                                        </p>
+                                    <?php endif; ?>
 
-                            <?php if (!empty($cert['verified_at']) && $cert['verification_status'] === 'verified'): ?>
-                            <p class="mb-0 small text-success">
-                                <i class="bi bi-shield-check"></i>
-                                Verified <?= date('M d, Y', strtotime($cert['verified_at'])) ?>
-                            </p>
-                            <?php endif; ?>
-                        </div>
+                                    <?php if (!empty($cert['expiry_date'])): ?>
+                                        <p class="mb-1 small">
+                                            <strong><i class="bi bi-calendar-x"></i> Expires:</strong>
+                                            <?php
+                                            $expiryDate = strtotime($cert['expiry_date']);
+                                            $today = time();
+                                            $daysUntilExpiry = floor(($expiryDate - $today) / 86400);
+                                            $expiryClass = $daysUntilExpiry < 0 ? 'text-danger' : ($daysUntilExpiry < 90 ? 'text-warning' : 'text-success');
+                                            ?>
+                                            <span class="<?= $expiryClass ?>">
+                                                <?= date('M d, Y', $expiryDate) ?>
+                                                <?php if ($daysUntilExpiry < 0): ?>
+                                                    (Expired)
+                                                <?php elseif ($daysUntilExpiry < 90): ?>
+                                                    (<?= $daysUntilExpiry ?> days left)
+                                                <?php endif; ?>
+                                            </span>
+                                        </p>
+                                    <?php endif; ?>
 
-                        <!-- C-Card Images -->
-                        <?php if (!empty($cert['c_card_front_path']) || !empty($cert['c_card_back_path'])): ?>
-                        <div class="mt-3 pt-3 border-top">
-                            <p class="small text-muted mb-2"><i class="bi bi-card-image"></i> C-Card Images:</p>
-                            <div class="d-flex gap-2">
-                                <?php if (!empty($cert['c_card_front_path'])): ?>
-                                <a href="<?= htmlspecialchars($cert['c_card_front_path']) ?>" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                    <i class="bi bi-eye"></i> Front
-                                </a>
-                                <?php endif; ?>
-                                <?php if (!empty($cert['c_card_back_path'])): ?>
-                                <a href="<?= htmlspecialchars($cert['c_card_back_path']) ?>" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                    <i class="bi bi-eye"></i> Back
-                                </a>
+                                    <?php if (!empty($cert['instructor_name'])): ?>
+                                        <p class="mb-1 small">
+                                            <strong><i class="bi bi-person"></i> Instructor:</strong>
+                                            <?= htmlspecialchars($cert['instructor_name']) ?>
+                                        </p>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($cert['verified_at']) && $cert['verification_status'] === 'verified'): ?>
+                                        <p class="mb-0 small text-success">
+                                            <i class="bi bi-shield-check"></i>
+                                            Verified <?= date('M d, Y', strtotime($cert['verified_at'])) ?>
+                                        </p>
+                                    <?php endif; ?>
+                                </div>
+
+                                <!-- C-Card Images -->
+                                <?php if (!empty($cert['c_card_front_path']) || !empty($cert['c_card_back_path'])): ?>
+                                    <div class="mt-3 pt-3 border-top">
+                                        <p class="small text-muted mb-2"><i class="bi bi-card-image"></i> C-Card Images:</p>
+                                        <div class="d-flex gap-2">
+                                            <?php if (!empty($cert['c_card_front_path'])): ?>
+                                                <a href="<?= htmlspecialchars($cert['c_card_front_path']) ?>" target="_blank"
+                                                    class="btn btn-sm btn-outline-secondary">
+                                                    <i class="bi bi-eye"></i> Front
+                                                </a>
+                                            <?php endif; ?>
+                                            <?php if (!empty($cert['c_card_back_path'])): ?>
+                                                <a href="<?= htmlspecialchars($cert['c_card_back_path']) ?>" target="_blank"
+                                                    class="btn btn-sm btn-outline-secondary">
+                                                    <i class="bi bi-eye"></i> Back
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         </div>
-                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="mt-4 p-3 bg-light rounded">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="mb-0"><?= count($certifications) ?></h4>
+                        <small class="text-muted">Total Certifications</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="mb-0">
+                            <?= count(array_filter($certifications, fn($c) => $c['verification_status'] === 'verified')) ?>
+                        </h4>
+                        <small class="text-muted">Verified</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="mb-0">
+                            <?= !empty($highestCert) ? $highestCert['certification_level'] : 0 ?>
+                        </h4>
+                        <small class="text-muted">Highest Level</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="mb-0"><?= count(array_unique(array_column($certifications, 'agency_id'))) ?></h4>
+                        <small class="text-muted">Agencies</small>
                     </div>
                 </div>
             </div>
-            <?php endforeach; ?>
-        </div>
-
-        <!-- Summary Stats -->
-        <div class="mt-4 p-3 bg-light rounded">
-            <div class="row text-center">
-                <div class="col-md-3">
-                    <h4 class="mb-0"><?= count($certifications) ?></h4>
-                    <small class="text-muted">Total Certifications</small>
-                </div>
-                <div class="col-md-3">
-                    <h4 class="mb-0">
-                        <?= count(array_filter($certifications, fn($c) => $c['verification_status'] === 'verified')) ?>
-                    </h4>
-                    <small class="text-muted">Verified</small>
-                </div>
-                <div class="col-md-3">
-                    <h4 class="mb-0">
-                        <?= !empty($highestCert) ? $highestCert['certification_level'] : 0 ?>
-                    </h4>
-                    <small class="text-muted">Highest Level</small>
-                </div>
-                <div class="col-md-3">
-                    <h4 class="mb-0"><?= count(array_unique(array_column($certifications, 'agency_id'))) ?></h4>
-                    <small class="text-muted">Agencies</small>
-                </div>
-            </div>
-        </div>
         <?php endif; ?>
     </div>
 
@@ -495,78 +507,82 @@ ob_start();
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-tools"></i> Customer Equipment</h5>
                 <?php if (hasPermission('customers.edit')): ?>
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addEquipmentModal">
-                    <i class="bi bi-plus-circle"></i> Add Equipment
-                </button>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#addEquipmentModal">
+                        <i class="bi bi-plus-circle"></i> Add Equipment
+                    </button>
                 <?php endif; ?>
             </div>
             <div class="card-body">
                 <?php if (empty($equipment)): ?>
-                <p class="text-muted text-center py-4">No equipment found.</p>
+                    <p class="text-muted text-center py-4">No equipment found.</p>
                 <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th>Serial #</th>
-                                <th>Manufacturer/Model</th>
-                                <th>Specs</th>
-                                <th>VIP Status</th>
-                                <th>Hydro Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($equipment as $item): 
-                                $vipDate = !empty($item['last_vip_date']) ? strtotime($item['last_vip_date']) : 0;
-                                $hydroDate = !empty($item['last_hydro_date']) ? strtotime($item['last_hydro_date']) : 0;
-                                $vipValid = $vipDate >= strtotime('-1 year');
-                                $hydroValid = $hydroDate >= strtotime('-5 years');
-                            ?>
-                            <tr>
-                                <td class="fw-bold"><?= htmlspecialchars($item['serial_number']) ?></td>
-                                <td>
-                                    <?= htmlspecialchars($item['manufacturer']) ?> 
-                                    <br><small class="text-muted"><?= htmlspecialchars($item['model']) ?></small>
-                                </td>
-                                <td>
-                                    <?= htmlspecialchars($item['size']) ?> 
-                                    <?= htmlspecialchars($item['material']) ?>
-                                </td>
-                                <td>
-                                    <?php if ($vipValid): ?>
-                                        <span class="badge bg-success">Valid</span>
-                                        <br><small><?= date('M Y', $vipDate) ?></small>
-                                    <?php else: ?>
-                                        <span class="badge bg-danger">Expired</span>
-                                        <br><small><?= $vipDate ? date('M Y', $vipDate) : 'Never' ?></small>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php if ($hydroValid): ?>
-                                        <span class="badge bg-success">Valid</span>
-                                        <br><small><?= date('M Y', $hydroDate) ?></small>
-                                    <?php else: ?>
-                                        <span class="badge bg-danger">Expired</span>
-                                        <br><small><?= $hydroDate ? date('M Y', $hydroDate) : 'Never' ?></small>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php if (hasPermission('customers.edit')): ?>
-                                    <form method="POST" action="/store/customers/<?= $customer['id'] ?>/equipment/<?= $item['id'] ?>/delete" 
-                                          class="d-inline" onsubmit="return confirm('Delete this equipment? This cannot be undone if logs exist.')">
-                                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Serial #</th>
+                                    <th>Manufacturer/Model</th>
+                                    <th>Specs</th>
+                                    <th>VIP Status</th>
+                                    <th>Hydro Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($equipment as $item):
+                                    $vipDate = !empty($item['last_vip_date']) ? strtotime($item['last_vip_date']) : 0;
+                                    $hydroDate = !empty($item['last_hydro_date']) ? strtotime($item['last_hydro_date']) : 0;
+                                    $vipValid = $vipDate >= strtotime('-1 year');
+                                    $hydroValid = $hydroDate >= strtotime('-5 years');
+                                    ?>
+                                    <tr>
+                                        <td class="fw-bold"><?= htmlspecialchars($item['serial_number']) ?></td>
+                                        <td>
+                                            <?= htmlspecialchars($item['manufacturer']) ?>
+                                            <br><small class="text-muted"><?= htmlspecialchars($item['model']) ?></small>
+                                        </td>
+                                        <td>
+                                            <?= htmlspecialchars($item['size']) ?>
+                                            <?= htmlspecialchars($item['material']) ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($vipValid): ?>
+                                                <span class="badge bg-success">Valid</span>
+                                                <br><small><?= date('M Y', $vipDate) ?></small>
+                                            <?php else: ?>
+                                                <span class="badge bg-danger">Expired</span>
+                                                <br><small><?= $vipDate ? date('M Y', $vipDate) : 'Never' ?></small>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($hydroValid): ?>
+                                                <span class="badge bg-success">Valid</span>
+                                                <br><small><?= date('M Y', $hydroDate) ?></small>
+                                            <?php else: ?>
+                                                <span class="badge bg-danger">Expired</span>
+                                                <br><small><?= $hydroDate ? date('M Y', $hydroDate) : 'Never' ?></small>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if (hasPermission('customers.edit')): ?>
+                                                <form method="POST"
+                                                    action="/store/customers/<?= $customer['id'] ?>/equipment/<?= $item['id'] ?>/delete"
+                                                    class="d-inline"
+                                                    onsubmit="return confirm('Delete this equipment? This cannot be undone if logs exist.')">
+                                                    <input type="hidden" name="csrf_token"
+                                                        value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -578,9 +594,10 @@ ob_start();
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-telephone"></i> Phone Numbers</h5>
                 <?php if (hasPermission('customers.edit')): ?>
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPhoneModal">
-                    <i class="bi bi-plus-circle"></i> Add Phone
-                </button>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#addPhoneModal">
+                        <i class="bi bi-plus-circle"></i> Add Phone
+                    </button>
                 <?php endif; ?>
             </div>
             <div class="card-body">
@@ -589,26 +606,27 @@ ob_start();
                 // $phones = []; (Removed)
                 ?>
                 <?php if (empty($phones)): ?>
-                <p class="text-muted">No phone numbers on file.</p>
+                    <p class="text-muted">No phone numbers on file.</p>
                 <?php else: ?>
-                <div class="list-group">
-                    <?php foreach ($phones as $phone): ?>
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong><?= htmlspecialchars($phone['phone_number']) ?></strong>
-                                <span class="badge bg-primary"><?= ucfirst($phone['phone_type']) ?></span>
-                                <?php if ($phone['is_primary']): ?><span class="badge bg-success">Primary</span><?php endif; ?>
+                    <div class="list-group">
+                        <?php foreach ($phones as $phone): ?>
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong><?= htmlspecialchars($phone['phone_number']) ?></strong>
+                                        <span class="badge bg-primary"><?= ucfirst($phone['phone_type']) ?></span>
+                                        <?php if ($phone['is_primary']): ?><span
+                                                class="badge bg-success">Primary</span><?php endif; ?>
+                                    </div>
+                                    <?php if (hasPermission('customers.edit')): ?>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deletePhone(<?= $phone['id'] ?>)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
                             </div>
-                            <?php if (hasPermission('customers.edit')): ?>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deletePhone(<?= $phone['id'] ?>)">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                            <?php endif; ?>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endforeach; ?>
-                </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -618,9 +636,10 @@ ob_start();
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-envelope"></i> Email Addresses</h5>
                 <?php if (hasPermission('customers.edit')): ?>
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addEmailModal">
-                    <i class="bi bi-plus-circle"></i> Add Email
-                </button>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#addEmailModal">
+                        <i class="bi bi-plus-circle"></i> Add Email
+                    </button>
                 <?php endif; ?>
             </div>
             <div class="card-body">
@@ -629,26 +648,27 @@ ob_start();
                 // $emails = []; (Removed)
                 ?>
                 <?php if (empty($emails)): ?>
-                <p class="text-muted">No email addresses on file.</p>
+                    <p class="text-muted">No email addresses on file.</p>
                 <?php else: ?>
-                <div class="list-group">
-                    <?php foreach ($emails as $email): ?>
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong><?= htmlspecialchars($email['email_address']) ?></strong>
-                                <span class="badge bg-primary"><?= ucfirst($email['email_type']) ?></span>
-                                <?php if ($email['is_primary']): ?><span class="badge bg-success">Primary</span><?php endif; ?>
+                    <div class="list-group">
+                        <?php foreach ($emails as $email): ?>
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong><?= htmlspecialchars($email['email_address']) ?></strong>
+                                        <span class="badge bg-primary"><?= ucfirst($email['email_type']) ?></span>
+                                        <?php if ($email['is_primary']): ?><span
+                                                class="badge bg-success">Primary</span><?php endif; ?>
+                                    </div>
+                                    <?php if (hasPermission('customers.edit')): ?>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEmail(<?= $email['id'] ?>)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
                             </div>
-                            <?php if (hasPermission('customers.edit')): ?>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteEmail(<?= $email['id'] ?>)">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                            <?php endif; ?>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endforeach; ?>
-                </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -658,9 +678,10 @@ ob_start();
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-person-lines-fill"></i> Emergency Contacts</h5>
                 <?php if (hasPermission('customers.edit')): ?>
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addContactModal">
-                    <i class="bi bi-plus-circle"></i> Add Contact
-                </button>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#addContactModal">
+                        <i class="bi bi-plus-circle"></i> Add Contact
+                    </button>
                 <?php endif; ?>
             </div>
             <div class="card-body">
@@ -669,22 +690,25 @@ ob_start();
                 // $contacts = []; (Removed)
                 ?>
                 <?php if (empty($contacts)): ?>
-                <p class="text-muted">No emergency contacts on file.</p>
+                    <p class="text-muted">No emergency contacts on file.</p>
                 <?php else: ?>
-                <div class="row">
-                    <?php foreach ($contacts as $contact): ?>
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h6><?= htmlspecialchars($contact['contact_name']) ?></h6>
-                                <p class="mb-1"><small><strong>Relationship:</strong> <?= htmlspecialchars($contact['relationship']) ?></small></p>
-                                <p class="mb-1"><small><strong>Phone:</strong> <?= htmlspecialchars($contact['contact_phone']) ?></small></p>
-                                <?php if ($contact['is_primary']): ?><span class="badge bg-warning">Primary</span><?php endif; ?>
+                    <div class="row">
+                        <?php foreach ($contacts as $contact): ?>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6><?= htmlspecialchars($contact['contact_name']) ?></h6>
+                                        <p class="mb-1"><small><strong>Relationship:</strong>
+                                                <?= htmlspecialchars($contact['relationship']) ?></small></p>
+                                        <p class="mb-1"><small><strong>Phone:</strong>
+                                                <?= htmlspecialchars($contact['contact_phone']) ?></small></p>
+                                        <?php if ($contact['is_primary']): ?><span
+                                                class="badge bg-warning">Primary</span><?php endif; ?>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endforeach; ?>
-                </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -753,15 +777,21 @@ ob_start();
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Allergies:</label>
-                            <p class="text-muted"><?= !empty($customer['allergies']) ? nl2br(htmlspecialchars($customer['allergies'])) : 'None reported' ?></p>
+                            <p class="text-muted">
+                                <?= !empty($customer['allergies']) ? nl2br(htmlspecialchars($customer['allergies'])) : 'None reported' ?>
+                            </p>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Medications:</label>
-                            <p class="text-muted"><?= !empty($customer['medications']) ? nl2br(htmlspecialchars($customer['medications'])) : 'None reported' ?></p>
+                            <p class="text-muted">
+                                <?= !empty($customer['medications']) ? nl2br(htmlspecialchars($customer['medications'])) : 'None reported' ?>
+                            </p>
                         </div>
                         <div>
                             <label class="form-label fw-bold">Medical Notes:</label>
-                            <p class="text-muted"><?= !empty($customer['medical_notes']) ? nl2br(htmlspecialchars($customer['medical_notes'])) : 'None' ?></p>
+                            <p class="text-muted">
+                                <?= !empty($customer['medical_notes']) ? nl2br(htmlspecialchars($customer['medical_notes'])) : 'None' ?>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -769,10 +799,11 @@ ob_start();
         </div>
 
         <?php if (hasPermission('customers.edit')): ?>
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i>
-            To update travel and medical information, <a href="/store/customers/<?= $customer['id'] ?>/edit">edit the customer profile</a>.
-        </div>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                To update travel and medical information, <a href="/store/customers/<?= $customer['id'] ?>/edit">edit the
+                    customer profile</a>.
+            </div>
         <?php endif; ?>
     </div>
 
@@ -781,9 +812,10 @@ ob_start();
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-tags"></i> Customer Tags</h5>
                 <?php if (hasPermission('customers.edit')): ?>
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignTagModal">
-                    <i class="bi bi-plus-circle"></i> Assign Tag
-                </button>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#assignTagModal">
+                        <i class="bi bi-plus-circle"></i> Assign Tag
+                    </button>
                 <?php endif; ?>
             </div>
             <div class="card-body">
@@ -792,38 +824,41 @@ ob_start();
                 // $customerTags = []; (Removed to use controller data)
                 ?>
                 <?php if (empty($customerTags)): ?>
-                <p class="text-muted">No tags assigned to this customer.</p>
+                    <p class="text-muted">No tags assigned to this customer.</p>
                 <?php else: ?>
-                <div class="d-flex flex-wrap gap-2">
-                    <?php foreach ($customerTags as $tag): ?>
-                    <div class="position-relative">
-                        <span class="badge" style="background-color: <?= htmlspecialchars($tag['color']) ?>; color: white; font-size: 1rem; padding: 8px 12px;">
-                            <?php if ($tag['icon']): ?>
-                            <i class="<?= htmlspecialchars($tag['icon']) ?>"></i>
-                            <?php endif; ?>
-                            <?= htmlspecialchars($tag['name']) ?>
-                        </span>
-                        <?php if (hasPermission('customers.edit')): ?>
-                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                                onclick="removeTag(<?= $tag['id'] ?>)" style="padding: 2px 6px;">
-                            <i class="bi bi-x"></i>
-                        </button>
-                        <?php endif; ?>
+                    <div class="d-flex flex-wrap gap-2">
+                        <?php foreach ($customerTags as $tag): ?>
+                            <div class="position-relative">
+                                <span class="badge"
+                                    style="background-color: <?= htmlspecialchars($tag['color']) ?>; color: white; font-size: 1rem; padding: 8px 12px;">
+                                    <?php if ($tag['icon']): ?>
+                                        <i class="<?= htmlspecialchars($tag['icon']) ?>"></i>
+                                    <?php endif; ?>
+                                    <?= htmlspecialchars($tag['name']) ?>
+                                </span>
+                                <?php if (hasPermission('customers.edit')): ?>
+                                    <button type="button"
+                                        class="btn btn-sm btn-danger position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                                        onclick="removeTag(<?= $tag['id'] ?>)" style="padding: 2px 6px;">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endforeach; ?>
-                </div>
 
-                <div class="mt-4">
-                    <?php foreach ($customerTags as $tag): ?>
-                    <?php if (!empty($tag['notes'])): ?>
-                    <div class="alert alert-light">
-                        <strong><?= htmlspecialchars($tag['name']) ?>:</strong>
-                        <?= htmlspecialchars($tag['notes']) ?>
-                        <br><small class="text-muted">Assigned by <?= htmlspecialchars($tag['assigned_by_name']) ?> on <?= date('M d, Y', strtotime($tag['assigned_at'])) ?></small>
+                    <div class="mt-4">
+                        <?php foreach ($customerTags as $tag): ?>
+                            <?php if (!empty($tag['notes'])): ?>
+                                <div class="alert alert-light">
+                                    <strong><?= htmlspecialchars($tag['name']) ?>:</strong>
+                                    <?= htmlspecialchars($tag['notes']) ?>
+                                    <br><small class="text-muted">Assigned by <?= htmlspecialchars($tag['assigned_by_name']) ?> on
+                                        <?= date('M d, Y', strtotime($tag['assigned_at'])) ?></small>
+                                </div>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endif; ?>
-                    <?php endforeach; ?>
-                </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -1006,7 +1041,8 @@ ob_start();
 <div class="modal fade" id="addCertificationModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="/store/customers/<?= $customer['id'] ?>/certifications" id="addCertificationForm">
+            <form method="POST" action="/store/customers/<?= $customer['id'] ?>/certifications"
+                id="addCertificationForm">
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                 <div class="modal-header">
                     <h5 class="modal-title">Add Certification</h5>
@@ -1017,15 +1053,16 @@ ob_start();
                         <label class="form-label">Agency <span class="text-danger">*</span></label>
                         <select name="certification_agency_id" class="form-select" required>
                             <!-- Populated from controller or AJAX -->
-                            <?php 
-                            foreach(($certificationAgencies ?? []) as $agency): ?>
+                            <?php
+                            foreach (($certificationAgencies ?? []) as $agency): ?>
                                 <option value="<?= $agency['id'] ?>"><?= htmlspecialchars($agency['name']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Certification Level <span class="text-danger">*</span></label>
-                        <input type="text" name="certification_level" class="form-control" placeholder="e.g. Open Water Diver" required>
+                        <input type="text" name="certification_level" class="form-control"
+                            placeholder="e.g. Open Water Diver" required>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -1374,6 +1411,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 JS;
 
-require __DIR__ . '/../layouts/app.php';
+require __DIR__ . '/../layouts/admin.php';
 ?>
-

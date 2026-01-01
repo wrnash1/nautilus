@@ -10,15 +10,15 @@ ob_start();
     <h2><i class="bi bi-people"></i> Customers</h2>
     <div>
         <?php if (hasPermission('customers.export')): ?>
-        <button onclick="exportCustomersCsv()" class="btn btn-success">
-            <i class="bi bi-download"></i> Export CSV
-        </button>
+            <button onclick="exportCustomersCsv()" class="btn btn-success">
+                <i class="bi bi-download"></i> Export CSV
+            </button>
         <?php endif; ?>
-        
+
         <?php if (hasPermission('customers.create')): ?>
-        <a href="/store/customers/create" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Customer
-        </a>
+            <a href="/store/customers/create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Customer
+            </a>
         <?php endif; ?>
     </div>
 </div>
@@ -27,9 +27,10 @@ ob_start();
     <div class="card-body">
         <div class="row g-3 mb-3">
             <div class="col-md-10">
-                <input type="text" id="customerSearch" class="form-control" 
-                       placeholder="Search by name, email, phone, or company..." autocomplete="off">
-                <div id="searchResults" class="position-absolute bg-white border rounded shadow-sm" style="display: none; z-index: 1000; max-height: 400px; overflow-y: auto;"></div>
+                <input type="text" id="customerSearch" class="form-control"
+                    placeholder="Search by name, email, phone, or company..." autocomplete="off">
+                <div id="searchResults" class="position-absolute bg-white border rounded shadow-sm"
+                    style="display: none; z-index: 1000; max-height: 400px; overflow-y: auto;"></div>
             </div>
             <div class="col-md-2">
                 <select id="typeFilter" class="form-select">
@@ -39,80 +40,85 @@ ob_start();
                 </select>
             </div>
         </div>
-        
+
         <?php if (empty($customers)): ?>
-        <p class="text-muted text-center py-4">No customers found.</p>
+            <p class="text-muted text-center py-4">No customers found.</p>
         <?php else: ?>
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Type</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Company</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($customers as $customer): ?>
-                    <tr>
-                        <td><?= $customer['id'] ?></td>
-                        <td>
-                            <span class="badge bg-<?= $customer['customer_type'] === 'B2B' ? 'primary' : 'secondary' ?>">
-                                <?= $customer['customer_type'] ?>
-                            </span>
-                        </td>
-                        <td>
-                            <a href="/store/customers/<?= $customer['id'] ?>">
-                                <?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?>
-                            </a>
-                        </td>
-                        <td><?= htmlspecialchars($customer['email'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($customer['phone'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($customer['company_name'] ?? '-') ?></td>
-                        <td>
-                            <div class="btn-group btn-group-sm">
-                                <a href="/store/customers/<?= $customer['id'] ?>" class="btn btn-outline-primary" title="View">
-                                    <i class="bi bi-eye"></i>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Company</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($customers as $customer): ?>
+                            <tr>
+                                <td><?= $customer['id'] ?></td>
+                                <td>
+                                    <span
+                                        class="badge bg-<?= $customer['customer_type'] === 'B2B' ? 'primary' : 'secondary' ?>">
+                                        <?= $customer['customer_type'] ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="/store/customers/<?= $customer['id'] ?>">
+                                        <?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?>
+                                    </a>
+                                </td>
+                                <td><?= htmlspecialchars($customer['email'] ?? '') ?></td>
+                                <td><?= htmlspecialchars($customer['phone'] ?? '') ?></td>
+                                <td><?= htmlspecialchars($customer['company_name'] ?? '-') ?></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="/store/customers/<?= $customer['id'] ?>" class="btn btn-outline-primary"
+                                            title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <?php if (hasPermission('customers.edit')): ?>
+                                            <a href="/store/customers/<?= $customer['id'] ?>/edit" class="btn btn-outline-secondary"
+                                                title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                        <?php if (hasPermission('customers.delete')): ?>
+                                            <form method="POST" action="/store/customers/<?= $customer['id'] ?>/delete"
+                                                class="d-inline"
+                                                onsubmit="return confirm('Are you sure you want to delete this customer?')">
+                                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                                                <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <?php if ($totalPages > 1): ?>
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                            <li class="page-item <?= $i === $page ? 'active' : '' ?>">
+                                <a class="page-link"
+                                    href="/store/customers?page=<?= $i ?><?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>">
+                                    <?= $i ?>
                                 </a>
-                                <?php if (hasPermission('customers.edit')): ?>
-                                <a href="/store/customers/<?= $customer['id'] ?>/edit" class="btn btn-outline-secondary" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <?php endif; ?>
-                                <?php if (hasPermission('customers.delete')): ?>
-                                <form method="POST" action="/store/customers/<?= $customer['id'] ?>/delete" class="d-inline"
-                                      onsubmit="return confirm('Are you sure you want to delete this customer?')">
-                                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-                                    <button type="submit" class="btn btn-outline-danger" title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                                <?php endif; ?>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-        
-        <?php if ($totalPages > 1): ?>
-        <nav>
-            <ul class="pagination justify-content-center">
-                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                <li class="page-item <?= $i === $page ? 'active' : '' ?>">
-                    <a class="page-link" href="/store/customers?page=<?= $i ?><?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>">
-                        <?= $i ?>
-                    </a>
-                </li>
-                <?php endfor; ?>
-            </ul>
-        </nav>
-        <?php endif; ?>
+                            </li>
+                        <?php endfor; ?>
+                    </ul>
+                </nav>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 </div>
@@ -220,5 +226,5 @@ function exportCustomersCsv() {
 </script>
 JS;
 
-require __DIR__ . '/../layouts/app.php';
+require __DIR__ . '/../layouts/admin.php';
 ?>

@@ -71,6 +71,13 @@ class PWAInstaller {
     }
 
     showInstallButton() {
+        // Only show on tablet or phone (approximate via UA or width)
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
+
+        if (!isMobile) {
+            return;
+        }
+
         // Create install button if it doesn't exist
         let installBtn = document.getElementById('pwa-install-btn');
 
@@ -89,6 +96,11 @@ class PWAInstaller {
         }
 
         installBtn.style.display = 'flex';
+
+        // Auto hide after 15 seconds if not clicked
+        setTimeout(() => {
+            this.hideInstallButton();
+        }, 15000);
     }
 
     hideInstallButton() {
@@ -142,8 +154,8 @@ class PWAInstaller {
 window.pwaInstaller = new PWAInstaller();
 
 // Add CSS for install button
-const style = document.createElement('style');
-style.textContent = `
+const pwaStyle = document.createElement('style');
+pwaStyle.textContent = `
     .pwa-install-button {
         position: fixed;
         top: 20px;
@@ -195,4 +207,4 @@ style.textContent = `
         }
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(pwaStyle);

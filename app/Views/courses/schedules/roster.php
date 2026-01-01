@@ -302,5 +302,5 @@ document.head.appendChild(styleSheet);
 
 <?php
 $content = ob_get_clean();
-require __DIR__ . '/../../layouts/app.php';
+require __DIR__ . '/../../layouts/admin.php';
 ?>

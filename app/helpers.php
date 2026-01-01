@@ -18,50 +18,26 @@ if (!function_exists('dd')) {
 if (!function_exists('url')) {
     function url(string $path): string
     {
-        // Use APP_BASE_PATH from .env if set (explicitly check if it's set, even if empty)
-        if (isset($_ENV['APP_BASE_PATH'])) {
-            $basePath = $_ENV['APP_BASE_PATH'];
-        } else {
-            // Fallback to auto-detection: get directory from SCRIPT_NAME
-            $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-            $basePath = dirname($scriptName);
-            // If at root, dirname returns '/', but we want empty string
-            if ($basePath === '/' || $basePath === '\\') {
-                $basePath = '';
-            }
+        $baseUrl = $_ENV['APP_URL'] ?? '';
+
+        // Remove trailing slash from base URL
+        $baseUrl = rtrim($baseUrl, '/');
+
+        // Ensure path has leading slash
+        if (!empty($path) && strpos($path, '/') !== 0) {
+            $path = '/' . $path;
         }
 
-        // Only add base path if it's not empty and path doesn't already have it
-        if ($basePath && strpos($path, $basePath) !== 0) {
-            $path = $basePath . $path;
-        }
-
-        return $path;
+        return $baseUrl . $path;
     }
 }
 
 if (!function_exists('redirect')) {
     function redirect(string $path): void
     {
-        // Use APP_BASE_PATH from .env if set (explicitly check if it's set, even if empty)
-        if (isset($_ENV['APP_BASE_PATH'])) {
-            $basePath = $_ENV['APP_BASE_PATH'];
-        } else {
-            // Fallback to auto-detection: get directory from SCRIPT_NAME
-            $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-            $basePath = dirname($scriptName);
-            // If at root, dirname returns '/', but we want empty string
-            if ($basePath === '/' || $basePath === '\\') {
-                $basePath = '';
-            }
-        }
+        $fullUrl = url($path);
 
-        // Only add base path if it's not empty and path doesn't already have it
-        if ($basePath && strpos($path, $basePath) !== 0) {
-            $path = $basePath . $path;
-        }
-
-        header("Location: {$path}");
+        header("Location: {$fullUrl}");
         exit;
     }
 }
