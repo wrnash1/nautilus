@@ -20,10 +20,6 @@ class StorefrontController extends Controller
      */
     public function index(): void
     {
-        // Get business name from settings
-        $settings = Database::fetchOne("SELECT setting_value FROM company_settings WHERE setting_key = 'business_name'");
-        $businessName = ($settings ?? [])['setting_value'] ?? 'Nautilus Dive Shop';
-
         // Get carousel slides from database (if configured)
         $carouselSlides = Database::fetchAll("
             SELECT * FROM storefront_carousel_slides
@@ -39,7 +35,6 @@ class StorefrontController extends Controller
         ") ?? [];
 
         $data = [
-            'business_name' => $businessName,
             'carousel_slides' => $carouselSlides,
             'service_boxes' => !empty($serviceBoxes) ? $serviceBoxes : null // null triggers defaults in view
         ];
@@ -47,10 +42,7 @@ class StorefrontController extends Controller
         $this->renderStorefront('storefront/index', $data);
     }
 
-    /**
-     * Render storefront view (no admin sidebar)
-     */
-    private function renderStorefront(string $view, array $data = []): void
+    protected function renderStorefront(string $view, array $data = []): void
     {
         // Global Storefront Data
         $data['active_announcements'] = $this->settingsService->getActiveBanners();
@@ -66,12 +58,38 @@ class StorefrontController extends Controller
         // Pass settings service for direct access
         $data['settings'] = $this->settingsService;
 
+        // Load business info from Settings class
+        $settings = \App\Core\Settings::getInstance();
+        $companyInfo = $settings->getCompanyInfo();
+
         // Pass flattened theme settings (using general category as fallback source)
         $generalSettings = $this->settingsService->getByCategory('general');
         $theme = [];
         foreach ($generalSettings as $key => $val) {
             $theme[$key] = $val['value'];
         }
+
+        // Add business contact info to theme array
+        $theme['business_name'] = $companyInfo['name'] ?? 'Nautilus Dive Shop';
+        $theme['business_phone'] = $companyInfo['phone'] ?? '817-406-4080';
+        $theme['business_email'] = $companyInfo['email'] ?? 'info@nautilus.local';
+        $theme['business_address'] = $companyInfo['address'] ?? '';
+        $theme['business_city'] = $companyInfo['city'] ?? '';
+        $theme['business_state'] = $companyInfo['state'] ?? '';
+        $theme['business_zip'] = $companyInfo['zip'] ?? '';
+        $theme['logo_path'] = $companyInfo['logo'] ?? '';
+
+        // Add stats from system settings
+        $theme['stats_certified_divers'] = $settings->get('stats_certified_divers', '5000');
+        $theme['stats_years_experience'] = $settings->get('stats_years_experience', '25');
+        $theme['stats_dive_destinations'] = $settings->get('stats_dive_destinations', '100');
+        $theme['stats_customer_rating'] = $settings->get('stats_customer_rating', '4.9');
+
+        // Add certification organization settings
+        $theme['primary_certification_org'] = $settings->get('primary_certification_org', 'PADI');
+        $theme['certification_level'] = $settings->get('certification_level', '5-Star Center');
+        $theme['secondary_certifications'] = $settings->get('secondary_certifications', 'SSI,NAUI');
+
         $data['theme'] = $theme;
 
         extract($data);
@@ -183,8 +201,18 @@ class StorefrontController extends Controller
      */
     public function contact(): void
     {
+        // Load business info from Settings class
+        $settings = \App\Core\Settings::getInstance();
+        $companyInfo = $settings->getCompanyInfo();
+
         $data = [
-            'business_name' => $this->getBusinessName()
+            'business_name' => $this->getBusinessName(),
+            'business_phone' => $companyInfo['business_phone'] ?? '817-406-4080',
+            'business_email' => $companyInfo['business_email'] ?? 'info@nautilus.local',
+            'business_address' => $companyInfo['business_address'] ?? '149 W main street',
+            'business_city' => $companyInfo['business_city'] ?? 'Azle',
+            'business_state' => $companyInfo['business_state'] ?? 'Texas',
+            'business_zip' => $companyInfo['business_zip'] ?? '76020',
         ];
 
         $this->renderStorefront('storefront/contact', $data);

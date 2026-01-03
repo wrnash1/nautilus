@@ -90,8 +90,9 @@ $isDocker = gethostbyname('database') !== 'database';
 $dbHost = $isDocker ? 'database' : '127.0.0.1';
 $dbPort = $isDocker ? 3306 : 3307;
 $dbName = 'nautilus';
-$dbUser = $isDocker ? 'nautilus' : 'root';
-$dbPass = $isDocker ? 'nautilus123' : ''; // Default empty for local, or force user input
+$dbUser = $isDocker ? 'root' : 'root';
+$dbPass = ''; // Empty password for both Docker and local
+
 
 $requirements = [
     'PHP >= 8.0' => true,
@@ -159,6 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'db_name' => $dbName,
                 'db_user' => $dbUser,
                 'db_pass' => $dbPass,
+                'demo_data' => isset($_POST['demo_data']) ? 1 : 0,
             ];
             session_write_close(); // Ensure session is saved before redirect
             header('Location: run_migrations.php?quick_install=1');
@@ -368,6 +370,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="password" name="password" class="form-control" placeholder="Min. 8 chars"
                                     minlength="8" required>
                             </div>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="demo_data" id="demo_data" value="1"
+                                checked>
+                            <label class="form-check-label" for="demo_data">
+                                <strong>Install Demo Data</strong>
+                                <small class="d-block text-muted">Includes sample products, courses, trips, and storefront
+                                    content</small>
+                            </label>
                         </div>
 
                         <div class="d-flex align-items-center mb-4 text-muted small">

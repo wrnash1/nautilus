@@ -495,36 +495,64 @@
             const mainContent = document.querySelector('.main-content');
             const navbar = document.querySelector('.navbar');
             const toggleBtn = document.getElementById('sidebarToggle');
+            const mobileToggleBtn = document.getElementById('mobileSidebarToggle');
 
-            // Check localStorage for saved state
-            const sidebarState = localStorage.getItem('sidebarCollapsed');
-            if (sidebarState === 'true') {
-                sidebar.classList.add('collapsed');
-                mainContent.classList.add('sidebar-collapsed');
-                navbar.classList.add('sidebar-collapsed');
-                toggleBtn.classList.add('collapsed');
+            function toggleSidebar() {
+                const isCollapsed = sidebar.classList.toggle('collapsed');
+
+                // Only affect main content margin on desktop or if we want specific mobile behavior
+                if (window.innerWidth > 768) {
+                    mainContent.classList.toggle('sidebar-collapsed');
+                    navbar.classList.toggle('sidebar-collapsed');
+                } else {
+                    // On mobile, 'collapsed' class might hide it, or we need 'show' class
+                    sidebar.classList.toggle('show');
+                }
+
+                if (toggleBtn) toggleBtn.classList.toggle('collapsed');
+
+                // Save state to localStorage only for desktop preference
+                if (window.innerWidth > 768) {
+                    localStorage.setItem('sidebarCollapsed', isCollapsed);
+                }
             }
 
-            // Toggle button click handler
-            toggleBtn.addEventListener('click', function () {
-                const isCollapsed = sidebar.classList.toggle('collapsed');
-                mainContent.classList.toggle('sidebar-collapsed');
-                navbar.classList.toggle('sidebar-collapsed');
-                toggleBtn.classList.toggle('collapsed');
+            // Check localStorage for saved state (Desktop only)
+            if (window.innerWidth > 768) {
+                const sidebarState = localStorage.getItem('sidebarCollapsed');
+                if (sidebarState === 'true') {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('sidebar-collapsed');
+                    navbar.classList.add('sidebar-collapsed');
+                    if (toggleBtn) toggleBtn.classList.add('collapsed');
+                }
+            }
 
-                // Save state to localStorage
-                localStorage.setItem('sidebarCollapsed', isCollapsed);
-            });
+            // Toggle button click handlers
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    toggleSidebar();
+                });
+            }
 
-            // Mobile: Toggle sidebar on button click
-            if (window.innerWidth <= 768) {
-                toggleBtn.addEventListener('click', function () {
+            if (mobileToggleBtn) {
+                mobileToggleBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    // On mobile, the logic might be slightly different (toggling 'show' class usually)
+                    // The CSS has .sidebar.show for mobile transform.
                     sidebar.classList.toggle('show');
                 });
+            }
 
-                // Close sidebar when clicking outside on mobile
+            // Mobile: Close sidebar when clicking outside
+            if (window.innerWidth <= 768) {
                 document.addEventListener('click', function (event) {
-                    if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                    const isClickInside = sidebar.contains(event.target) ||
+                        (mobileToggleBtn && mobileToggleBtn.contains(event.target)) ||
+                        (toggleBtn && toggleBtn.contains(event.target));
+
+                    if (!isClickInside && sidebar.classList.contains('show')) {
                         sidebar.classList.remove('show');
                     }
                 });

@@ -313,6 +313,23 @@ try {
     stream_msg("INFO", "Skipping settings update: " . $e->getMessage());
 }
 
+// Seed Business Info
+try {
+    $pdo->exec("INSERT IGNORE INTO system_settings (category, setting_key, setting_value) VALUES 
+        ('general', 'business_name', " . $pdo->quote($data['company']) . "),
+        ('general', 'business_address', '149 W main street'),
+        ('general', 'business_city', 'Azle'),
+        ('general', 'business_state', 'Texas'),
+        ('general', 'business_zip', '76020'),
+        ('general', 'business_phone', '817-406-4080'),
+        ('general', 'company_logo_path', '/assets/images/logo.png'),
+        ('general', 'company_favicon_path', '/assets/images/logo.png')
+    ");
+    stream_msg("INFO", "Seeded default Business settings to DB.");
+} catch (Exception $e) {
+    stream_msg("INFO", "Skipped seeding business settings: " . $e->getMessage());
+}
+
 // 5b. Create Test Users (Instructor, Customer)
 try {
     $testUsers = [
@@ -341,6 +358,26 @@ try {
     }
 } catch (Exception $e) {
     stream_msg("INFO", "Skipping test users: " . $e->getMessage());
+}
+
+// 6. Seed Demo Data (if requested)
+$seedDemoData = isset($data['demo_data']) && $data['demo_data'] == 1;
+if ($seedDemoData) {
+    stream_msg("INFO", "Seeding demo data...");
+
+    // Read and execute storefront seed data
+    $seedFile = dirname(__DIR__) . '/database/seeds/storefront_data.sql';
+    if (file_exists($seedFile)) {
+        try {
+            $seedSql = file_get_contents($seedFile);
+            $pdo->exec($seedSql);
+            stream_msg("INFO", "Demo data seeded successfully (storefront settings, service boxes, memberships).");
+        } catch (PDOException $e) {
+            stream_msg("INFO", "Demo data seeding had some issues (may be partially complete): " . $e->getMessage());
+        }
+    } else {
+        stream_msg("INFO", "Demo data seed file not found, skipping.");
+    }
 }
 
 stream_msg("COMPLETE", "Installation finished successfully.");
