@@ -46,20 +46,25 @@ class User extends Model
 
     public static function hasPermission(int $userId, string $permission): bool
     {
-        // Use Eloquent to check permission
-        // Assuming Role model has permissions relationship
-        $user = static::with('roles.permissions')->find($userId);
-        if (!$user)
-            return false;
+        // Use raw SQL for reliability - avoids Eloquent eager-loading issues
+        // Note: permissions table uses 'name' column for the permission code
+        $sql = "
+            SELECT COUNT(*) as has_perm
+            FROM users u
+            INNER JOIN user_roles ur ON u.id = ur.user_id
+            INNER JOIN role_permissions rp ON ur.role_id = rp.role_id
+            INNER JOIN permissions p ON rp.permission_id = p.id
+            WHERE u.id = ? AND p.name = ?
+        ";
 
-        foreach ($user->roles as $role) {
-            foreach ($role->permissions as $perm) {
-                if ($perm->permission_code === $permission) {
-                    return true;
-                }
-            }
+        try {
+            $result = Database::fetchOne($sql, [$userId, $permission]);
+            return ($result['has_perm'] ?? 0) > 0;
+        } catch (\Throwable $e) {
+            // Log error but don't crash - fail closed (no permission)
+            error_log("Permission check failed: " . $e->getMessage());
+            return false;
         }
-        return false;
     }
 
     public static function updateLastLogin(int $userId): void

@@ -258,10 +258,6 @@
             }
         }
 
-        align-items: center;
-        font-weight: 500;
-        }
-
         .sidebar .nav-link span {
             transition: opacity 0.3s ease, width 0.3s ease;
         }

@@ -365,19 +365,33 @@ $seedDemoData = isset($data['demo_data']) && $data['demo_data'] == 1;
 if ($seedDemoData) {
     stream_msg("INFO", "Seeding demo data...");
 
-    // Read and execute storefront seed data
-    $seedFile = dirname(__DIR__) . '/database/seeds/storefront_data.sql';
-    if (file_exists($seedFile)) {
-        try {
-            $seedSql = file_get_contents($seedFile);
-            $pdo->exec($seedSql);
-            stream_msg("INFO", "Demo data seeded successfully (storefront settings, service boxes, memberships).");
-        } catch (PDOException $e) {
-            stream_msg("INFO", "Demo data seeding had some issues (may be partially complete): " . $e->getMessage());
+    // Define all seed files in order of execution
+    $seedFiles = [
+        'storefront_data.sql' => 'Storefront settings and homepage content',
+        '002_seed_demo_data.sql' => 'Demo products, customers, rentals, courses, and transactions',
+        '003_seed_certification_agencies.sql' => 'PADI/SSI certification agencies',
+        '004_seed_reminders_and_dive_sites.sql' => 'Reminder templates and dive sites'
+    ];
+
+    $seedDir = dirname(__DIR__) . '/database/seeds/';
+
+    foreach ($seedFiles as $file => $description) {
+        $seedPath = $seedDir . $file;
+        if (file_exists($seedPath)) {
+            try {
+                $seedSql = file_get_contents($seedPath);
+                $pdo->exec($seedSql);
+                stream_msg("INFO", "Loaded: $description");
+            } catch (PDOException $e) {
+                // Log but continue - some data may have constraints
+                stream_msg("INFO", "Partial load for $file: " . $e->getMessage());
+            }
+        } else {
+            stream_msg("INFO", "Skipped (not found): $file");
         }
-    } else {
-        stream_msg("INFO", "Demo data seed file not found, skipping.");
     }
+
+    stream_msg("INFO", "Demo data seeding completed.");
 }
 
 stream_msg("COMPLETE", "Installation finished successfully.");
