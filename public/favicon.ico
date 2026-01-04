@@ -1,0 +1,6 @@
+<!-- SVG Favicon for Nautilus Dive Shop -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" fill="#0066cc"/>
+  <path d="M16 8 L8 24 L12 24 L16 16 L20 24 L24 24 Z" fill="#ffffff"/>
+  <circle cx="16" cy="12" r="2" fill="#00ccff"/>
+</svg>

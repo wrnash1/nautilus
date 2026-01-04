@@ -1,0 +1,1 @@
+ALTER TABLE customers ADD COLUMN photo_url VARCHAR(255) DEFAULT NULL AFTER email;

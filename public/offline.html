@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Nautilus</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #0066cc 0%, #004d99 50%, #003366 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .offline-container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 500px;
+        }
+
+        .offline-icon {
+            font-size: 6rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .retry-btn {
+            background: white;
+            color: #0066cc;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .offline-features {
+            margin-top: 3rem;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .offline-features h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .offline-features ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .offline-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .offline-features li i {
+            color: #66ccff;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">
+            <i class="bi bi-wifi-off"></i>
+        </div>
+        
+        <h1>You're Offline</h1>
+        
+        <p>
+            It looks like you've lost your internet connection. 
+            Don't worry, Nautilus works offline for many features!
+        </p>
+        
+        <button class="retry-btn" onclick="location.reload()">
+            <i class="bi bi-arrow-clockwise"></i>
+            Try Again
+        </button>
+        
+        <div class="offline-features">
+            <h3>Available Offline:</h3>
+            <ul>
+                <li>
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>View cached data</span>
+                </li>
+                <li>
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Browse previously loaded pages</span>
+                </li>
+                <li>
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Access saved reports</span>
+                </li>
+                <li>
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>New data will sync when you're back online</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Auto-retry when connection is restored
+        window.addEventListener('online', () => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,387 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `api_usage`;
+DROP TABLE IF EXISTS `chat_messages`;
+DROP TABLE IF EXISTS `websocket_queue`;
+DROP TABLE IF EXISTS `onboarding_steps`;
+DROP TABLE IF EXISTS `email_templates`;
+DROP TABLE IF EXISTS `tenant_branding`;
+DROP TABLE IF EXISTS `subscription_plan_meters`;
+DROP TABLE IF EXISTS `usage_meters`;
+DROP TABLE IF EXISTS `payment_methods`;
+DROP TABLE IF EXISTS `subscription_invoices`;
+DROP TABLE IF EXISTS `tenant_subscriptions`;
+DROP TABLE IF EXISTS `subscription_plans`;
+DROP TABLE IF EXISTS `tax_nexus`;
+DROP TABLE IF EXISTS `exchange_rates`;
+DROP TABLE IF EXISTS `oauth_states`;
+DROP TABLE IF EXISTS `saml_requests`;
+DROP TABLE IF EXISTS `sso_configurations`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `api_usage`;
+DROP TABLE IF EXISTS `chat_messages`;
+DROP TABLE IF EXISTS `websocket_queue`;
+DROP TABLE IF EXISTS `onboarding_steps`;
+DROP TABLE IF EXISTS `email_templates`;
+DROP TABLE IF EXISTS `tenant_branding`;
+DROP TABLE IF EXISTS `subscription_plan_meters`;
+DROP TABLE IF EXISTS `usage_meters`;
+DROP TABLE IF EXISTS `payment_methods`;
+DROP TABLE IF EXISTS `subscription_invoices`;
+DROP TABLE IF EXISTS `tenant_subscriptions`;
+DROP TABLE IF EXISTS `subscription_plans`;
+DROP TABLE IF EXISTS `tax_nexus`;
+DROP TABLE IF EXISTS `exchange_rates`;
+DROP TABLE IF EXISTS `oauth_states`;
+DROP TABLE IF EXISTS `saml_requests`;
+DROP TABLE IF EXISTS `sso_configurations`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `api_usage`;
+DROP TABLE IF EXISTS `chat_messages`;
+DROP TABLE IF EXISTS `websocket_queue`;
+DROP TABLE IF EXISTS `onboarding_steps`;
+DROP TABLE IF EXISTS `email_templates`;
+DROP TABLE IF EXISTS `tenant_branding`;
+DROP TABLE IF EXISTS `subscription_plan_meters`;
+DROP TABLE IF EXISTS `usage_meters`;
+DROP TABLE IF EXISTS `payment_methods`;
+DROP TABLE IF EXISTS `subscription_invoices`;
+DROP TABLE IF EXISTS `tenant_subscriptions`;
+DROP TABLE IF EXISTS `subscription_plans`;
+DROP TABLE IF EXISTS `tax_nexus`;
+DROP TABLE IF EXISTS `exchange_rates`;
+DROP TABLE IF EXISTS `oauth_states`;
+DROP TABLE IF EXISTS `saml_requests`;
+DROP TABLE IF EXISTS `sso_configurations`;
+
+-- Enterprise SaaS Features Migration
+-- Adds tables for SSO, multi-currency, subscriptions, white-label, and monitoring
+
+-- SSO Configuration
+CREATE TABLE IF NOT EXISTS sso_configurations (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    provider VARCHAR(50) NOT NULL COMMENT 'saml, azure, google, okta, onelogin',
+    enabled BOOLEAN DEFAULT TRUE,
+    configuration TEXT COMMENT 'JSON configuration',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_sso_tenant (tenant_id),
+    INDEX idx_sso_provider (provider)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- SAML Requests
+CREATE TABLE IF NOT EXISTS saml_requests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    request_id VARCHAR(255) NOT NULL UNIQUE,
+    issued_at DATETIME NOT NULL,
+    expires_at DATETIME NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending' COMMENT 'pending, completed, expired',
+    completed_at DATETIME NULL,
+    INDEX idx_saml_tenant (tenant_id),
+    INDEX idx_saml_request (request_id),
+    INDEX idx_saml_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- OAuth States
+CREATE TABLE IF NOT EXISTS oauth_states (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    state VARCHAR(255) NOT NULL UNIQUE,
+    nonce VARCHAR(255) NOT NULL,
+    provider VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    INDEX idx_oauth_tenant (tenant_id),
+    INDEX idx_oauth_state (state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Exchange Rates
+CREATE TABLE IF NOT EXISTS exchange_rates (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    from_currency VARCHAR(3) NOT NULL,
+    to_currency VARCHAR(3) NOT NULL,
+    rate DECIMAL(18, 8) NOT NULL,
+    source VARCHAR(50) DEFAULT 'manual' COMMENT 'manual, api',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_currency_pair (from_currency, to_currency),
+    INDEX idx_updated (updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tax Nexus
+CREATE TABLE IF NOT EXISTS tax_nexus (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
+    country VARCHAR(2) NOT NULL,
+    state VARCHAR(50) NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    effective_date DATE NOT NULL,
+    registration_number VARCHAR(100) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_nexus_tenant (tenant_id),
+    INDEX idx_nexus_location (country, state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tax Rates
+-- Tax Rates (Created in 004)
+-- We ensure the column exists
+ALTER TABLE tax_rates ADD COLUMN IF NOT EXISTS tax_type VARCHAR(20) DEFAULT 'sales';
+
+-- Subscription Plans
+-- Subscription Plans (Was in 058 backup, restoring here)
+CREATE TABLE IF NOT EXISTS subscription_plans (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'USD',
+    billing_period VARCHAR(20) DEFAULT 'month' COMMENT 'month, year',
+    trial_days INT DEFAULT 0,
+    features TEXT NULL COMMENT 'JSON array of features',
+    is_active BOOLEAN DEFAULT TRUE,
+    max_users INT NULL,
+    max_products INT NULL,
+    max_storage_mb INT NULL,
+    api_rate_limit INT DEFAULT 1000,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_plan_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
+-- Tenant Subscriptions
+CREATE TABLE IF NOT EXISTS tenant_subscriptions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
+    plan_id BIGINT UNSIGNED NOT NULL,
+    status VARCHAR(20) DEFAULT 'active' COMMENT 'active, past_due, canceled, incomplete',
+    current_period_start DATE NOT NULL,
+    current_period_end DATE NOT NULL,
+    trial_end DATE NULL,
+    quantity INT DEFAULT 1,
+    cancel_at_period_end BOOLEAN DEFAULT FALSE,
+    canceled_at DATETIME NULL,
+    ends_at DATE NULL,
+    last_billing_date DATE NULL,
+    failed_payment_count INT DEFAULT 0,
+    last_payment_error TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_subscription_tenant (tenant_id),
+    INDEX idx_subscription_status (status),
+    INDEX idx_subscription_period_end (current_period_end)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Subscription Invoices
+CREATE TABLE IF NOT EXISTS subscription_invoices (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
+    subscription_id INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'USD',
+    status VARCHAR(20) DEFAULT 'pending' COMMENT 'pending, paid, failed, refunded',
+    paid_at DATETIME NULL,
+    period_start DATE NOT NULL,
+    period_end DATE NOT NULL,
+    invoice_pdf_url VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_invoice_tenant (tenant_id),
+    INDEX idx_invoice_subscription (subscription_id),
+    INDEX idx_invoice_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Payment Methods
+CREATE TABLE IF NOT EXISTS payment_methods (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
+    type VARCHAR(20) NOT NULL COMMENT 'card, bank_account, paypal',
+    last_four VARCHAR(4) NULL,
+    exp_month INT NULL,
+    exp_year INT NULL,
+    gateway_token VARCHAR(255) NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_payment_tenant (tenant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Usage Meters
+CREATE TABLE IF NOT EXISTS usage_meters (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    subscription_id INT NOT NULL,
+    tenant_id BIGINT NOT NULL,
+    meter_type VARCHAR(50) NOT NULL COMMENT 'api_calls, storage, users, transactions',
+    quantity DECIMAL(18, 6) NOT NULL,
+    metadata TEXT NULL COMMENT 'JSON metadata',
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    billed BOOLEAN DEFAULT FALSE,
+    billed_at DATETIME NULL,
+    INDEX idx_usage_subscription (subscription_id),
+    INDEX idx_usage_tenant (tenant_id),
+    INDEX idx_usage_meter (meter_type),
+    INDEX idx_usage_billed (billed)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Subscription Plan Meters
+CREATE TABLE IF NOT EXISTS subscription_plan_meters (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    plan_id BIGINT UNSIGNED NOT NULL,
+    meter_type VARCHAR(50) NOT NULL,
+    price_per_unit DECIMAL(10, 6) NOT NULL,
+    included_quantity DECIMAL(18, 6) DEFAULT 0,
+    INDEX idx_plan_meter (plan_id, meter_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tenant Branding
+CREATE TABLE IF NOT EXISTS tenant_branding (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL UNIQUE,
+    company_name VARCHAR(255) NULL,
+    logo_url VARCHAR(255) NULL,
+    favicon_url VARCHAR(255) NULL,
+    primary_color VARCHAR(7) DEFAULT '#1976d2',
+    secondary_color VARCHAR(7) DEFAULT '#dc004e',
+    accent_color VARCHAR(7) DEFAULT '#f50057',
+    theme_mode VARCHAR(10) DEFAULT 'light' COMMENT 'light, dark',
+    custom_css TEXT NULL,
+    custom_domain VARCHAR(255) NULL UNIQUE,
+    domain_verified BOOLEAN DEFAULT FALSE,
+    domain_verification_token VARCHAR(255) NULL,
+    domain_verified_at DATETIME NULL,
+    theme_settings TEXT NULL COMMENT 'JSON theme configuration',
+    email_settings TEXT NULL COMMENT 'JSON email settings',
+    custom_terminology TEXT NULL COMMENT 'JSON custom terms',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_branding_tenant (tenant_id),
+    INDEX idx_branding_domain (custom_domain)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Email Templates
+CREATE TABLE IF NOT EXISTS email_templates (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
+    template_name VARCHAR(100) NOT NULL,
+    subject VARCHAR(255) NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_tenant_template (tenant_id, template_name),
+    INDEX idx_template_tenant (tenant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Onboarding Steps
+CREATE TABLE IF NOT EXISTS onboarding_steps (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
+    step VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    `order` INT DEFAULT 0,
+    completed BOOLEAN DEFAULT FALSE,
+    completed_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_onboarding_tenant (tenant_id),
+    INDEX idx_onboarding_completed (completed)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- WebSocket Queue (for polling fallback)
+CREATE TABLE IF NOT EXISTS websocket_queue (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    processed BOOLEAN DEFAULT FALSE,
+    processed_at DATETIME NULL,
+    INDEX idx_ws_processed (processed),
+    INDEX idx_ws_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Chat Messages
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
+    from_user_id BIGINT NOT NULL,
+    to_user_id BIGINT NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    read_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_chat_tenant (tenant_id),
+    INDEX idx_chat_to_user (to_user_id),
+    INDEX idx_chat_from_user (from_user_id),
+    INDEX idx_chat_read (is_read)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- API Usage Tracking
+CREATE TABLE IF NOT EXISTS api_usage (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
+    endpoint VARCHAR(255) NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent TEXT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    response_time INT NULL COMMENT 'milliseconds',
+    status_code INT NULL,
+    INDEX idx_usage_tenant (tenant_id),
+    INDEX idx_usage_timestamp (timestamp),
+    INDEX idx_usage_endpoint (endpoint)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Alter existing tenants table
+ALTER TABLE tenants
+ADD COLUMN IF NOT EXISTS api_rate_limit INT DEFAULT 1000 AFTER plan_id,
+ADD COLUMN IF NOT EXISTS api_burst_limit INT DEFAULT 50 AFTER api_rate_limit;
+
+-- Alter users table for SSO and presence
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS sso_provider VARCHAR(50) NULL AFTER password_hash,
+ADD COLUMN IF NOT EXISTS sso_provider_id VARCHAR(255) NULL AFTER sso_provider,
+ADD COLUMN IF NOT EXISTS online_status VARCHAR(20) DEFAULT 'offline' AFTER sso_provider_id,
+ADD COLUMN IF NOT EXISTS last_seen DATETIME NULL AFTER online_status;
+
+-- Alter products table for multi-currency
+ALTER TABLE products
+ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'USD' AFTER retail_price,
+ADD COLUMN IF NOT EXISTS is_taxable BOOLEAN DEFAULT TRUE AFTER currency,
+ADD COLUMN IF NOT EXISTS tax_code VARCHAR(50) NULL AFTER is_taxable;
+
+-- Insert default subscription plans
+-- Insert default subscription plans (Handled in 058)
+-- INSERT IGNORE INTO subscription_plans (name, description, amount, billing_period, trial_days, features, max_users, max_products, api_rate_limit) VALUES
+-- ('Starter', 'Perfect for small dive shops', 29.99, 'month', 14, '["POS System", "Basic Inventory", "Customer Management", "5 Users"]', 5, 500, 500),
+-- ('Professional', 'For growing dive operations', 79.99, 'month', 14, '["Everything in Starter", "Rental Management", "Course Scheduling", "20 Users", "Advanced Reporting"]', 20, 2000, 1000),
+-- ('Enterprise', 'Full-featured for large operations', 199.99, 'month', 30, '["Everything in Professional", "Multi-location", "API Access", "Unlimited Users", "White-label", "Priority Support"]', NULL, NULL, 5000),
+-- ('Starter Annual', 'Annual Starter plan (2 months free)', 299.99, 'year', 14, '["POS System", "Basic Inventory", "Customer Management", "5 Users"]', 5, 500, 500),
+-- ('Professional Annual', 'Annual Professional plan (2 months free)', 799.99, 'year', 14, '["Everything in Starter", "Rental Management", "Course Scheduling", "20 Users", "Advanced Reporting"]', 20, 2000, 1000),
+-- ('Enterprise Annual', 'Annual Enterprise plan (2 months free)', 1999.99, 'year', 30, '["Everything in Professional", "Multi-location", "API Access", "Unlimited Users", "White-label", "Priority Support"]', NULL, NULL, 5000);
+
+-- Insert default tax rates (US states)
+INSERT IGNORE INTO tax_rates (name, country, state, rate, tax_type) VALUES
+('Sales Tax CA', 'US', 'CA', 7.25, 'sales'),
+('Sales Tax FL', 'US', 'FL', 6.00, 'sales'),
+('Sales Tax TX', 'US', 'TX', 6.25, 'sales'),
+('Sales Tax NY', 'US', 'NY', 4.00, 'sales'),
+('Sales Tax IL', 'US', 'IL', 6.25, 'sales');
+
+-- Insert default exchange rates (will be updated by API)
+INSERT IGNORE INTO exchange_rates (from_currency, to_currency, rate, source) VALUES
+('USD', 'EUR', 0.92, 'manual'),
+('EUR', 'USD', 1.09, 'manual'),
+('USD', 'GBP', 0.79, 'manual'),
+('GBP', 'USD', 1.27, 'manual'),
+('USD', 'CAD', 1.36, 'manual'),
+('CAD', 'USD', 0.74, 'manual');
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

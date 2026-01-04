@@ -1,0 +1,183 @@
+
+SET FOREIGN_KEY_CHECKS=0;
+
+-- Migration: 003 Create Product Inventory Tables
+
+CREATE TABLE IF NOT EXISTS `product_categories` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` BIGINT UNSIGNED DEFAULT 1,
+  `parent_id` BIGINT UNSIGNED,
+  `name` VARCHAR(100) NOT NULL,
+  `slug` VARCHAR(100) NOT NULL UNIQUE,
+  `description` TEXT,
+  `image_path` VARCHAR(255),
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `sort_order` INT DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`parent_id`) REFERENCES `product_categories`(`id`) ON DELETE SET NULL,
+  INDEX `idx_parent_id` (`parent_id`),
+  INDEX `idx_category_slug` (`slug`),
+  INDEX `idx_tenant_id` (`tenant_id`),
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `vendors` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(255) NOT NULL,
+  `contact_name` VARCHAR(200),
+  `email` VARCHAR(255),
+  `phone` VARCHAR(20),
+  `website` VARCHAR(255),
+  `address_line1` VARCHAR(255),
+  `address_line2` VARCHAR(255),
+  `city` VARCHAR(100),
+  `state` VARCHAR(50),
+  `postal_code` VARCHAR(20),
+  `country` VARCHAR(2) DEFAULT 'US',
+  `payment_terms` VARCHAR(100),
+  `notes` TEXT,
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `products` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` BIGINT UNSIGNED DEFAULT 1,
+  `category_id` BIGINT UNSIGNED,
+  `vendor_id` BIGINT UNSIGNED,
+  `sku` VARCHAR(100) NOT NULL UNIQUE,
+  `model` VARCHAR(100),
+  `barcode` VARCHAR(100),
+  `name` VARCHAR(255) NOT NULL,
+  `slug` VARCHAR(255) NOT NULL UNIQUE,
+  `description` TEXT,
+  `short_description` VARCHAR(500),
+  `product_type` ENUM('simple', 'variable', 'service', 'digital') DEFAULT 'simple',
+  `cost_price` DECIMAL(10,2) DEFAULT 0.00,
+  `retail_price` DECIMAL(10,2) NOT NULL,
+  `sale_price` DECIMAL(10,2),
+  `wholesale_price` DECIMAL(10,2),
+  `tax_class` VARCHAR(50) DEFAULT 'standard',
+  `weight` DECIMAL(8,2),
+  `weight_unit` ENUM('lb', 'kg', 'oz', 'g') DEFAULT 'lb',
+  `dimensions` VARCHAR(100),
+  `stock_quantity` INT DEFAULT 0,
+  `low_stock_threshold` INT DEFAULT 5,
+  `track_inventory` BOOLEAN DEFAULT TRUE,
+  `allow_backorders` BOOLEAN DEFAULT FALSE,
+  `is_featured` BOOLEAN DEFAULT FALSE,
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `attributes` JSON,
+  `meta_title` VARCHAR(255),
+  `meta_description` VARCHAR(500),
+  `meta_keywords` VARCHAR(255),
+  `sort_order` INT DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`category_id`) REFERENCES `product_categories`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`id`) ON DELETE SET NULL,
+  INDEX `idx_sku` (`sku`),
+  INDEX `idx_model` (`model`),
+  INDEX `idx_barcode` (`barcode`),
+  INDEX `idx_category_id` (`category_id`),
+  INDEX `idx_product_slug` (`slug`),
+  INDEX `idx_tenant_id` (`tenant_id`),
+  FULLTEXT `idx_search` (`name`, `description`, `sku`),
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `product_images` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `product_id` BIGINT UNSIGNED NOT NULL,
+  `file_path` VARCHAR(255) NOT NULL,
+  `file_name` VARCHAR(255) NOT NULL,
+  `alt_text` VARCHAR(255),
+  `is_primary` BOOLEAN DEFAULT FALSE,
+  `sort_order` INT DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE,
+  INDEX `idx_product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `product_variants` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `product_id` BIGINT UNSIGNED NOT NULL,
+  `sku` VARCHAR(100) NOT NULL UNIQUE,
+  `barcode` VARCHAR(100),
+  `variant_name` VARCHAR(255) NOT NULL,
+  `attributes` JSON,
+  `cost_price` DECIMAL(10,2),
+  `retail_price` DECIMAL(10,2),
+  `stock_quantity` INT DEFAULT 0,
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE,
+  INDEX `idx_product_id` (`product_id`),
+  INDEX `idx_sku` (`sku`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `inventory_transactions` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `product_id` BIGINT UNSIGNED NOT NULL,
+  `variant_id` BIGINT UNSIGNED,
+  `transaction_type` ENUM('sale', 'return', 'adjustment', 'purchase', 'transfer', 'damage', 'rental') NOT NULL,
+  `quantity_change` INT NOT NULL,
+  `quantity_before` INT NOT NULL,
+  `quantity_after` INT NOT NULL,
+  `reference_type` VARCHAR(50),
+  `reference_id` BIGINT UNSIGNED,
+  `cost_per_unit` DECIMAL(10,2),
+  `notes` TEXT,
+  `user_id` BIGINT UNSIGNED,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`variant_id`) REFERENCES `product_variants`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+  INDEX `idx_product_id` (`product_id`),
+  INDEX `idx_transaction_type` (`transaction_type`),
+  INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `purchase_orders` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `vendor_id` BIGINT UNSIGNED NOT NULL,
+  `po_number` VARCHAR(100) NOT NULL UNIQUE,
+  `order_date` DATE NOT NULL,
+  `expected_delivery_date` DATE,
+  `actual_delivery_date` DATE,
+  `status` ENUM('draft', 'sent', 'partial', 'received', 'cancelled') DEFAULT 'draft',
+  `subtotal` DECIMAL(10,2) DEFAULT 0.00,
+  `tax` DECIMAL(10,2) DEFAULT 0.00,
+  `shipping` DECIMAL(10,2) DEFAULT 0.00,
+  `total` DECIMAL(10,2) DEFAULT 0.00,
+  `notes` TEXT,
+  `created_by` BIGINT UNSIGNED,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`id`),
+  FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+  INDEX `idx_po_number` (`po_number`),
+  INDEX `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `purchase_order_items` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `purchase_order_id` BIGINT UNSIGNED NOT NULL,
+  `product_id` BIGINT UNSIGNED NOT NULL,
+  `variant_id` BIGINT UNSIGNED,
+  `quantity_ordered` INT NOT NULL,
+  `quantity_received` INT DEFAULT 0,
+  `unit_cost` DECIMAL(10,2) NOT NULL,
+  `total_cost` DECIMAL(10,2) NOT NULL,
+  `received_date` DATE,
+  FOREIGN KEY (`purchase_order_id`) REFERENCES `purchase_orders`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`product_id`) REFERENCES `products`(`id`),
+  FOREIGN KEY (`variant_id`) REFERENCES `product_variants`(`id`) ON DELETE SET NULL,
+  INDEX `idx_purchase_order_id` (`purchase_order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET FOREIGN_KEY_CHECKS=1;

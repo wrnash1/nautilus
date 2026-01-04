@@ -1,0 +1,6 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+ALTER TABLE `customers` ADD COLUMN IF NOT EXISTS `external_id` VARCHAR(50) NULL AFTER `id`;
+ALTER TABLE `customers` ADD INDEX IF NOT EXISTS `idx_external_id` (`external_id`);
+
+SET FOREIGN_KEY_CHECKS=1;

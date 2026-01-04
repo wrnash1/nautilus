@@ -1,0 +1,416 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `system_settings`;
+DROP TABLE IF EXISTS `sso_audit_log`;
+DROP TABLE IF EXISTS `sso_account_links`;
+DROP TABLE IF EXISTS `sso_login_sessions`;
+DROP TABLE IF EXISTS `oauth_providers`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `system_settings`;
+DROP TABLE IF EXISTS `sso_audit_log`;
+DROP TABLE IF EXISTS `sso_account_links`;
+DROP TABLE IF EXISTS `sso_login_sessions`;
+DROP TABLE IF EXISTS `oauth_providers`;
+
+SET FOREIGN_KEY_CHECKS=0;
+
+DROP TABLE IF EXISTS `system_settings`;
+DROP TABLE IF EXISTS `sso_audit_log`;
+DROP TABLE IF EXISTS `sso_account_links`;
+DROP TABLE IF EXISTS `sso_login_sessions`;
+DROP TABLE IF EXISTS `oauth_providers`;
+
+-- =====================================================
+-- Migration 099: SSO/OAuth Authentication Support
+-- =====================================================
+-- Description: Adds support for Single Sign-On (SSO) authentication
+--              using OAuth 2.0 and OpenID Connect providers
+-- Providers: Google, Microsoft, GitHub, Generic OIDC, SAML
+-- Created: 2025-11-19
+-- =====================================================
+
+-- Add SSO fields to users table (only if they don't exist)
+SET @dbname = DATABASE();
+SET @tablename = 'users';
+
+-- Add sso_provider
+SET @columnname = 'sso_provider';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_provider VARCHAR(50) NULL COMMENT 'OAuth provider: google, microsoft, github, oidc, saml'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_provider_id
+SET @columnname = 'sso_provider_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_provider_id VARCHAR(255) NULL COMMENT 'Unique ID from SSO provider'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_email
+SET @columnname = 'sso_email';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_email VARCHAR(255) NULL COMMENT 'Email from SSO provider'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_avatar_url
+SET @columnname = 'sso_avatar_url';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_avatar_url VARCHAR(500) NULL COMMENT 'Profile picture URL from provider'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_access_token
+SET @columnname = 'sso_access_token';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_access_token TEXT NULL COMMENT 'Encrypted OAuth access token'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_refresh_token
+SET @columnname = 'sso_refresh_token';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_refresh_token TEXT NULL COMMENT 'Encrypted OAuth refresh token'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_token_expires_at
+SET @columnname = 'sso_token_expires_at';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_token_expires_at DATETIME NULL COMMENT 'When the access token expires'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add sso_last_login
+SET @columnname = 'sso_last_login';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN sso_last_login DATETIME NULL COMMENT 'Last SSO login timestamp'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add allow_password_login
+SET @columnname = 'allow_password_login';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD COLUMN allow_password_login BOOLEAN DEFAULT TRUE COMMENT 'Allow traditional password login'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add indexes (these will error if they exist, but we can ignore that)
+-- Note: MySQL doesn't allow conditional index creation easily, so we skip index creation if they exist
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_sso_provider') > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD INDEX idx_sso_provider (sso_provider)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'idx_sso_provider_id') > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD INDEX idx_sso_provider_id (sso_provider_id)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema = @dbname AND table_name = @tablename AND index_name = 'unique_sso_provider_id') > 0,
+  "SELECT 1",
+  "ALTER TABLE users ADD UNIQUE KEY unique_sso_provider_id (sso_provider, sso_provider_id)"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+
+-- OAuth provider configurations (tenant-specific)
+CREATE TABLE IF NOT EXISTS oauth_providers (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    provider VARCHAR(50) NOT NULL COMMENT 'google, microsoft, github, oidc, saml',
+    display_name VARCHAR(100) NOT NULL COMMENT 'Display name on login button',
+    is_enabled BOOLEAN DEFAULT TRUE,
+    
+    -- OAuth 2.0 Configuration
+    client_id VARCHAR(255) NOT NULL,
+    client_secret TEXT NOT NULL COMMENT 'Encrypted',
+    redirect_uri VARCHAR(500) NOT NULL,
+    authorization_url VARCHAR(500) NULL,
+    token_url VARCHAR(500) NULL,
+    user_info_url VARCHAR(500) NULL,
+    scopes TEXT NULL COMMENT 'JSON array of scopes',
+    
+    -- OIDC Configuration
+    oidc_discovery_url VARCHAR(500) NULL COMMENT 'OpenID Connect discovery endpoint',
+    oidc_issuer VARCHAR(500) NULL,
+    oidc_jwks_uri VARCHAR(500) NULL,
+    
+    -- SAML Configuration
+    saml_entity_id VARCHAR(500) NULL,
+    saml_sso_url VARCHAR(500) NULL,
+    saml_slo_url VARCHAR(500) NULL,
+    saml_certificate TEXT NULL,
+    
+    -- Field Mapping
+    field_mapping JSON NULL COMMENT 'Map provider fields to user fields',
+    
+    -- Settings
+    auto_create_users BOOLEAN DEFAULT TRUE COMMENT 'Auto-create users on first SSO login',
+    auto_link_by_email BOOLEAN DEFAULT TRUE COMMENT 'Link to existing users by email',
+    require_email_verification BOOLEAN DEFAULT FALSE,
+    default_role_id BIGINT UNSIGNED NULL COMMENT 'Default role for new SSO users',
+    allowed_domains TEXT NULL COMMENT 'Comma-separated list of allowed email domains',
+    
+    -- Metadata
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by BIGINT UNSIGNED NULL,
+    
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+    FOREIGN KEY (default_role_id) REFERENCES roles(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    UNIQUE KEY unique_tenant_provider (tenant_id, provider),
+    INDEX idx_tenant_enabled (tenant_id, is_enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- SSO login sessions (for security auditing)
+CREATE TABLE IF NOT EXISTS sso_login_sessions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    provider VARCHAR(50) NOT NULL,
+    provider_user_id VARCHAR(255) NOT NULL,
+    
+    -- Session Info
+    session_id VARCHAR(255) NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    user_agent TEXT NULL,
+    
+    -- OAuth State
+    state_token VARCHAR(255) NULL COMMENT 'OAuth state parameter for CSRF protection',
+    nonce VARCHAR(255) NULL COMMENT 'OIDC nonce for replay protection',
+    code_verifier VARCHAR(255) NULL COMMENT 'PKCE code verifier',
+    
+    -- Timestamps
+    initiated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP NULL,
+    expires_at TIMESTAMP NULL,
+    
+    -- Status
+    status ENUM('pending', 'completed', 'failed', 'expired') DEFAULT 'pending',
+    error_message TEXT NULL,
+    
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_session_id (session_id),
+    INDEX idx_state_token (state_token),
+    INDEX idx_user_sessions (user_id, completed_at),
+    INDEX idx_status (status, expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- SSO account linking (for users with multiple auth methods)
+CREATE TABLE IF NOT EXISTS sso_account_links (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    provider VARCHAR(50) NOT NULL,
+    provider_user_id VARCHAR(255) NOT NULL,
+    provider_email VARCHAR(255) NULL,
+    provider_name VARCHAR(255) NULL,
+    
+    -- Link Info
+    linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    linked_by_user_id BIGINT UNSIGNED NULL COMMENT 'User who created the link',
+    is_primary BOOLEAN DEFAULT FALSE COMMENT 'Primary SSO method',
+    is_active BOOLEAN DEFAULT TRUE,
+    
+    -- Last Use
+    last_used_at TIMESTAMP NULL,
+    use_count BIGINT UNSIGNED DEFAULT 0,
+    
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (linked_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    UNIQUE KEY unique_provider_link (provider, provider_user_id),
+    INDEX idx_user_links (user_id, is_active),
+    INDEX idx_provider_email (provider, provider_email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- SSO audit log
+CREATE TABLE IF NOT EXISTS sso_audit_log (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NULL,
+    provider VARCHAR(50) NOT NULL,
+    
+    -- Event Info
+    event_type VARCHAR(50) NOT NULL COMMENT 'login, logout, link, unlink, token_refresh, error',
+    event_status VARCHAR(20) NOT NULL COMMENT 'success, failure, warning',
+    event_message TEXT NULL,
+    
+    -- Context
+    ip_address VARCHAR(45) NULL,
+    user_agent TEXT NULL,
+    session_id VARCHAR(255) NULL,
+    
+    -- Additional Data
+    metadata JSON NULL COMMENT 'Additional event data',
+    
+    -- Timestamp
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_tenant_user (tenant_id, user_id, created_at),
+    INDEX idx_event_type (event_type, created_at),
+    INDEX idx_provider (provider, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Insert default OAuth provider configurations
+INSERT IGNORE INTO oauth_providers (tenant_id, provider, display_name, client_id, client_secret, redirect_uri, scopes, is_enabled)
+SELECT 
+    id,
+    'google',
+    'Google',
+    'YOUR_GOOGLE_CLIENT_ID',
+    'YOUR_GOOGLE_CLIENT_SECRET',
+    CONCAT('http://localhost/store/auth/sso/callback/google'),
+    '["openid", "email", "profile"]',
+    FALSE
+FROM tenants
+WHERE id = 1;
+
+INSERT IGNORE INTO oauth_providers (tenant_id, provider, display_name, client_id, client_secret, redirect_uri, scopes, is_enabled)
+SELECT 
+    id,
+    'microsoft',
+    'Microsoft',
+    'YOUR_MICROSOFT_CLIENT_ID',
+    'YOUR_MICROSOFT_CLIENT_SECRET',
+    CONCAT('http://localhost/store/auth/sso/callback/microsoft'),
+    '["openid", "email", "profile"]',
+    FALSE
+FROM tenants
+WHERE id = 1;
+
+INSERT IGNORE INTO oauth_providers (tenant_id, provider, display_name, client_id, client_secret, redirect_uri, scopes, is_enabled)
+SELECT 
+    id,
+    'github',
+    'GitHub',
+    'YOUR_GITHUB_CLIENT_ID',
+    'YOUR_GITHUB_CLIENT_SECRET',
+    CONCAT('http://localhost/store/auth/sso/callback/github'),
+    '["user:email"]',
+    FALSE
+FROM tenants
+WHERE id = 1;
+
+-- Create system_settings table if it doesn't exist
+CREATE TABLE IF NOT EXISTS system_settings (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value TEXT NULL,
+    setting_type ENUM('string', 'integer', 'boolean', 'json', 'float') DEFAULT 'string',
+    description TEXT NULL,
+    is_public BOOLEAN DEFAULT FALSE COMMENT 'Can be accessed by frontend',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_setting_key (setting_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- Add is_public column to system_settings if it doesn't exist
+SET @dbname = DATABASE();
+SET @tablename = 'system_settings';
+SET @columnname = 'is_public';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE (table_name = @tablename) AND (table_schema = @dbname) AND (column_name = @columnname)) > 0,
+  "SELECT 1",
+  "ALTER TABLE system_settings ADD COLUMN is_public BOOLEAN DEFAULT FALSE COMMENT 'Can be accessed by frontend'"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add system setting for SSO
+INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public, created_at)
+VALUES 
+('sso_enabled', 'true', 'boolean', 'Enable SSO authentication globally', 0, NOW()),
+('sso_force_for_new_users', 'false', 'boolean', 'Force new users to use SSO only', 0, NOW()),
+('sso_allow_account_linking', 'true', 'boolean', 'Allow users to link multiple SSO providers', 0, NOW()),
+('sso_session_lifetime', '86400', 'integer', 'SSO session lifetime in seconds (24 hours)', 0, NOW())
+ON DUPLICATE KEY UPDATE updated_at = NOW();
+
+
+-- =====================================================
+-- Migration Complete
+-- =====================================================
+-- Tables Created:
+--   - oauth_providers (SSO provider configurations)
+--   - sso_login_sessions (login session tracking)
+--   - sso_account_links (multiple auth methods per user)
+--   - sso_audit_log (security audit trail)
+-- 
+-- Users Table Updated:
+--   - Added SSO fields (provider, tokens, etc.)
+--
+-- Features:
+--   ✓ Multiple OAuth providers (Google, Microsoft, GitHub)
+--   ✓ OpenID Connect support
+--   ✓ SAML 2.0 support
+--   ✓ Account linking (multiple SSO methods)
+--   ✓ Security auditing
+--   ✓ PKCE support for mobile apps
+--   ✓ Token refresh handling
+--   ✓ Domain whitelisting
+--   ✓ Auto-provisioning
+-- =====================================================
+
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;
+
+SET FOREIGN_KEY_CHECKS=1;

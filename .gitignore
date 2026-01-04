@@ -1,0 +1,40 @@
+# Environment & Configuration
+.env
+.env.local
+.env.*.local
+
+# Installation marker
+.installed
+
+# Application Storage
+storage/logs/*.log
+storage/cache/*
+storage/backups/*
+!storage/logs/.gitkeep
+!storage/cache/.gitkeep
+!storage/backups/.gitkeep
+
+# Vendor
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+*~
+.*.swp
+
+# Test files
+test*.php
+check*.php

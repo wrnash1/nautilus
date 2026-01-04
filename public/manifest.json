@@ -1,0 +1,120 @@
+{
+    "name": "Nautilus Dive Shop Management",
+    "short_name": "Nautilus",
+    "description": "Complete dive shop management system with POS, inventory, courses, and more",
+    "start_url": "/store/dashboard",
+    "display": "standalone",
+    "background_color": "#0066cc",
+    "theme_color": "#0066cc",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "/assets/images/icon-72x72.png",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/assets/images/icon-96x96.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/assets/images/icon-128x128.png",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/assets/images/icon-144x144.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/assets/images/icon-152x152.png",
+            "sizes": "152x152",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/assets/images/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/images/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/assets/images/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "business",
+        "productivity",
+        "utilities"
+    ],
+    "screenshots": [
+        {
+            "src": "/assets/images/screenshot-dashboard.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "label": "Dashboard with sales overview"
+        },
+        {
+            "src": "/assets/images/screenshot-pos.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "label": "Point of Sale system"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "New Sale",
+            "short_name": "POS",
+            "description": "Open Point of Sale",
+            "url": "/store/pos",
+            "icons": [
+                {
+                    "src": "/assets/images/shortcut-pos.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "New Customer",
+            "short_name": "Customer",
+            "description": "Add new customer",
+            "url": "/store/customers/create",
+            "icons": [
+                {
+                    "src": "/assets/images/shortcut-customer.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Dashboard",
+            "short_name": "Home",
+            "description": "View dashboard",
+            "url": "/store/dashboard",
+            "icons": [
+                {
+                    "src": "/assets/images/shortcut-dashboard.png",
+                    "sizes": "96x96"
+                }
+            ]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false
+}
