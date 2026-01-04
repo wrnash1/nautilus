@@ -3,6 +3,12 @@
 .env.local
 .env.*.local
 
+# Database
+.env.db
+.env.db.local
+.env.db.*.local
+
+
 # Installation marker
 .installed
 
@@ -38,3 +44,4 @@ Thumbs.db
 # Test files
 test*.php
 check*.php
+docs/QA.md

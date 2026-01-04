@@ -33,6 +33,8 @@ class CustomerPortalService
             'loyalty_points' => $this->getLoyaltyPoints($customerId),
             'upcoming_appointments' => $this->getUpcomingAppointments($customerId),
             'statistics' => $this->getCustomerStatistics($customerId),
+            'open_work_orders' => $this->getOpenWorkOrders($customerId),
+            'unpaid_invoices' => $this->getUnpaidInvoices($customerId),
         ];
     }
 
@@ -210,12 +212,70 @@ class CustomerPortalService
         );
 
         return [
-            'total_orders' => (int)($totalOrders['count'] ?? 0),
-            'total_spent' => (float)($totalSpent['total'] ?? 0),
-            'total_courses' => (int)($totalCourses['count'] ?? 0),
-            'total_trips' => (int)($totalTrips['count'] ?? 0),
-            'total_rentals' => (int)($totalRentals['count'] ?? 0),
+            'total_orders' => (int) ($totalOrders['count'] ?? 0),
+            'total_spent' => (float) ($totalSpent['total'] ?? 0),
+            'total_courses' => (int) ($totalCourses['count'] ?? 0),
+            'total_trips' => (int) ($totalTrips['count'] ?? 0),
+            'total_rentals' => (int) ($totalRentals['count'] ?? 0),
         ];
+    }
+
+    /**
+     * Get open work orders for customer
+     */
+    private function getOpenWorkOrders(int $customerId): array
+    {
+        try {
+            $sql = "SELECT wo.*
+                    FROM work_orders wo
+                    WHERE wo.customer_id = ?
+                    AND wo.status IN ('pending', 'in_progress', 'waiting_parts')
+                    ORDER BY 
+                        CASE wo.priority 
+                            WHEN 'urgent' THEN 1 
+                            WHEN 'high' THEN 2 
+                            WHEN 'normal' THEN 3 
+                            WHEN 'low' THEN 4 
+                        END,
+                        wo.created_at DESC";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$customerId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            // Table might not exist yet
+            return [];
+        }
+    }
+
+    /**
+     * Get unpaid invoices for customer
+     */
+    private function getUnpaidInvoices(int $customerId): array
+    {
+        try {
+            // Check orders table for unpaid orders
+            $sql = "SELECT 
+                        id,
+                        order_number as invoice_number,
+                        total as amount_due,
+                        status,
+                        payment_status,
+                        created_at,
+                        'order' as invoice_type
+                    FROM orders
+                    WHERE customer_id = ?
+                    AND payment_status IN ('pending', 'partial', 'unpaid')
+                    AND status NOT IN ('cancelled', 'refunded')
+                    ORDER BY created_at DESC";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$customerId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            // Handle gracefully if table/columns don't exist
+            return [];
+        }
     }
 
     /**
@@ -326,7 +386,7 @@ class CustomerPortalService
             $data['notes'] ?? null
         ]);
 
-        return (int)$this->db->lastInsertId();
+        return (int) $this->db->lastInsertId();
     }
 
     /**

@@ -2,11 +2,11 @@
     <h2><i class="bi bi-tools"></i> <?= htmlspecialchars($workOrder['work_order_number']) ?></h2>
     <div>
         <?php if (hasPermission('workorders.edit')): ?>
-        <a href="/workorders/<?= $workOrder['id'] ?>/edit" class="btn btn-warning">
-            <i class="bi bi-pencil"></i> Edit
-        </a>
+            <a href="/store/workorders/<?= $workOrder['id'] ?>/edit" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
         <?php endif; ?>
-        <a href="/workorders" class="btn btn-secondary">
+        <a href="/store/workorders" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back
         </a>
     </div>
@@ -35,10 +35,11 @@
                         ];
                         $color = $statusColors[$workOrder['status']] ?? 'secondary';
                         ?>
-                        <span class="badge bg-<?= $color ?>"><?= ucfirst(str_replace('_', ' ', $workOrder['status'])) ?></span>
+                        <span
+                            class="badge bg-<?= $color ?>"><?= ucfirst(str_replace('_', ' ', $workOrder['status'])) ?></span>
                     </div>
                 </div>
-                
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>Equipment Type:</strong><br>
@@ -49,7 +50,7 @@
                         <?= htmlspecialchars($workOrder['equipment_brand'] ?? 'N/A') ?>
                     </div>
                 </div>
-                
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>Model:</strong><br>
@@ -60,14 +61,14 @@
                         <?= htmlspecialchars($workOrder['serial_number'] ?? 'N/A') ?>
                     </div>
                 </div>
-                
+
                 <div class="row mb-3">
                     <div class="col-12">
                         <strong>Issue Description:</strong><br>
                         <?= nl2br(htmlspecialchars($workOrder['issue_description'])) ?>
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6">
                         <strong>Priority:</strong><br>
@@ -89,29 +90,29 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">Notes</h5>
             </div>
             <div class="card-body">
                 <?php if (empty($notes)): ?>
-                <p class="text-muted">No notes yet</p>
+                    <p class="text-muted">No notes yet</p>
                 <?php else: ?>
                     <?php foreach ($notes as $note): ?>
-                    <div class="mb-3 pb-3 border-bottom">
-                        <small class="text-muted">
-                            <?= htmlspecialchars($note['author_name']) ?> - 
-                            <?= date('M j, Y g:i A', strtotime($note['created_at'])) ?>
-                        </small>
-                        <p class="mb-0 mt-1"><?= nl2br(htmlspecialchars($note['note'])) ?></p>
-                    </div>
+                        <div class="mb-3 pb-3 border-bottom">
+                            <small class="text-muted">
+                                <?= htmlspecialchars($note['author_name']) ?> -
+                                <?= date('M j, Y g:i A', strtotime($note['created_at'])) ?>
+                            </small>
+                            <p class="mb-0 mt-1"><?= nl2br(htmlspecialchars($note['note'])) ?></p>
+                        </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
@@ -119,32 +120,36 @@
             </div>
             <div class="card-body">
                 <?php if (hasPermission('workorders.edit')): ?>
-                <form method="POST" action="/workorders/<?= $workOrder['id'] ?>/assign" class="mb-3">
-                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-                    <label class="form-label">Assign To</label>
-                    <select name="assigned_to" class="form-select mb-2">
-                        <option value="">Unassigned</option>
-                        <?php foreach ($staff as $member): ?>
-                        <option value="<?= $member['id'] ?>" <?= ($workOrder['assigned_to'] == $member['id']) ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($member['name']) ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button type="submit" class="btn btn-info w-100 mb-3">Assign</button>
-                </form>
-                
-                <?php if ($workOrder['status'] !== 'completed'): ?>
-                <form method="POST" action="/workorders/<?= $workOrder['id'] ?>/status" class="mb-3">
-                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-                    <select name="status" class="form-select mb-2">
-                        <option value="pending" <?= $workOrder['status'] === 'pending' ? 'selected' : '' ?>>Pending</option>
-                        <option value="in_progress" <?= $workOrder['status'] === 'in_progress' ? 'selected' : '' ?>>In Progress</option>
-                        <option value="completed" <?= $workOrder['status'] === 'completed' ? 'selected' : '' ?>>Completed</option>
-                        <option value="cancelled" <?= $workOrder['status'] === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
-                    </select>
-                    <button type="submit" class="btn btn-primary w-100">Update Status</button>
-                </form>
-                <?php endif; ?>
+                    <form method="POST" action="/store/workorders/<?= $workOrder['id'] ?>/assign" class="mb-3">
+                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                        <label class="form-label">Assign To</label>
+                        <select name="assigned_to" class="form-select mb-2">
+                            <option value="">Unassigned</option>
+                            <?php foreach ($staff as $member): ?>
+                                <option value="<?= $member['id'] ?>" <?= ($workOrder['assigned_to'] == $member['id']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($member['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button type="submit" class="btn btn-info w-100 mb-3">Assign</button>
+                    </form>
+
+                    <?php if ($workOrder['status'] !== 'completed'): ?>
+                        <form method="POST" action="/store/workorders/<?= $workOrder['id'] ?>/status" class="mb-3">
+                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                            <select name="status" class="form-select mb-2">
+                                <option value="pending" <?= $workOrder['status'] === 'pending' ? 'selected' : '' ?>>Pending
+                                </option>
+                                <option value="in_progress" <?= $workOrder['status'] === 'in_progress' ? 'selected' : '' ?>>In
+                                    Progress</option>
+                                <option value="completed" <?= $workOrder['status'] === 'completed' ? 'selected' : '' ?>>Completed
+                                </option>
+                                <option value="cancelled" <?= $workOrder['status'] === 'cancelled' ? 'selected' : '' ?>>Cancelled
+                                </option>
+                            </select>
+                            <button type="submit" class="btn btn-primary w-100">Update Status</button>
+                        </form>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>

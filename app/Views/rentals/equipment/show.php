@@ -2,11 +2,11 @@
     <h2><i class="bi bi-gear"></i> <?= htmlspecialchars($equipment['name']) ?></h2>
     <div>
         <?php if (hasPermission('rentals.edit')): ?>
-        <a href="/rentals/equipment/<?= $equipment['id'] ?>/edit" class="btn btn-warning">
-            <i class="bi bi-pencil"></i> Edit
-        </a>
+            <a href="/store/rentals/equipment/<?= $equipment['id'] ?>/edit" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
         <?php endif; ?>
-        <a href="/rentals" class="btn btn-secondary">
+        <a href="/store/rentals" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back to List
         </a>
     </div>
@@ -29,7 +29,7 @@
                         <?= htmlspecialchars($equipment['category_name']) ?>
                     </div>
                 </div>
-                
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>Size:</strong><br>
@@ -50,7 +50,7 @@
                         <span class="badge bg-<?= $color ?>"><?= ucfirst($equipment['status']) ?></span>
                     </div>
                 </div>
-                
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>Condition:</strong><br>
@@ -70,7 +70,7 @@
                         <?= htmlspecialchars($equipment['manufacturer'] ?? 'N/A') ?>
                     </div>
                 </div>
-                
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>Model:</strong><br>
@@ -81,19 +81,19 @@
                         <?= htmlspecialchars($equipment['serial_number'] ?? 'N/A') ?>
                     </div>
                 </div>
-                
+
                 <?php if ($equipment['notes']): ?>
-                <div class="row">
-                    <div class="col-12">
-                        <strong>Notes:</strong><br>
-                        <?= nl2br(htmlspecialchars($equipment['notes'])) ?>
+                    <div class="row">
+                        <div class="col-12">
+                            <strong>Notes:</strong><br>
+                            <?= nl2br(htmlspecialchars($equipment['notes'])) ?>
+                        </div>
                     </div>
-                </div>
                 <?php endif; ?>
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card mb-4">
             <div class="card-header">
@@ -104,7 +104,7 @@
                     <strong>Daily Rate:</strong><br>
                     <span class="h4 text-primary"><?= formatCurrency($equipment['daily_rate']) ?></span>
                 </div>
-                
+
                 <?php if ($equipment['weekly_rate']): ?>
                 <div class="mb-3">
                     <strong>Weekly Rate:</strong><br>
@@ -112,18 +112,26 @@
                 </div>
                 <?php endif; ?>
                 
-                <?php if ($equipment['purchase_cost']): ?>
+                <?php if (!empty($equipment['weekend_rate'])): ?>
                 <div class="mb-3">
-                    <strong>Purchase Cost:</strong><br>
-                    <?= formatCurrency($equipment['purchase_cost']) ?>
+                    <strong>Weekend Rate:</strong><br>
+                    <span class="h5 text-info"><?= formatCurrency($equipment['weekend_rate']) ?></span>
+                    <small class="text-muted d-block">Fri-Sun</small>
                 </div>
                 <?php endif; ?>
-                
+
+                <?php if ($equipment['purchase_cost']): ?>
+                    <div class="mb-3">
+                        <strong>Purchase Cost:</strong><br>
+                        <?= formatCurrency($equipment['purchase_cost']) ?>
+                    </div>
+                <?php endif; ?>
+
                 <?php if ($equipment['purchase_date']): ?>
-                <div>
-                    <strong>Purchase Date:</strong><br>
-                    <?= date('M j, Y', strtotime($equipment['purchase_date'])) ?>
-                </div>
+                    <div>
+                        <strong>Purchase Date:</strong><br>
+                        <?= date('M j, Y', strtotime($equipment['purchase_date'])) ?>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>

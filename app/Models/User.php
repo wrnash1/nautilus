@@ -46,6 +46,19 @@ class User extends Model
 
     public static function hasPermission(int $userId, string $permission): bool
     {
+        try {
+            // Check if user is Super Admin (role_id = 1) - they have all permissions
+            $adminCheck = Database::fetchOne(
+                "SELECT COUNT(*) as is_admin FROM user_roles WHERE user_id = ? AND role_id = 1",
+                [$userId]
+            );
+            if (($adminCheck['is_admin'] ?? 0) > 0) {
+                return true; // Super Admin has all permissions
+            }
+        } catch (\Throwable $e) {
+            // Continue with regular permission check
+        }
+
         // Use raw SQL for reliability - avoids Eloquent eager-loading issues
         // Note: permissions table uses 'name' column for the permission code
         $sql = "

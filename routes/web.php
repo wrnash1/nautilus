@@ -439,23 +439,59 @@ $router->get('/store/staff/schedules/create', 'Staff\ScheduleController@create',
 $router->post('/store/staff/schedules', 'Staff\ScheduleController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/store/staff/schedules/{id}/delete', 'Staff\ScheduleController@delete', [AuthMiddleware::class, CsrfMiddleware::class]);
 
-$router->get('/store/staff/timeclock', 'Staff\TimeClockController@index', [AuthMiddleware::class]);
-$router->get('/store/staff/timeclock/status', 'Staff\TimeClockController@getStatus', [AuthMiddleware::class]);
-$router->post('/store/staff/timeclock/clockin', 'Staff\TimeClockController@clockIn', [AuthMiddleware::class, CsrfMiddleware::class]);
-$router->post('/store/staff/timeclock/clockout', 'Staff\TimeClockController@clockOut', [AuthMiddleware::class, CsrfMiddleware::class]);
-$router->get('/store/staff/timeclock/reports', 'Staff\TimeClockController@reports', [AuthMiddleware::class]);
+$router->get('/store/staff/timeclock', 'Staff\\TimeClockController@index', [AuthMiddleware::class]);
+$router->get('/store/staff/timeclock/status', 'Staff\\TimeClockController@getStatus', [AuthMiddleware::class]);
+$router->post('/store/staff/timeclock/clockin', 'Staff\\TimeClockController@clockIn', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/staff/timeclock/clockout', 'Staff\\TimeClockController@clockOut', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/staff/timeclock/reports', 'Staff\\TimeClockController@reports', [AuthMiddleware::class]);
 
-$router->get('/store/staff/commissions', 'Staff\CommissionController@index', [AuthMiddleware::class]);
-$router->get('/store/staff/commissions/staff/{id}', 'Staff\CommissionController@staff', [AuthMiddleware::class]);
-$router->get('/store/staff/commissions/reports', 'Staff\CommissionController@reports', [AuthMiddleware::class]);
+$router->get('/store/staff/commissions', 'Staff\\CommissionController@index', [AuthMiddleware::class]);
+$router->get('/store/staff/commissions/staff/{id}', 'Staff\\CommissionController@staff', [AuthMiddleware::class]);
+$router->get('/store/staff/commissions/reports', 'Staff\\CommissionController@reports', [AuthMiddleware::class]);
+
+// Employee Documents (HR/IRS Forms)
+$router->get('/store/staff/documents', 'Staff\\EmployeeDocumentsController@index', [AuthMiddleware::class]);
+$router->get('/store/staff/documents/{id}', 'Staff\\EmployeeDocumentsController@show', [AuthMiddleware::class]);
+$router->get('/store/staff/documents/{id}/upload', 'Staff\\EmployeeDocumentsController@create', [AuthMiddleware::class]);
+$router->post('/store/staff/documents/{id}/upload', 'Staff\\EmployeeDocumentsController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/staff/documents/{id}/tax-info', 'Staff\\EmployeeDocumentsController@taxInfo', [AuthMiddleware::class]);
+$router->post('/store/staff/documents/{id}/tax-info', 'Staff\\EmployeeDocumentsController@saveTaxInfo', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/staff/documents/verify/{id}', 'Staff\\EmployeeDocumentsController@verify', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/staff/documents/download/{id}', 'Staff\\EmployeeDocumentsController@download', [AuthMiddleware::class]);
+$router->get('/store/staff/documents/{id}/w2/{year}', 'Staff\\EmployeeDocumentsController@generateW2', [AuthMiddleware::class]);
+
+// SendGrid Email Integration
+$router->get('/store/integrations/sendgrid', 'Integrations\\SendGridController@index', [AuthMiddleware::class]);
+$router->post('/store/integrations/sendgrid/config', 'Integrations\\SendGridController@saveConfig', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/integrations/sendgrid/test', 'Integrations\\SendGridController@testConnection', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/integrations/sendgrid/templates', 'Integrations\\SendGridController@templates', [AuthMiddleware::class]);
+$router->post('/store/integrations/sendgrid/templates', 'Integrations\\SendGridController@saveTemplate', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/integrations/sendgrid/send-bulk', 'Integrations\\SendGridController@sendBulkEmail', [AuthMiddleware::class, CsrfMiddleware::class]);
+
+// AI Camera Scanner
+$router->get('/store/ai/camera', 'AI\\CameraController@index', [AuthMiddleware::class]);
+$router->post('/store/ai/camera/recognize-product', 'AI\\CameraController@recognizeProduct', [AuthMiddleware::class]);
+$router->post('/store/ai/camera/scan-cert', 'AI\\CameraController@scanCertCard', [AuthMiddleware::class]);
+$router->post('/store/ai/camera/scan-serial', 'AI\\CameraController@scanSerialNumber', [AuthMiddleware::class]);
+$router->get('/store/ai/camera/export-training', 'AI\\CameraController@exportTrainingData', [AuthMiddleware::class]);
 
 // Admin Settings
-$router->get('/store/admin/settings', 'Admin\SettingsController@index', [AuthMiddleware::class]);
+$router->get('/store/admin/settings', 'Admin\\SettingsController@index', [AuthMiddleware::class]);
 
 // Demo Data Management
-$router->get('/store/admin/demo-data', 'Admin\DemoDataController@index', [AuthMiddleware::class]);
-$router->post('/store/admin/demo-data/load', 'Admin\DemoDataController@load', [AuthMiddleware::class]);
-$router->post('/store/admin/demo-data/clear', 'Admin\DemoDataController@clear', [AuthMiddleware::class]);
+$router->get('/store/admin/demo-data', 'Admin\\DemoDataController@index', [AuthMiddleware::class]);
+$router->post('/store/admin/demo-data/load', 'Admin\\DemoDataController@load', [AuthMiddleware::class]);
+$router->post('/store/admin/demo-data/clear', 'Admin\\DemoDataController@clear', [AuthMiddleware::class]);
+
+// Scuba Agencies & Certifications
+$router->get('/store/admin/agencies', 'ScubaAgenciesController@index', [AuthMiddleware::class]);
+$router->post('/store/admin/agencies', 'ScubaAgenciesController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/admin/agencies/{code}/logo', 'ScubaAgenciesController@updateLogo', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/admin/agencies/certifications', 'ScubaAgenciesController@certifications', [AuthMiddleware::class]);
+$router->get('/store/admin/agencies/certifications/{category}', 'ScubaAgenciesController@certifications', [AuthMiddleware::class]);
+$router->post('/store/admin/agencies/certifications', 'ScubaAgenciesController@storeCertification', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/api/agency/{code}/certifications', 'ScubaAgenciesController@agencyCertifications', [AuthMiddleware::class]);
+$router->get('/assets/agency-logo/{code}', 'ScubaAgenciesController@logo'); // Public, no auth
 
 // Error Logs
 $router->get('/store/admin/errors', 'Admin\ErrorLogController@index', [AuthMiddleware::class]);
@@ -528,6 +564,16 @@ $router->post('/admin/integrations/google-contacts/disconnect', 'Integrations\Go
 $router->post('/admin/integrations/google-contacts/sync', 'Integrations\GoogleContactsController@manualSync', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->post('/admin/integrations/google-contacts/config', 'Integrations\GoogleContactsController@saveConfig', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/admin/integrations/google-contacts/logs', 'Integrations\GoogleContactsController@viewLogs', [AuthMiddleware::class]);
+
+// VOIP Integration
+$router->get('/store/integrations/voip', 'Integrations\VoIPController@index', [AuthMiddleware::class]);
+$router->post('/store/integrations/voip/save', 'Integrations\VoIPController@saveConfig', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/integrations/voip/test', 'Integrations\VoIPController@testConnection', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/voip/lookup', 'Integrations\VoIPController@lookupByPhone', [AuthMiddleware::class]);
+$router->post('/store/voip/call', 'Integrations\VoIPController@makeCall', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/voip/sms', 'Integrations\VoIPController@sendSms', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->get('/store/voip/history/{id}', 'Integrations\VoIPController@callHistory', [AuthMiddleware::class]);
+$router->post('/webhooks/voip/incoming', 'Integrations\VoIPController@incomingCallWebhook'); // No auth - webhook from provider
 
 // Dive Sites Management
 $router->get('/store/dive-sites', 'DiveSitesController@index', [AuthMiddleware::class]);
