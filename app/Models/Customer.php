@@ -50,6 +50,12 @@ class Customer extends Model
         return $this->hasMany(Order::class);
     }
 
+    // Static finder methods for authentication
+    public static function findByEmail(string $email)
+    {
+        return static::withoutGlobalScope('active')->where('email', $email)->first();
+    }
+
     // Scopes
     protected static function booted()
     {

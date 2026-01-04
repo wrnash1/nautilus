@@ -1,8 +1,11 @@
-<?php $pageTitle = 'Create User'; $activeMenu = 'users'; ob_start(); ?>
+<?php $pageTitle = 'Create User';
+$activeMenu = 'users';
+ob_start(); ?>
 <h1 class="h3 mb-4"><i class="bi bi-person-plus"></i> Create New User</h1>
 <div class="card">
     <div class="card-body">
-        <form method="POST" action="/admin/users">
+        <form method="POST" action="/store/admin/users">
+            <input type="hidden" name="csrf_token" value="<?= \App\Middleware\CsrfMiddleware::generateToken() ?>">
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label>First Name *</label>
@@ -26,7 +29,7 @@
                     <label>Role *</label>
                     <select name="role_id" class="form-select" required>
                         <?php foreach ($roles as $role): ?>
-                        <option value="<?= $role['id'] ?>"><?= htmlspecialchars($role['name']) ?></option>
+                            <option value="<?= $role['id'] ?>"><?= htmlspecialchars($role['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -42,8 +45,9 @@
                 </div>
             </div>
             <button type="submit" class="btn btn-primary">Create User</button>
-            <a href="/admin/users" class="btn btn-secondary">Cancel</a>
+            <a href="/store/admin/users" class="btn btn-secondary">Cancel</a>
         </form>
     </div>
 </div>
-<?php $content = ob_get_clean(); require __DIR__ . '/../../layouts/admin.php'; ?>
+<?php $content = ob_get_clean();
+require __DIR__ . '/../../layouts/admin.php'; ?>

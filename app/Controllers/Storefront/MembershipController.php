@@ -11,7 +11,7 @@ class MembershipController extends StorefrontController
      */
     public function index(): void
     {
-        $db = Database::getInstance()->getConnection();
+        $db = Database::getInstance();
 
         $stmt = $db->query("
             SELECT * FROM membership_tiers 
@@ -33,7 +33,7 @@ class MembershipController extends StorefrontController
      */
     public function join(int $id): void
     {
-        $db = Database::getInstance()->getConnection();
+        $db = Database::getInstance();
 
         $stmt = $db->prepare("SELECT * FROM membership_tiers WHERE id = ? AND is_active = 1");
         $stmt->execute([$id]);
@@ -71,7 +71,7 @@ class MembershipController extends StorefrontController
             return;
         }
 
-        $db = Database::getInstance()->getConnection();
+        $db = Database::getInstance();
         $tierId = (int) ($_POST['tier_id'] ?? 0);
         $customerId = $_SESSION['customer_id'];
 

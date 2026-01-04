@@ -1,8 +1,10 @@
 -- Club Membership System Database Schema
 
+SET FOREIGN_KEY_CHECKS=0;
+
 -- Membership Tiers Table
 CREATE TABLE IF NOT EXISTS membership_tiers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
     price DECIMAL(10,2) NOT NULL,
@@ -20,9 +22,9 @@ CREATE TABLE IF NOT EXISTS membership_tiers (
 
 -- Customer Memberships Table
 CREATE TABLE IF NOT EXISTS customer_memberships (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NOT NULL,
-    membership_tier_id INT NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT UNSIGNED NOT NULL,
+    membership_tier_id BIGINT UNSIGNED NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     status ENUM('active', 'expired', 'cancelled', 'pending') DEFAULT 'pending',
@@ -38,8 +40,8 @@ CREATE TABLE IF NOT EXISTS customer_memberships (
 
 -- Membership Benefits Usage Tracking
 CREATE TABLE IF NOT EXISTS membership_benefits_usage (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_membership_id INT NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_membership_id BIGINT UNSIGNED NOT NULL,
     benefit_type ENUM('rental', 'air_fill', 'discount', 'course') NOT NULL,
     used_date DATE NOT NULL,
     reference_id INT,
@@ -49,3 +51,5 @@ CREATE TABLE IF NOT EXISTS membership_benefits_usage (
     INDEX idx_membership (customer_membership_id),
     INDEX idx_date (used_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET FOREIGN_KEY_CHECKS=1;

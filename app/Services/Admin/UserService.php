@@ -85,7 +85,7 @@ class UserService
 
         logAudit('user', 'create', $userId, ['email' => $data['email']]);
 
-        return $userId;
+        return (int) $userId;
     }
 
     public function updateUser(int $id, array $data): bool
@@ -129,7 +129,7 @@ class UserService
 
         logAudit('user', 'update', $id, $data);
 
-        return $result;
+        return $result !== false;
     }
 
     public function deleteUser(int $id): bool
@@ -139,7 +139,7 @@ class UserService
 
         logAudit('user', 'delete', $id);
 
-        return $result;
+        return $result !== false;
     }
 
     public function resetUserPassword(int $id): string
@@ -170,7 +170,7 @@ class UserService
 
         logAudit('user', 'toggle_status', $id, ['new_status' => $newStatus]);
 
-        return $result;
+        return $result !== false;
     }
 
     public function getUserActivity(int $id, int $limit = 20): array

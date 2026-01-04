@@ -23,13 +23,13 @@ $router->get('/health/alive', 'HealthCheckController@alive');
 // PUBLIC STOREFRONT ROUTES (Customer-facing website)
 // ============================================================================
 
-$router->get('/debug-courses', function() {
+$router->get('/debug-courses', function () {
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
     try {
         echo "<h1>Debug Courses (Self-Healing)</h1>";
         echo "<pre>";
-        
+
         // 1. Show Config
         echo "DB_HOST: " . ($_ENV['DB_HOST'] ?? 'NOT SET') . "\n";
         echo "DB_DATABASE: " . ($_ENV['DB_DATABASE'] ?? 'NOT SET') . "\n";
@@ -46,7 +46,7 @@ $router->get('/debug-courses', function() {
         $courses = \App\Core\Database::fetchAll($sql);
         echo "Count After Insert: " . count($courses) . "\n";
         print_r($courses);
-        
+
     } catch (\Throwable $e) {
         echo "ERROR: " . $e->getMessage() . "\n" . $e->getTraceAsString();
     }
@@ -99,16 +99,16 @@ $router->post('/api/cart/clear', 'API\CartController@clear');
 // ============================================================================
 
 // Convenience redirects for common URLs
-$router->get('/login', function() {
+$router->get('/login', function () {
     redirect('/store/login');
 });
-$router->get('/logout', function() {
+$router->get('/logout', function () {
     redirect('/store/logout');
 });
-$router->get('/dashboard', function() {
+$router->get('/dashboard', function () {
     redirect('/store');
 });
-$router->get('/waivers', function() {
+$router->get('/waivers', function () {
     redirect('/store/waivers');
 });
 
@@ -116,7 +116,8 @@ $router->get('/waivers', function() {
 $router->get('/store', 'Admin\DashboardController@index', [AuthMiddleware::class]);
 $router->get('/store/login', 'Auth\LoginController@showLogin');
 $router->post('/store/login', 'Auth\LoginController@login');
-$router->post('/store/logout', 'Auth\AuthController@logout', [AuthMiddleware::class]);
+$router->post('/store/logout', 'Auth\\AuthController@logout', [AuthMiddleware::class]);
+$router->get('/store/profile', 'Profile\\ProfileController@index', [AuthMiddleware::class]);
 
 // Customer Portal - Requires customer authentication
 // If not logged in, redirects to customer login page
@@ -969,16 +970,9 @@ $router->get('/store/safety-checks/create', 'Safety\SafetyCheckController@create
 $router->post('/store/safety-checks', 'Safety\SafetyCheckController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/store/safety-checks/{id}', 'Safety\SafetyCheckController@show', [AuthMiddleware::class]);
 
-return $router;
-<?php
-/**
- * Additional Routes for All Controllers
- * Add these routes to routes/web.php
- */
-
-use App\Middleware\AuthMiddleware;
-use App\Middleware\CustomerAuthMiddleware;
-use App\Middleware\CsrfMiddleware;
+// =====================================================
+// Additional Routes for All Controllers
+// =====================================================
 
 // =====================================================
 // AIR FILLS MANAGEMENT (Admin)
@@ -1098,6 +1092,10 @@ $router->get('/store/incidents/{id}', 'IncidentReportController@show', [AuthMidd
 $router->get('/instructor', 'Instructor\\InstructorController@index', [AuthMiddleware::class]);
 $router->get('/instructor/courses', 'Instructor\\InstructorController@courses', [AuthMiddleware::class]);
 $router->get('/instructor/students', 'Instructor\\InstructorController@students', [AuthMiddleware::class]);
+$router->get('/instructor/course/{id}', 'Instructor\\InstructorController@showCourse', [AuthMiddleware::class]);
+$router->post('/instructor/assign-student', 'Instructor\\InstructorController@assignStudent', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/instructor/send-email', 'Instructor\\InstructorController@sendEmail', [AuthMiddleware::class, CsrfMiddleware::class]);
+
 
 // =====================================================
 // INSURANCE (Admin & Customer)
@@ -1396,3 +1394,5 @@ $router->post('/saas/tenants', 'TenantController@store', [AuthMiddleware::class,
 $router->get('/sso/login', 'SSOController@login');
 $router->get('/sso/callback', 'SSOController@callback');
 $router->post('/sso/logout', 'SSOController@logout');
+
+return $router;

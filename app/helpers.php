@@ -186,3 +186,89 @@ if (!function_exists('getCompanyInfo')) {
         }
     }
 }
+
+if (!function_exists('setFlashMessage')) {
+    /**
+     * Set a flash message to display on next page load
+     *
+     * @param string $type The message type (success, error, warning, info)
+     * @param string $message The message content
+     * @return void
+     */
+    function setFlashMessage(string $type, string $message): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['flash_messages'][$type][] = $message;
+    }
+}
+
+if (!function_exists('getFlashMessages')) {
+    /**
+     * Get and clear all flash messages
+     *
+     * @return array Flash messages by type
+     */
+    function getFlashMessages(): array
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $messages = $_SESSION['flash_messages'] ?? [];
+        unset($_SESSION['flash_messages']);
+        return $messages;
+    }
+}
+
+if (!function_exists('hasFlashMessages')) {
+    /**
+     * Check if there are any flash messages
+     *
+     * @return bool
+     */
+    function hasFlashMessages(): bool
+    {
+        return !empty($_SESSION['flash_messages']);
+    }
+}
+
+if (!function_exists('logAudit')) {
+    /**
+     * Log an audit entry for entity changes
+     *
+     * @param string $entityType The type of entity (user, customer, order, etc.)
+     * @param string $action The action performed (create, update, delete, etc.)
+     * @param int $entityId The ID of the entity
+     * @param array $data Optional additional data to log
+     * @return void
+     */
+    function logAudit(string $entityType, string $action, int $entityId, array $data = []): void
+    {
+        try {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+
+            $userId = $_SESSION['user_id'] ?? null;
+            $details = !empty($data) ? json_encode($data) : null;
+
+            \App\Core\Database::query(
+                "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details, ip_address, user_agent, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, NOW())",
+                [
+                    $userId,
+                    $action,
+                    $entityType,
+                    $entityId,
+                    $details,
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                ]
+            );
+        } catch (\Exception $e) {
+            // Silently fail - don't break the main operation for audit logging
+            error_log('Audit log failed: ' . $e->getMessage());
+        }
+    }
+}

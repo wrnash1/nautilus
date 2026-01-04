@@ -57,7 +57,7 @@ class ProductController
             ->orderBy('name', 'ASC')
             ->get();
         $vendors = Vendor::where('is_active', 1)
-            ->orderBy('name', 'ASC')
+            ->orderBy('vendor_name', 'ASC')
             ->get();
 
         require __DIR__ . '/../../Views/products/create.php';
@@ -144,7 +144,7 @@ class ProductController
             ->orderBy('name', 'ASC')
             ->get();
         $vendors = Vendor::where('is_active', 1)
-            ->orderBy('name', 'ASC')
+            ->orderBy('vendor_name', 'ASC')
             ->get();
 
         require __DIR__ . '/../../Views/products/edit.php';

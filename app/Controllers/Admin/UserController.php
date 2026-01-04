@@ -48,12 +48,12 @@ class UserController
             $userId = $this->service->createUser($data);
 
             setFlashMessage('success', 'User created successfully!');
-            header('Location: /admin/users/' . $userId);
+            header('Location: /store/admin/users/' . $userId);
             exit;
 
         } catch (\Exception $e) {
             setFlashMessage('error', 'Failed to create user: ' . $e->getMessage());
-            header('Location: /admin/users/create');
+            header('Location: /store/admin/users/create');
             exit;
         }
     }
@@ -63,7 +63,7 @@ class UserController
         $user = $this->service->getUserById($id);
         if (!$user) {
             setFlashMessage('error', 'User not found');
-            header('Location: /admin/users');
+            header('Location: /store/admin/users');
             exit;
         }
 
@@ -76,7 +76,7 @@ class UserController
         $user = $this->service->getUserById($id);
         if (!$user) {
             setFlashMessage('error', 'User not found');
-            header('Location: /admin/users');
+            header('Location: /store/admin/users');
             exit;
         }
 
@@ -103,12 +103,12 @@ class UserController
             $this->service->updateUser($id, $data);
 
             setFlashMessage('success', 'User updated successfully!');
-            header('Location: /admin/users/' . $id);
+            header('Location: /store/admin/users/' . $id);
             exit;
 
         } catch (\Exception $e) {
             setFlashMessage('error', 'Failed to update user: ' . $e->getMessage());
-            header('Location: /admin/users/' . $id . '/edit');
+            header('Location: /store/admin/users/' . $id . '/edit');
             exit;
         }
     }
@@ -124,12 +124,12 @@ class UserController
             $this->service->deleteUser($id);
 
             setFlashMessage('success', 'User deleted successfully!');
-            header('Location: /admin/users');
+            header('Location: /store/admin/users');
             exit;
 
         } catch (\Exception $e) {
             setFlashMessage('error', 'Failed to delete user: ' . $e->getMessage());
-            header('Location: /admin/users');
+            header('Location: /store/admin/users');
             exit;
         }
     }
@@ -140,12 +140,12 @@ class UserController
             $newPassword = $this->service->resetUserPassword($id);
 
             setFlashMessage('success', 'Password reset. New password: ' . $newPassword);
-            header('Location: /admin/users/' . $id);
+            header('Location: /store/admin/users/' . $id);
             exit;
 
         } catch (\Exception $e) {
             setFlashMessage('error', 'Failed to reset password: ' . $e->getMessage());
-            header('Location: /admin/users/' . $id);
+            header('Location: /store/admin/users/' . $id);
             exit;
         }
     }
@@ -161,12 +161,12 @@ class UserController
             $this->service->toggleUserStatus($id);
 
             setFlashMessage('success', 'User status updated successfully!');
-            header('Location: /admin/users/' . $id);
+            header('Location: /store/admin/users/' . $id);
             exit;
 
         } catch (\Exception $e) {
             setFlashMessage('error', 'Failed to update status: ' . $e->getMessage());
-            header('Location: /admin/users/' . $id);
+            header('Location: /store/admin/users/' . $id);
             exit;
         }
     }

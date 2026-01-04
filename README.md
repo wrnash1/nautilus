@@ -21,19 +21,134 @@ Nautilus is a complete business management system designed specifically for dive
 
 ---
 
+## ✨ Complete Feature List
+
+### 💼 Point of Sale (POS)
+- Fast checkout with product search
+- Multiple payment methods (cash, card, gift cards)
+- Barcode scanning support
+- Customer lookup and history
+- Transaction queue management
+- Discount and promotion handling
+- Receipt printing and email
+
+### 📚 Course Management
+- **Course Scheduling** - Create and manage course schedules
+- **Instructor Portal** - Dashboard for instructors to manage their classes
+- **Student Enrollment** - Enroll students and track progress
+- **Student Transfers** - Move students between classes
+- **PADI Compliance** - Skills checkoff aligned with PADI standards
+- **Progress Tracking** - Knowledge, confined water, and open water tracking
+- **Certification Tracking** - Record and verify certifications
+
+### 👨‍🏫 Instructor Portal
+- Personal dashboard with today's classes
+- Student management across all assigned courses
+- Progress tracking and skill checkoffs
+- Email communications (welcome, reminders, thank you)
+- SMS messaging for opted-in students
+- View pending paperwork and recent completions
+
+### 📧 Communications System
+- **Email Templates** - Welcome, reminder, progress, thank you emails
+- **SMS Integration** - Twilio-powered SMS messaging
+- **Customer Opt-in** - SMS preference management
+- **Bulk Messaging** - Send to multiple customers
+- **Campaign Tracking** - Monitor communication effectiveness
+
+### 👥 Customer Management (CRM)
+- Customer profiles with full history
+- Multiple phones, emails, addresses
+- Certification tracking and verification
+- Equipment ownership tracking
+- Customer tags and segmentation
+- Purchase and rental history
+- Document storage
+
+### 📦 Inventory Management
+- Product catalog with categories
+- Stock tracking and adjustments
+- Low stock alerts
+- Reorder point management
+- Barcode/SKU support
+- Product images
+- Vendor management
+- Purchase orders
+
+### 🤿 Equipment Rentals
+- Equipment checkout and return
+- Maintenance scheduling
+- Service history tracking
+- Availability calendar
+- Rental agreements
+
+### 🏝️ Dive Trips
+- Trip planning and scheduling
+- Customer bookings
+- Participant management
+- Emergency contacts
+- Trip waivers
+
+### 💳 Payment Processing
+- **Stripe** - Credit/debit cards
+- **Square** - In-store payments
+- **BTCPay** - Bitcoin/crypto (optional)
+- Gift card support
+- Layaway/payment plans
+- Refund processing
+
+### 📊 Reports & Analytics
+- Sales reports (daily, weekly, monthly)
+- Inventory reports
+- Customer analytics
+- Course analytics
+- Trip analytics
+- Financial dashboards
+- Custom report builder
+- Export to CSV/PDF
+
+### 🔐 Security & Administration
+- Role-based access control
+- Audit logging
+- User management
+- Backup and restore
+- System settings
+- Multi-location support
+
+### 📄 Document Management
+- Customer document storage
+- PADI form templates
+- Medical forms
+- Liability waivers
+- Digital signatures
+
+### 🎁 Loyalty Program
+- Points earning and redemption
+- Tier-based rewards
+- Member benefits
+- Transaction history
+
+### 🤝 Integrations
+- PADI eLearning (sync)
+- QuickBooks (accounting)
+- Mailchimp (marketing)
+- Twilio (SMS)
+- Firebase (push notifications)
+
+---
+
 ## 🚀 Installation
 
-You can install Nautilus locally for testing or on a server for production.
-
 ### Option 1: Production Deployment (VPS/Dedicated)
-**Best for live business operations**
 
-1. **Server Setup:** Ubuntu 22.04/24.04 recommended.
-2. **Web Server:** Nginx or Apache with SSL.
+1. **Server Setup:** Ubuntu 22.04/24.04 recommended
+2. **Web Server:** Nginx or Apache with SSL
 3. **Environment:** 
-   - Copy `.env.example` to `.env`: `cp .env.example .env`
-   - Update database credentials and `APP_URL`.
-   - Set `APP_ENV=production` and `APP_DEBUG=false`.
+   ```bash
+   cp .env.example .env
+   # Update database credentials and APP_URL
+   # Set APP_ENV=production and APP_DEBUG=false
+   ```
 4. **Permissions:** 
    ```bash
    chown -R www-data:www-data storage public/uploads
@@ -43,24 +158,18 @@ You can install Nautilus locally for testing or on a server for production.
    ```bash
    composer install --no-dev --optimize-autoloader
    ```
-6. **Initialize:** Access `http://your-domain.com/install.php` to initialize the database and admin user.
-7. **CRON:** Set up the system cron for scheduled tasks:
+6. **Initialize:** Access `http://your-domain.com/install.php`
+7. **CRON:** 
    ```bash
    * * * * * php /path/to/nautilus/artisan schedule:run >> /dev/null 2>&1
    ```
-8. **Queue:** Use Supervisor to run `php artisan queue:work` (if using queues).
 
-### Option 2: Local Testing (Docker / XAMPP)
+### Option 2: Local Testing (Docker)
 
-**Docker:**
-1. Ensure Docker and Docker Compose are installed.
-2. Run `./start-dev.sh`.
-3. Access `http://localhost:8080/install.php`.
-
-**XAMPP/MAMP:**
-1. Clone into `htdocs`.
-2. Create a database named `nautilus`.
-3. Access `http://localhost/nautilus/public/install.php`.
+```bash
+./start-dev.sh
+# Access http://localhost:8080/install.php
+```
 
 ---
 
@@ -78,18 +187,21 @@ You can install Nautilus locally for testing or on a server for production.
 
 ---
 
-## ✨ Key Features
+## 🗺️ Roadmap
 
-- **Point of Sale (POS)** - Fast checkout, multiple payments
-- **Course Management** - Schedule courses, track certifications
-- **CRM** - Customer database, purchase history
-- **Inventory** - Stock tracking, barcode support
-- **Equipment Rentals** - Checkout, maintenance tracking
-- **E-commerce** - Customer-facing website
-- **Dive Trips** - Trip planning and bookings
-- **Payments** - Stripe, Square, BTCPay
-- **Reports** - Sales, inventory, analytics
-- **Security** - Role-based access, audit logs
+### Coming Soon
+- [ ] Mobile app for instructors
+- [ ] Customer self-service portal enhancements
+- [ ] Advanced dive log integration
+- [ ] Equipment QR code tracking
+- [ ] Multi-language support
+- [ ] Advanced marketing automation
+
+### Under Consideration
+- [ ] AI-powered inventory forecasting
+- [ ] Dive computer data integration
+- [ ] Live weather/conditions integration
+- [ ] Online booking widget for websites
 
 ---
 
@@ -105,7 +217,7 @@ You can install Nautilus locally for testing or on a server for production.
 
 ## 🆘 Support
 
-- **Documentation:** See `docs/` directory (Coming Soon)
+- **Documentation:** See `docs/` directory
 - **Issues:** Report bugs on GitHub
 - **Discussions:** Ask questions on GitHub
 
@@ -114,7 +226,9 @@ You can install Nautilus locally for testing or on a server for production.
 ## 📊 Statistics
 
 - 200+ database tables
-- 120+ migrations
+- 250+ migrations
+- 125+ controllers
+- 128+ services
 - Production-ready code
 
 ---

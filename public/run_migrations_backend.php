@@ -162,7 +162,7 @@ EOT;
             ('mail', 'mail_password', ''),
             ('mail', 'mail_encryption', 'null'),
             ('mail', 'mail_from_address', 'no-reply@localhost'),
-            ('mail', 'mail_from_name', '{$data['company']}')
+            ('mail', 'mail_from_name', '{$company}')
         ");
         stream_msg("INFO", "Seeded default Mail settings to DB.");
     } catch (Exception $e) {
@@ -251,9 +251,9 @@ foreach ($files as $file) {
 }
 
 // 5. Create Admin User
-$adminUser = $data['username'];
-$adminEmail = $data['email'];
-$adminPass = $data['password'];
+$adminUser = $data['username'] ?? 'admin';
+$adminEmail = $data['email'] ?? 'admin@admin.com';
+$adminPass = $data['password'] ?? password_hash('password', PASSWORD_BCRYPT);
 
 try {
     // Check if user exists by username OR email
@@ -295,7 +295,7 @@ try {
     // Check if system_settings table exists (created by migrations)
     $stmt = $pdo->query("SHOW TABLES LIKE 'system_settings'");
     if ($stmt->fetch()) {
-        $companyName = $data['company'];
+        $companyName = $data['company'] ?? $company;
 
         // Update or Insert 'business_name'
         $stmt = $pdo->prepare("SELECT id FROM system_settings WHERE setting_key = 'business_name'");
@@ -316,7 +316,7 @@ try {
 // Seed Business Info
 try {
     $pdo->exec("INSERT IGNORE INTO system_settings (category, setting_key, setting_value) VALUES 
-        ('general', 'business_name', " . $pdo->quote($data['company']) . "),
+        ('general', 'business_name', " . $pdo->quote($data['company'] ?? $company) . "),
         ('general', 'business_address', '149 W main street'),
         ('general', 'business_city', 'Azle'),
         ('general', 'business_state', 'Texas'),
