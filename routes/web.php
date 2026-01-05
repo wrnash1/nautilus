@@ -114,6 +114,7 @@ $router->get('/waivers', function () {
 
 // Store Dashboard & Auth
 $router->get('/store', 'Admin\DashboardController@index', [AuthMiddleware::class]);
+$router->get('/store/dashboard/update-images', 'Admin\DashboardController@updateProductImages', [AuthMiddleware::class]);
 $router->get('/store/login', 'Auth\LoginController@showLogin');
 $router->post('/store/login', 'Auth\LoginController@login');
 $router->post('/store/logout', 'Auth\\AuthController@logout', [AuthMiddleware::class]);
@@ -483,6 +484,13 @@ $router->get('/store/admin/demo-data', 'Admin\\DemoDataController@index', [AuthM
 $router->post('/store/admin/demo-data/load', 'Admin\\DemoDataController@load', [AuthMiddleware::class]);
 $router->post('/store/admin/demo-data/clear', 'Admin\\DemoDataController@clear', [AuthMiddleware::class]);
 
+// AI Product Image Manager
+$router->get('/store/admin/products/images', 'Admin\ProductImageController@index', [AuthMiddleware::class]);
+$router->post('/store/admin/products/find-image', 'Admin\ProductImageController@findImage', [AuthMiddleware::class]);
+$router->post('/store/admin/products/upload-image', 'Admin\ProductImageController@uploadImage', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/admin/products/batch-images', 'Admin\ProductImageController@batchProcess', [AuthMiddleware::class]);
+$router->get('/store/api/settings/screensaver', 'Admin\SettingsController@screensaverSettings', [AuthMiddleware::class]);
+
 // Scuba Agencies & Certifications
 $router->get('/store/admin/agencies', 'ScubaAgenciesController@index', [AuthMiddleware::class]);
 $router->post('/store/admin/agencies', 'ScubaAgenciesController@store', [AuthMiddleware::class, CsrfMiddleware::class]);
@@ -635,6 +643,9 @@ $router->get('/store/api/products-without-embeddings', 'API\ProductEmbeddingsCon
 
 // Customer Info API for POS
 $router->get('/store/api/customers/{id}/pos-info', 'API\CustomerInfoController@getPosInfo', [AuthMiddleware::class]);
+$router->get('/store/api/customers/{id}/risk-score', 'API\CustomerRiskController@getScore', [AuthMiddleware::class]);
+$router->post('/store/api/customers/{id}/flag', 'API\CustomerRiskController@flag', [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/store/api/customers/{id}/unflag', 'API\CustomerRiskController@unflag', [AuthMiddleware::class, CsrfMiddleware::class]);
 
 // ============================================================================
 // PHASE 4, 5, 6 ROUTES - Advanced Features

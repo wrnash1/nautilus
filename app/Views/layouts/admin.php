@@ -475,6 +475,7 @@
     <script src="/assets/js/form-validation.js"></script>
     <script src="/assets/js/alpine-components.js"></script>
     <script src="/assets/js/pwa-installer.js"></script>
+    <script src="/assets/js/screensaver.js"></script>
 
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';

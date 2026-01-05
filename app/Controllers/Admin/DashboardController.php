@@ -497,4 +497,48 @@ class DashboardController
         );
         return (int) (($result ?? [])['count'] ?? 0);
     }
+
+    /**
+     * Update all products with demo images
+     * Access via: /store/admin/dashboard/update-images
+     */
+    public function updateProductImages()
+    {
+        if (!hasPermission('admin.view')) {
+            $_SESSION['flash_error'] = 'Access denied';
+            redirect('/store/dashboard');
+        }
+
+        $images = [
+            '/assets/img/products/regulator.png',
+            '/assets/img/products/mask.png',
+            '/assets/img/products/fins.png',
+            '/assets/img/products/wetsuit.png',
+            '/assets/img/products/bcd.png',
+            '/assets/img/products/computer.png',
+            '/assets/img/products/snorkel.png',
+            '/assets/img/products/tank.png',
+            '/assets/img/products/light.png',
+        ];
+
+        try {
+            $products = Database::fetchAll("SELECT id, name FROM products");
+            $count = 0;
+
+            foreach ($products as $product) {
+                $imageUrl = $images[$product['id'] % count($images)];
+                Database::query(
+                    "UPDATE products SET image_url = ? WHERE id = ?",
+                    [$imageUrl, $product['id']]
+                );
+                $count++;
+            }
+
+            $_SESSION['flash_success'] = "Updated {$count} products with demo images!";
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Failed to update images: ' . $e->getMessage();
+        }
+
+        redirect('/store/pos');
+    }
 }

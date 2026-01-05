@@ -587,6 +587,18 @@ const setCustomer = async (id, name, photoUrl = '/assets/img/default-avatar.png'
             }
         }
 
+        // Fetch and display customer risk scores
+        try {
+            const riskResponse = await fetch(`/store/api/customers/${id}/risk-score`);
+            const riskData = await riskResponse.json();
+
+            if (riskData.success && riskData.data) {
+                displayRiskScores(riskData.data);
+            }
+        } catch (e) {
+            console.log('Risk score fetch failed:', e);
+        }
+
         // Hide search results
         const results = document.getElementById('customerSearchResults');
         if (results) results.style.display = 'none';

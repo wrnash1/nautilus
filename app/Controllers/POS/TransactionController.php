@@ -24,7 +24,16 @@ class TransactionController
                 redirect('/store/dashboard');
             }
 
-            $products = Product::limit(50)->get();
+            // Fetch products with proper fields for POS display
+            $products = Database::fetchAll("
+                SELECT p.id, p.name, p.sku, p.retail_price as price, p.image_url,
+                       pc.name as category_name
+                FROM products p
+                LEFT JOIN product_categories pc ON p.category_id = pc.id
+                WHERE p.is_active = 1
+                ORDER BY p.name
+                LIMIT 50
+            ");
             $customers = Customer::limit(100)->get();
 
             // Get settings
@@ -64,7 +73,7 @@ class TransactionController
                 ORDER BY ts.departure_date
             ");
 
-            require __DIR__ . '/../../Views/pos/index.php';
+            require __DIR__ . '/../../Views/pos/simple.php';
 
         } catch (\PDOException $e) {
             die("PDO Error: " . $e->getMessage());

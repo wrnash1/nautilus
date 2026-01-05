@@ -302,4 +302,111 @@ document.addEventListener('DOMContentLoaded', function () {
             window.renderCart();
         }
     }
+
+    // ========================
+    // Bitcoin Payment Handler
+    // ========================
+
+    const bitcoinBtn = document.getElementById('paymentBitcoin');
+    if (bitcoinBtn) {
+        bitcoinBtn.addEventListener('change', function () {
+            if (this.checked) {
+                showBitcoinPaymentInfo();
+            }
+        });
+    }
+
+    function showBitcoinPaymentInfo() {
+        const total = document.getElementById('cartTotal')?.textContent || '$0.00';
+
+        // Create Bitcoin payment modal if it doesn't exist
+        let modal = document.getElementById('bitcoinPaymentModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'bitcoinPaymentModal';
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header" style="background: linear-gradient(135deg, #f7931a, #e8850f); color: white;">
+                            <h5 class="modal-title">
+                                <i class="bi bi-currency-bitcoin"></i> Bitcoin Payment
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <div id="btcQrCode" class="mb-3" style="padding: 20px; background: white; display: inline-block; border-radius: 8px; border: 2px solid #f7931a;">
+                                <div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-qr-code" style="font-size: 4rem; color: #ccc;"></i>
+                                </div>
+                            </div>
+                            <p class="text-muted">Scan with your Bitcoin wallet</p>
+                            <div class="alert alert-warning">
+                                <strong>Amount Due:</strong> <span id="btcAmountUsd">${total}</span>
+                                <br>
+                                <small id="btcAmountBtc">≈ Loading BTC amount...</small>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" id="btcAddress" readonly 
+                                       value="bc1q...loading" style="font-family: monospace; font-size: 0.85rem;">
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyBtcAddress()">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> 
+                                Payment will be confirmed after 1 network confirmation
+                            </small>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-success" id="btcPaymentConfirmed">
+                                <i class="bi bi-check-circle"></i> Mark as Paid
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Handle payment confirmation
+            document.getElementById('btcPaymentConfirmed').addEventListener('click', function () {
+                bootstrap.Modal.getInstance(modal).hide();
+                showToast('Bitcoin payment recorded', 'success');
+            });
+        }
+
+        // Update amounts
+        document.getElementById('btcAmountUsd').textContent = total;
+
+        // Fetch current BTC price (you can replace with your preferred API)
+        fetchBtcPrice(total);
+
+        // Show modal
+        new bootstrap.Modal(modal).show();
+    }
+
+    function fetchBtcPrice(usdAmount) {
+        const amount = parseFloat(usdAmount.replace(/[^0-9.]/g, ''));
+
+        fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd')
+            .then(r => r.json())
+            .then(data => {
+                const btcPrice = data.bitcoin?.usd || 95000;
+                const btcAmount = (amount / btcPrice).toFixed(8);
+                document.getElementById('btcAmountBtc').textContent = `≈ ${btcAmount} BTC @ $${btcPrice.toLocaleString()}/BTC`;
+            })
+            .catch(() => {
+                // Fallback price if API fails
+                const btcAmount = (amount / 95000).toFixed(8);
+                document.getElementById('btcAmountBtc').textContent = `≈ ${btcAmount} BTC (estimated)`;
+            });
+    }
+
+    window.copyBtcAddress = function () {
+        const addr = document.getElementById('btcAddress');
+        addr.select();
+        document.execCommand('copy');
+        showToast('Bitcoin address copied!', 'success');
+    };
 });

@@ -209,33 +209,64 @@ ob_start();
                         </div>
                     </div>
 
-                    <!-- Store Stats / Time -->
-                    <div class="col-md-7 text-end">
-                        <div class="d-flex justify-content-end align-items-center gap-4">
-                            <div class="text-end" style="display:none;">
-                                <div class="text-muted small">Date</div>
-                                <div class="fw-bold" id="posCurrentDate"></div>
+                    <!-- Right Side: Weather, Time, Clock In/Out, AI Assistant -->
+                    <div class="col-md-7">
+                        <div class="d-flex justify-content-end align-items-center gap-3 flex-wrap">
+
+                            <!-- Weather Widget -->
+                            <div class="weather-widget d-flex align-items-center gap-2 px-3 py-2 rounded-pill"
+                                style="background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white;">
+                                <i class="bi bi-cloud-sun fs-4" id="weatherIcon"></i>
+                                <div class="text-start">
+                                    <div class="fw-bold" id="weatherTemp">--°F</div>
+                                    <div class="small opacity-75" id="weatherDesc">Loading...</div>
+                                </div>
                             </div>
-                            <div class="text-end">
-                                <div class="text-muted small">Time</div>
-                                <div class="fw-bold font-monospace fs-5" id="posCurrentTime"></div>
+
+                            <!-- Date & Time Display -->
+                            <div class="datetime-widget text-center px-3 py-2 rounded-3"
+                                style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; min-width: 140px;">
+                                <div class="fw-bold fs-4 font-monospace" id="posCurrentTime">--:--</div>
+                                <div class="small opacity-75" id="posCurrentDate">Loading...</div>
                             </div>
-                            <!-- Time Clock -->
-                            <button id="timeClockBtn" class="btn btn-outline-secondary d-flex align-items-center gap-2"
-                                title="Time Clock">
-                                <i class="bi bi-clock"></i>
-                                <span id="timeClockLabel" class="d-none d-md-inline">Checking...</span>
+
+                            <!-- Clock In/Out Button -->
+                            <button id="timeClockBtn"
+                                class="btn px-4 py-2 d-flex align-items-center gap-2 time-clock-btn"
+                                style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 50px; font-weight: 600; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+                                <i class="bi bi-clock-history fs-5"></i>
+                                <div class="text-start">
+                                    <div id="timeClockLabel" class="small">Clock In</div>
+                                    <div id="timeClockDuration" class="small opacity-75">--:--:--</div>
+                                </div>
                             </button>
 
-                            <div class="vr mx-1"></div>
+                            <div class="vr mx-1" style="height: 40px;"></div>
 
-                            <div class="vr mx-1"></div>
+                            <!-- AI Assistant Button -->
+                            <button class="btn px-3 py-2 d-flex align-items-center gap-2 ai-assistant-btn"
+                                id="aiAssistantBtn"
+                                style="background: linear-gradient(135deg, #ec4899, #be185d); color: white; border: none; border-radius: 50px; font-weight: 600; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);"
+                                data-bs-toggle="modal" data-bs-target="#aiAssistantModal">
+                                <i class="bi bi-robot fs-5"></i>
+                                <span class="d-none d-lg-inline">AI Assistant</span>
+                            </button>
 
-                            <div class="text-end text-danger" id="autoLogoutTimer" style="display: none;">
-                                <div class="small">Auto-logout</div>
-                                <div id="logoutCountdown" class="fw-bold">00:00</div>
+                            <!-- Voice Toggle -->
+                            <div class="form-check form-switch mb-0 d-flex align-items-center"
+                                title="Toggle Voice Feedback">
+                                <input class="form-check-input" type="checkbox" id="voiceFeedbackToggle"
+                                    style="cursor: pointer; width: 3rem; height: 1.5rem;">
+                                <label class="form-check-label ms-2" for="voiceFeedbackToggle">
+                                    <i class="bi bi-mic-fill text-primary fs-5"></i>
+                                </label>
                             </div>
 
+                            <!-- Auto-logout Timer (hidden by default) -->
+                            <div class="text-danger text-center px-2" id="autoLogoutTimer" style="display: none;">
+                                <div class="small">Auto-logout</div>
+                                <div id="logoutCountdown" class="fw-bold font-monospace">00:00</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -563,6 +594,15 @@ ob_start();
                                     <span>Card</span>
                                 </label>
 
+                                <?php if ($bitcoinEnabled ?? false): ?>
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="paymentBitcoin"
+                                        value="bitcoin">
+                                    <label class="payment-btn" for="paymentBitcoin" style="border-color: #f7931a;">
+                                        <i class="bi bi-currency-bitcoin" style="color: #f7931a;"></i>
+                                        <span>Bitcoin</span>
+                                    </label>
+                                <?php endif; ?>
+
                                 <input type="radio" class="btn-check" name="paymentMethod" id="paymentOther"
                                     value="other">
                                 <label class="payment-btn" for="paymentOther">
@@ -656,12 +696,12 @@ ob_start();
                     <label class="form-label">Find Original Transaction</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control" id="returnTransactionSearch" 
-                               placeholder="Receipt #, customer name, or phone...">
+                        <input type="text" class="form-control" id="returnTransactionSearch"
+                            placeholder="Receipt #, customer name, or phone...">
                         <button class="btn btn-primary" type="button" id="searchReturnBtn">Search</button>
                     </div>
                 </div>
-                
+
                 <div id="returnSearchResults" class="mb-4" style="display: none;">
                     <h6>Recent Transactions</h6>
                     <div class="table-responsive">
@@ -681,7 +721,7 @@ ob_start();
                         </table>
                     </div>
                 </div>
-                
+
                 <div id="returnItemsSection" style="display: none;">
                     <h6>Select Items to Return</h6>
                     <div class="table-responsive">
@@ -701,7 +741,7 @@ ob_start();
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <div class="row mt-3">
                         <div class="col-md-6">
                             <label class="form-label">Refund Method</label>
@@ -742,28 +782,32 @@ ob_start();
             <div class="modal-body">
                 <ul class="nav nav-pills mb-3" id="giftCardTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="gc-check-tab" data-bs-toggle="pill" data-bs-target="#gc-check" type="button">
+                        <button class="nav-link active" id="gc-check-tab" data-bs-toggle="pill"
+                            data-bs-target="#gc-check" type="button">
                             <i class="bi bi-search"></i> Check Balance
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="gc-sell-tab" data-bs-toggle="pill" data-bs-target="#gc-sell" type="button">
+                        <button class="nav-link" id="gc-sell-tab" data-bs-toggle="pill" data-bs-target="#gc-sell"
+                            type="button">
                             <i class="bi bi-cart-plus"></i> Sell New
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="gc-redeem-tab" data-bs-toggle="pill" data-bs-target="#gc-redeem" type="button">
+                        <button class="nav-link" id="gc-redeem-tab" data-bs-toggle="pill" data-bs-target="#gc-redeem"
+                            type="button">
                             <i class="bi bi-check-circle"></i> Redeem
                         </button>
                     </li>
                 </ul>
-                
+
                 <div class="tab-content" id="giftCardTabContent">
                     <!-- Check Balance -->
                     <div class="tab-pane fade show active" id="gc-check">
                         <div class="input-group mb-3">
                             <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
-                            <input type="text" class="form-control" id="gcBalanceCode" placeholder="Enter or scan gift card code...">
+                            <input type="text" class="form-control" id="gcBalanceCode"
+                                placeholder="Enter or scan gift card code...">
                             <button class="btn btn-primary" type="button" id="checkGcBalanceBtn">Check</button>
                         </div>
                         <div id="gcBalanceResult" class="alert alert-info d-none">
@@ -773,33 +817,40 @@ ob_start();
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Sell New -->
                     <div class="tab-pane fade" id="gc-sell">
                         <div class="mb-3">
                             <label class="form-label">Gift Card Amount</label>
                             <div class="d-flex gap-2 flex-wrap mb-2">
-                                <button type="button" class="btn btn-outline-primary gc-amount-btn" data-amount="25">$25</button>
-                                <button type="button" class="btn btn-outline-primary gc-amount-btn" data-amount="50">$50</button>
-                                <button type="button" class="btn btn-outline-primary gc-amount-btn" data-amount="75">$75</button>
-                                <button type="button" class="btn btn-outline-primary gc-amount-btn" data-amount="100">$100</button>
-                                <button type="button" class="btn btn-outline-primary gc-amount-btn" data-amount="150">$150</button>
+                                <button type="button" class="btn btn-outline-primary gc-amount-btn"
+                                    data-amount="25">$25</button>
+                                <button type="button" class="btn btn-outline-primary gc-amount-btn"
+                                    data-amount="50">$50</button>
+                                <button type="button" class="btn btn-outline-primary gc-amount-btn"
+                                    data-amount="75">$75</button>
+                                <button type="button" class="btn btn-outline-primary gc-amount-btn"
+                                    data-amount="100">$100</button>
+                                <button type="button" class="btn btn-outline-primary gc-amount-btn"
+                                    data-amount="150">$150</button>
                             </div>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" id="gcCustomAmount" placeholder="Custom amount...">
+                                <input type="number" class="form-control" id="gcCustomAmount"
+                                    placeholder="Custom amount...">
                             </div>
                         </div>
                         <button class="btn btn-success w-100" id="addGcToCartBtn">
                             <i class="bi bi-cart-plus"></i> Add to Cart
                         </button>
                     </div>
-                    
+
                     <!-- Redeem -->
                     <div class="tab-pane fade" id="gc-redeem">
                         <div class="input-group mb-3">
                             <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
-                            <input type="text" class="form-control" id="gcRedeemCode" placeholder="Enter gift card code...">
+                            <input type="text" class="form-control" id="gcRedeemCode"
+                                placeholder="Enter gift card code...">
                         </div>
                         <div id="gcRedeemInfo" class="alert alert-success d-none">
                             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -810,6 +861,74 @@ ob_start();
                                 <i class="bi bi-check-circle"></i> Apply to Sale
                             </button>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Assistant Modal -->
+<div class="modal fade" id="aiAssistantModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, #ec4899, #be185d); color: white; border: none;">
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <i class="bi bi-robot fs-4"></i> Nautilus AI Assistant
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <!-- Chat Messages -->
+                <div id="aiChatMessages" class="p-3" style="height: 350px; overflow-y: auto; background: #f8fafc;">
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="ai-avatar">
+                            <i class="bi bi-robot fs-4 text-primary"></i>
+                        </div>
+                        <div class="ai-message p-3 rounded-3" style="background: white; max-width: 80%;">
+                            <p class="mb-2">Hi! I'm your AI assistant. I can help you with:</p>
+                            <ul class="mb-0 small">
+                                <li>Finding products by description</li>
+                                <li>Looking up customer information</li>
+                                <li>Checking inventory levels</li>
+                                <li>Answering diving equipment questions</li>
+                                <li>Processing complex transactions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="p-3 bg-light border-top">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button class="btn btn-sm btn-outline-primary ai-quick-btn"
+                            data-prompt="Show me low stock items">
+                            <i class="bi bi-box"></i> Low Stock
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary ai-quick-btn"
+                            data-prompt="What's our bestseller today?">
+                            <i class="bi bi-star"></i> Top Seller
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary ai-quick-btn"
+                            data-prompt="Find dive gear under $100">
+                            <i class="bi bi-search"></i> Budget Gear
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show today's schedule">
+                            <i class="bi bi-calendar"></i> Schedule
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Camera scan product">
+                            <i class="bi bi-camera"></i> Scan Item
+                        </button>
+                    </div>
+
+                    <!-- Input -->
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="aiChatInput" placeholder="Ask me anything..."
+                            style="border-radius: 50px 0 0 50px;">
+                        <button class="btn btn-primary px-4" id="aiChatSend" style="border-radius: 0 50px 50px 0;">
+                            <i class="bi bi-send"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -858,6 +977,10 @@ $additionalJs = '
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
 <script src="/assets/js/ai-image-search.js"></script>
 <script src="/assets/js/pos-course-enrollment.js"></script>
+<script src="/assets/js/pos-quick-actions.js"></script>
+<script src="/assets/js/pos-enhanced.js"></script>
+<script src="/assets/js/pos-customer-risk.js"></script>
+<script src="/assets/js/pos-shortcuts.js"></script>
 <script src="/assets/js/modern-pos.js?v=' . time() . '"></script>
 ';
 
